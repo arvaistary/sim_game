@@ -32,6 +32,7 @@ export const DEFAULT_SAVE = {
     name: "Студия",
     comfort: 35,
     furniture: [],
+    lastWeeklyBonus: null,
   },
   skills: {
     professionalism: 2,
@@ -57,6 +58,17 @@ export const DEFAULT_SAVE = {
     },
   ],
   investments: [],
+  finance: {
+    reserveFund: 18000,
+    monthlyExpenses: {
+      housing: 16000,
+      food: 9000,
+      transport: 4500,
+      leisure: 6500,
+      education: 2500,
+    },
+    lastMonthlySettlement: null,
+  },
   eventHistory: [],
   pendingEvents: [],
   lifetimeStats: {
@@ -112,6 +124,22 @@ export const RECOVERY_TABS = [
       { title: "Хорошая кровать", price: 18000, dayCost: 1, effect: "Энергия +18 • Здоровье +8 • Комфорт дома +10", mood: "Лучшее вложение в ежедневный цикл", statChanges: { energy: 18, health: 8 }, housingComfortDelta: 10, furnitureId: "good_bed" },
       { title: "Холодильник", price: 24000, dayCost: 1, effect: "Голод +12 • Комфорт дома +12", mood: "Работает каждый ход", statChanges: { hunger: 12 }, housingComfortDelta: 12, furnitureId: "refrigerator" },
       { title: "Декор и свет", price: 9500, dayCost: 1, effect: "Комфорт дома +8 • Настроение +5", mood: "Уют без лишней сложности", statChanges: { mood: 5 }, housingComfortDelta: 8, furnitureId: "decor_light" },
+      {
+        title: "Переехать в 1-комнатную квартиру",
+        price: 95000,
+        dayCost: 2,
+        effect: "Уровень жилья 2 • Комфорт до 52 • Домашние бонусы сильнее",
+        mood: "Следующий шаг к более устойчивому циклу",
+        housingUpgradeLevel: 2,
+      },
+      {
+        title: "Переехать в уютную квартиру",
+        price: 210000,
+        dayCost: 3,
+        effect: "Уровень жилья 3 • Комфорт до 72 • Больше пассивного восстановления",
+        mood: "Дорогой, но очень сильный апгрейд качества жизни",
+        housingUpgradeLevel: 3,
+      },
     ],
   },
   {
@@ -140,16 +168,16 @@ export const RECOVERY_TABS = [
       { title: "Свидание", price: 1800, dayCost: 1, effect: "Настроение +22 • Отношения +12", mood: "Для длинной эмоциональной линии", statChanges: { mood: 22, stress: -6 }, relationshipDelta: 12 },
     ],
   },
-  {
-    id: "finance",
-    label: "Финансы",
+      {
+        id: "finance",
+        label: "Финансы",
     icon: "Ф",
     accentKey: "sage",
     title: "Деньги и планирование",
-    subtitle: "Финансовые решения влияют на стабильность, риски и будущий доход.",
-    cards: [
-      { title: "Отложить в резерв", price: 5000, dayCost: 1, effect: "Стресс -10 • Настроение +6", mood: "Снижает тревожность перед расходами", statChanges: { stress: -10, mood: 6 } },
-      { title: "Открыть депозит", price: 50000, dayCost: 1, effect: "Инвестиция +4 000 • Финансовая грамотность +1", mood: "Низкий риск, спокойный рост", investmentReturn: 4000, skillChanges: { financialLiteracy: 1 } },
+        subtitle: "Финансовые решения влияют на стабильность, риски и будущий доход.",
+        cards: [
+      { title: "Отложить в резерв", price: 5000, dayCost: 1, effect: "Резерв +5 000 • Стресс -10 • Настроение +6", mood: "Снижает тревожность перед расходами", statChanges: { stress: -10, mood: 6 }, reserveDelta: 5000 },
+      { title: "Открыть депозит", price: 50000, dayCost: 1, effect: "Инвестиция +4 000 • Финансовая грамотность +1", mood: "Низкий риск, спокойный рост", investmentReturn: 4000, investmentDurationDays: 28, skillChanges: { financialLiteracy: 1 } },
       { title: "Пересмотреть бюджет", price: 0, dayCost: 1, effect: "Стресс -8 • Финансовая грамотность +1", mood: "Хорошая рутина перед крупными целями", statChanges: { stress: -8 }, skillChanges: { financialLiteracy: 1 } },
     ],
   },
@@ -192,6 +220,116 @@ export const EDUCATION_PROGRAMS = [
     completionSkillChanges: { professionalism: 2 },
     salaryMultiplierDelta: 0.05,
     educationLevel: "Высшее",
+  },
+];
+
+export const CAREER_JOBS = [
+  {
+    id: "office_employee",
+    name: "Офисный сотрудник",
+    schedule: "5/2",
+    level: 1,
+    salaryPerDay: 8400,
+    salaryPerWeek: 42000,
+    minProfessionalism: 0,
+    minEducationRank: 0,
+  },
+  {
+    id: "project_coordinator",
+    name: "Координатор проектов",
+    schedule: "5/2",
+    level: 2,
+    salaryPerDay: 9800,
+    salaryPerWeek: 49000,
+    minProfessionalism: 3,
+    minEducationRank: 0,
+  },
+  {
+    id: "business_analyst",
+    name: "Бизнес-аналитик",
+    schedule: "5/2",
+    level: 3,
+    salaryPerDay: 12800,
+    salaryPerWeek: 64000,
+    minProfessionalism: 4,
+    minEducationRank: 1,
+  },
+  {
+    id: "team_lead",
+    name: "Тимлид",
+    schedule: "5/2",
+    level: 4,
+    salaryPerDay: 15600,
+    salaryPerWeek: 78000,
+    minProfessionalism: 6,
+    minEducationRank: 1,
+  },
+];
+
+export const HOUSING_LEVELS = [
+  {
+    level: 1,
+    name: "Студия",
+    baseComfort: 35,
+    monthlyHousingCost: 16000,
+    upgradePrice: 0,
+  },
+  {
+    level: 2,
+    name: "1-комнатная квартира",
+    baseComfort: 52,
+    monthlyHousingCost: 26000,
+    upgradePrice: 95000,
+  },
+  {
+    level: 3,
+    name: "Уютная квартира",
+    baseComfort: 72,
+    monthlyHousingCost: 38000,
+    upgradePrice: 210000,
+  },
+];
+
+const FINANCE_ACTIONS = [
+  {
+    id: "reserve_transfer",
+    title: "Пополнить резерв",
+    subtitle: "Переложить часть свободных денег в финансовую подушку.",
+    amount: 10000,
+    reserveDelta: 10000,
+    dayCost: 1,
+    statChanges: { stress: -10, mood: 4 },
+    skillChanges: { financialLiteracy: 1 },
+    accentKey: "sage",
+    description: "Ликвидные деньги -10 000 ₽ • Резерв +10 000 ₽ • Стресс -10",
+  },
+  {
+    id: "open_deposit",
+    title: "Открыть вклад",
+    subtitle: "Заморозить капитал на 28 дней ради спокойного дохода.",
+    amount: 50000,
+    expectedReturn: 4000,
+    durationDays: 28,
+    dayCost: 1,
+    statChanges: { stress: -4, mood: 3 },
+    skillChanges: { financialLiteracy: 1 },
+    accentKey: "blue",
+    description: "Ликвидные деньги -50 000 ₽ • Через 28 дней можно забрать 54 000 ₽",
+  },
+  {
+    id: "budget_review",
+    title: "Пересобрать бюджет",
+    subtitle: "Чуть снизить тревогу и подправить ежемесячные траты.",
+    amount: 0,
+    dayCost: 1,
+    statChanges: { stress: -8, mood: 5 },
+    skillChanges: { financialLiteracy: 1 },
+    monthlyExpenseDelta: {
+      leisure: -1000,
+      education: 500,
+    },
+    accentKey: "accent",
+    description: "Стресс -8 • Финансовая грамотность +1 • Расходы на досуг -1 000 ₽/мес",
   },
 ];
 
@@ -319,6 +457,54 @@ const WORK_RANDOM_EVENTS = [
       },
     ],
   },
+  {
+    id: "strategy_session",
+    title: "Стратегическая сессия",
+    description: "Тебя позвали на встречу, где нужны не только руки, но и структурное мышление. Это шанс показать взрослый уровень.",
+    probability: 0.14,
+    cooldownDays: 28,
+    minClicks: 40,
+    requiresSkill: { professionalism: 4 },
+    requiresEducationRank: 1,
+    choices: [
+      {
+        label: "Вести обсуждение",
+        outcome: "Ты уверенно собрал аргументы и получил заметный плюс к доверию команды.",
+        salaryMultiplier: 0.16,
+        statChanges: { stress: 10, mood: 8 },
+      },
+      {
+        label: "Поддержать аналитикой",
+        outcome: "Ты сработал аккуратно и полезно, без лишнего давления на себя.",
+        salaryMultiplier: 0.08,
+        statChanges: { stress: 4, mood: 4 },
+      },
+    ],
+  },
+  {
+    id: "client_presentation",
+    title: "Презентация для клиента",
+    description: "Клиенту нужен понятный разбор ситуации. Здесь образование и коммуникация уже действительно влияют на исход.",
+    probability: 0.12,
+    cooldownDays: 24,
+    minClicks: 40,
+    requiresSkill: { communication: 3 },
+    requiresEducationRank: 1,
+    choices: [
+      {
+        label: "Выступить самому",
+        outcome: "Презентация вышла убедительной, и день принёс больше пользы, чем обычно.",
+        salaryMultiplier: 0.18,
+        statChanges: { mood: 10, energy: -8 },
+      },
+      {
+        label: "Собрать материалы",
+        outcome: "Ты не выходил на первый план, но обеспечил команде сильную базу.",
+        salaryMultiplier: 0.1,
+        statChanges: { stress: -2, energy: -4 },
+      },
+    ],
+  },
 ];
 
 const GLOBAL_PROGRESS_EVENTS = [
@@ -386,6 +572,46 @@ const GLOBAL_PROGRESS_EVENTS = [
   },
 ];
 
+const FINANCE_EMERGENCY_EVENTS = [
+  {
+    id: "finance_reserve_warning",
+    title: "Резерв почти закончился",
+    description: "Подушка стала слишком тонкой. Пора решить, что важнее: срочно ужаться по тратам или удержать привычный ритм.",
+    choices: [
+      {
+        label: "Жёстко урезать досуг",
+        outcome: "Ты быстро стабилизировал бюджет, но настроение просело.",
+        statChanges: { stress: -4, mood: -6 },
+        skillChanges: { financialLiteracy: 1 },
+        monthlyExpenseDelta: { leisure: -2000 },
+      },
+      {
+        label: "Оставить как есть",
+        outcome: "Комфорт сохранился, но тревога о деньгах стала сильнее.",
+        statChanges: { stress: 8, mood: -2 },
+      },
+    ],
+  },
+  {
+    id: "finance_cash_gap",
+    title: "Кассовый разрыв месяца",
+    description: "Обязательные расходы съели почти всё. Нужно быстро решать, откуда взять воздух на следующий цикл.",
+    choices: [
+      {
+        label: "Переложить из резерва",
+        outcome: "Ты закрыл дыру за счёт подушки и немного снизил давление.",
+        statChanges: { stress: -3 },
+      },
+      {
+        label: "Сократить жильё",
+        outcome: "Решение неприятное, но бюджет станет заметно легче уже со следующего месяца.",
+        statChanges: { mood: -8, stress: 4 },
+        housingLevelDelta: -1,
+      },
+    ],
+  },
+];
+
 export function loadSave() {
   const stored = window.localStorage.getItem("game-life-save");
 
@@ -419,6 +645,14 @@ export function loadSave() {
         ...DEFAULT_SAVE.education,
         ...(parsed.education ?? {}),
         activeCourses: parsed.education?.activeCourses ?? DEFAULT_SAVE.education.activeCourses,
+      },
+      finance: {
+        ...DEFAULT_SAVE.finance,
+        ...(parsed.finance ?? {}),
+        monthlyExpenses: {
+          ...DEFAULT_SAVE.finance.monthlyExpenses,
+          ...(parsed.finance?.monthlyExpenses ?? {}),
+        },
       },
       relationships: parsed.relationships ?? DEFAULT_SAVE.relationships,
       investments: parsed.investments ?? DEFAULT_SAVE.investments,
@@ -464,12 +698,31 @@ export function validateRecoveryAction(saveData, cardData) {
     return { ok: false, reason: "Этот образовательный шаг уже закрыт. Можно сосредоточиться на курсах или следующей карьерной цели." };
   }
 
+  if (cardData.housingUpgradeLevel) {
+    const currentLevel = saveData.housing?.level ?? 1;
+    if (cardData.housingUpgradeLevel <= currentLevel) {
+      return { ok: false, reason: "Этот уровень жилья уже открыт. Лучше выбрать другое улучшение дома." };
+    }
+
+    if (cardData.housingUpgradeLevel > currentLevel + 1) {
+      return { ok: false, reason: "Нельзя перепрыгнуть через уровень жилья. Сначала открой следующий доступный вариант." };
+    }
+  }
+
+  if (cardData.housingSetLevel) {
+    const currentLevel = saveData.housing?.level ?? 1;
+    if (cardData.housingSetLevel === currentLevel) {
+      return { ok: false, reason: "Этот уровень жилья уже активен." };
+    }
+  }
+
   return { ok: true };
 }
 
 export function applyRecoveryActionToSave(saveData, cardData) {
   const passive = getPassiveBonuses(saveData);
   const statChanges = { ...(cardData.statChanges ?? {}) };
+  const isAssetTransfer = Boolean(cardData.reserveDelta || cardData.investmentReturn);
 
   if (cardData.title.includes("перекус") || cardData.title.includes("обед")) {
     statChanges.hunger = Math.round((statChanges.hunger ?? 0) * passive.foodRecoveryMultiplier);
@@ -480,12 +733,34 @@ export function applyRecoveryActionToSave(saveData, cardData) {
   }
 
   saveData.money -= cardData.price;
-  saveData.totalSpent += cardData.price;
+  if (!isAssetTransfer) {
+    saveData.totalSpent += cardData.price;
+  }
   applyStatChanges(saveData.stats, statChanges);
   applySkillChanges(saveData.skills, cardData.skillChanges);
 
   if (cardData.housingComfortDelta) {
     saveData.housing.comfort = clamp(saveData.housing.comfort + cardData.housingComfortDelta);
+  }
+
+  if (cardData.housingUpgradeLevel) {
+    const housingTier = HOUSING_LEVELS.find((item) => item.level === cardData.housingUpgradeLevel);
+    if (housingTier) {
+      saveData.housing.level = housingTier.level;
+      saveData.housing.name = housingTier.name;
+      saveData.housing.comfort = Math.max(saveData.housing.comfort, housingTier.baseComfort);
+      saveData.finance.monthlyExpenses.housing = housingTier.monthlyHousingCost;
+    }
+  }
+
+  if (cardData.housingSetLevel) {
+    const housingTier = HOUSING_LEVELS.find((item) => item.level === cardData.housingSetLevel);
+    if (housingTier) {
+      saveData.housing.level = housingTier.level;
+      saveData.housing.name = housingTier.name;
+      saveData.housing.comfort = Math.min(saveData.housing.comfort, housingTier.baseComfort + 12);
+      saveData.finance.monthlyExpenses.housing = housingTier.monthlyHousingCost;
+    }
   }
 
   if (cardData.furnitureId) {
@@ -494,14 +769,17 @@ export function applyRecoveryActionToSave(saveData, cardData) {
 
   applyRelationshipDelta(saveData, cardData.relationshipDelta);
 
+  if (cardData.reserveDelta) {
+    saveData.finance.reserveFund = Math.max(0, (saveData.finance?.reserveFund ?? 0) + cardData.reserveDelta);
+  }
+
   if (cardData.investmentReturn) {
-    saveData.investments.push({
-      id: `deposit_${saveData.investments.length + 1}`,
+    openInvestment(saveData, {
       type: "deposit",
+      label: cardData.title,
       amount: cardData.price,
-      startDate: saveData.gameDays,
       expectedReturn: cardData.investmentReturn,
-      totalEarned: 0,
+      durationDays: cardData.investmentDurationDays ?? 28,
     });
   }
 
@@ -568,7 +846,9 @@ export function applyWorkOutcomeToSave(saveData, outcome, eventChoice) {
 
   advanceGameTime(saveData, 1);
 
-  return buildWorkSummary(outcome, salary, combinedStatChanges, eventChoice);
+  const careerUpdateSummary = syncCareerProgress(saveData);
+
+  return buildWorkSummary(outcome, salary, combinedStatChanges, eventChoice, careerUpdateSummary);
 }
 
 export function consumePendingEvent(saveData) {
@@ -591,6 +871,11 @@ export function applyQueuedEventChoice(saveData, queuedEvent, choiceIndex) {
   applyStatChanges(saveData.stats, choice.statChanges);
   applySkillChanges(saveData.skills, choice.skillChanges);
   applyRelationshipDelta(saveData, choice.relationshipDelta);
+  applyMonthlyExpenseDelta(saveData, choice.monthlyExpenseDelta);
+
+  if (choice.housingLevelDelta) {
+    shiftHousingLevel(saveData, choice.housingLevelDelta);
+  }
 
   recordEvent(saveData, queuedEvent.id, queuedEvent.title);
 
@@ -600,6 +885,9 @@ export function applyQueuedEventChoice(saveData, queuedEvent, choiceIndex) {
     summarizeStatChanges(choice.statChanges),
     typeof choice.moneyDelta === "number" && choice.moneyDelta !== 0
       ? `Деньги ${choice.moneyDelta > 0 ? "+" : ""}${formatMoney(choice.moneyDelta)} ₽`
+      : "",
+    choice.housingLevelDelta
+      ? `Жильё: ${saveData.housing.name}`
       : "",
   ].filter(Boolean).join("\n");
 }
@@ -618,6 +906,166 @@ export function canStartEducationProgram(saveData, program) {
   }
 
   return { ok: true };
+}
+
+export function getCareerTrack(saveData) {
+  const professionalism = saveData.skills?.professionalism ?? 0;
+  const educationRank = getEducationRank(saveData.education?.educationLevel);
+  const currentJobId = saveData.currentJob?.id;
+
+  return CAREER_JOBS.map((job) => ({
+    ...job,
+    current: currentJobId === job.id,
+    unlocked: professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank,
+    missingProfessionalism: Math.max(0, job.minProfessionalism - professionalism),
+    educationRequiredLabel: getEducationLabelByRank(job.minEducationRank),
+  }));
+}
+
+export function getFinanceOverview(saveData) {
+  const monthlyExpenses = saveData.finance?.monthlyExpenses ?? DEFAULT_SAVE.finance.monthlyExpenses;
+  const expenseLines = [
+    { id: "housing", label: "Жильё", amount: monthlyExpenses.housing ?? 0 },
+    { id: "food", label: "Еда", amount: monthlyExpenses.food ?? 0 },
+    { id: "transport", label: "Транспорт", amount: monthlyExpenses.transport ?? 0 },
+    { id: "leisure", label: "Досуг", amount: monthlyExpenses.leisure ?? 0 },
+    { id: "education", label: "Обучение", amount: monthlyExpenses.education ?? 0 },
+  ];
+  const monthlyExpensesTotal = expenseLines.reduce((sum, item) => sum + item.amount, 0);
+  const monthlyIncome = (saveData.currentJob?.salaryPerWeek ?? 0) * 4;
+  const reserveFund = saveData.finance?.reserveFund ?? 0;
+  const activeInvestments = (saveData.investments ?? []).map((investment) => {
+    const state = getInvestmentState(investment, saveData.gameDays);
+    return {
+      ...investment,
+      state,
+      maturityDay: investment.maturityDay ?? ((investment.startDate ?? 0) + (investment.durationDays ?? 28)),
+      daysLeft: Math.max(0, (investment.maturityDay ?? ((investment.startDate ?? 0) + (investment.durationDays ?? 28))) - saveData.gameDays),
+      payoutAmount: (investment.amount ?? 0) + (investment.expectedReturn ?? 0),
+    };
+  });
+  const investedTotal = activeInvestments
+    .filter((item) => item.state !== "closed")
+    .reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  const expectedReturnTotal = activeInvestments
+    .filter((item) => item.state !== "closed")
+    .reduce((sum, item) => sum + (item.expectedReturn ?? 0), 0);
+
+  return {
+    liquidMoney: saveData.money,
+    reserveFund,
+    investedTotal,
+    expectedReturnTotal,
+    monthlyIncome,
+    monthlyExpensesTotal,
+    monthlyBalance: monthlyIncome - monthlyExpensesTotal,
+    expenseLines,
+    investments: activeInvestments.filter((item) => item.state !== "closed"),
+    lastMonthlySettlement: saveData.finance?.lastMonthlySettlement ?? null,
+  };
+}
+
+export function getHousingOverview(saveData) {
+  const currentLevel = saveData.housing?.level ?? 1;
+  const currentTier = HOUSING_LEVELS.find((item) => item.level === currentLevel) ?? HOUSING_LEVELS[0];
+  const nextTier = HOUSING_LEVELS.find((item) => item.level === currentLevel + 1) ?? null;
+  const passive = getPassiveBonuses(saveData);
+  const weeklyBonus = buildWeeklyHousingBonus(saveData);
+
+  return {
+    currentTier,
+    nextTier,
+    comfort: saveData.housing?.comfort ?? currentTier.baseComfort,
+    furnitureCount: saveData.housing?.furniture?.length ?? 0,
+    passive,
+    weeklyBonus: {
+      ...weeklyBonus,
+      summary: summarizeStatChanges(weeklyBonus),
+    },
+    lastWeeklyBonus: saveData.housing?.lastWeeklyBonus ?? null,
+  };
+}
+
+export function getFinanceActions(saveData) {
+  const overview = getFinanceOverview(saveData);
+  return FINANCE_ACTIONS.map((action) => ({
+    ...action,
+    available: overview.liquidMoney >= action.amount,
+    reason: overview.liquidMoney >= action.amount ? "" : `Нужно ${formatMoney(action.amount)} ₽ свободных денег.`,
+  }));
+}
+
+export function applyFinanceActionToSave(saveData, actionId) {
+  const action = FINANCE_ACTIONS.find((item) => item.id === actionId);
+  if (!action) {
+    return "Финансовое действие не найдено.";
+  }
+
+  if (saveData.money < action.amount) {
+    return `Недостаточно свободных денег. Нужно ${formatMoney(action.amount)} ₽.`;
+  }
+
+  if (action.id === "reserve_transfer") {
+    saveData.money -= action.amount;
+    saveData.finance.reserveFund = Math.max(0, (saveData.finance?.reserveFund ?? 0) + action.reserveDelta);
+  }
+
+  if (action.id === "open_deposit") {
+    saveData.money -= action.amount;
+    openInvestment(saveData, {
+      type: "deposit",
+      label: action.title,
+      amount: action.amount,
+      expectedReturn: action.expectedReturn,
+      durationDays: action.durationDays,
+    });
+  }
+
+  if (action.id === "budget_review") {
+    Object.entries(action.monthlyExpenseDelta ?? {}).forEach(([key, value]) => {
+      const currentValue = saveData.finance.monthlyExpenses[key] ?? 0;
+      saveData.finance.monthlyExpenses[key] = Math.max(0, currentValue + value);
+    });
+  }
+
+  applyStatChanges(saveData.stats, action.statChanges);
+  applySkillChanges(saveData.skills, action.skillChanges);
+  advanceGameTime(saveData, action.dayCost ?? 1);
+
+  return [
+    `${action.title} выполнено.`,
+    action.description,
+    summarizeStatChanges(action.statChanges),
+  ].filter(Boolean).join("\n");
+}
+
+export function collectInvestmentToSave(saveData, investmentId) {
+  const investment = saveData.investments?.find((item) => item.id === investmentId);
+  if (!investment) {
+    return "Инвестиция не найдена.";
+  }
+
+  const state = getInvestmentState(investment, saveData.gameDays);
+  if (state === "closed") {
+    return "Эта инвестиция уже закрыта.";
+  }
+
+  if (state !== "matured") {
+    const maturityDay = investment.maturityDay ?? ((investment.startDate ?? 0) + (investment.durationDays ?? 28));
+    return `Пока рано. До закрытия вклада осталось ${Math.max(0, maturityDay - saveData.gameDays)} д.`;
+  }
+
+  const payoutAmount = (investment.amount ?? 0) + (investment.expectedReturn ?? 0);
+  saveData.money += payoutAmount;
+  saveData.totalEarnings += investment.expectedReturn ?? 0;
+  investment.totalEarned = (investment.totalEarned ?? 0) + (investment.expectedReturn ?? 0);
+  investment.closedAt = saveData.gameDays;
+  investment.status = "closed";
+
+  return [
+    `${investment.label ?? "Инвестиция"} закрыта.`,
+    `Возвращено ${formatMoney(payoutAmount)} ₽, из них доход ${formatMoney(investment.expectedReturn ?? 0)} ₽.`,
+  ].join("\n");
 }
 
 export function startEducationProgram(saveData, program) {
@@ -685,6 +1133,7 @@ export function advanceEducationCourseDay(saveData, courseId) {
     saveData.education.institute = "completed";
   }
 
+  const careerUpdateSummary = syncCareerProgress(saveData);
   saveData.education.activeCourses = saveData.education.activeCourses.filter((item) => item.id !== courseId);
 
   return {
@@ -692,6 +1141,7 @@ export function advanceEducationCourseDay(saveData, courseId) {
     summary: [
       `${program.title} завершён.`,
       program.rewardText,
+      careerUpdateSummary,
       "Последний учебный день тоже повлиял на ресурсы: Энергия -10 • Стресс +8 • Настроение -3",
     ].join("\n"),
   };
@@ -706,7 +1156,7 @@ function buildRecoverySummary(cardData, statChanges) {
   ].join("\n");
 }
 
-function buildWorkSummary(outcome, salary, statChanges, eventChoice) {
+function buildWorkSummary(outcome, salary, statChanges, eventChoice, careerUpdateSummary) {
   const lines = [
     `${outcome.grade}. Выплата за день: ${formatMoney(salary)} ₽.`,
     summarizeStatChanges(statChanges),
@@ -714,6 +1164,10 @@ function buildWorkSummary(outcome, salary, statChanges, eventChoice) {
 
   if (eventChoice && outcome.workEvent) {
     lines.push(`Событие: ${outcome.workEvent.title} — ${eventChoice.outcome}`);
+  }
+
+  if (careerUpdateSummary) {
+    lines.push(careerUpdateSummary);
   }
 
   return lines.filter(Boolean).join("\n");
@@ -746,6 +1200,10 @@ function pickWorkEvent(saveData, clickCount) {
       if ((saveData.skills?.[skillKey] ?? 0) < skillValue) {
         return false;
       }
+    }
+
+    if (typeof event.requiresEducationRank === "number" && getEducationRank(saveData.education?.educationLevel) < event.requiresEducationRank) {
+      return false;
     }
 
     const lastOccurrence = [...(saveData.eventHistory ?? [])]
@@ -792,15 +1250,65 @@ function applySkillChanges(skills, skillChanges = {}) {
 }
 
 function getPassiveBonuses(saveData) {
+  const comfortRatio = clamp((saveData.housing?.comfort ?? 0) / 100, 0, 1);
+  const housingLevel = saveData.housing?.level ?? 1;
+
   return {
-    foodRecoveryMultiplier: hasFurniture(saveData, "refrigerator") ? 1.25 : 1,
-    workEnergyMultiplier: hasFurniture(saveData, "good_bed") ? 0.88 : 1,
-    homeMoodBonus: hasFurniture(saveData, "decor_light") ? 6 : 0,
+    foodRecoveryMultiplier: (hasFurniture(saveData, "refrigerator") ? 1.2 : 1) + comfortRatio * 0.08,
+    workEnergyMultiplier: Math.max(0.78, (hasFurniture(saveData, "good_bed") ? 0.9 : 1) - comfortRatio * 0.08 - (housingLevel - 1) * 0.02),
+    homeMoodBonus: (hasFurniture(saveData, "decor_light") ? 6 : 0) + Math.round(comfortRatio * 4) + (housingLevel - 1) * 2,
   };
 }
 
 function hasFurniture(saveData, furnitureId) {
   return Boolean(saveData.housing?.furniture?.some((item) => item.id === furnitureId));
+}
+
+function openInvestment(saveData, config) {
+  const durationDays = config.durationDays ?? 28;
+  saveData.investments.push({
+    id: `${config.type}_${saveData.investments.length + 1}`,
+    type: config.type,
+    label: config.label,
+    amount: config.amount,
+    startDate: saveData.gameDays,
+    durationDays,
+    maturityDay: saveData.gameDays + durationDays,
+    expectedReturn: config.expectedReturn ?? 0,
+    totalEarned: 0,
+    status: "active",
+  });
+}
+
+function getInvestmentState(investment, currentDay) {
+  if (investment.status === "closed") {
+    return "closed";
+  }
+
+  const maturityDay = investment.maturityDay ?? ((investment.startDate ?? 0) + (investment.durationDays ?? 28));
+  if (currentDay >= maturityDay) {
+    return "matured";
+  }
+
+  return "active";
+}
+
+function applyMonthlyExpenseDelta(saveData, expenseDelta = {}) {
+  Object.entries(expenseDelta ?? {}).forEach(([key, value]) => {
+    const currentValue = saveData.finance.monthlyExpenses[key] ?? 0;
+    saveData.finance.monthlyExpenses[key] = Math.max(0, currentValue + value);
+  });
+}
+
+function shiftHousingLevel(saveData, delta) {
+  const currentLevel = saveData.housing?.level ?? 1;
+  const nextLevel = currentLevel + delta;
+  const clampedLevel = Math.max(1, Math.min(HOUSING_LEVELS.length, nextLevel));
+  const tier = HOUSING_LEVELS.find((item) => item.level === clampedLevel) ?? HOUSING_LEVELS[0];
+  saveData.housing.level = tier.level;
+  saveData.housing.name = tier.name;
+  saveData.housing.comfort = Math.max(tier.baseComfort, Math.min(saveData.housing.comfort, tier.baseComfort + 18));
+  saveData.finance.monthlyExpenses.housing = tier.monthlyHousingCost;
 }
 
 function applyRelationshipDelta(saveData, relationshipDelta) {
@@ -817,8 +1325,82 @@ function applyRelationshipDelta(saveData, relationshipDelta) {
   firstRelationship.lastContact = saveData.gameDays;
 }
 
+function buildWeeklyHousingBonus(saveData) {
+  const comfortRatio = clamp((saveData.housing?.comfort ?? 0) / 100, 0, 1);
+  const housingLevel = saveData.housing?.level ?? 1;
+  const passive = getPassiveBonuses(saveData);
+
+  return {
+    energy: Math.round(2 + comfortRatio * 5 + (housingLevel - 1) * 2),
+    mood: Math.round(2 + passive.homeMoodBonus * 0.4),
+    stress: -Math.round(1 + comfortRatio * 3 + (housingLevel - 1)),
+    health: hasFurniture(saveData, "good_bed") ? 2 : 1,
+  };
+}
+
+function applyWeeklyHousingPassive(saveData, weekNumber) {
+  const weeklyBonus = buildWeeklyHousingBonus(saveData);
+  applyStatChanges(saveData.stats, weeklyBonus);
+  saveData.housing.lastWeeklyBonus = {
+    week: weekNumber,
+    summary: summarizeStatChanges(weeklyBonus),
+  };
+}
+
+function applyMonthlyFinanceSettlement(saveData, monthNumber) {
+  const monthlyExpenses = saveData.finance?.monthlyExpenses ?? DEFAULT_SAVE.finance.monthlyExpenses;
+  const monthlyTotal = Object.values(monthlyExpenses).reduce((sum, value) => sum + value, 0);
+  const liquidPaid = Math.min(saveData.money, monthlyTotal);
+  saveData.money -= liquidPaid;
+
+  const remaining = monthlyTotal - liquidPaid;
+  const reservePaid = Math.min(saveData.finance.reserveFund ?? 0, remaining);
+  saveData.finance.reserveFund = Math.max(0, (saveData.finance.reserveFund ?? 0) - reservePaid);
+
+  const shortage = Math.max(0, remaining - reservePaid);
+  saveData.totalSpent += monthlyTotal - shortage;
+
+  if (shortage > 0) {
+    applyStatChanges(saveData.stats, {
+      stress: Math.min(18, 8 + Math.round(shortage / 10000)),
+      mood: -Math.min(16, 6 + Math.round(shortage / 12000)),
+      health: -Math.min(10, 3 + Math.round(shortage / 18000)),
+    });
+  } else if (reservePaid > 0) {
+    applyStatChanges(saveData.stats, {
+      stress: -3,
+      mood: 2,
+    });
+  }
+
+  saveData.finance.lastMonthlySettlement = {
+    month: monthNumber,
+    totalCharged: monthlyTotal,
+    liquidPaid,
+    reservePaid,
+    shortage,
+    liquidAfter: saveData.money,
+    reserveAfter: saveData.finance.reserveFund,
+  };
+
+  if (shortage > 0) {
+    const cashGapEvent = clone(FINANCE_EMERGENCY_EVENTS.find((item) => item.id === "finance_cash_gap"));
+    queuePendingEvent(saveData, {
+      ...cashGapEvent,
+      instanceId: `${cashGapEvent.id}_${monthNumber}`,
+    });
+  } else if ((saveData.finance.reserveFund ?? 0) < monthlyTotal * 0.35) {
+    const reserveWarningEvent = clone(FINANCE_EMERGENCY_EVENTS.find((item) => item.id === "finance_reserve_warning"));
+    queuePendingEvent(saveData, {
+      ...reserveWarningEvent,
+      instanceId: `${reserveWarningEvent.id}_${monthNumber}`,
+    });
+  }
+}
+
 function advanceGameTime(saveData, days = 1) {
   const previousWeek = saveData.gameWeeks;
+  const previousMonth = saveData.gameMonths;
   const previousAge = saveData.currentAge;
 
   saveData.gameDays += days;
@@ -826,6 +1408,18 @@ function advanceGameTime(saveData, days = 1) {
   saveData.gameMonths = Math.max(1, Math.floor(saveData.gameDays / 30));
   saveData.gameYears = Number((saveData.gameDays / 360).toFixed(1));
   saveData.currentAge = saveData.startAge + Math.floor(saveData.gameDays / 360);
+
+  if (saveData.gameWeeks > previousWeek) {
+    for (let week = previousWeek + 1; week <= saveData.gameWeeks; week += 1) {
+      applyWeeklyHousingPassive(saveData, week);
+    }
+  }
+
+  if (saveData.gameMonths > previousMonth) {
+    for (let month = previousMonth + 1; month <= saveData.gameMonths; month += 1) {
+      applyMonthlyFinanceSettlement(saveData, month);
+    }
+  }
 
   enqueueProgressEvents(saveData, previousWeek, previousAge);
 }
@@ -868,4 +1462,46 @@ function recordEvent(saveData, eventId, title) {
     title,
   });
   saveData.lifetimeStats.totalEvents = (saveData.lifetimeStats.totalEvents ?? 0) + 1;
+}
+
+function syncCareerProgress(saveData) {
+  const professionalism = saveData.skills?.professionalism ?? 0;
+  const educationRank = getEducationRank(saveData.education?.educationLevel);
+  const currentLevel = saveData.currentJob?.level ?? 1;
+
+  const unlockedJob = CAREER_JOBS
+    .filter((job) => professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank)
+    .at(-1);
+
+  if (!unlockedJob || unlockedJob.level <= currentLevel) {
+    return "";
+  }
+
+  saveData.currentJob = {
+    ...saveData.currentJob,
+    ...unlockedJob,
+    daysAtWork: saveData.currentJob.daysAtWork ?? 0,
+  };
+
+  return `Карьерный рост: новая должность «${unlockedJob.name}», ставка ${formatMoney(unlockedJob.salaryPerDay)} ₽ в день.`;
+}
+
+function getEducationRank(level) {
+  const map = {
+    "Среднее": 0,
+    "Высшее": 1,
+    MBA: 2,
+  };
+
+  return map[level] ?? 0;
+}
+
+function getEducationLabelByRank(rank) {
+  const map = {
+    0: "Среднее",
+    1: "Высшее",
+    2: "MBA",
+  };
+
+  return map[rank] ?? "Среднее";
 }

@@ -1,13 +1,19 @@
 import Phaser from "phaser";
 import "./style.css";
 import {
+  applyFinanceActionToSave,
   applyQueuedEventChoice,
   applyRecoveryActionToSave,
   applyWorkOutcomeToSave,
   advanceEducationCourseDay,
   buildWorkOutcome,
   canStartEducationProgram,
+  collectInvestmentToSave,
   consumePendingEvent,
+  getFinanceActions,
+  getFinanceOverview,
+  getCareerTrack,
+  getHousingOverview,
   EDUCATION_PROGRAMS,
   formatMoney,
   loadSave,
@@ -139,12 +145,19 @@ class MainGameScene extends Phaser.Scene {
     this.moneyText = this.add.text(0, 0, "", textStyle(26, COLORS.text, "700"));
     this.timeText = this.add.text(0, 0, "", textStyle(16, COLORS.text, "500"));
     this.comfortText = this.add.text(0, 0, "", textStyle(16, COLORS.text, "500"));
+    this.careerButton = createRoundedButton(this, {
+      label: "Карьера",
+      onClick: () => this.scene.start("CareerScene"),
+      fillColor: COLORS.neutral,
+      fontSize: 14,
+    });
     this.root.add([
       this.playerNameText,
       this.jobText,
       this.moneyText,
       this.timeText,
       this.comfortText,
+      this.careerButton,
     ]);
 
     this.character = this.createCharacterBlock();
@@ -238,11 +251,33 @@ class MainGameScene extends Phaser.Scene {
       hit.on("pointerover", () => this.tweens.add({ targets: container, y: container.y - 4, duration: 180 }));
       hit.on("pointerout", () => this.tweens.add({ targets: container, y: container.baseY, duration: 180 }));
       hit.on("pointerup", () => {
+        if (item.id === "education") {
+          this.scene.start("EducationScene");
+          return;
+        }
+
+        if (item.id === "finance") {
+          this.scene.start("FinanceScene");
+          return;
+        }
+
         if (item.id === "home") {
-          this.showNotificationModal(
-            "Главный экран",
-            "Ты уже на основном экране. Отсюда можно запустить рабочий период или перейти в фазу восстановления через нижнюю навигацию.",
-          );
+          this.scene.start("HomeScene");
+          return;
+        }
+
+        if (item.id === "shop") {
+          this.scene.start("ShopScene");
+          return;
+        }
+
+        if (item.id === "social") {
+          this.scene.start("SocialScene");
+          return;
+        }
+
+        if (item.id === "fun") {
+          this.scene.start("FunScene");
           return;
         }
 
@@ -325,6 +360,7 @@ class MainGameScene extends Phaser.Scene {
       this.navCard,
       this.character.container,
       this.actionButton,
+      this.careerButton,
     ];
 
     animated.forEach((item, index) => {
@@ -387,6 +423,8 @@ class MainGameScene extends Phaser.Scene {
     this.moneyText.setPosition(x + width - 28, y + 28).setOrigin(1, 0);
     this.timeText.setPosition(x + width - 28, y + 64).setOrigin(1, 0);
     this.comfortText.setPosition(x + width - 28, y + 86).setOrigin(1, 0);
+    this.careerButton.resize(112, 36);
+    this.careerButton.setPosition(x + width - 84, y + height - 24);
   }
 
   layoutDesktop(x, y, leftWidth, rightWidth, contentHeight) {
@@ -492,6 +530,7 @@ class RecoveryScene extends Phaser.Scene {
 
     this.tabRow = this.add.container(0, 0);
     this.contentGroup = this.add.container(0, 0);
+    this.contentScroll = createVerticalScrollController(this, this.contentGroup);
     this.footerButton = this.createFooterButton();
     this.actionModal = createEventModal(this, {
       width: 360,
@@ -632,6 +671,7 @@ class RecoveryScene extends Phaser.Scene {
     const activeTab = RECOVERY_TABS.find((tab) => tab.id === this.activeTabId) ?? RECOVERY_TABS[0];
     this.cards.forEach((card) => card.destroy());
     this.cards = [];
+    this.contentScroll.reset();
 
     this.subtitleText.setText(activeTab.subtitle);
     this.contentTitle.setText(activeTab.title);
@@ -656,8 +696,8 @@ class RecoveryScene extends Phaser.Scene {
       const card = this.createActionCard(cardData, activeTab, index);
       const row = Math.floor(index / metrics.columns);
       const column = index % metrics.columns;
-      const x = metrics.x + column * (metrics.cardWidth + metrics.gap);
-      const y = metrics.y + row * (metrics.cardHeight + metrics.gap);
+      const x = column * (metrics.cardWidth + metrics.gap);
+      const y = row * (metrics.cardHeight + metrics.gap);
       card.setPosition(x, y);
       this.contentGroup.add(card);
       this.cards.push(card);
@@ -675,6 +715,10 @@ class RecoveryScene extends Phaser.Scene {
         });
       }
     });
+
+    const rows = Math.ceil(activeTab.cards.length / metrics.columns);
+    const totalHeight = rows * metrics.cardHeight + Math.max(0, rows - 1) * metrics.gap;
+    this.contentScroll.setContentHeight(totalHeight);
   }
 
   showActionModal(cardData, tab) {
@@ -855,18 +899,19 @@ class RecoveryScene extends Phaser.Scene {
     const innerX = x + 20;
     const innerY = y + 62;
     const innerWidth = width - 40;
+    const innerHeight = height - 80;
     const columns = isMobile ? 1 : 2;
     const gap = 18;
     const cardWidth = columns === 1 ? innerWidth : (innerWidth - gap) / 2;
     const cardHeight = isMobile ? 176 : 188;
 
+    this.contentScroll.resize(innerX, innerY, innerWidth, innerHeight);
     this.contentMetrics = {
-      x: innerX,
-      y: innerY,
       gap,
       columns,
       cardWidth,
       cardHeight,
+      viewportHeight: innerHeight,
     };
   }
 
@@ -898,6 +943,357 @@ class RecoveryScene extends Phaser.Scene {
         ease: "Cubic.easeOut",
       });
     });
+  }
+}
+
+class RecoveryCategoryScene extends Phaser.Scene {
+  constructor(sceneKey, tabId, sceneTitle, sceneSubtitle) {
+    super(sceneKey);
+    this.tabId = tabId;
+    this.sceneTitleValue = sceneTitle;
+    this.sceneSubtitleValue = sceneSubtitle;
+    this.cards = [];
+  }
+
+  create() {
+    this.saveData = this.registry.get("saveData") ?? loadSave();
+    this.tab = RECOVERY_TABS.find((item) => item.id === this.tabId);
+    this.cameras.main.setBackgroundColor(COLORS.background);
+
+    this.background = this.add.graphics();
+    this.root = this.add.container(0, 0);
+
+    this.headerCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.summaryCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.contentCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.footerCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.root.add([this.headerCard, this.summaryCard, this.contentCard, this.footerCard]);
+
+    this.titleText = this.add.text(0, 0, this.sceneTitleValue, textStyle(30, COLORS.text, "700"));
+    this.subtitleText = this.add.text(0, 0, this.sceneSubtitleValue, {
+      ...textStyle(15, COLORS.text, "500"),
+      wordWrap: { width: 440 },
+    });
+    this.moneyText = this.add.text(0, 0, "", textStyle(26, COLORS.text, "700"));
+    this.summaryText = this.add.text(0, 0, "", {
+      ...textStyle(14, COLORS.text, "600"),
+      wordWrap: { width: 420 },
+    });
+    this.metaText = this.add.text(0, 0, "", {
+      ...textStyle(14, COLORS.text, "500"),
+      wordWrap: { width: 420 },
+    });
+    this.contentTitle = this.add.text(0, 0, this.tab?.title ?? "", textStyle(20, COLORS.text, "700"));
+    this.root.add([this.titleText, this.subtitleText, this.moneyText, this.summaryText, this.metaText, this.contentTitle]);
+
+    this.contentGroup = this.add.container(0, 0);
+    this.contentScroll = createVerticalScrollController(this, this.contentGroup);
+    this.root.add(this.contentGroup);
+
+    this.actionModal = createEventModal(this, {
+      width: 380,
+      height: 430,
+      primaryLabel: "Применить",
+      secondaryLabel: "Отмена",
+    });
+    this.feedbackModal = createNotificationModal(this, {
+      primaryLabel: "Понятно",
+      secondaryLabel: "Закрыть",
+    });
+    this.root.add([this.actionModal, this.feedbackModal]);
+
+    this.backButton = createRoundedButton(this, {
+      label: "Назад на главный экран",
+      fillColor: COLORS.neutral,
+      fontSize: 16,
+      onClick: () => this.scene.start("MainGameScene"),
+    });
+    this.root.add(this.backButton);
+
+    this.scale.on("resize", this.handleResize, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off("resize", this.handleResize, this);
+    });
+
+    this.refreshCategoryView();
+    this.handleResize(this.scale.gameSize);
+    this.animateCategoryIntro();
+    ensureEventQueue(this, 520);
+  }
+
+  refreshCategoryView() {
+    this.saveData = this.registry.get("saveData") ?? this.saveData;
+    this.tab = RECOVERY_TABS.find((item) => item.id === this.tabId);
+    this.moneyText.setText(`${formatMoney(this.saveData.money)} ₽`);
+    const summary = this.getSummaryLines();
+    this.summaryText.setText(summary.summary);
+    this.metaText.setText(summary.meta);
+    this.buildCards();
+  }
+
+  getSummaryLines() {
+    if (this.tabId === "home") {
+      const housingOverview = getHousingOverview(this.saveData);
+      return {
+        summary: `Жильё: ${housingOverview.currentTier.name} • комфорт ${housingOverview.comfort}% • еженедельный бонус: ${housingOverview.weeklyBonus.summary}`,
+        meta: housingOverview.nextTier
+          ? `Следующий уровень: ${housingOverview.nextTier.name} • апгрейд усиливает пассивное восстановление и меняет ежемесячную стоимость жилья.`
+          : `Максимальный уровень жилья открыт. Куплено улучшений: ${housingOverview.furnitureCount}.`,
+      };
+    }
+
+    if (this.tabId === "shop") {
+      return {
+        summary: `Свободные деньги: ${formatMoney(this.saveData.money)} ₽ • Быстрые покупки закрывают голод и бытовые провалы.`,
+        meta: `Лучше всего покупать еду и базовые вещи перед тяжёлой рабочей неделей.`,
+      };
+    }
+
+    if (this.tabId === "social") {
+      const relationship = this.saveData.relationships?.[0];
+      return {
+        summary: relationship
+          ? `${relationship.name}: уровень связи ${relationship.level}% • Последний контакт: день ${relationship.lastContact}`
+          : "Пока активных отношений нет.",
+        meta: "Социальные действия снижают стресс и дают мягкие долгосрочные бонусы к состоянию.",
+      };
+    }
+
+    return {
+      summary: this.tab?.subtitle ?? "",
+      meta: "",
+    };
+  }
+
+  buildCards() {
+    this.contentGroup.removeAll(true);
+    this.cards = [];
+    this.contentScroll.reset();
+
+    const cards = this.getSceneCards();
+    cards.forEach((cardData, index) => {
+      const card = this.createActionCard(cardData, index);
+      this.contentGroup.add(card);
+      this.cards.push(card);
+    });
+  }
+
+  getSceneCards() {
+    return this.tab?.cards ?? [];
+  }
+
+  createActionCard(cardData, index) {
+    const container = this.add.container(0, 0);
+    const shadow = this.add.graphics();
+    const body = this.add.graphics();
+    const chip = this.add.graphics();
+    const title = this.add.text(0, 0, cardData.title, textStyle(19, COLORS.text, "700"));
+    const effect = this.add.text(0, 0, cardData.effect, {
+      ...textStyle(14, COLORS.text, "600"),
+      wordWrap: { width: 280 },
+    });
+    const mood = this.add.text(0, 0, cardData.mood, {
+      ...textStyle(13, COLORS.text, "500"),
+      wordWrap: { width: 280 },
+    });
+    const badge = this.add.text(0, 0, String(index + 1), textStyle(12, COLORS.text, "700")).setOrigin(0.5);
+
+    const button = createRoundedButton(this, {
+      label: "Выбрать",
+      fillColor: COLORS[this.tab.accentKey],
+      fontSize: 14,
+      onClick: () => this.showActionModal(cardData),
+    });
+
+    container.shadow = shadow;
+    container.body = body;
+    container.chip = chip;
+    container.titleText = title;
+    container.effectText = effect;
+    container.moodText = mood;
+    container.badgeText = badge;
+    container.button = button;
+    container.cardData = cardData;
+    container.add([shadow, body, chip, title, effect, mood, badge, button]);
+    return container;
+  }
+
+  showActionModal(cardData) {
+    const availability = validateRecoveryAction(this.saveData, cardData);
+    if (!availability.ok) {
+      this.feedbackModal.show({
+        title: cardData.title,
+        description: availability.reason,
+        accentColor: COLORS[this.tab.accentKey],
+      });
+      return;
+    }
+
+    this.actionModal.show({
+      title: cardData.title,
+      description: `${cardData.effect}\n\n${cardData.mood}\n\nСтоимость: ${formatMoney(cardData.price)} ₽ • Время: ${cardData.dayCost} д.`,
+      accentColor: COLORS[this.tab.accentKey],
+      primaryLabel: "Применить",
+      secondaryLabel: "Отмена",
+      onPrimary: () => this.applyCategoryAction(cardData),
+    });
+  }
+
+  applyCategoryAction(cardData) {
+    const summary = applyRecoveryActionToSave(this.saveData, cardData);
+    persistSave(this, this.saveData);
+    this.actionModal.hide();
+    this.refreshCategoryView();
+    this.handleResize(this.scale.gameSize);
+    this.feedbackModal.show({
+      title: `${cardData.title} выполнено`,
+      description: summary,
+      accentColor: COLORS[this.tab.accentKey],
+    });
+  }
+
+  handleResize(gameSize) {
+    const width = gameSize.width;
+    const height = gameSize.height;
+    const safeX = Math.max(20, width * 0.04);
+    const safeY = Math.max(20, height * 0.035);
+    const contentWidth = width - safeX * 2;
+    const headerHeight = 122;
+    const summaryHeight = 108;
+    const footerHeight = 86;
+    const contentY = safeY + headerHeight + summaryHeight + 28;
+    const contentHeight = height - contentY - footerHeight - safeY - 14;
+
+    this.drawCategoryBackground(width, height);
+    this.headerCard.resize(safeX, safeY, contentWidth, headerHeight);
+    this.summaryCard.resize(safeX, safeY + headerHeight + 14, contentWidth, summaryHeight);
+    this.contentCard.resize(safeX, contentY, contentWidth, contentHeight);
+    this.footerCard.resize(safeX, height - safeY - footerHeight, contentWidth, footerHeight);
+
+    this.titleText.setPosition(safeX + 22, safeY + 20);
+    this.subtitleText.setPosition(safeX + 22, safeY + 60).setWordWrapWidth(contentWidth - 44);
+
+    this.moneyText.setPosition(safeX + 22, safeY + headerHeight + 24);
+    this.summaryText.setPosition(safeX + 22, safeY + headerHeight + 58).setWordWrapWidth(contentWidth - 44);
+    this.metaText.setPosition(safeX + 22, safeY + headerHeight + 82).setWordWrapWidth(contentWidth - 44);
+
+    this.contentTitle.setPosition(safeX + 22, contentY + 18);
+    this.backButton.resize(Math.min(320, contentWidth - 28), 54);
+    this.backButton.setPosition(safeX + contentWidth / 2, height - safeY - footerHeight / 2);
+
+    const innerX = safeX + 20;
+    const innerY = contentY + 56;
+    const innerWidth = contentWidth - 40;
+    const innerHeight = contentHeight - 74;
+    const isMobile = width < 900;
+    const columns = isMobile ? 1 : 2;
+    const gap = 18;
+    const cardWidth = columns === 1 ? innerWidth : (innerWidth - gap) / 2;
+    const cardHeight = isMobile ? 212 : 198;
+
+    this.contentScroll.resize(innerX, innerY, innerWidth, innerHeight);
+    this.cards.forEach((card, index) => {
+      const row = Math.floor(index / columns);
+      const column = index % columns;
+      card.setPosition(column * (cardWidth + gap), row * (cardHeight + gap));
+      this.layoutCategoryCard(card, cardWidth, cardHeight);
+    });
+
+    const totalHeight = Math.ceil(this.cards.length / columns) * (cardHeight + gap);
+    this.contentScroll.setContentHeight(totalHeight);
+    this.actionModal.resize(this.scale.gameSize);
+    this.feedbackModal.resize(this.scale.gameSize);
+  }
+
+  layoutCategoryCard(card, width, height) {
+    card.shadow.clear();
+    card.shadow.fillStyle(COLORS.shadow, 0.16);
+    card.shadow.fillRoundedRect(8, 10, width, height, 18);
+    card.body.clear();
+    card.body.fillStyle(COLORS.white, 1);
+    card.body.lineStyle(1, COLORS.line, 1);
+    card.body.fillRoundedRect(0, 0, width, height, 18);
+    card.body.strokeRoundedRect(0, 0, width, height, 18);
+    card.chip.clear();
+    card.chip.fillStyle(COLORS[this.tab.accentKey], 0.2);
+    card.chip.fillRoundedRect(18, 18, 116, 28, 14);
+    card.titleText.setPosition(18, 56).setWordWrapWidth(width - 36);
+    card.effectText.setPosition(18, 96).setWordWrapWidth(width - 36);
+    card.moodText.setPosition(18, height - 64).setWordWrapWidth(width - 154);
+    card.badgeText.setPosition(width - 32, 30);
+    card.button.resize(Math.min(122, width - 36), 42, COLORS[this.tab.accentKey]);
+    card.button.setPosition(width - 82, height - 30);
+  }
+
+  drawCategoryBackground(width, height) {
+    this.background.clear();
+    this.background.fillStyle(COLORS[this.tab.accentKey], 0.1);
+    this.background.fillCircle(width * 0.84, height * 0.14, Math.min(width, height) * 0.14);
+    this.background.fillStyle(COLORS.blue, 0.07);
+    this.background.fillCircle(width * 0.12, height * 0.82, Math.min(width, height) * 0.16);
+    this.background.fillStyle(COLORS.sage, 0.07);
+    this.background.fillEllipse(width * 0.52, height * 0.94, width * 0.74, height * 0.18);
+  }
+
+  animateCategoryIntro() {
+    [this.headerCard, this.summaryCard, this.contentCard, this.footerCard].forEach((item, index) => {
+      item.setAlpha(0);
+      item.y += 16;
+      this.tweens.add({
+        targets: item,
+        alpha: 1,
+        y: item.y - 16,
+        duration: 360,
+        delay: index * 60,
+        ease: "Cubic.easeOut",
+      });
+    });
+  }
+
+  onExternalStateChange() {
+    this.refreshCategoryView();
+    this.handleResize(this.scale.gameSize);
+  }
+}
+
+class HomeScene extends RecoveryCategoryScene {
+  constructor() {
+    super("HomeScene", "home", "Дом и уют", "Улучшения жилья и домашний комфорт влияют на эффективность восстановления и качество жизни.");
+  }
+
+  getSceneCards() {
+    const cards = [...super.getSceneCards()];
+    const currentLevel = this.saveData?.housing?.level ?? 1;
+    if (currentLevel > 1) {
+      const nextLowerLevel = currentLevel - 1;
+      cards.push({
+        title: "Сменить жильё на вариант проще",
+        price: 0,
+        dayCost: 2,
+        effect: `Переезд на уровень ${nextLowerLevel} • Ежемесячная аренда ниже • Комфорт немного снижается`,
+        mood: "Осознанный шаг, если хочется разгрузить ежемесячные расходы",
+        housingSetLevel: nextLowerLevel,
+      });
+    }
+    return cards;
+  }
+}
+
+class ShopScene extends RecoveryCategoryScene {
+  constructor() {
+    super("ShopScene", "shop", "Магазин", "Быстрые покупки закрывают базовые потребности и помогают не провалить следующий рабочий цикл.");
+  }
+}
+
+class SocialScene extends RecoveryCategoryScene {
+  constructor() {
+    super("SocialScene", "social", "Социальная жизнь", "Контакты и встречи поддерживают настроение, уменьшают стресс и делают цикл устойчивее.");
+  }
+}
+
+class FunScene extends RecoveryCategoryScene {
+  constructor() {
+    super("FunScene", "fun", "Развлечения и отдых", "Экран для мягкого восстановления после рабочих дней: отдых, прогулки и забота о теле без перегруза интерфейса.");
   }
 }
 
@@ -1378,6 +1774,7 @@ class EducationScene extends Phaser.Scene {
     this.root.add(this.progressGroup);
 
     this.programsGroup = this.add.container(0, 0);
+    this.programsScroll = createVerticalScrollController(this, this.programsGroup);
     this.root.add(this.programsGroup);
 
     this.backButton = createRoundedButton(this, {
@@ -1573,6 +1970,7 @@ class EducationScene extends Phaser.Scene {
       card.body.setAlpha(isSelected ? 1 : 0.96);
     });
 
+    this.programsScroll.reset();
     this.handleResize(this.scale.gameSize);
   }
 
@@ -1643,12 +2041,17 @@ class EducationScene extends Phaser.Scene {
     const columns = isMobile ? 1 : 2;
     const cardWidth = columns === 1 ? width - 36 : (width - 36 - gap) / 2;
     const cardHeight = 176;
+    const rows = Math.ceil(this.programCards.length / columns);
+    const totalHeight = rows * cardHeight + Math.max(0, rows - 1) * gap;
+
+    this.programsScroll.resize(innerX, innerY, width - 36, height - 36);
+    this.programsScroll.setContentHeight(totalHeight);
 
     this.programCards.forEach((card, index) => {
       const row = Math.floor(index / columns);
       const col = index % columns;
-      const cardX = innerX + col * (cardWidth + gap);
-      const cardY = innerY + row * (cardHeight + gap);
+      const cardX = col * (cardWidth + gap);
+      const cardY = row * (cardHeight + gap);
       card.setPosition(cardX, cardY);
       this.layoutProgramCard(card, cardWidth, cardHeight);
     });
@@ -1701,6 +2104,614 @@ class EducationScene extends Phaser.Scene {
   onExternalStateChange() {
     this.saveData = this.registry.get("saveData") ?? this.saveData;
     this.refreshEducationView();
+  }
+}
+
+class CareerScene extends Phaser.Scene {
+  constructor() {
+    super("CareerScene");
+    this.jobCards = [];
+  }
+
+  create() {
+    this.saveData = this.registry.get("saveData") ?? loadSave();
+    this.careerTrack = getCareerTrack(this.saveData);
+
+    this.background = this.add.graphics();
+    this.root = this.add.container(0, 0);
+    this.headerCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.currentCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.listCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.footerCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.root.add([this.headerCard, this.currentCard, this.listCard, this.footerCard]);
+
+    this.titleText = this.add.text(0, 0, "Карьера и рост", textStyle(30, COLORS.text, "700"));
+    this.subtitleText = this.add.text(0, 0, "Экран показывает текущую работу, доступные роли и требования по навыкам и образованию.", {
+      ...textStyle(15, COLORS.text, "500"),
+      wordWrap: { width: 420 },
+    });
+    this.root.add([this.titleText, this.subtitleText]);
+
+    this.currentJobTitle = this.add.text(0, 0, "", textStyle(24, COLORS.text, "700"));
+    this.currentJobMeta = this.add.text(0, 0, "", { ...textStyle(15, COLORS.text, "500"), wordWrap: { width: 420 } });
+    this.currentJobStats = this.add.text(0, 0, "", { ...textStyle(14, COLORS.text, "600"), wordWrap: { width: 420 } });
+    this.root.add([this.currentJobTitle, this.currentJobMeta, this.currentJobStats]);
+
+    this.jobsGroup = this.add.container(0, 0);
+    this.jobsScroll = createVerticalScrollController(this, this.jobsGroup);
+    this.root.add(this.jobsGroup);
+
+    this.backButton = createRoundedButton(this, {
+      label: "Назад на главный экран",
+      fillColor: COLORS.neutral,
+      fontSize: 16,
+      onClick: () => this.scene.start("MainGameScene"),
+    });
+    this.root.add(this.backButton);
+
+    this.buildCareerCards();
+    this.scale.on("resize", this.handleResize, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off("resize", this.handleResize, this);
+    });
+
+    this.handleResize(this.scale.gameSize);
+    this.refreshCareerView();
+    this.animateCareerIntro();
+    ensureEventQueue(this, 520);
+  }
+
+  buildCareerCards() {
+    this.jobCards.forEach((card) => card.destroy());
+    this.jobCards = [];
+    this.jobsGroup.removeAll(true);
+
+    this.careerTrack.forEach((job) => {
+      const card = this.createCareerCard(job);
+      this.jobCards.push(card);
+      this.jobsGroup.add(card);
+    });
+  }
+
+  createCareerCard(job) {
+    const container = this.add.container(0, 0);
+    const shadow = this.add.graphics();
+    const body = this.add.graphics();
+    const badge = this.add.graphics();
+    const title = this.add.text(0, 0, job.name, textStyle(20, COLORS.text, "700"));
+    const meta = this.add.text(0, 0, "", { ...textStyle(14, COLORS.text, "500"), wordWrap: { width: 440 } });
+    const status = this.add.text(0, 0, "", { ...textStyle(13, COLORS.text, "700"), wordWrap: { width: 200 } });
+    container.shadow = shadow;
+    container.body = body;
+    container.badge = badge;
+    container.titleText = title;
+    container.metaText = meta;
+    container.statusText = status;
+    container.job = job;
+    container.add([shadow, body, badge, title, meta, status]);
+    return container;
+  }
+
+  refreshCareerView() {
+    this.saveData = this.registry.get("saveData") ?? this.saveData;
+    this.careerTrack = getCareerTrack(this.saveData);
+
+    this.currentJobTitle.setText(this.saveData.currentJob.name);
+    this.currentJobMeta.setText(`Текущая ставка: ${formatMoney(this.saveData.currentJob.salaryPerDay)} ₽ в день • график ${this.saveData.currentJob.schedule}`);
+    this.currentJobStats.setText(`Профессионализм ${this.saveData.skills.professionalism} • Образование ${this.saveData.education.educationLevel} • Дней на работе ${this.saveData.currentJob.daysAtWork}`);
+
+    this.jobCards.forEach((card, index) => {
+      const job = this.careerTrack[index];
+      card.job = job;
+      const statusText = job.current
+        ? "Текущая роль"
+        : job.unlocked
+          ? "Можно получить автоматически по прогрессу"
+          : `Нужно: проф. +${job.missingProfessionalism}, образование ${job.educationRequiredLabel}`;
+      card.titleText.setText(job.name);
+      card.metaText.setText(`Ставка ${formatMoney(job.salaryPerDay)} ₽ в день • график ${job.schedule} • уровень ${job.level}`);
+      card.statusText.setText(statusText);
+      this.handleCareerCardStyle(card, job);
+    });
+
+    this.jobsScroll.reset();
+    this.handleResize(this.scale.gameSize);
+  }
+
+  handleResize(gameSize) {
+    const width = gameSize.width;
+    const height = gameSize.height;
+    const safeX = Math.max(20, width * 0.04);
+    const safeY = Math.max(20, height * 0.035);
+    const contentWidth = width - safeX * 2;
+    const headerHeight = 132;
+    const currentHeight = 134;
+    const footerHeight = 86;
+    const listY = safeY + headerHeight + currentHeight + 34;
+    const listHeight = height - listY - footerHeight - safeY - 14;
+
+    this.drawCareerBackground(width, height);
+    this.headerCard.resize(safeX, safeY, contentWidth, headerHeight);
+    this.currentCard.resize(safeX, safeY + headerHeight + 14, contentWidth, currentHeight);
+    this.listCard.resize(safeX, listY, contentWidth, listHeight);
+    this.footerCard.resize(safeX, height - safeY - footerHeight, contentWidth, footerHeight);
+
+    this.titleText.setPosition(safeX + 22, safeY + 20);
+    this.subtitleText.setPosition(safeX + 22, safeY + 60).setWordWrapWidth(contentWidth - 44);
+
+    this.currentJobTitle.setPosition(safeX + 22, safeY + headerHeight + 34);
+    this.currentJobMeta.setPosition(safeX + 22, safeY + headerHeight + 72).setWordWrapWidth(contentWidth - 44);
+    this.currentJobStats.setPosition(safeX + 22, safeY + headerHeight + 98).setWordWrapWidth(contentWidth - 44);
+
+    this.backButton.resize(Math.min(320, contentWidth - 28), 54);
+    this.backButton.setPosition(safeX + contentWidth / 2, height - safeY - footerHeight / 2);
+
+    const innerX = safeX + 18;
+    const innerY = listY + 18;
+    const innerWidth = contentWidth - 36;
+    const cardHeight = 118;
+    const gap = 14;
+    this.jobsScroll.resize(innerX, innerY, innerWidth, listHeight - 36);
+    const totalHeight = this.jobCards.length * cardHeight + Math.max(0, this.jobCards.length - 1) * gap;
+    this.jobsScroll.setContentHeight(totalHeight);
+
+    this.jobCards.forEach((card, index) => {
+      card.setPosition(0, index * (cardHeight + gap));
+      this.layoutCareerCard(card, innerWidth, cardHeight);
+    });
+  }
+
+  layoutCareerCard(card, width, height) {
+    card.shadow.clear();
+    card.shadow.fillStyle(COLORS.shadow, 0.16);
+    card.shadow.fillRoundedRect(8, 10, width, height, 18);
+    card.body.clear();
+    card.body.fillStyle(COLORS.white, 1);
+    card.body.lineStyle(1, COLORS.line, 1);
+    card.body.fillRoundedRect(0, 0, width, height, 18);
+    card.body.strokeRoundedRect(0, 0, width, height, 18);
+    card.badge.clear();
+    card.badge.fillStyle(card.job.current ? COLORS.accent : card.job.unlocked ? COLORS.sage : COLORS.neutral, card.job.current ? 0.26 : 0.22);
+    card.badge.fillRoundedRect(18, 16, 148, 28, 14);
+    card.titleText.setPosition(18, 52);
+    card.metaText.setPosition(18, 78).setWordWrapWidth(width - 36);
+    card.statusText.setPosition(28, 22);
+  }
+
+  handleCareerCardStyle(card, job) {
+    card.statusText.setColor(job.current ? "#8A5A44" : job.unlocked ? "#4A7C68" : "#6B6258");
+  }
+
+  drawCareerBackground(width, height) {
+    this.background.clear();
+    this.background.fillStyle(COLORS.accent, 0.1);
+    this.background.fillCircle(width * 0.84, height * 0.12, Math.min(width, height) * 0.14);
+    this.background.fillStyle(COLORS.blue, 0.08);
+    this.background.fillCircle(width * 0.14, height * 0.82, Math.min(width, height) * 0.18);
+    this.background.fillStyle(COLORS.sage, 0.08);
+    this.background.fillEllipse(width * 0.52, height * 0.94, width * 0.74, height * 0.18);
+  }
+
+  animateCareerIntro() {
+    [this.headerCard, this.currentCard, this.listCard, this.footerCard].forEach((item, index) => {
+      item.setAlpha(0);
+      item.y += 14;
+      this.tweens.add({
+        targets: item,
+        alpha: 1,
+        y: item.y - 14,
+        duration: 340,
+        delay: index * 60,
+        ease: "Cubic.easeOut",
+      });
+    });
+  }
+
+  onExternalStateChange() {
+    this.refreshCareerView();
+  }
+}
+
+class FinanceScene extends Phaser.Scene {
+  constructor() {
+    super("FinanceScene");
+    this.contentItems = [];
+  }
+
+  create() {
+    this.saveData = this.registry.get("saveData") ?? loadSave();
+    this.financeOverview = getFinanceOverview(this.saveData);
+    this.financeActions = getFinanceActions(this.saveData);
+
+    this.background = this.add.graphics();
+    this.root = this.add.container(0, 0);
+
+    this.headerCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.balanceCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.cashflowCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.contentCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.footerCard = createRoundedPanel(this, { panelAlpha: 0.97, radius: 22, shadowAlpha: 0.2 });
+    this.root.add([this.headerCard, this.balanceCard, this.cashflowCard, this.contentCard, this.footerCard]);
+
+    this.titleText = this.add.text(0, 0, "Финансы", textStyle(30, COLORS.text, "700"));
+    this.subtitleText = this.add.text(0, 0, "Здесь видны свободные деньги, резерв, ежемесячная нагрузка и активные инвестиции.", {
+      ...textStyle(15, COLORS.text, "500"),
+      wordWrap: { width: 440 },
+    });
+    this.root.add([this.titleText, this.subtitleText]);
+
+    this.liquidTitle = this.add.text(0, 0, "Свободные деньги", textStyle(14, COLORS.text, "600"));
+    this.liquidValue = this.add.text(0, 0, "", textStyle(28, COLORS.text, "700"));
+    this.reserveTitle = this.add.text(0, 0, "Резерв", textStyle(14, COLORS.text, "600"));
+    this.reserveValue = this.add.text(0, 0, "", textStyle(28, COLORS.text, "700"));
+    this.root.add([this.liquidTitle, this.liquidValue, this.reserveTitle, this.reserveValue]);
+
+    this.expensesTitle = this.add.text(0, 0, "Ежемесячный поток", textStyle(18, COLORS.text, "700"));
+    this.expensesMeta = this.add.text(0, 0, "", {
+      ...textStyle(14, COLORS.text, "500"),
+      wordWrap: { width: 420 },
+    });
+    this.expensesDetails = this.add.text(0, 0, "", {
+      ...textStyle(14, COLORS.text, "600"),
+      wordWrap: { width: 420 },
+    });
+    this.root.add([this.expensesTitle, this.expensesMeta, this.expensesDetails]);
+
+    this.contentGroup = this.add.container(0, 0);
+    this.contentScroll = createVerticalScrollController(this, this.contentGroup);
+    this.root.add(this.contentGroup);
+
+    this.actionModal = createEventModal(this, {
+      width: 380,
+      height: 430,
+      primaryLabel: "Подтвердить",
+      secondaryLabel: "Отмена",
+    });
+    this.feedbackModal = createNotificationModal(this, {
+      primaryLabel: "Понятно",
+      secondaryLabel: "Закрыть",
+    });
+    this.root.add([this.actionModal, this.feedbackModal]);
+
+    this.backButton = createRoundedButton(this, {
+      label: "Назад на главный экран",
+      fillColor: COLORS.neutral,
+      fontSize: 16,
+      onClick: () => this.scene.start("MainGameScene"),
+    });
+    this.root.add(this.backButton);
+
+    this.scale.on("resize", this.handleResize, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off("resize", this.handleResize, this);
+    });
+
+    this.refreshFinanceView();
+    this.handleResize(this.scale.gameSize);
+    this.animateFinanceIntro();
+    ensureEventQueue(this, 520);
+  }
+
+  refreshFinanceView() {
+    this.saveData = this.registry.get("saveData") ?? this.saveData;
+    this.financeOverview = getFinanceOverview(this.saveData);
+    this.financeActions = getFinanceActions(this.saveData);
+
+    this.liquidValue.setText(`${formatMoney(this.financeOverview.liquidMoney)} ₽`);
+    this.reserveValue.setText(`${formatMoney(this.financeOverview.reserveFund)} ₽`);
+    this.expensesMeta.setText(
+      `Доход в месяц: ${formatMoney(this.financeOverview.monthlyIncome)} ₽ • Расходы: ${formatMoney(this.financeOverview.monthlyExpensesTotal)} ₽ • Баланс: ${formatMoney(this.financeOverview.monthlyBalance)} ₽`,
+    );
+    this.expensesDetails.setText(
+      [
+        this.financeOverview.expenseLines.map((item) => `${item.label}: ${formatMoney(item.amount)} ₽`).join(" • "),
+        this.financeOverview.lastMonthlySettlement
+          ? `Последнее списание: ${formatMoney(this.financeOverview.lastMonthlySettlement.totalCharged)} ₽, из резерва ${formatMoney(this.financeOverview.lastMonthlySettlement.reservePaid)} ₽`
+          : "Ежемесячное списание ещё не срабатывало в этом сохранении.",
+      ].join("\n"),
+    );
+
+    this.buildContent();
+  }
+
+  buildContent() {
+    this.contentGroup.removeAll(true);
+    this.contentItems = [];
+    let cursorY = 0;
+
+    const actionsTitle = this.add.text(0, cursorY, "Финансовые шаги", textStyle(20, COLORS.text, "700"));
+    this.contentGroup.add(actionsTitle);
+    this.contentItems.push(actionsTitle);
+    cursorY += 38;
+
+    const isMobile = this.scale.gameSize.width < 900;
+    const gap = 18;
+    const columns = isMobile ? 1 : 2;
+    const cardWidth = this.contentInnerWidth ? (columns === 1 ? this.contentInnerWidth : (this.contentInnerWidth - gap) / 2) : 320;
+    const actionHeight = isMobile ? 220 : 196;
+
+    this.financeActions.forEach((action, index) => {
+      const card = this.createFinanceActionCard(action);
+      const row = Math.floor(index / columns);
+      const column = index % columns;
+      card.setPosition(column * (cardWidth + gap), cursorY + row * (actionHeight + gap));
+      this.layoutFinanceActionCard(card, cardWidth, actionHeight);
+      this.contentGroup.add(card);
+      this.contentItems.push(card);
+    });
+
+    cursorY += Math.ceil(this.financeActions.length / columns) * (actionHeight + gap);
+    cursorY += 10;
+
+    const investTitle = this.add.text(0, cursorY, "Инвестиции и накопления", textStyle(20, COLORS.text, "700"));
+    this.contentGroup.add(investTitle);
+    this.contentItems.push(investTitle);
+    cursorY += 40;
+
+    if (!this.financeOverview.investments.length) {
+      const emptyState = this.add.text(
+        0,
+        cursorY,
+        "Активных вложений пока нет. Можно начать с резерва или первого вклада.",
+        { ...textStyle(15, COLORS.text, "500"), wordWrap: { width: Math.max(280, this.contentInnerWidth ?? 320) } },
+      );
+      this.contentGroup.add(emptyState);
+      this.contentItems.push(emptyState);
+      cursorY += 56;
+    } else {
+      this.financeOverview.investments.forEach((investment, index) => {
+        const card = this.createInvestmentCard(investment);
+        card.setPosition(0, cursorY + index * 142);
+        this.layoutInvestmentCard(card, Math.max(280, this.contentInnerWidth ?? 320), 126);
+        this.contentGroup.add(card);
+        this.contentItems.push(card);
+      });
+      cursorY += this.financeOverview.investments.length * 142;
+    }
+
+    this.contentHeight = cursorY + 12;
+    this.contentScroll.setContentHeight(this.contentHeight);
+  }
+
+  createFinanceActionCard(action) {
+    const container = this.add.container(0, 0);
+    const shadow = this.add.graphics();
+    const body = this.add.graphics();
+    const chip = this.add.graphics();
+    const title = this.add.text(0, 0, action.title, textStyle(19, COLORS.text, "700"));
+    const subtitle = this.add.text(0, 0, action.subtitle, {
+      ...textStyle(14, COLORS.text, "500"),
+      wordWrap: { width: 280 },
+    });
+    const description = this.add.text(0, 0, action.description, {
+      ...textStyle(13, COLORS.text, "600"),
+      wordWrap: { width: 280 },
+    });
+
+    const button = createRoundedButton(this, {
+      label: action.available ? "Применить" : "Недоступно",
+      fillColor: action.available ? COLORS[action.accentKey] : COLORS.neutral,
+      fontSize: 14,
+      onClick: () => {
+        if (!action.available) {
+          this.feedbackModal.show({
+            title: action.title,
+            description: action.reason,
+            accentColor: COLORS[action.accentKey],
+          });
+          return;
+        }
+
+        this.actionModal.show({
+          title: action.title,
+          description: `${action.description}\n\nЭто действие займёт ${action.dayCost} игровой день.`,
+          accentColor: COLORS[action.accentKey],
+          primaryLabel: "Подтвердить",
+          secondaryLabel: "Отмена",
+          onPrimary: () => this.applyFinanceAction(action),
+        });
+      },
+    });
+
+    container.shadow = shadow;
+    container.body = body;
+    container.chip = chip;
+    container.titleText = title;
+    container.subtitleText = subtitle;
+    container.descriptionText = description;
+    container.button = button;
+    container.action = action;
+    container.add([shadow, body, chip, title, subtitle, description, button]);
+    return container;
+  }
+
+  layoutFinanceActionCard(card, width, height) {
+    card.shadow.clear();
+    card.shadow.fillStyle(COLORS.shadow, 0.16);
+    card.shadow.fillRoundedRect(8, 10, width, height, 18);
+    card.body.clear();
+    card.body.fillStyle(COLORS.white, 1);
+    card.body.lineStyle(1, COLORS.line, 1);
+    card.body.fillRoundedRect(0, 0, width, height, 18);
+    card.body.strokeRoundedRect(0, 0, width, height, 18);
+    card.chip.clear();
+    card.chip.fillStyle(COLORS[card.action.accentKey], 0.2);
+    card.chip.fillRoundedRect(18, 18, 142, 28, 14);
+    card.titleText.setPosition(18, 24).setWordWrapWidth(width - 36);
+    card.subtitleText.setPosition(18, 60).setWordWrapWidth(width - 36);
+    card.descriptionText.setPosition(18, 112).setWordWrapWidth(width - 36);
+    card.button.resize(Math.min(152, width - 36), 42, card.action.available ? COLORS[card.action.accentKey] : COLORS.neutral);
+    card.button.setPosition(width - 92, height - 30);
+  }
+
+  createInvestmentCard(investment) {
+    const container = this.add.container(0, 0);
+    const shadow = this.add.graphics();
+    const body = this.add.graphics();
+    const badge = this.add.graphics();
+    const title = this.add.text(0, 0, investment.label ?? "Инвестиция", textStyle(18, COLORS.text, "700"));
+    const meta = this.add.text(0, 0, "", {
+      ...textStyle(14, COLORS.text, "500"),
+      wordWrap: { width: 420 },
+    });
+    const status = this.add.text(0, 0, "", textStyle(13, COLORS.text, "700"));
+    const button = createRoundedButton(this, {
+      label: investment.state === "matured" ? "Забрать" : "Следить",
+      fillColor: investment.state === "matured" ? COLORS.accent : COLORS.neutral,
+      fontSize: 14,
+      onClick: () => this.handleInvestmentAction(investment),
+    });
+
+    container.shadow = shadow;
+    container.body = body;
+    container.badge = badge;
+    container.titleText = title;
+    container.metaText = meta;
+    container.statusText = status;
+    container.button = button;
+    container.investment = investment;
+    container.add([shadow, body, badge, title, meta, status, button]);
+    return container;
+  }
+
+  layoutInvestmentCard(card, width, height) {
+    card.shadow.clear();
+    card.shadow.fillStyle(COLORS.shadow, 0.16);
+    card.shadow.fillRoundedRect(8, 10, width, height, 18);
+    card.body.clear();
+    card.body.fillStyle(COLORS.white, 1);
+    card.body.lineStyle(1, COLORS.line, 1);
+    card.body.fillRoundedRect(0, 0, width, height, 18);
+    card.body.strokeRoundedRect(0, 0, width, height, 18);
+    card.badge.clear();
+    card.badge.fillStyle(card.investment.state === "matured" ? COLORS.accent : COLORS.sage, 0.2);
+    card.badge.fillRoundedRect(18, 16, 150, 28, 14);
+    card.titleText.setPosition(18, 24).setWordWrapWidth(width - 170);
+    card.metaText.setText(
+      `Вложено ${formatMoney(card.investment.amount)} ₽ • Выплата ${formatMoney(card.investment.payoutAmount)} ₽ • ${card.investment.state === "matured" ? "доступно к закрытию" : `ещё ${card.investment.daysLeft} д.`}`,
+    );
+    card.metaText.setPosition(18, 60).setWordWrapWidth(width - 170);
+    card.statusText.setText(card.investment.state === "closed" ? "Закрыто" : card.investment.state === "matured" ? "Можно забрать" : "Активно");
+    card.statusText.setPosition(30, 22);
+    card.button.resize(126, 42, card.investment.state === "matured" ? COLORS.accent : COLORS.neutral);
+    card.button.setPosition(width - 84, height - 32);
+  }
+
+  handleInvestmentAction(investment) {
+    if (investment.state !== "matured") {
+      this.feedbackModal.show({
+        title: investment.label ?? "Инвестиция",
+        description: `До закрытия осталось ${investment.daysLeft} д. Пока можно только наблюдать за прогрессом.`,
+        accentColor: COLORS.blue,
+      });
+      return;
+    }
+
+    this.actionModal.show({
+      title: investment.label ?? "Инвестиция",
+      description: `Забрать ${formatMoney(investment.payoutAmount)} ₽ и закрыть вложение?`,
+      accentColor: COLORS.accent,
+      primaryLabel: "Забрать",
+      secondaryLabel: "Оставить",
+      onPrimary: () => {
+        const summary = collectInvestmentToSave(this.saveData, investment.id);
+        persistSave(this, this.saveData);
+        this.actionModal.hide();
+        this.refreshFinanceView();
+        this.handleResize(this.scale.gameSize);
+        this.feedbackModal.show({
+          title: "Инвестиция закрыта",
+          description: summary,
+          accentColor: COLORS.accent,
+        });
+      },
+    });
+  }
+
+  applyFinanceAction(action) {
+    const summary = applyFinanceActionToSave(this.saveData, action.id);
+    persistSave(this, this.saveData);
+    this.actionModal.hide();
+    this.refreshFinanceView();
+    this.handleResize(this.scale.gameSize);
+    this.feedbackModal.show({
+      title: action.title,
+      description: summary,
+      accentColor: COLORS[action.accentKey],
+    });
+  }
+
+  handleResize(gameSize) {
+    const width = gameSize.width;
+    const height = gameSize.height;
+    const safeX = Math.max(20, width * 0.04);
+    const safeY = Math.max(20, height * 0.035);
+    const contentWidth = width - safeX * 2;
+    const headerHeight = 126;
+    const summaryHeight = 108;
+    const cashflowHeight = 128;
+    const footerHeight = 86;
+    const contentY = safeY + headerHeight + summaryHeight + cashflowHeight + 42;
+    const contentHeight = height - contentY - footerHeight - safeY - 14;
+
+    this.drawFinanceBackground(width, height);
+    this.headerCard.resize(safeX, safeY, contentWidth, headerHeight);
+    this.balanceCard.resize(safeX, safeY + headerHeight + 14, contentWidth, summaryHeight);
+    this.cashflowCard.resize(safeX, safeY + headerHeight + summaryHeight + 28, contentWidth, cashflowHeight);
+    this.contentCard.resize(safeX, contentY, contentWidth, contentHeight);
+    this.footerCard.resize(safeX, height - safeY - footerHeight, contentWidth, footerHeight);
+
+    this.titleText.setPosition(safeX + 22, safeY + 20);
+    this.subtitleText.setPosition(safeX + 22, safeY + 60).setWordWrapWidth(contentWidth - 44);
+
+    this.liquidTitle.setPosition(safeX + 22, safeY + headerHeight + 26);
+    this.liquidValue.setPosition(safeX + 22, safeY + headerHeight + 50);
+    this.reserveTitle.setPosition(safeX + contentWidth * 0.5, safeY + headerHeight + 26);
+    this.reserveValue.setPosition(safeX + contentWidth * 0.5, safeY + headerHeight + 50);
+
+    this.expensesTitle.setPosition(safeX + 22, safeY + headerHeight + summaryHeight + 40);
+    this.expensesMeta.setPosition(safeX + 22, safeY + headerHeight + summaryHeight + 72).setWordWrapWidth(contentWidth - 44);
+    this.expensesDetails.setPosition(safeX + 22, safeY + headerHeight + summaryHeight + 96).setWordWrapWidth(contentWidth - 44);
+
+    this.backButton.resize(Math.min(320, contentWidth - 28), 54);
+    this.backButton.setPosition(safeX + contentWidth / 2, height - safeY - footerHeight / 2);
+
+    this.contentInnerWidth = contentWidth - 40;
+    this.contentScroll.resize(safeX + 20, contentY + 20, this.contentInnerWidth, contentHeight - 40);
+    this.buildContent();
+
+    this.actionModal.resize(this.scale.gameSize);
+    this.feedbackModal.resize(this.scale.gameSize);
+  }
+
+  drawFinanceBackground(width, height) {
+    this.background.clear();
+    this.background.fillStyle(COLORS.sage, 0.1);
+    this.background.fillCircle(width * 0.84, height * 0.14, Math.min(width, height) * 0.14);
+    this.background.fillStyle(COLORS.accent, 0.09);
+    this.background.fillCircle(width * 0.12, height * 0.82, Math.min(width, height) * 0.18);
+    this.background.fillStyle(COLORS.blue, 0.08);
+    this.background.fillEllipse(width * 0.52, height * 0.94, width * 0.74, height * 0.18);
+  }
+
+  animateFinanceIntro() {
+    [this.headerCard, this.balanceCard, this.cashflowCard, this.contentCard, this.footerCard].forEach((item, index) => {
+      item.setAlpha(0);
+      item.y += 16;
+      this.tweens.add({
+        targets: item,
+        alpha: 1,
+        y: item.y - 16,
+        duration: 360,
+        delay: index * 60,
+        ease: "Cubic.easeOut",
+      });
+    });
+  }
+
+  onExternalStateChange() {
+    this.refreshFinanceView();
+    this.handleResize(this.scale.gameSize);
   }
 }
 
@@ -2206,13 +3217,27 @@ const config = {
   type: Phaser.AUTO,
   parent: "game-container",
   backgroundColor: "#F8F4ED",
-  width: 430,
-  height: 932,
+  width: window.innerWidth,
+  height: window.innerHeight,
   scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
+    mode: Phaser.Scale.RESIZE,
+    autoCenter: Phaser.Scale.NO_CENTER,
   },
-  scene: [MainGameScene, RecoveryScene, EducationScene, SchoolScene, InstituteScene, InteractiveWorkEventScene, EventQueueScene],
+  scene: [
+    MainGameScene,
+    RecoveryScene,
+    HomeScene,
+    ShopScene,
+    SocialScene,
+    FunScene,
+    CareerScene,
+    FinanceScene,
+    EducationScene,
+    SchoolScene,
+    InstituteScene,
+    InteractiveWorkEventScene,
+    EventQueueScene,
+  ],
 };
 
 new Phaser.Game(config);
@@ -2244,6 +3269,104 @@ function getEducationProgramIdFromCard(title) {
 
 function getEducationMiniSceneKey(programId) {
   return programId === "institute_retraining" ? "InstituteScene" : "SchoolScene";
+}
+
+function createVerticalScrollController(scene, content) {
+  const state = {
+    viewportX: 0,
+    viewportY: 0,
+    viewportWidth: 0,
+    viewportHeight: 0,
+    contentHeight: 0,
+    scrollY: 0,
+    dragging: false,
+    lastPointerY: 0,
+  };
+
+  const maskShape = scene.add.graphics().setVisible(false);
+  content.setMask(maskShape.createGeometryMask());
+
+  const isPointerInside = (pointer) =>
+    pointer.x >= state.viewportX &&
+    pointer.x <= state.viewportX + state.viewportWidth &&
+    pointer.y >= state.viewportY &&
+    pointer.y <= state.viewportY + state.viewportHeight;
+
+  const applyPosition = () => {
+    const minScroll = Math.min(0, state.viewportHeight - state.contentHeight);
+    state.scrollY = Phaser.Math.Clamp(state.scrollY, minScroll, 0);
+    content.setPosition(state.viewportX, state.viewportY + state.scrollY);
+  };
+
+  const handlePointerDown = (pointer) => {
+    if (!isPointerInside(pointer) || state.contentHeight <= state.viewportHeight) {
+      state.dragging = false;
+      return;
+    }
+
+    state.dragging = true;
+    state.lastPointerY = pointer.y;
+  };
+
+  const handlePointerUp = () => {
+    state.dragging = false;
+  };
+
+  const handlePointerMove = (pointer) => {
+    if (!state.dragging || !pointer.isDown || state.contentHeight <= state.viewportHeight) {
+      return;
+    }
+
+    const deltaY = pointer.y - state.lastPointerY;
+    state.lastPointerY = pointer.y;
+    state.scrollY += deltaY;
+    applyPosition();
+  };
+
+  const handleWheel = (pointer, _objects, _deltaX, deltaY) => {
+    if (!isPointerInside(pointer) || state.contentHeight <= state.viewportHeight) {
+      return;
+    }
+
+    state.scrollY -= deltaY * 0.5;
+    applyPosition();
+  };
+
+  scene.input.on("pointerdown", handlePointerDown);
+  scene.input.on("pointerup", handlePointerUp);
+  scene.input.on("gameout", handlePointerUp);
+  scene.input.on("pointermove", handlePointerMove);
+  scene.input.on("wheel", handleWheel);
+
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+    scene.input.off("pointerdown", handlePointerDown);
+    scene.input.off("pointerup", handlePointerUp);
+    scene.input.off("gameout", handlePointerUp);
+    scene.input.off("pointermove", handlePointerMove);
+    scene.input.off("wheel", handleWheel);
+    maskShape.destroy();
+  });
+
+  return {
+    resize(x, y, width, height) {
+      state.viewportX = x;
+      state.viewportY = y;
+      state.viewportWidth = width;
+      state.viewportHeight = height;
+      maskShape.clear();
+      maskShape.fillStyle(0xffffff, 1);
+      maskShape.fillRect(x, y, width, height);
+      applyPosition();
+    },
+    setContentHeight(contentHeight) {
+      state.contentHeight = contentHeight;
+      applyPosition();
+    },
+    reset() {
+      state.scrollY = 0;
+      applyPosition();
+    },
+  };
 }
 
 function resizeCard(card, x, y, width, height) {
