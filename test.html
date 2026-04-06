@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Page</title>
+</head>
+<body>
+  <h1>Test Page</h1>
+  <script>
+    console.log('Test page loaded');
+    try {
+      import('/src/ui-kit.js');
+      console.log('UI-kit import successful');
+    } catch (error) {
+      console.error('UI-kit import failed:', error);
+    }
+    
+    try {
+      import('/src/debug-panel.js');
+      console.log('Debug-panel import successful');
+    } catch (error) {
+      console.error('Debug-panel import failed:', error);
+    }
+  </script>
+</body>
+</html>

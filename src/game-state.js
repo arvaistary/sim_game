@@ -2,7 +2,7 @@ function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
 
-function clone(value) {
+export function clone(value) {
   return structuredClone(value);
 }
 
@@ -507,7 +507,7 @@ const WORK_RANDOM_EVENTS = [
   },
 ];
 
-const GLOBAL_PROGRESS_EVENTS = [
+export const GLOBAL_PROGRESS_EVENTS = [
   {
     id: "weekly_bonus_moment",
     type: "weekly",
@@ -572,7 +572,7 @@ const GLOBAL_PROGRESS_EVENTS = [
   },
 ];
 
-const FINANCE_EMERGENCY_EVENTS = [
+export const FINANCE_EMERGENCY_EVENTS = [
   {
     id: "finance_reserve_warning",
     title: "Резерв почти закончился",
@@ -1237,13 +1237,13 @@ function mergeStatChanges(...chunks) {
   }, {});
 }
 
-function applyStatChanges(stats, statChanges = {}) {
+export function applyStatChanges(stats, statChanges = {}) {
   Object.entries(statChanges ?? {}).forEach(([key, value]) => {
     stats[key] = clamp((stats[key] ?? 0) + value);
   });
 }
 
-function applySkillChanges(skills, skillChanges = {}) {
+export function applySkillChanges(skills, skillChanges = {}) {
   Object.entries(skillChanges ?? {}).forEach(([key, value]) => {
     skills[key] = clamp((skills[key] ?? 0) + value, 0, 10);
   });
@@ -1300,7 +1300,7 @@ function applyMonthlyExpenseDelta(saveData, expenseDelta = {}) {
   });
 }
 
-function shiftHousingLevel(saveData, delta) {
+export function shiftHousingLevel(saveData, delta) {
   const currentLevel = saveData.housing?.level ?? 1;
   const nextLevel = currentLevel + delta;
   const clampedLevel = Math.max(1, Math.min(HOUSING_LEVELS.length, nextLevel));
@@ -1338,7 +1338,7 @@ function buildWeeklyHousingBonus(saveData) {
   };
 }
 
-function applyWeeklyHousingPassive(saveData, weekNumber) {
+export function applyWeeklyHousingPassive(saveData, weekNumber) {
   const weeklyBonus = buildWeeklyHousingBonus(saveData);
   applyStatChanges(saveData.stats, weeklyBonus);
   saveData.housing.lastWeeklyBonus = {
@@ -1347,7 +1347,7 @@ function applyWeeklyHousingPassive(saveData, weekNumber) {
   };
 }
 
-function applyMonthlyFinanceSettlement(saveData, monthNumber) {
+export function applyMonthlyFinanceSettlement(saveData, monthNumber) {
   const monthlyExpenses = saveData.finance?.monthlyExpenses ?? DEFAULT_SAVE.finance.monthlyExpenses;
   const monthlyTotal = Object.values(monthlyExpenses).reduce((sum, value) => sum + value, 0);
   const liquidPaid = Math.min(saveData.money, monthlyTotal);
@@ -1398,7 +1398,7 @@ function applyMonthlyFinanceSettlement(saveData, monthNumber) {
   }
 }
 
-function advanceGameTime(saveData, days = 1) {
+export function advanceGameTime(saveData, days = 1) {
   const previousWeek = saveData.gameWeeks;
   const previousMonth = saveData.gameMonths;
   const previousAge = saveData.currentAge;
@@ -1444,7 +1444,7 @@ function enqueueProgressEvents(saveData, previousWeek, previousAge) {
     });
 }
 
-function queuePendingEvent(saveData, queuedEvent) {
+export function queuePendingEvent(saveData, queuedEvent) {
   const alreadyHandled = saveData.eventHistory?.some((item) => item.eventId === queuedEvent.instanceId);
   const alreadyQueued = saveData.pendingEvents?.some((item) => item.instanceId === queuedEvent.instanceId);
 

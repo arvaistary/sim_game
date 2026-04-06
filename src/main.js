@@ -31,6 +31,7 @@ import {
   createToastMessage,
   textStyle,
 } from "./ui-kit";
+// import { DebugPanelScene, ensureDebugPanel } from "./debug-panel"; // Temporarily disabled
 
 const STAT_DEFS = [
   { key: "hunger", label: "Голод", startColor: "#FF9F6B", endColor: "#FF6B6B" },
@@ -181,6 +182,7 @@ class MainGameScene extends Phaser.Scene {
     this.handleResize(this.scale.gameSize);
     this.animateEntrance();
     ensureEventQueue(this, 520);
+    // ensureDebugPanel(this.game);  // Temporarily disabled
   }
 
   createCard() {
@@ -230,7 +232,7 @@ class MainGameScene extends Phaser.Scene {
       fillColor: COLORS.accent,
       fontSize: 22,
     });
-    this.actionButton.text.setY(-8);
+    this.actionButton.text.setY(-10);
     this.actionButton.subtitle = this.add.text(0, 16, "1 рабочий день, зарплата и изменение шкал", textStyle(14, COLORS.text, "500"));
     this.actionButton.subtitle.setOrigin(0.5);
     this.actionButton.add(this.actionButton.subtitle);
@@ -378,26 +380,53 @@ class MainGameScene extends Phaser.Scene {
   }
 
   handleResize(gameSize) {
-    const width = gameSize.width;
-    const height = gameSize.height;
-    const isMobile = width < 900;
-    const safeX = Math.max(24, width * 0.04);
-    const safeY = Math.max(24, height * 0.04);
-    const contentWidth = width - safeX * 2;
-    const hudHeight = isMobile ? 118 : 108;
-    const navHeight = 116;
-    const buttonHeight = 110;
-    const contentTop = safeY + hudHeight + 18;
-    const contentBottom = height - safeY - navHeight - buttonHeight - 26;
-    const contentHeight = Math.max(360, contentBottom - contentTop);
-    const leftWidth = isMobile ? contentWidth : Math.min(360, contentWidth * 0.37);
-    const rightWidth = isMobile ? contentWidth : contentWidth - leftWidth - 20;
+    // Получаем размеры экрана
+    const width = gameSize.width;           // Ширина экрана
+    const height = gameSize.height;         // Высота экрана
+    
+    // Определяем тип устройства
+    const isMobile = width < 900;          // Мобильное устройство
+    const isNarrow = width < 700;          // Очень узкий экран
+    
+    // Вычисляем безопасные отступы от краёв
+    const safeX = Math.max(24, width * 0.04);    // Отступ слева и справа (минимум 24px)
+    const safeY = Math.max(24, height * 0.04);  // Отступ сверху и снизу (минимум 24px)
+    
+    // Вычисляем ширину контента
+    const contentWidth = width - safeX * 2;  // Ширина за вычетом боковых отступов
+    
+    // Вычисляем высоту компонентов
+    const hudHeight = isMobile ? (isNarrow ? 195 : 177) : 162; // Верхняя карточка с информацией (увеличена в 1.5 раза)
+    const navHeight = 116;             // Нижняя панель навигации
+    const buttonHeight = 110;           // Высота кнопки действия
+    
+    // Вычисляем границы контента с отступами между плашками
+    const contentTop = safeY + hudHeight + 10;                     // Верхняя граница контента (отступ между topCard и characterCard = 10px)
+    const contentBottom = height - safeY - navHeight - buttonHeight - 36; // Нижняя граница контента (отступ между actionCard и navCard = 10px, плюс 26px между characterCard и actionCard)
+    const contentHeight = Math.max(360, contentBottom - contentTop);     // Высота контента (минимум 360px)
+    
+    // Вычисляем ширину колонок для десктопа
+    const leftWidth = isMobile ? contentWidth : Math.min(360, contentWidth * 0.37);   // Левая колонка (персонаж)
+    const rightWidth = isMobile ? contentWidth : contentWidth - leftWidth - 20;         // Правая колонка (шкалы)
 
+    // Настраиваем размер шрифтов для узких экранов
+    if (isNarrow) {
+      this.playerNameText.setFontSize(22);   // Уменьшаем имя игрока
+      this.moneyText.setFontSize(20);        // Уменьшаем размер текста денег
+      this.comfortText.setFontSize(14);      // Уменьшаем размер текста комфорта
+    } else {
+      this.playerNameText.setFontSize(28);   // Обычный размер имени игрока
+      this.moneyText.setFontSize(26);        // Обычный размер текста денег
+      this.comfortText.setFontSize(16);      // Обычный размер текста комфорта
+    }
+
+    // Рисуем фоновые элементы
     this.drawBackground(width, height);
 
-    resizeCard(this.topCard, safeX, safeY, contentWidth, hudHeight);
-    resizeCard(this.navCard, safeX, height - safeY - navHeight, contentWidth, navHeight);
-    resizeCard(this.actionCard, safeX, height - safeY - navHeight - 18 - buttonHeight, contentWidth, buttonHeight);
+    // Настраиваем размеры и позиции карточек с отступами между плашками
+    resizeCard(this.topCard, safeX, safeY, contentWidth, hudHeight);         // Верхняя карточка (информация об игроке)
+    resizeCard(this.navCard, safeX, height - safeY - navHeight, contentWidth, navHeight); // Нижняя панель навигации (без отступа снизу)
+    resizeCard(this.actionCard, safeX, height - safeY - navHeight - 10 - buttonHeight, contentWidth, buttonHeight); // Кнопка действия (отступ между actionCard и navCard = 10px)
 
     if (isMobile) {
       resizeCard(this.characterCard, safeX, contentTop, contentWidth, contentHeight * 0.42);
@@ -408,8 +437,8 @@ class MainGameScene extends Phaser.Scene {
     }
 
     this.layoutTopCard(safeX, safeY, contentWidth, hudHeight);
-    this.layoutActionCard(safeX, height - safeY - navHeight - 18 - buttonHeight, contentWidth, buttonHeight);
-    this.layoutNavCard(safeX, height - safeY - navHeight, contentWidth, navHeight);
+    this.layoutActionCard(safeX, height - safeY - navHeight - 16 - buttonHeight, contentWidth, buttonHeight); // Отступ между characterCard и actionCard = 26px (увеличен на 6px)
+    this.layoutNavCard(safeX, height - safeY - navHeight, contentWidth, navHeight); // Отступ между actionCard и navCard = 10px
 
     this.toast.setPosition(width - safeX - 220, safeY + hudHeight + 14);
     this.workPeriodModal.resize(this.scale.gameSize);
@@ -417,14 +446,30 @@ class MainGameScene extends Phaser.Scene {
   }
 
   layoutTopCard(x, y, width, height) {
-    this.playerNameText.setPosition(x + 28, y + 30);
-    this.jobText.setPosition(x + 28, y + 70);
+    // Позиционируем тексты слева (имя игрока и работа)
+    this.playerNameText.setPosition(x + 24, y + 30);  // Имя игрока в левом верхнем углу
+    this.jobText.setPosition(x + 24, y + 70);         // Работа под именем игрока
 
-    this.moneyText.setPosition(x + width - 28, y + 28).setOrigin(1, 0);
-    this.timeText.setPosition(x + width - 28, y + 64).setOrigin(1, 0);
-    this.comfortText.setPosition(x + width - 28, y + 86).setOrigin(1, 0);
-    this.careerButton.resize(112, 36);
-    this.careerButton.setPosition(x + width - 84, y + height - 24);
+    // Определяем тип экрана и вычисляем отступы справа
+    const isMobile = width < 700;                      // Мобильный экран (узкий)
+    const rightMargin = isMobile ? 16 : 28;           // Отступ справа зависит от типа экрана
+    const textRightX = x + width - rightMargin;       // Правая граница для текстов
+    
+    // Позиционируем тексты справа (деньги, время, комфорт)
+    this.moneyText.setPosition(textRightX, y + 28).setOrigin(1, 0);     // Деньги в правом верхнем углу
+    this.timeText.setPosition(textRightX, y + 64).setOrigin(1, 0);      // Время под деньгами
+    this.comfortText.setPosition(textRightX, y + 86).setOrigin(1, 0);   // Комфорт под временем
+    
+    // Позиционируем кнопку карьеры в начале плашки, сразу под работой пользователя
+    if (isMobile) {
+      // На мобильном: кнопка под работой пользователя, по центру
+      this.careerButton.resize(100, 32);
+      this.careerButton.setPosition(x + width / 2, y + 95); // По центру, под работой
+    } else {
+      // На десктопе: кнопка под работой пользователя, слева
+      this.careerButton.resize(112, 36);
+      this.careerButton.setPosition(x + 78, y + 120); // Слева, под работой
+    }
   }
 
   layoutDesktop(x, y, leftWidth, rightWidth, contentHeight) {
@@ -3237,6 +3282,7 @@ const config = {
     InstituteScene,
     InteractiveWorkEventScene,
     EventQueueScene,
+    // DebugPanelScene, // Temporarily disabled
   ],
 };
 
