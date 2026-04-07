@@ -2020,7 +2020,7 @@ class EducationScene extends Phaser.Scene {
     const title = this.add.text(0, 0, program.title, { ...textStyle(18, COLORS.text, "700"), wordWrap: { width: 280 } });
     const subtitle = this.add.text(0, 0, program.subtitle, { ...textStyle(13, COLORS.text, "500"), wordWrap: { width: 280 } });
     const reward = this.add.text(0, 0, program.rewardText, { ...textStyle(13, COLORS.text, "600"), wordWrap: { width: 280 } });
-    const chipText = this.add.text(0, 0, "", textStyle(12, COLORS.text, "700"));
+    const chipText = this.add.text(0, 0, "", textStyle(12, COLORS.text, "700")).setOrigin(0.5);
     const priceText = program.cost > 0 ? ` • ${formatMoney(program.cost)} ₽` : "";
     chipText.setText(`${program.typeLabel} • ${program.daysRequired} д.${priceText}`);
     const button = createRoundedButton(this, {
@@ -2341,18 +2341,22 @@ class CareerScene extends Phaser.Scene {
     const container = this.add.container(0, 0);
     const shadow = this.add.graphics();
     const body = this.add.graphics();
+    const chip = this.add.graphics();
+    const chipText = this.add.text(0, 0, "", textStyle(13, COLORS.text, "700")).setOrigin(0.5);
     const badge = this.add.graphics();
     const title = this.add.text(0, 0, job.name, textStyle(20, COLORS.text, "700"));
     const meta = this.add.text(0, 0, "", { ...textStyle(14, COLORS.text, "500"), wordWrap: { width: 440 } });
     const status = this.add.text(0, 0, "", { ...textStyle(13, COLORS.text, "700"), wordWrap: { width: 200 } });
     container.shadow = shadow;
     container.body = body;
+    container.chip = chip;
+    container.chipText = chipText;
     container.badge = badge;
     container.titleText = title;
     container.metaText = meta;
     container.statusText = status;
     container.job = job;
-    container.add([shadow, body, badge, title, meta, status]);
+    container.add([shadow, body, chip, chipText, badge, title, meta, status]);
     return container;
   }
 
@@ -2368,14 +2372,14 @@ class CareerScene extends Phaser.Scene {
       const job = this.careerTrack[index];
       card.job = job;
       const statusText = job.current
-        ? "Текущая роль"
+        ? (job.unlocked ? "Требования выполнены" : "")
         : job.unlocked
-          ? "Можно получить автоматически по прогрессу"
+          ? "Можно получить автоматически"
           : `Нужно: проф. +${job.missingProfessionalism}, образование ${job.educationRequiredLabel}`;
       card.titleText.setText(job.name);
       card.metaText.setText(`Ставка ${formatMoney(job.salaryPerDay)} ₽ в день • график ${job.schedule} • уровень ${job.level}`);
       card.statusText.setText(statusText);
-      this.handleCareerCardStyle(card, job);
+      card.chipText.setText(statusText);
     });
 
     this.jobsScroll.reset();
@@ -2436,14 +2440,27 @@ class CareerScene extends Phaser.Scene {
     card.body.strokeRoundedRect(0, 0, width, height, 18);
     card.badge.clear();
     card.badge.fillStyle(card.job.current ? COLORS.accent : card.job.unlocked ? COLORS.sage : COLORS.neutral, card.job.current ? 0.26 : 0.22);
-    card.badge.fillRoundedRect(18, 16, 148, 28, 14);
+    
+    // Draw chip for current role (if unlocked) and unlocked/locked jobs
+    if (card.chipText.text !== "") {
+      card.chipText.setText(card.chipText.text);
+      const chipWidth = Math.max(120, card.chipText.width + 28);
+      card.chip.clear();
+      card.chip.fillStyle(card.job.unlocked ? COLORS.sage : COLORS.neutral, 0.22);
+      card.chip.fillRoundedRect(18, 16, chipWidth, 28, 14);
+      card.chipText.setPosition(18 + chipWidth / 2, 30);
+      card.chipText.setColor(card.job.unlocked ? "#4A7C68" : "#6B6258");
+      card.chip.setVisible(true);
+      card.chipText.setVisible(true);
+    } else {
+      card.chip.clear();
+      card.chip.setVisible(false);
+      card.chipText.setVisible(false);
+    }
+    
     card.titleText.setPosition(18, 52);
     card.metaText.setPosition(18, 78).setWordWrapWidth(width - 36);
-    card.statusText.setPosition(28, 22);
-  }
-
-  handleCareerCardStyle(card, job) {
-    card.statusText.setColor(job.current ? "#8A5A44" : job.unlocked ? "#4A7C68" : "#6B6258");
+    card.statusText.setVisible(false);
   }
 
   drawCareerBackground(width, height) {
