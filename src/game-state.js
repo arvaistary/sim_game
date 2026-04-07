@@ -2,6 +2,164 @@ function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
 
+export function parseSchedule(schedule) {
+  if (typeof schedule !== "string") {
+    return { workDays: 5, restDays: 2 };
+  }
+  const parts = schedule.split("/");
+  if (parts.length === 2) {
+    const workDays = parseInt(parts[0], 10);
+    const restDays = parseInt(parts[1], 10);
+    if (workDays > 0 && restDays >= 0) {
+      return { workDays, restDays };
+    }
+  }
+  return { workDays: 5, restDays: 2 };
+}
+
+export function pickWorkPeriodEvent(saveData) {
+  const hasEvent = Math.random() < 0.15;
+  if (!hasEvent) {
+    return null;
+  }
+
+  const availableEvents = WORK_RANDOM_EVENTS.filter((event) => {
+    if (event.requiresSkill) {
+      const [skillKey, skillValue] = Object.entries(event.requiresSkill)[0];
+      if ((saveData.skills?.[skillKey] ?? 0) < skillValue) {
+        return false;
+      }
+    }
+
+    if (typeof event.requiresEducationRank === "number" && getEducationRank(saveData.education?.educationLevel) < event.requiresEducationRank) {
+      return false;
+    }
+
+    const lastOccurrence = [...(saveData.eventHistory ?? [])]
+      .reverse()
+      .find((item) => item.eventId === event.id);
+
+    if (lastOccurrence && saveData.gameDays - lastOccurrence.day < event.cooldownDays) {
+      return false;
+    }
+
+    return true;
+  });
+
+  if (availableEvents.length === 0) {
+    return null;
+  }
+
+  const selectedEvent = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+  return clone(selectedEvent);
+}
+
+export function applyWorkPeriodResult(saveData, workDays, eventChoice = null) {
+  const baseSalaryPerDay = saveData.currentJob.salaryPerDay;
+  const totalSalary = baseSalaryPerDay * workDays;
+
+  const baseStatChangesPerDay = {
+    hunger: -18,
+    energy: -24,
+    stress: 12,
+    mood: -2,
+  };
+
+  const totalBaseStatChanges = {};
+  Object.entries(baseStatChangesPerDay).forEach(([key, value]) => {
+    totalBaseStatChanges[key] = value * workDays;
+  });
+
+  const combinedStatChanges = mergeStatChanges(
+    totalBaseStatChanges,
+    eventChoice?.statChanges ?? {},
+  );
+
+  const eventSalaryBonus = Math.round(baseSalaryPerDay * workDays * (eventChoice?.salaryMultiplier ?? 0));
+  const totalSalaryWithBonus = totalSalary + eventSalaryBonus;
+
+  saveData.money += totalSalaryWithBonus;
+  saveData.totalEarnings += totalSalaryWithBonus;
+  saveData.currentJob.daysAtWork = (saveData.currentJob.daysAtWork ?? 0) + workDays;
+  saveData.lifetimeStats.totalWorkDays = (saveData.lifetimeStats.totalWorkDays ?? 0) + workDays;
+
+  applyStatChanges(saveData.stats, combinedStatChanges);
+
+  if (eventChoice?.permanentSalaryMultiplier) {
+    saveData.currentJob.salaryPerDay = Math.round(saveData.currentJob.salaryPerDay * (1 + eventChoice.permanentSalaryMultiplier));
+    saveData.currentJob.salaryPerWeek = saveData.currentJob.salaryPerDay * 5;
+  }
+
+  advanceGameTime(saveData, workDays);
+
+  const careerUpdateSummary = syncCareerProgress(saveData);
+
+  return buildWorkPeriodSummary(workDays, totalSalaryWithBonus, combinedStatChanges, eventChoice, careerUpdateSummary);
+}
+
+export function applyPeriodEventChoiceToSave(saveData, event, eventChoice, workDays) {
+  const baseSalaryPerDay = saveData.currentJob.salaryPerDay;
+  const totalSalary = baseSalaryPerDay * workDays;
+
+  const baseStatChangesPerDay = {
+    hunger: -18,
+    energy: -24,
+    stress: 12,
+    mood: -2,
+  };
+
+  const totalBaseStatChanges = {};
+  Object.entries(baseStatChangesPerDay).forEach(([key, value]) => {
+    totalBaseStatChanges[key] = value * workDays;
+  });
+
+  const combinedStatChanges = mergeStatChanges(
+    totalBaseStatChanges,
+    eventChoice?.statChanges ?? {},
+  );
+
+  const eventSalaryBonus = Math.round(baseSalaryPerDay * workDays * (eventChoice?.salaryMultiplier ?? 0));
+  const totalSalaryWithBonus = totalSalary + eventSalaryBonus;
+
+  saveData.money += totalSalaryWithBonus;
+  saveData.totalEarnings += totalSalaryWithBonus;
+  saveData.currentJob.daysAtWork = (saveData.currentJob.daysAtWork ?? 0) + workDays;
+  saveData.lifetimeStats.totalWorkDays = (saveData.lifetimeStats.totalWorkDays ?? 0) + workDays;
+
+  applyStatChanges(saveData.stats, combinedStatChanges);
+  applySkillChanges(saveData.skills, eventChoice?.skillChanges);
+
+  if (eventChoice?.permanentSalaryMultiplier) {
+    saveData.currentJob.salaryPerDay = Math.round(saveData.currentJob.salaryPerDay * (1 + eventChoice.permanentSalaryMultiplier));
+    saveData.currentJob.salaryPerWeek = saveData.currentJob.salaryPerDay * 5;
+  }
+
+  recordEvent(saveData, event.id, event.title);
+  advanceGameTime(saveData, workDays);
+
+  const careerUpdateSummary = syncCareerProgress(saveData);
+
+  return buildWorkPeriodSummary(workDays, totalSalaryWithBonus, combinedStatChanges, eventChoice, careerUpdateSummary);
+}
+
+export function buildWorkPeriodSummary(workDays, salary, statChanges, eventChoice, careerUpdateSummary) {
+  const lines = [
+    `Рабочий период завершён: ${workDays} дн.`,
+    `Выплата: ${formatMoney(salary)} ₽.`,
+    summarizeStatChanges(statChanges),
+  ];
+
+  if (eventChoice) {
+    lines.push(`Событие: ${eventChoice.label} — ${eventChoice.outcome}`);
+  }
+
+  if (careerUpdateSummary) {
+    lines.push(careerUpdateSummary);
+  }
+
+  return lines.filter(Boolean).join("\n");
+}
+
 export function clone(value) {
   return structuredClone(value);
 }

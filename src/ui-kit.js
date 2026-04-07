@@ -154,19 +154,6 @@ export function createModalCard(scene, options = {}) {
   root.description = description;
   root.illustration = illustration;
 
-  const redrawIllustration = (accentColor = COLORS.accent) => {
-    const panelWidth = panel.panelWidth ?? width;
-    illustration.clear();
-    illustration.fillStyle(accentColor, 0.18);
-    illustration.fillCircle(panelWidth / 2, 72, 48);
-    illustration.fillStyle(COLORS.white, 1);
-    illustration.fillRoundedRect(panelWidth / 2 - 58, 42, 116, 62, 20);
-    illustration.lineStyle(2, COLORS.line, 1);
-    illustration.strokeRoundedRect(panelWidth / 2 - 58, 42, 116, 62, 20);
-    illustration.fillStyle(accentColor, 0.9);
-    illustration.fillRoundedRect(panelWidth / 2 - 26, 56, 52, 32, 12);
-  };
-
   root.resize = (gameSize) => {
     const sceneWidth = gameSize.width;
     const sceneHeight = gameSize.height;
@@ -178,13 +165,19 @@ export function createModalCard(scene, options = {}) {
     backdrop.width = sceneWidth;
     backdrop.height = sceneHeight;
     panel.resize(x, y, cardWidth, cardHeight, 24, 1);
-    title.setPosition(x + cardWidth / 2, y + 132);
-    description.setPosition(x + cardWidth / 2, y + 178).setWordWrapWidth(cardWidth - 48);
-    primaryButton.resize(cardWidth - 48, 50);
-    primaryButton.setPosition(x + cardWidth / 2, y + cardHeight - 78);
+
+    // Position content with 16px top padding
+    title.setPosition(x + cardWidth / 2, y + 16);
+    description.setPosition(x + cardWidth / 2, y + 48).setWordWrapWidth(cardWidth - 48);
+
+    // Position buttons with 16px bottom padding
     secondaryButton.resize(cardWidth - 48, 46);
-    secondaryButton.setPosition(x + cardWidth / 2, y + cardHeight - 24);
-    redrawIllustration(root.accentColor ?? COLORS.accent);
+    secondaryButton.setPosition(x + cardWidth / 2, y + cardHeight - 16 - 23);
+    primaryButton.resize(cardWidth - 48, 50);
+    primaryButton.setPosition(x + cardWidth / 2, y + cardHeight - 16 - 46 - 35);
+
+    // Hide illustration for this simpler layout
+    illustration.setVisible(false);
   };
 
   root.show = (config = {}) => {

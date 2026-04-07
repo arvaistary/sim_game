@@ -2,9 +2,11 @@ import Phaser from "phaser";
 import "./style.css";
 import {
   applyFinanceActionToSave,
+  applyPeriodEventChoiceToSave,
   applyQueuedEventChoice,
   applyRecoveryActionToSave,
   applyWorkOutcomeToSave,
+  applyWorkPeriodResult,
   advanceEducationCourseDay,
   buildWorkOutcome,
   canStartEducationProgram,
@@ -17,6 +19,8 @@ import {
   EDUCATION_PROGRAMS,
   formatMoney,
   loadSave,
+  parseSchedule,
+  pickWorkPeriodEvent,
   persistSave,
   RECOVERY_TABS,
   startEducationProgram,
@@ -227,13 +231,13 @@ class MainGameScene extends Phaser.Scene {
 
   createActionButton() {
     this.actionButton = createRoundedButton(this, {
-      label: "Начать рабочий период",
+      label: "Пойти на работу",
       onClick: () => this.showWorkPeriodModal(),
       fillColor: COLORS.accent,
       fontSize: 22,
     });
     this.actionButton.text.setY(-10);
-    this.actionButton.subtitle = this.add.text(0, 16, "1 рабочий день, зарплата и изменение шкал", textStyle(14, COLORS.text, "500"));
+    this.actionButton.subtitle = this.add.text(0, 16, "обменять свое здоровье на деньги", textStyle(14, COLORS.text, "500"));
     this.actionButton.subtitle.setOrigin(0.5);
     this.actionButton.add(this.actionButton.subtitle);
     this.root.add(this.actionButton);
@@ -316,13 +320,34 @@ class MainGameScene extends Phaser.Scene {
 
   showWorkPeriodModal() {
     const { currentJob } = this.saveData;
+    const { workDays } = parseSchedule(currentJob.schedule);
     this.workPeriodModal.show({
       title: "Начать рабочий период",
-      description: `${currentJob.name} • график ${currentJob.schedule}\n\nБудет запущено рабочее событие на 10 секунд. Следующий шаг — передать результат в расчёт зарплаты, стресса и рабочих исходов.`,
+      description: `${currentJob.name} • график ${currentJob.schedule}\n\nРабочий период: ${workDays} дн.\n\nШанс сценарного события: 15%. Если событие не сработает, результат будет применён сразу.`,
       accentColor: COLORS.accent,
       primaryLabel: "Начать",
       secondaryLabel: "Позже",
-      onPrimary: () => this.scene.start("WorkEventScene"),
+      onPrimary: () => this.startWorkPeriod(),
+    });
+  }
+
+  startWorkPeriod() {
+    const { workDays } = parseSchedule(this.saveData.currentJob.schedule);
+    const event = pickWorkPeriodEvent(this.saveData);
+
+    if (event) {
+      this.scene.start("WorkEventScene", { mode: "event_only", event, workDays });
+    } else {
+      this.applyWorkPeriodResult(workDays);
+    }
+  }
+
+  applyWorkPeriodResult(workDays) {
+    const summary = applyWorkPeriodResult(this.saveData, workDays);
+    persistSave(this, this.saveData);
+    this.scene.start("RecoveryScene", {
+      initialTab: "shop",
+      entrySummary: summary,
     });
   }
 
@@ -833,10 +858,20 @@ class RecoveryScene extends Phaser.Scene {
     body.fillRoundedRect(0, 0, width, height, 20);
     body.strokeRoundedRect(0, 0, width, height, 20);
 
+    // Показываем цену только если она > 0
     const chip = this.add.graphics();
-    chip.fillStyle(COLORS[tab.accentKey], 0.2);
-    chip.fillRoundedRect(18, 18, 92, 30, 14);
-    const chipText = this.add.text(64, 33, `${formatMoney(cardData.price)} ₽`, textStyle(13, COLORS.text, "700")).setOrigin(0.5);
+    const chipText = this.add.text(0, 0, "", textStyle(13, COLORS.text, "700")).setOrigin(0.5);
+    
+    if (cardData.price > 0) {
+      chip.fillStyle(COLORS[tab.accentKey], 0.2);
+      chip.fillRoundedRect(18, 18, 92, 30, 14);
+      chipText.setText(`${formatMoney(cardData.price)} ₽`);
+      chipText.setPosition(64, 33);
+    } else {
+      chip.setVisible(false);
+      chipText.setVisible(false);
+    }
+    
     const title = this.add.text(18, 62, cardData.title, { ...textStyle(19, COLORS.text, "700"), wordWrap: { width: width - 36 } });
     const effect = this.add.text(18, 112, cardData.effect, { ...textStyle(14, COLORS.text, "600"), wordWrap: { width: width - 36 } });
     const mood = this.add.text(18, height - 48, cardData.mood, { ...textStyle(13, COLORS.text, "500"), wordWrap: { width: width - 120 } });
@@ -1048,7 +1083,7 @@ class RecoveryCategoryScene extends Phaser.Scene {
     this.root.add([this.actionModal, this.feedbackModal]);
 
     this.backButton = createRoundedButton(this, {
-      label: "Назад на главный экран",
+      label: "Назад",
       fillColor: COLORS.neutral,
       fontSize: 16,
       onClick: () => this.scene.start("MainGameScene"),
@@ -1142,6 +1177,14 @@ class RecoveryCategoryScene extends Phaser.Scene {
       wordWrap: { width: 280 },
     });
     const badge = this.add.text(0, 0, String(index + 1), textStyle(12, COLORS.text, "700")).setOrigin(0.5);
+    const chipText = this.add.text(0, 0, "", textStyle(13, COLORS.text, "700")).setOrigin(0.5);
+
+    if (cardData.price > 0) {
+      chipText.setText(`${formatMoney(cardData.price)} ₽`);
+    } else {
+      chip.setVisible(false);
+      chipText.setVisible(false);
+    }
 
     const button = createRoundedButton(this, {
       label: "Выбрать",
@@ -1153,13 +1196,14 @@ class RecoveryCategoryScene extends Phaser.Scene {
     container.shadow = shadow;
     container.body = body;
     container.chip = chip;
+    container.chipText = chipText;
     container.titleText = title;
     container.effectText = effect;
     container.moodText = mood;
     container.badgeText = badge;
     container.button = button;
     container.cardData = cardData;
-    container.add([shadow, body, chip, title, effect, mood, badge, button]);
+    container.add([shadow, body, chip, chipText, title, effect, mood, badge, button]);
     return container;
   }
 
@@ -1259,11 +1303,20 @@ class RecoveryCategoryScene extends Phaser.Scene {
     card.body.lineStyle(1, COLORS.line, 1);
     card.body.fillRoundedRect(0, 0, width, height, 18);
     card.body.strokeRoundedRect(0, 0, width, height, 18);
-    card.chip.clear();
-    card.chip.fillStyle(COLORS[this.tab.accentKey], 0.2);
-    card.chip.fillRoundedRect(18, 18, 116, 28, 14);
-    card.titleText.setPosition(18, 56).setWordWrapWidth(width - 36);
-    card.effectText.setPosition(18, 96).setWordWrapWidth(width - 36);
+    const hasPrice = card.cardData && card.cardData.price > 0;
+    if (hasPrice) {
+      card.chip.setVisible(true);
+      if (card.chipText) card.chipText.setVisible(true);
+      card.chip.clear();
+      card.chip.fillStyle(COLORS[this.tab.accentKey], 0.2);
+      card.chip.fillRoundedRect(18, 18, 92, 28, 14);
+      if (card.chipText) card.chipText.setPosition(64, 32);
+    } else {
+      card.chip.setVisible(false);
+      if (card.chipText) card.chipText.setVisible(false);
+    }
+    card.titleText.setPosition(18, hasPrice ? 54 : 18).setWordWrapWidth(width - 36);
+    card.effectText.setPosition(18, hasPrice ? 92 : 56).setWordWrapWidth(width - 36);
     card.moodText.setPosition(18, height - 64).setWordWrapWidth(width - 154);
     card.badgeText.setPosition(width - 32, 30);
     card.button.resize(Math.min(122, width - 36), 42, COLORS[this.tab.accentKey]);
@@ -1349,6 +1402,10 @@ class InteractiveWorkEventScene extends Phaser.Scene {
 
   create() {
     this.saveData = this.registry.get("saveData") ?? loadSave();
+    this.initData = this.scene.settings?.data ?? {};
+    this.mode = this.initData.mode ?? "normal";
+    this.event = this.initData.event ?? null;
+    this.workDays = this.initData.workDays ?? 1;
     this.state = "idle";
     this.durationMs = 10000;
     this.elapsedMs = 0;
@@ -1431,8 +1488,13 @@ class InteractiveWorkEventScene extends Phaser.Scene {
     });
 
     this.handleResize(this.scale.gameSize);
-    this.resetEvent();
-    this.animateSceneIn();
+    
+    if (this.mode === "event_only" && this.event) {
+      this.showEventOnlyMode();
+    } else {
+      this.resetEvent();
+      this.animateSceneIn();
+    }
     ensureEventQueue(this, 420);
   }
 
@@ -1743,6 +1805,50 @@ class InteractiveWorkEventScene extends Phaser.Scene {
     });
   }
 
+  showEventOnlyMode() {
+    this.state = "event_only";
+    this.mode = "event_only";
+    
+    this.titleText.setText(this.event.title);
+    this.subtitleText.setText(this.event.description);
+    this.statusText.setText("Выбери действие");
+    
+    this.centerButtonHit.visible = false;
+    this.timerText.visible = false;
+    this.timerCaption.visible = false;
+    this.counterText.visible = false;
+    this.counterCaption.visible = false;
+    this.timerRing.visible = false;
+    this.lightRing.visible = false;
+    
+    this.resultCard.setVisible(false);
+    this.animateSceneIn();
+    
+    this.showPeriodEventModal();
+  }
+
+  showPeriodEventModal() {
+    const [primaryChoice, secondaryChoice] = this.event.choices;
+    this.workEventModal.show({
+      title: this.event.title,
+      description: `${this.event.description}\n\nРабочий период: ${this.workDays} дн.\n\n1. ${primaryChoice.label} — ${primaryChoice.outcome}\n2. ${secondaryChoice.label} — ${secondaryChoice.outcome}`,
+      accentColor: COLORS.accent,
+      primaryLabel: primaryChoice.label,
+      secondaryLabel: secondaryChoice.label,
+      onPrimary: () => this.applyPeriodEventChoice(primaryChoice),
+      onSecondary: () => this.applyPeriodEventChoice(secondaryChoice),
+    });
+  }
+
+  applyPeriodEventChoice(eventChoice) {
+    const summary = applyPeriodEventChoiceToSave(this.saveData, this.event, eventChoice, this.workDays);
+    persistSave(this, this.saveData);
+    this.scene.start("RecoveryScene", {
+      initialTab: "shop",
+      entrySummary: summary,
+    });
+  }
+
   onExternalStateChange() {
     this.saveData = this.registry.get("saveData") ?? this.saveData;
   }
@@ -1823,10 +1929,10 @@ class EducationScene extends Phaser.Scene {
     this.root.add(this.programsGroup);
 
     this.backButton = createRoundedButton(this, {
-      label: "Назад к восстановлению",
+      label: "Назад",
       fillColor: COLORS.neutral,
       fontSize: 17,
-      onClick: () => this.scene.start("RecoveryScene", { initialTab: "education" }),
+      onClick: () => this.scene.start("MainGameScene"),
     });
     this.root.add(this.backButton);
 
@@ -1857,9 +1963,9 @@ class EducationScene extends Phaser.Scene {
           title: this.sessionCompleted ? "Учебная сессия завершена" : "Учебный день",
           description: this.sessionSummary,
           accentColor: this.sessionCompleted ? COLORS.sage : COLORS.blue,
-          primaryLabel: this.sessionCompleted ? "К восстановлению" : "Продолжить",
+          primaryLabel: this.sessionCompleted ? "На главный экран" : "Продолжить",
           secondaryLabel: "Закрыть",
-          onPrimary: this.sessionCompleted ? () => this.scene.start("RecoveryScene", { initialTab: "education" }) : undefined,
+          onPrimary: this.sessionCompleted ? () => this.scene.start("MainGameScene") : undefined,
         });
       });
     }
@@ -1914,7 +2020,9 @@ class EducationScene extends Phaser.Scene {
     const title = this.add.text(0, 0, program.title, { ...textStyle(18, COLORS.text, "700"), wordWrap: { width: 280 } });
     const subtitle = this.add.text(0, 0, program.subtitle, { ...textStyle(13, COLORS.text, "500"), wordWrap: { width: 280 } });
     const reward = this.add.text(0, 0, program.rewardText, { ...textStyle(13, COLORS.text, "600"), wordWrap: { width: 280 } });
-    const chipText = this.add.text(0, 0, `${program.typeLabel} • ${program.daysRequired} д.`, textStyle(12, COLORS.text, "700"));
+    const chipText = this.add.text(0, 0, "", textStyle(12, COLORS.text, "700"));
+    const priceText = program.cost > 0 ? ` • ${formatMoney(program.cost)} ₽` : "";
+    chipText.setText(`${program.typeLabel} • ${program.daysRequired} д.${priceText}`);
     const button = createRoundedButton(this, {
       label: "Начать",
       fillColor: COLORS[program.accentKey],
@@ -1931,7 +2039,17 @@ class EducationScene extends Phaser.Scene {
     container.chipText = chipText;
     container.button = button;
     container.program = program;
+    
+    // Добавляем элементы в правильном порядке (chip и chipText первыми)
     container.add([shadow, body, chip, title, subtitle, reward, chipText, button]);
+    
+    // Устанавливаем depth для текстовых элементов, чтобы они были поверх плашки
+    title.setDepth(1);
+    subtitle.setDepth(2);
+    reward.setDepth(3);
+    chipText.setDepth(4);
+    button.setDepth(5);
+
     return container;
   }
 
@@ -2112,9 +2230,10 @@ class EducationScene extends Phaser.Scene {
     card.body.fillRoundedRect(0, 0, width, height, 20);
     card.body.strokeRoundedRect(0, 0, width, height, 20);
     card.chip.clear();
+    const chipWidth = Math.max(120, card.chipText.width + 28);
     card.chip.fillStyle(COLORS[card.program.accentKey], 0.2);
-    card.chip.fillRoundedRect(18, 18, 120, 28, 14);
-    card.chipText.setPosition(30, 24);
+    card.chip.fillRoundedRect(18, 18, chipWidth, 28, 14);
+    card.chipText.setPosition(18 + chipWidth / 2, 32);
     card.titleText.setPosition(18, 58).setWordWrapWidth(width - 36);
     card.subtitleText.setPosition(18, 92).setWordWrapWidth(width - 36);
     card.rewardText.setPosition(18, 128).setWordWrapWidth(width - 144);
@@ -2187,7 +2306,7 @@ class CareerScene extends Phaser.Scene {
     this.root.add(this.jobsGroup);
 
     this.backButton = createRoundedButton(this, {
-      label: "Назад на главный экран",
+      label: "Назад",
       fillColor: COLORS.neutral,
       fontSize: 16,
       onClick: () => this.scene.start("MainGameScene"),
@@ -2419,7 +2538,7 @@ class FinanceScene extends Phaser.Scene {
     this.root.add([this.actionModal, this.feedbackModal]);
 
     this.backButton = createRoundedButton(this, {
-      label: "Назад на главный экран",
+      label: "Назад",
       fillColor: COLORS.neutral,
       fontSize: 16,
       onClick: () => this.scene.start("MainGameScene"),
@@ -2523,6 +2642,15 @@ class FinanceScene extends Phaser.Scene {
     const shadow = this.add.graphics();
     const body = this.add.graphics();
     const chip = this.add.graphics();
+    const chipText = this.add.text(0, 0, "", textStyle(13, COLORS.text, "700")).setOrigin(0.5);
+
+    if (action.amount > 0) {
+      chipText.setText(`${formatMoney(action.amount)} ₽`);
+    } else {
+      chip.setVisible(false);
+      chipText.setVisible(false);
+    }
+
     const title = this.add.text(0, 0, action.title, textStyle(19, COLORS.text, "700"));
     const subtitle = this.add.text(0, 0, action.subtitle, {
       ...textStyle(14, COLORS.text, "500"),
@@ -2561,16 +2689,18 @@ class FinanceScene extends Phaser.Scene {
     container.shadow = shadow;
     container.body = body;
     container.chip = chip;
+    container.chipText = chipText;
     container.titleText = title;
     container.subtitleText = subtitle;
     container.descriptionText = description;
     container.button = button;
     container.action = action;
-    container.add([shadow, body, chip, title, subtitle, description, button]);
+    container.add([shadow, body, chip, chipText, title, subtitle, description, button]);
     return container;
   }
 
   layoutFinanceActionCard(card, width, height) {
+    const hasPrice = card.action && card.action.amount > 0;
     card.shadow.clear();
     card.shadow.fillStyle(COLORS.shadow, 0.16);
     card.shadow.fillRoundedRect(8, 10, width, height, 18);
@@ -2579,12 +2709,20 @@ class FinanceScene extends Phaser.Scene {
     card.body.lineStyle(1, COLORS.line, 1);
     card.body.fillRoundedRect(0, 0, width, height, 18);
     card.body.strokeRoundedRect(0, 0, width, height, 18);
-    card.chip.clear();
-    card.chip.fillStyle(COLORS[card.action.accentKey], 0.2);
-    card.chip.fillRoundedRect(18, 18, 142, 28, 14);
-    card.titleText.setPosition(18, 24).setWordWrapWidth(width - 36);
-    card.subtitleText.setPosition(18, 60).setWordWrapWidth(width - 36);
-    card.descriptionText.setPosition(18, 112).setWordWrapWidth(width - 36);
+    if (hasPrice) {
+      card.chip.setVisible(true);
+      if (card.chipText) card.chipText.setVisible(true);
+      card.chip.clear();
+      card.chip.fillStyle(COLORS[card.action.accentKey], 0.2);
+      card.chip.fillRoundedRect(18, 18, 92, 28, 14);
+      if (card.chipText) card.chipText.setPosition(64, 32);
+    } else {
+      card.chip.setVisible(false);
+      if (card.chipText) card.chipText.setVisible(false);
+    }
+    card.titleText.setPosition(18, hasPrice ? 54 : 18).setWordWrapWidth(width - 36);
+    card.subtitleText.setPosition(18, hasPrice ? 92 : 56).setWordWrapWidth(width - 36);
+    card.descriptionText.setPosition(18, hasPrice ? 144 : 108).setWordWrapWidth(width - 36);
     card.button.resize(Math.min(152, width - 36), 42, card.action.available ? COLORS[card.action.accentKey] : COLORS.neutral);
     card.button.setPosition(width - 92, height - 30);
   }
