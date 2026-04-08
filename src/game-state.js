@@ -166,64 +166,48 @@ export function clone(value) {
 
 export const DEFAULT_SAVE = {
   version: "0.2.0",
-  playerName: "Алексей",
-  startAge: 23,
-  currentAge: 24,
-  gameDays: 146,
-  gameWeeks: 20,
-  gameMonths: 5,
-  gameYears: 0.4,
-  money: 68450,
-  totalEarnings: 68450,
+  playerName: "",
+  startAge: 18,
+  currentAge: 18,
+  gameDays: 0,
+  gameWeeks: 0,
+  gameMonths: 0,
+  gameYears: 0,
+  money: 5000,
+  totalEarnings: 0,
   totalSpent: 0,
-  currentJob: {
-    id: "office_employee",
-    name: "Офисный сотрудник",
-    schedule: "5/2",
-    salaryPerWeek: 42000,
-    salaryPerDay: 8400,
-    level: 1,
-    daysAtWork: 146,
-  },
+  currentJob: null,
   housing: {
-    level: 1,
-    name: "Студия",
-    comfort: 35,
+    level: 0,
+    name: "Комната",
+    comfort: 0,
     furniture: [],
     lastWeeklyBonus: null,
   },
   skills: {
-    professionalism: 2,
-    communication: 2,
-    timeManagement: 2,
-    healthyLifestyle: 1,
-    financialLiteracy: 1,
-    stressResistance: 1,
+    professionalism: 0,
+    communication: 0,
+    timeManagement: 0,
+    healthyLifestyle: 0,
+    financialLiteracy: 0,
+    stressResistance: 0,
   },
   education: {
-    school: "completed",
+    school: "none",
     institute: "none",
-    educationLevel: "Среднее",
+    educationLevel: "Нет",
     activeCourses: [],
   },
-  relationships: [
-    {
-      id: "friend_ivan",
-      name: "Иван",
-      type: "friend",
-      level: 42,
-      lastContact: 142,
-    },
-  ],
+  relationships: [],
   investments: [],
   finance: {
-    reserveFund: 18000,
+    reserveFund: 0,
     monthlyExpenses: {
-      housing: 16000,
-      food: 9000,
-      transport: 4500,
-      leisure: 6500,
-      education: 2500,
+      housing: 0,
+      food: 0,
+      transport: 0,
+      leisure: 0,
+      education: 0,
     },
     lastMonthlySettlement: null,
   },
@@ -232,45 +216,19 @@ export const DEFAULT_SAVE = {
   lifetimeStats: {
     totalWorkDays: 0,
     totalEvents: 0,
-    maxMoney: 68450,
+    maxMoney: 0,
   },
   stats: {
-    hunger: 64,
-    energy: 57,
-    stress: 42,
-    mood: 73,
-    health: 81,
-    physical: 49,
+    hunger: 80,
+    energy: 80,
+    stress: 20,
+    mood: 70,
+    health: 90,
+    physical: 70,
   },
 };
 
 export const RECOVERY_TABS = [
-  {
-    id: "shop",
-    label: "Магазин",
-    icon: "М",
-    accentKey: "accent",
-    title: "Быстрое восстановление",
-    subtitle: "Еда, бытовые мелочи и базовые покупки после рабочей смены.",
-    cards: [
-      { title: "Быстрый перекус", price: 150, dayCost: 1, effect: "Голод +35 • Энергия +10 • Стресс -5", mood: "На 5 минут и снова в ритм", statChanges: { hunger: 35, energy: 10, stress: -5 } },
-      { title: "Полноценный обед", price: 450, dayCost: 1, effect: "Голод +65 • Энергия +25 • Настроение +15", mood: "Самый стабильный вариант", statChanges: { hunger: 65, energy: 25, mood: 15 } },
-      { title: "Запас продуктов домой", price: 1200, dayCost: 1, effect: "Голод +25 • Настроение +8 • Комфорт дома +2", mood: "Небольшой буфер комфорта", statChanges: { hunger: 25, mood: 8 }, housingComfortDelta: 2 },
-    ],
-  },
-  {
-    id: "fun",
-    label: "Развлечения",
-    icon: "Р",
-    accentKey: "blue",
-    title: "Сбросить напряжение",
-    subtitle: "Сцены отдыха помогают стабилизировать стресс и настроение.",
-    cards: [
-      { title: "Вечер дома", price: 0, dayCost: 1, effect: "Энергия +55 • Настроение +20 • Стресс -25", mood: "Самый бережный отдых", statChanges: { energy: 55, mood: 20, stress: -25 } },
-      { title: "Кино или прогулка", price: 800, dayCost: 1, effect: "Энергия +30 • Настроение +45 • Стресс -30", mood: "Мягкий городской уют", statChanges: { energy: 30, mood: 45, stress: -30 } },
-      { title: "Спортзал", price: 1200, dayCost: 1, effect: "Энергия +40 • Настроение +35 • Стресс -35 • Форма +10", mood: "Хорошо для длинной дистанции", statChanges: { energy: 40, mood: 35, stress: -35, physical: 10 } },
-    ],
-  },
   {
     id: "home",
     label: "Дом",
@@ -301,6 +259,32 @@ export const RECOVERY_TABS = [
     ],
   },
   {
+    id: "shop",
+    label: "Магазин",
+    icon: "М",
+    accentKey: "accent",
+    title: "Быстрое восстановление",
+    subtitle: "Еда, бытовые мелочи и базовые покупки после рабочей смены.",
+    cards: [
+      { title: "Быстрый перекус", price: 150, dayCost: 1, effect: "Голод +35 • Энергия +10 • Стресс -5", mood: "На 5 минут и снова в ритм", statChanges: { hunger: 35, energy: 10, stress: -5 } },
+      { title: "Полноценный обед", price: 450, dayCost: 1, effect: "Голод +65 • Энергия +25 • Настроение +15", mood: "Самый стабильный вариант", statChanges: { hunger: 65, energy: 25, mood: 15 } },
+      { title: "Запас продуктов домой", price: 1200, dayCost: 1, effect: "Голод +25 • Настроение +8 • Комфорт дома +2", mood: "Небольшой буфер комфорта", statChanges: { hunger: 25, mood: 8 }, housingComfortDelta: 2 },
+    ],
+  },
+  {
+    id: "fun",
+    label: "Развлечения",
+    icon: "Р",
+    accentKey: "blue",
+    title: "Сбросить напряжение",
+    subtitle: "Сцены отдыха помогают стабилизировать стресс и настроение.",
+    cards: [
+      { title: "Вечер дома", price: 0, dayCost: 1, effect: "Энергия +55 • Настроение +20 • Стресс -25", mood: "Самый бережный отдых", statChanges: { energy: 55, mood: 20, stress: -25 } },
+      { title: "Кино или прогулка", price: 800, dayCost: 1, effect: "Энергия +30 • Настроение +45 • Стресс -30", mood: "Мягкий городской уют", statChanges: { energy: 30, mood: 45, stress: -30 } },
+      { title: "Спортзал", price: 1200, dayCost: 1, effect: "Энергия +40 • Настроение +35 • Стресс -35 • Форма +10", mood: "Хорошо для длинной дистанции", statChanges: { energy: 40, mood: 35, stress: -35, physical: 10 } },
+    ],
+  },
+  {
     id: "education",
     label: "Обучение",
     icon: "О",
@@ -326,14 +310,14 @@ export const RECOVERY_TABS = [
       { title: "Свидание", price: 1800, dayCost: 1, effect: "Настроение +22 • Отношения +12", mood: "Для длинной эмоциональной линии", statChanges: { mood: 22, stress: -6 }, relationshipDelta: 12 },
     ],
   },
-      {
-        id: "finance",
-        label: "Финансы",
+  {
+    id: "finance",
+    label: "Финансы",
     icon: "Ф",
     accentKey: "sage",
     title: "Деньги и планирование",
-        subtitle: "Финансовые решения влияют на стабильность, риски и будущий доход.",
-        cards: [
+    subtitle: "Финансовые решения влияют на стабильность, риски и будущий доход.",
+    cards: [
       { title: "Отложить в резерв", price: 5000, dayCost: 1, effect: "Резерв +5 000 • Стресс -10 • Настроение +6", mood: "Снижает тревожность перед расходами", statChanges: { stress: -10, mood: 6 }, reserveDelta: 5000 },
       { title: "Открыть депозит", price: 50000, dayCost: 1, effect: "Инвестиция +4 000 • Финансовая грамотность +1", mood: "Низкий риск, спокойный рост", investmentReturn: 4000, investmentDurationDays: 28, skillChanges: { financialLiteracy: 1 } },
       { title: "Пересмотреть бюджет", price: 0, dayCost: 1, effect: "Стресс -8 • Финансовая грамотность +1", mood: "Хорошая рутина перед крупными целями", statChanges: { stress: -8 }, skillChanges: { financialLiteracy: 1 } },
@@ -390,7 +374,8 @@ export const CAREER_JOBS = [
     salaryPerDay: 8400,
     salaryPerWeek: 42000,
     minProfessionalism: 0,
-    minEducationRank: 0,
+    minEducationRank: -1,
+    minAge: 16,
   },
   {
     id: "project_coordinator",
@@ -400,7 +385,8 @@ export const CAREER_JOBS = [
     salaryPerDay: 9800,
     salaryPerWeek: 49000,
     minProfessionalism: 3,
-    minEducationRank: 0,
+    minEducationRank: -1,
+    minAge: 18,
   },
   {
     id: "business_analyst",
@@ -410,7 +396,8 @@ export const CAREER_JOBS = [
     salaryPerDay: 12800,
     salaryPerWeek: 64000,
     minProfessionalism: 4,
-    minEducationRank: 1,
+    minEducationRank: 0,
+    minAge: 21,
   },
   {
     id: "team_lead",
@@ -421,6 +408,55 @@ export const CAREER_JOBS = [
     salaryPerWeek: 78000,
     minProfessionalism: 6,
     minEducationRank: 1,
+    minAge: 25,
+  },
+];
+
+export const EDUCATION_PATHS = [
+  {
+    id: "none",
+    label: "Сразу в жизнь",
+    description: "Пропустить образование и начать работать",
+    result: {
+      educationLevel: "Нет",
+      skills: {
+        timeManagement: 1,
+        communication: 1,
+        financialLiteracy: 1,
+      },
+      startAge: 18,
+    },
+  },
+  {
+    id: "school",
+    label: "Пройти школу",
+    description: "Мини-игра на 10-12 минут для получения базовых навыков",
+    result: {
+      educationLevel: "Среднее",
+      skills: {
+        timeManagement: 1,
+        communication: 1,
+        financialLiteracy: 1,
+        healthyLifestyle: 1,
+      },
+      startAge: 18,
+    },
+  },
+  {
+    id: "institute",
+    label: "Пройти школу + Институт",
+    description: "Полный путь образования с получением продвинутого навыка",
+    result: {
+      educationLevel: "Высшее",
+      skills: {
+        timeManagement: 1,
+        communication: 1,
+        financialLiteracy: 1,
+        healthyLifestyle: 1,
+        professionalism: 1,
+      },
+      startAge: 18,
+    },
   },
 ];
 
@@ -779,6 +815,8 @@ export function loadSave() {
 
   try {
     const parsed = JSON.parse(stored);
+    const defaultCurrentJob = DEFAULT_SAVE.currentJob ?? {};
+    const parsedCurrentJob = parsed.currentJob ?? {};
     return {
       ...clone(DEFAULT_SAVE),
       ...parsed,
@@ -787,8 +825,8 @@ export function loadSave() {
         ...(parsed.stats ?? {}),
       },
       currentJob: {
-        ...DEFAULT_SAVE.currentJob,
-        ...(parsed.currentJob ?? {}),
+        ...defaultCurrentJob,
+        ...parsedCurrentJob,
       },
       housing: {
         ...DEFAULT_SAVE.housing,
@@ -830,6 +868,11 @@ export function loadSave() {
 export function saveGame(saveData) {
   saveData.saveTime = Date.now();
   window.localStorage.setItem("game-life-save", JSON.stringify(saveData));
+}
+
+export function resetGame() {
+  localStorage.removeItem("game-life-save");
+  return clone(DEFAULT_SAVE);
 }
 
 export function persistSave(scene, saveData) {
@@ -1069,15 +1112,58 @@ export function canStartEducationProgram(saveData, program) {
 export function getCareerTrack(saveData) {
   const professionalism = saveData.skills?.professionalism ?? 0;
   const educationRank = getEducationRank(saveData.education?.educationLevel);
+  const currentAge = saveData.currentAge ?? saveData.startAge ?? 18;
   const currentJobId = saveData.currentJob?.id;
 
   return CAREER_JOBS.map((job) => ({
     ...job,
     current: currentJobId === job.id,
-    unlocked: professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank,
+    unlocked: professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank && currentAge >= (job.minAge ?? 16),
     missingProfessionalism: Math.max(0, job.minProfessionalism - professionalism),
+    missingAge: Math.max(0, (job.minAge ?? 16) - currentAge),
     educationRequiredLabel: getEducationLabelByRank(job.minEducationRank),
   }));
+}
+
+export function changeCareerToSave(saveData, jobId) {
+  const careerTrack = getCareerTrack(saveData);
+  const targetJob = careerTrack.find((job) => job.id === jobId);
+  if (!targetJob) {
+    return { ok: false, reason: "Такой должности нет в карьерном треке." };
+  }
+
+  if (targetJob.current) {
+    return { ok: false, reason: "Эта должность уже выбрана." };
+  }
+
+  if (!targetJob.unlocked) {
+    const missingParts = [];
+    if ((targetJob.missingProfessionalism ?? 0) > 0) {
+      missingParts.push(`проф. +${targetJob.missingProfessionalism}`);
+    }
+    if ((targetJob.missingAge ?? 0) > 0) {
+      missingParts.push(`возраст +${targetJob.missingAge} лет`);
+    }
+    const requiredEducation = targetJob.educationRequiredLabel;
+    const currentEducation = saveData.education?.educationLevel ?? "Нет";
+    if (requiredEducation && requiredEducation !== "Нет" && requiredEducation !== currentEducation) {
+      missingParts.push(`образование ${requiredEducation}`);
+    }
+    const reasonText = missingParts.length > 0 ? missingParts.join(", ") : "требования пока не выполнены";
+    return { ok: false, reason: `Пока нельзя выбрать эту работу: ${reasonText}.` };
+  }
+
+  const currentJob = saveData.currentJob ?? {};
+  saveData.currentJob = {
+    ...currentJob,
+    ...targetJob,
+    daysAtWork: 0,
+  };
+
+  return {
+    ok: true,
+    summary: `Новая работа: «${targetJob.name}». Ставка ${formatMoney(targetJob.salaryPerDay)} ₽ в день.`,
+  };
 }
 
 export function getFinanceOverview(saveData) {
@@ -1580,6 +1666,8 @@ export function advanceGameTime(saveData, days = 1) {
   }
 
   enqueueProgressEvents(saveData, previousWeek, previousAge);
+  // Global autosave policy: any day progression is immediately persisted.
+  saveGame(saveData);
 }
 
 function enqueueProgressEvents(saveData, previousWeek, previousAge) {
@@ -1635,10 +1723,11 @@ function syncCareerProgress(saveData) {
     return "";
   }
 
+  const currentJob = saveData.currentJob ?? {};
   saveData.currentJob = {
-    ...saveData.currentJob,
+    ...currentJob,
     ...unlockedJob,
-    daysAtWork: saveData.currentJob.daysAtWork ?? 0,
+    daysAtWork: currentJob.daysAtWork ?? 0,
   };
 
   return `Карьерный рост: новая должность «${unlockedJob.name}», ставка ${formatMoney(unlockedJob.salaryPerDay)} ₽ в день.`;
@@ -1646,20 +1735,22 @@ function syncCareerProgress(saveData) {
 
 function getEducationRank(level) {
   const map = {
+    "Нет": -1,
     "Среднее": 0,
     "Высшее": 1,
     MBA: 2,
   };
 
-  return map[level] ?? 0;
+  return map[level] ?? -1;
 }
 
 function getEducationLabelByRank(rank) {
   const map = {
+    [-1]: "Нет",
     0: "Среднее",
     1: "Высшее",
     2: "MBA",
   };
 
-  return map[rank] ?? "Среднее";
+  return map[rank] ?? "Нет";
 }

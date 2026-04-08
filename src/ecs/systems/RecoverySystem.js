@@ -26,6 +26,22 @@ export class RecoverySystem {
   }
 
   /**
+   * Совместимость: поиск карточки в табе и применение (устаревший API).
+   * @param {string} playerId
+   * @param {{ cards?: Array<Record<string, unknown>> }} tab
+   * @param {string} [cardId]
+   */
+  recover(playerId, tab, cardId) {
+    if (!tab?.cards?.length) return '';
+    const card =
+      tab.cards.find((c) => c.id === cardId) ||
+      tab.cards.find((c) => c.title === cardId) ||
+      null;
+    if (!card) return '';
+    return this.applyRecoveryAction(card);
+  }
+
+  /**
    * Применить действие восстановления
    */
   applyRecoveryAction(cardData) {

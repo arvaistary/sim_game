@@ -1,15 +1,20 @@
 import Phaser from 'phaser';
 import { SceneAdapter } from '../ecs/adapters/SceneAdapter.js';
-import { loadSave, persistSave } from '../game-state.js';
+import { PersistenceSystem } from '../ecs/systems/PersistenceSystem.js';
 import {
   COLORS,
+  createNotificationModal,
   createRoundedButton,
   createRoundedPanel,
   createToastMessage,
   textStyle,
 } from '../ui-kit';
-import { STAT_DEFS, NAV_ITEMS } from '../shared/constants.js';
 
+/** Контрастнее фона панели (#fffcf7 / #f8f4ed) */
+const CAREER_TITLE = 0x241a1a;
+const CAREER_BODY = 0x352828;
+const CAREER_MUTED = 0x5a4a44;
+const CAREER_ACCENT_STRONG = 0xc97a5c;
 /**
  * CareerScene с поддержкой ECS
  * Отображает доступные работы и позволяет сменить работу
@@ -20,13 +25,12 @@ export class CareerSceneECS extends Phaser.Scene {
   }
 
   create() {
-    // Загружаем сохранение
-    this.saveData = loadSave();
-    this.registry.set('saveData', this.saveData);
-
-    // Создаем ECS адаптер
-    this.sceneAdapter = new SceneAdapter(this, this.saveData);
+    this.persistenceSystem = new PersistenceSystem();
+    const loadedSaveData = this.persistenceSystem.loadSave();
+    this.registry.set('saveData', loadedSaveData);
+    this.sceneAdapter = new SceneAdapter(this, loadedSaveData);
     this.sceneAdapter.initialize();
+    this.persistenceSystem.init(this.sceneAdapter.getWorld());
 
     // Получаем системы
     const careerSystem = this.sceneAdapter.getSystem('careerProgress');
@@ -54,15 +58,31 @@ export class CareerSceneECS extends Phaser.Scene {
     this.headerCard = createRoundedPanel(this, { panelAlpha: 1, radius: 18, shadowAlpha: 0.22 });
     this.root.add(this.headerCard);
 
-    this.headerTitle = this.add.text(0, 0, 'Карьера', textStyle(28, COLORS.text, '700'));
-    this.headerSubtitle = this.add.text(0, 0, 'Доступные должности и требования', textStyle(16, COLORS.text, '500'));
+    this.headerTitle = this.add.text(0, 0, 'Карьера', textStyle(28, CAREER_TITLE, '700'));
+    this.headerSubtitle = this.add.text(
+      0,
+      0,
+      'Должности, зарплата и требования к росту',
+      textStyle(16, CAREER_BODY, '500')
+    );
     this.root.add([this.headerTitle, this.headerSubtitle]);
+    this.headerTitle.setDepth(6);
+    this.headerSubtitle.setDepth(6);
   }
 
   createCareerList() {
-    this.contentCard = createRoundedPanel(this, { panelAlpha: 1, radius: 18, shadowAlpha: 0.22 });
-    this.root.add(this.contentCard);
+    if (!this.contentCard) {
+      this.contentCard = createRoundedPanel(this, { panelAlpha: 1, radius: 18, shadowAlpha: 0.22 });
+      this.root.add(this.contentCard);
 
+      this.listSectionTitle = this.add.text(0, 0, 'Должности', textStyle(22, CAREER_TITLE, '700'));
+      this.root.add(this.listSectionTitle);
+      this.listSectionTitle.setDepth(5);
+    }
+
+    if (this.careerCards) {
+      this.careerCards.forEach((card) => card.container.destroy());
+    }
     this.careerCards = [];
     const careerTrack = this.careerSystem.getCareerTrack();
     const currentJob = this.careerSystem.getCurrentJob();
@@ -70,7 +90,7 @@ export class CareerSceneECS extends Phaser.Scene {
     careerTrack.forEach((job, index) => {
       const card = this.createJobCard(job, index, currentJob?.id);
       this.careerCards.push(card);
-      this.contentCard.add(card.container);
+      this.root.add(card.container);
     });
   }
 
@@ -82,19 +102,23 @@ export class CareerSceneECS extends Phaser.Scene {
     const isCurrent = job.id === currentJobId;
     const isUnlocked = job.unlocked;
 
-    // Заголовок
-    const jobTitle = this.add.text(0, 0, job.name, textStyle(20, isCurrent ? COLORS.accent : (isUnlocked ? COLORS.text : COLORS.neutral), '700'));
+    const titleColor = isCurrent ? CAREER_ACCENT_STRONG : isUnlocked ? CAREER_TITLE : CAREER_MUTED;
+
+    const jobTitle = this.add.text(0, 0, job.name, {
+      ...textStyle(20, titleColor, '700'),
+      wordWrap: { width: 260 },
+      lineSpacing: 2,
+    });
     container.add(jobTitle);
 
-    // Зарплата
-    const salaryText = this.add.text(0, 0, this.formatMoney(job.salaryPerDay) + ' ₽/день', textStyle(18, COLORS.text, '600'));
-    container.add(salaryText);
+    const dailyLine = this.add.text(
+      0,
+      0,
+      `Доход в день: ${this.formatMoney(job.salaryPerDay)} ₽`,
+      textStyle(16, CAREER_BODY, '600')
+    );
+    container.add(dailyLine);
 
-    // Уровень
-    const levelText = this.add.text(0, 0, `Уровень ${job.level}`, textStyle(14, COLORS.text, '500'));
-    container.add(levelText);
-
-    // Требования
     let requirementsText = '';
     if (!isUnlocked) {
       const requirements = [];
@@ -104,20 +128,27 @@ export class CareerSceneECS extends Phaser.Scene {
       if (job.educationRequiredLabel) {
         requirements.push(`Образование: ${job.educationRequiredLabel}`);
       }
-      requirementsText = requirements.join(' • ');
+      if (job.missingAge > 0) {
+        requirements.push(`Возраст: ${job.missingAge}+`);
+      }
+      requirementsText = requirements.map((line) => `• ${line}`).join('\n');
     }
 
-    const requirementsLabel = this.add.text(0, 0, requirementsText, textStyle(12, COLORS.neutral, '400'));
+    const requirementsLabel = this.add.text(0, 0, requirementsText, {
+      ...textStyle(13, CAREER_MUTED, '500'),
+      lineSpacing: 5,
+    });
     container.add(requirementsLabel);
 
-    // Кнопка
     let actionButton;
     if (isCurrent) {
       actionButton = createRoundedButton(this, {
         label: 'Текущая работа',
         onClick: () => this.showJobDetails(job),
         fillColor: COLORS.accent,
-        fontSize: 16,
+        fontSize: 14,
+        width: 152,
+        height: 44,
         disabled: true,
       });
     } else if (isUnlocked) {
@@ -125,22 +156,26 @@ export class CareerSceneECS extends Phaser.Scene {
         label: 'Устроиться',
         onClick: () => this.changeCareer(job.id),
         fillColor: COLORS.accent,
-        fontSize: 16,
+        fontSize: 14,
+        width: 132,
+        height: 44,
       });
     } else {
       actionButton = createRoundedButton(this, {
         label: 'Недоступно',
         onClick: () => {},
         fillColor: COLORS.neutral,
-        fontSize: 16,
+        fontSize: 14,
+        width: 132,
+        height: 44,
         disabled: true,
       });
     }
     container.add(actionButton);
 
-    cardPanel.setSize(400, 200);
+    cardPanel.setSize(400, 220);
 
-    return { container, cardPanel, jobTitle, salaryText, levelText, requirementsLabel, actionButton };
+    return { container, cardPanel, jobTitle, dailyLine, requirementsLabel, actionButton };
   }
 
   createBackButton() {
@@ -159,11 +194,9 @@ export class CareerSceneECS extends Phaser.Scene {
   }
 
   createModals() {
-    this.notificationModal = createRoundedButton(this, {
-      label: 'Понятно',
-      onClick: () => {},
-      fillColor: COLORS.accent,
-      fontSize: 14,
+    this.notificationModal = createNotificationModal(this, {
+      primaryLabel: 'Понятно',
+      secondaryLabel: 'Закрыть',
     });
     this.root.add(this.notificationModal);
   }
@@ -182,7 +215,7 @@ export class CareerSceneECS extends Phaser.Scene {
     if (result.success) {
       // Синхронизируем с saveData
       this.sceneAdapter.syncToSaveData();
-      persistSave(this, this.saveData);
+      this.persistenceSystem.saveGame(this.sceneAdapter.getSaveData());
 
       this.showToast(result.message);
       this.createCareerList(); // Обновляем список
@@ -195,75 +228,85 @@ export class CareerSceneECS extends Phaser.Scene {
     this.notificationModal.show({
       title: job.name,
       description: [
-        `Зарплата: ${this.formatMoney(job.salaryPerDay)} ₽/день (${this.formatMoney(job.salaryPerWeek)} ₽/неделю)`,
-        `Уровень: ${job.level}`,
+        `Доход: ${this.formatMoney(job.salaryPerDay)} ₽/день`,
+        `За неделю: ${this.formatMoney(job.salaryPerWeek)} ₽`,
       ].join('\n'),
-      onConfirm: () => {},
     });
   }
 
   handleResize(gameSize) {
     const w = gameSize.width;
     const h = gameSize.height;
-    const isDesktop = w >= 768;
+    const safeX = Math.max(16, Math.floor(w * 0.03));
+    const safeY = Math.max(16, Math.floor(h * 0.03));
+    const maxW = Math.min(920, w - safeX * 2);
+    const sceneX = (w - maxW) / 2;
+    const headerH = 100;
+    const gap = 12;
+    const backReserve = 100;
+    const listTitleH = 56;
 
-    // Header
-    this.headerCard.setSize(isDesktop ? 460 : w - 40, 100);
-    this.headerCard.setPosition(isDesktop ? (w - 460) / 2 : 20, 20);
+    this.headerCard.setSize(maxW, headerH);
+    this.headerCard.setPosition(sceneX, safeY);
 
-    this.headerTitle.setPosition(this.headerCard.x + 24, this.headerCard.y + 30);
-    this.headerSubtitle.setPosition(this.headerCard.x + 24, this.headerCard.y + 65);
+    this.headerTitle.setPosition(this.headerCard.x + 24, this.headerCard.y + 28);
+    this.headerSubtitle.setPosition(this.headerCard.x + 24, this.headerCard.y + 62);
 
-    // Content
-    const cardWidth = isDesktop ? 480 : w - 40;
-    const cardHeight = h - 180;
-    this.contentCard.setSize(cardWidth, cardHeight);
-    this.contentCard.setPosition(isDesktop ? (w - cardWidth) / 2 : 20, 130);
+    const contentTop = safeY + headerH + gap;
+    const contentH = Math.max(240, h - contentTop - backReserve);
+    this.contentCard.setSize(maxW, contentH);
+    this.contentCard.setPosition(sceneX, contentTop);
 
-    // Career cards
-    const cardSpacing = 24;
-    const cardsPerRow = isDesktop ? 2 : 1;
-    const cardHeight = 200;
+    if (this.listSectionTitle) {
+      this.listSectionTitle.setPosition(this.contentCard.x + 24, this.contentCard.y + 20);
+    }
+
+    const cardSpacing = 16;
+    const cardsPerRow = maxW >= 640 ? 2 : 1;
+    const itemCardHeight = 228;
+    const gridTop = this.contentCard.y + listTitleH;
+    const pad = 16;
 
     this.careerCards.forEach((card, index) => {
       const row = Math.floor(index / cardsPerRow);
       const col = index % cardsPerRow;
 
-      const cardWidth = (contentCard.width - cardSpacing * (cardsPerRow + 1)) / cardsPerRow;
+      const itemCardWidth = (this.contentCard.width - cardSpacing * (cardsPerRow + 1)) / cardsPerRow;
 
-      const cardX = this.contentCard.x + cardSpacing + col * (cardWidth + cardSpacing);
-      const cardY = this.contentCard.y + cardSpacing + row * (cardHeight + cardSpacing);
+      const cardX = this.contentCard.x + cardSpacing + col * (itemCardWidth + cardSpacing);
+      const cardY = gridTop + row * (itemCardHeight + cardSpacing);
 
       card.cardPanel.setPosition(cardX, cardY);
-      card.cardPanel.setSize(cardWidth, cardHeight);
+      card.cardPanel.setSize(itemCardWidth, itemCardHeight);
 
-      card.jobTitle.setPosition(cardX + 20, cardY + 20);
-      card.salaryText.setPosition(cardX + cardWidth - 20, cardY + 20);
-      card.salaryText.setOrigin(1, 0);
+      const textW = Math.max(120, itemCardWidth - pad * 2);
+      card.jobTitle.setWordWrapWidth(textW);
+      card.jobTitle.setPosition(cardX + pad, cardY + pad);
 
-      card.levelText.setPosition(cardX + 20, cardY + 55);
+      const titleBottom = cardY + pad + card.jobTitle.height;
+      card.dailyLine.setPosition(cardX + pad, titleBottom + 8);
 
-      card.requirementsLabel.setPosition(cardX + 20, cardY + 85);
+      const dailyBottom = titleBottom + 8 + card.dailyLine.height;
+      card.requirementsLabel.setPosition(cardX + pad, dailyBottom + 10);
+      card.requirementsLabel.setWordWrapWidth(textW);
 
-      card.actionButton.setPosition(cardX + cardWidth / 2, cardY + 160);
+      const bw = card.actionButton.width;
+      const bh = card.actionButton.height;
+      card.actionButton.setPosition(cardX + itemCardWidth - pad - bw / 2, cardY + itemCardHeight - pad - bh / 2);
     });
 
-    // Back button
-    this.backButton.setPosition(this.contentCard.x + this.contentCard.width / 2, h - 60);
+    this.backButton.setPosition(sceneX + maxW / 2, h - safeY - 36);
 
-    // Toast
-    this.toast.setPosition(w / 2, h - 120);
+    this.toast.setPosition(w / 2, h - 100);
 
-    // Modal
-    if (this.notificationModal.visible) {
-      this.notificationModal.center();
-    }
+    this.notificationModal.resize(gameSize);
   }
 
   animateEntrance() {
     this.headerCard.alpha = 0;
     this.contentCard.alpha = 0;
     this.backButton.alpha = 0;
+    if (this.listSectionTitle) this.listSectionTitle.alpha = 0;
 
     this.tweens.add({
       targets: this.headerCard,
@@ -279,6 +322,16 @@ export class CareerSceneECS extends Phaser.Scene {
       delay: 100,
       ease: 'Cubic.easeOut',
     });
+
+    if (this.listSectionTitle) {
+      this.tweens.add({
+        targets: this.listSectionTitle,
+        alpha: 1,
+        duration: 500,
+        delay: 100,
+        ease: 'Cubic.easeOut',
+      });
+    }
 
     this.tweens.add({
       targets: this.backButton,

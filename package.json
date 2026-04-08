@@ -9,7 +9,11 @@
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "mem:init": "cmd /c \"set PYTHONIOENCODING=utf-8&& echo.|.venv\\Scripts\\python -m mempalace.cli --palace ./.mempalace/palace init . --yes\"",
+    "mem:mine": "set PYTHONIOENCODING=utf-8&& .venv\\Scripts\\python -m mempalace.cli --palace ./.mempalace/palace mine .",
+    "mem:status": "set PYTHONIOENCODING=utf-8&& .venv\\Scripts\\python -m mempalace.cli --palace ./.mempalace/palace status",
+    "mem:wakeup": "set PYTHONIOENCODING=utf-8&& .venv\\Scripts\\python -m mempalace.cli --palace ./.mempalace/palace wake-up"
   },
   "keywords": [],
   "author": "",

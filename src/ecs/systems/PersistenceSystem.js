@@ -84,6 +84,8 @@ export class PersistenceSystem {
    */
   _mergeAndMigrate(parsed) {
     const base = structuredClone(DEFAULT_SAVE);
+    const baseCurrentJob = base.currentJob ?? {};
+    const parsedCurrentJob = parsed.currentJob ?? {};
     
     return {
       ...base,
@@ -95,8 +97,8 @@ export class PersistenceSystem {
         ...(parsed.stats ?? {}),
       },
       currentJob: {
-        ...base.currentJob,
-        ...(parsed.currentJob ?? {}),
+        ...baseCurrentJob,
+        ...parsedCurrentJob,
       },
       housing: {
         ...base.housing,

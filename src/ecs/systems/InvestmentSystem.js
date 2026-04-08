@@ -1,4 +1,5 @@
 import { 
+  TIME_COMPONENT,
   WALLET_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
@@ -22,7 +23,7 @@ export class InvestmentSystem {
   openInvestment(config) {
     const playerId = PLAYER_ENTITY;
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
-    const investments = this.world.getComponent(playerId, 'investment') || [];
+    const investments = this._getInvestmentsArray(playerId);
 
     if (!time) {
       return { success: false, message: 'Не удалось загрузить время игры' };
@@ -59,7 +60,7 @@ export class InvestmentSystem {
     const playerId = PLAYER_ENTITY;
     const wallet = this.world.getComponent(playerId, WALLET_COMPONENT);
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
-    const investments = this.world.getComponent(playerId, 'investment') || [];
+    const investments = this._getInvestmentsArray(playerId);
 
     if (!wallet || !time) {
       return { success: false, message: 'Не удалось загрузить данные' };
@@ -106,7 +107,7 @@ export class InvestmentSystem {
   getAllInvestments() {
     const playerId = PLAYER_ENTITY;
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
-    const investments = this.world.getComponent(playerId, 'investment') || [];
+    const investments = this._getInvestmentsArray(playerId);
 
     if (!time) {
       return [];
@@ -161,5 +162,11 @@ export class InvestmentSystem {
    */
   _formatMoney(value) {
     return new Intl.NumberFormat('ru-RU').format(value);
+  }
+
+  _getInvestmentsArray(playerId) {
+    const raw = this.world.getComponent(playerId, 'investment');
+    if (Array.isArray(raw)) return raw;
+    return [];
   }
 }

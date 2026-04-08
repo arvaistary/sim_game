@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { SceneAdapter } from '../ecs/adapters/SceneAdapter.js';
-import { loadSave, persistSave } from '../game-state.js';
+import { PersistenceSystem } from '../ecs/systems/PersistenceSystem.js';
 import {
   COLORS,
   createRoundedButton,
@@ -15,11 +15,12 @@ export class EventQueueSceneECS extends Phaser.Scene {
   }
 
   create() {
-    this.saveData = loadSave();
-    this.registry.set('saveData', this.saveData);
-
-    this.sceneAdapter = new SceneAdapter(this, this.saveData);
+    this.persistenceSystem = new PersistenceSystem();
+    const loadedSaveData = this.persistenceSystem.loadSave();
+    this.registry.set('saveData', loadedSaveData);
+    this.sceneAdapter = new SceneAdapter(this, loadedSaveData);
     this.sceneAdapter.initialize();
+    this.persistenceSystem.init(this.sceneAdapter.getWorld());
 
     const eventQueueSystem = this.sceneAdapter.getSystem('eventQueue');
     const eventChoiceSystem = this.sceneAdapter.getSystem('eventChoice');
@@ -59,13 +60,13 @@ export class EventQueueSceneECS extends Phaser.Scene {
     this.root.add(this.eventCard);
 
     this.eventTitle = this.add.text(0, 0, '', textStyle(24, COLORS.text, '700'));
-    this.eventCard.add(this.eventTitle);
+    this.root.add(this.eventTitle);
 
     this.eventDescription = this.add.text(0, 0, '', textStyle(16, COLORS.text, '500'), { wordWrap: { width: 400 } });
-    this.eventCard.add(this.eventDescription);
+    this.root.add(this.eventDescription);
 
     this.choicesContainer = this.add.container(0, 0);
-    this.eventCard.add(this.choicesContainer);
+    this.root.add(this.choicesContainer);
 
     this.choiceButtons = [];
   }
@@ -122,6 +123,11 @@ export class EventQueueSceneECS extends Phaser.Scene {
   }
 
   loadNextEvent() {
+    if (this.noEventsText) {
+      this.noEventsText.destroy();
+      this.noEventsText = null;
+    }
+
     const nextEvent = this.eventQueueSystem.getNextEvent();
 
     if (!nextEvent) {
@@ -183,7 +189,7 @@ export class EventQueueSceneECS extends Phaser.Scene {
 
     if (result.success) {
       this.sceneAdapter.syncToSaveData();
-      persistSave(this, this.saveData);
+      this.persistenceSystem.saveGame(this.sceneAdapter.getSaveData());
 
       // Показываем модальное окно с результатом
       const resultText = [
@@ -211,7 +217,7 @@ export class EventQueueSceneECS extends Phaser.Scene {
     this.removeChoiceButtons();
 
     const noEventsText = this.add.text(0, 0, 'Return to main screen', textStyle(14, COLORS.neutral, '400'));
-    this.eventCard.add(noEventsText);
+    this.root.add(noEventsText);
     this.noEventsText = noEventsText;
   }
 
@@ -251,9 +257,9 @@ export class EventQueueSceneECS extends Phaser.Scene {
       this.resultModal.setSize(isDesktop ? 460 : w - 40, 250);
       this.resultModal.setPosition(isDesktop ? (w - 460) / 2 : 20, (h - 250) / 2);
 
-      this.resultTitle.setPosition(this.resultModal.x + 24, this.resultModal.y + 30);
-      this.resultText.setPosition(this.resultModal.x + 24, this.resultModal.y + 70);
-      this.resultButton.setPosition(this.resultModal.x + this.resultModal.width / 2, this.resultModal.y + 190);
+      this.resultTitle.setPosition(24, 30);
+      this.resultText.setPosition(24, 70);
+      this.resultButton.setPosition(this.resultModal.width / 2, 190);
     }
   }
 

@@ -1,0 +1,12 @@
+wing: game_life
+rooms:
+- name: artifact
+  description: Screenshot artifacts and generated visual outputs
+- name: documentation
+  description: Project docs, plans, GDD, architecture and implementation notes
+- name: src
+  description: Game source code (scenes, state management, UI kit, ECS)
+- name: testing
+  description: Automated tests and test fixtures
+- name: general
+  description: Repo files outside main domain rooms

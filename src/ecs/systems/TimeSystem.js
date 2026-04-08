@@ -1,4 +1,4 @@
-import { TIME_COMPONENT, STATS_COMPONENT } from '../components/index.js';
+import { PLAYER_ENTITY, TIME_COMPONENT, STATS_COMPONENT } from '../components/index.js';
 
 /**
  * Система управления временем

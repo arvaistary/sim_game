@@ -1,4 +1,6 @@
 import { 
+  CAREER_COMPONENT,
+  TIME_COMPONENT,
   WALLET_COMPONENT,
   FINANCE_COMPONENT,
   SKILLS_COMPONENT,
@@ -70,7 +72,8 @@ export class FinanceActionSystem {
     const wallet = this.world.getComponent(playerId, WALLET_COMPONENT);
     const finance = this.world.getComponent(playerId, FINANCE_COMPONENT);
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
-    const investments = this.world.getComponent(playerId, 'investment') || [];
+    const rawInvestments = this.world.getComponent(playerId, 'investment');
+    const investments = Array.isArray(rawInvestments) ? rawInvestments : [];
 
     if (!wallet || !finance || !time) {
       return null;
@@ -225,7 +228,8 @@ export class FinanceActionSystem {
   _openInvestment(action) {
     const playerId = PLAYER_ENTITY;
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
-    const investments = this.world.getComponent(playerId, 'investment') || [];
+    const rawInvestments = this.world.getComponent(playerId, 'investment');
+    const investments = Array.isArray(rawInvestments) ? rawInvestments : [];
 
     const newInvestment = {
       id: `deposit_${investments.length + 1}`,

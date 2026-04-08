@@ -12,6 +12,7 @@ export const NAV_ITEMS = [
   { id: 'shop', icon: 'М', label: 'Магазин' },
   { id: 'fun', icon: 'Р', label: 'Развлеч.' },
   { id: 'education', icon: 'О', label: 'Обучение' },
+  { id: 'skills', icon: 'Н', label: 'Навыки' },
   { id: 'social', icon: 'С', label: 'Соц. жизнь' },
   { id: 'finance', icon: 'Ф', label: 'Финансы' },
 ];

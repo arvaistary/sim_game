@@ -7,7 +7,8 @@ export const CAREER_JOBS = [
     salaryPerDay: 8400,
     salaryPerWeek: 42000,
     minProfessionalism: 0,
-    minEducationRank: 0,
+    minEducationRank: -1,
+    minAge: 16,
   },
   {
     id: 'project_coordinator',
@@ -17,7 +18,8 @@ export const CAREER_JOBS = [
     salaryPerDay: 9800,
     salaryPerWeek: 49000,
     minProfessionalism: 3,
-    minEducationRank: 0,
+    minEducationRank: -1,
+    minAge: 18,
   },
   {
     id: 'business_analyst',
@@ -27,7 +29,8 @@ export const CAREER_JOBS = [
     salaryPerDay: 12800,
     salaryPerWeek: 64000,
     minProfessionalism: 4,
-    minEducationRank: 1,
+    minEducationRank: 0,
+    minAge: 21,
   },
   {
     id: 'team_lead',
@@ -38,5 +41,6 @@ export const CAREER_JOBS = [
     salaryPerWeek: 78000,
     minProfessionalism: 6,
     minEducationRank: 1,
+    minAge: 25,
   },
 ];

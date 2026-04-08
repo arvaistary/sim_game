@@ -15,6 +15,7 @@ import { EventChoiceSystem } from '../systems/EventChoiceSystem.js';
 import { EventHistorySystem } from '../systems/EventHistorySystem.js';
 import { EducationSystem } from '../systems/EducationSystem.js';
 import { MigrationSystem } from '../systems/MigrationSystem.js';
+import { PLAYER_ENTITY } from '../components/index.js';
 
 /**
  * SceneAdapter - базовый класс для адаптации Phaser сцен к ECS
@@ -162,6 +163,14 @@ export class SceneAdapter {
    */
   getSaveData() {
     return this.gameStateAdapter.getSaveData();
+  }
+
+  updateFromSaveData(saveData) {
+    this.gameStateAdapter.setSaveData(saveData);
+  }
+
+  getPlayerEntityId() {
+    return PLAYER_ENTITY;
   }
 
   /**

@@ -12,6 +12,8 @@ export const COLORS = {
   panel: 0xfffcf7,
   line: 0xe6ddd2,
   shadow: 0xd9cfc2,
+  success: 0x4ebf7a,
+  danger: 0xd14d4d,
 };
 
 export function textStyle(size, color, weight = "500") {
@@ -38,11 +40,17 @@ export function createRoundedPanel(scene, options = {}) {
   const shadow = scene.add.graphics();
   const body = scene.add.graphics();
   container.add([shadow, body]);
+  const nativeSetPosition = container.setPosition.bind(container);
+
+  container.panelWidth = 0;
+  container.panelHeight = 0;
 
   container.resize = (x, y, width, height, nextRadius = radius, nextAlpha = panelAlpha) => {
-    container.setPosition(x, y);
+    nativeSetPosition(x, y);
     container.panelWidth = width;
     container.panelHeight = height;
+    container.width = width;
+    container.height = height;
 
     shadow.clear();
     shadow.fillStyle(shadowColor, shadowAlpha);
@@ -53,6 +61,17 @@ export function createRoundedPanel(scene, options = {}) {
     body.lineStyle(1, lineColor, 1);
     body.fillRoundedRect(0, 0, width, height, nextRadius);
     body.strokeRoundedRect(0, 0, width, height, nextRadius);
+  };
+
+  // Compatibility layer: many scenes use setSize/setPosition semantics.
+  container.setSize = (width, height) => {
+    container.resize(container.x, container.y, width, height);
+    return container;
+  };
+
+  container.setPosition = (x, y) => {
+    container.resize(x, y, container.panelWidth, container.panelHeight);
+    return container;
   };
 
   return container;
@@ -69,13 +88,15 @@ export function createRoundedButton(scene, options = {}) {
     fontWeight = "700",
     useHandCursor = true,
     enableHoverScale = true,
+    width: initialWidth = 160,
+    height: initialHeight = 52,
   } = options;
 
   const container = scene.add.container(0, 0);
   const shadow = scene.add.graphics();
   const body = scene.add.graphics();
   const text = scene.add.text(0, 0, label, textStyle(fontSize, textColor, fontWeight)).setOrigin(0.5);
-  const hit = scene.add.rectangle(0, 0, 160, 52, 0x000000, 0).setOrigin(0.5);
+  const hit = scene.add.rectangle(0, 0, initialWidth, initialHeight, 0x000000, 0).setOrigin(0.5);
   hit.setInteractive({ useHandCursor });
 
   if (enableHoverScale) {
@@ -91,16 +112,25 @@ export function createRoundedButton(scene, options = {}) {
   container.hit = hit;
   container.fillColor = fillColor;
 
-  container.resize = (width, height, nextFillColor = container.fillColor) => {
-    container.fillColor = nextFillColor;
+  const drawButton = (width, height, fillColor) => {
     shadow.clear();
     shadow.fillStyle(shadowColor, 0.18);
     shadow.fillRoundedRect(-width / 2, -height / 2 + 8, width, height, 18);
     body.clear();
-    body.fillStyle(container.fillColor, 1);
+    body.fillStyle(fillColor, 1);
     body.fillRoundedRect(-width / 2, -height / 2, width, height, 18);
     hit.width = width;
     hit.height = height;
+    container.width = width;
+    container.height = height;
+  };
+
+  // Initial draw with provided dimensions
+  drawButton(initialWidth, initialHeight, fillColor);
+
+  container.resize = (width, height, nextFillColor = container.fillColor) => {
+    container.fillColor = nextFillColor;
+    drawButton(width, height, nextFillColor);
   };
 
   container.setLabel = (nextLabel) => {
@@ -109,6 +139,13 @@ export function createRoundedButton(scene, options = {}) {
 
   container.setTextStyle = (size, color = textColor, weight = fontWeight) => {
     text.setStyle(textStyle(size, color, weight));
+  };
+
+  container.setFillColor = (nextFillColor) => {
+    container.fillColor = nextFillColor;
+    const width = hit.width;
+    const height = hit.height;
+    drawButton(width, height, nextFillColor);
   };
 
   container.add([shadow, body, text, hit]);

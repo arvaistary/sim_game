@@ -32,6 +32,11 @@ export class GameStateAdapter {
     const playerId = PLAYER_ENTITY;
     const save = this.saveData;
 
+    // Ensure canonical player entity exists before attaching components.
+    if (!this.world.entities.has(playerId)) {
+      this.world.entities.set(playerId, { id: playerId, components: new Set() });
+    }
+
     // TimeComponent
     this.world.addComponent(playerId, TIME_COMPONENT, {
       gameDays: save.gameDays,

@@ -11,8 +11,10 @@
 Краткий путь:
 1. 📖 [Основной обзор](core/README.md)
 2. 📊 [Статус реализации](core/IMPLEMENTATION_STATUS.md)
-3. 🎮 [Game Design Document](GDD/GDD.md)
-4. ⚙️ [ECS Архитектура](ecs/ECS_ARCHITECTURE.md) (если работаете с backend)
+3. 📄 [Сцены старта игры](core/START_SCENE_DOCUMENTATION.md)
+4. 🧩 [Справочник сцен](core/SCENES_REFERENCE.md) — точка входа, список `src/scenes/`
+5. 🎮 [Game Design Document](GDD/GDD.md)
+6. ⚙️ [ECS Архитектура](ecs/ECS_ARCHITECTURE.md) (если работаете с логикой и системами)
 
 ## 📁 Структура документации
 
@@ -22,6 +24,8 @@ doc/
 ├── core/                        # 🎯 Основная документация
 │   ├── README.md               # Обзор проекта и быстрый старт
 │   ├── IMPLEMENTATION_STATUS.md # Статус реализации всех модулей
+│   ├── START_SCENE_DOCUMENTATION.md # Сцены старта игры (StartScene, SchoolIntroScene, InstituteIntroScene)
+│   ├── SCENES_REFERENCE.md     # Точка входа, таблица сцен и ECS
 │   └── ROADMAP.md              # План разработки
 │
 ├── GDD/                         # 🎮 Game Design Document
@@ -72,6 +76,15 @@ doc/
 
 - Для быстрого старта прочитайте основной файл **GDD.md**
 - Для детального изучения используйте модули в **GDD/modules/**
+
+### 🎮 Я хочу понять механики старта игры
+→ **[Документация сцен старта](core/START_SCENE_DOCUMENTATION.md)**
+  - Создание персонажа и выбор образования
+  - Мини-игры школы и института
+  - Потоки пользователя и данные
+
+### 🧩 Я хочу понять, какие сцены есть в коде
+→ **[Справочник сцен](core/SCENES_REFERENCE.md)** (`bootstrap.js`, список файлов в `src/scenes/`)
 
 ### ⚙️ Я хочу понять архитектуру проекта
 → **[ECS Документация](ecs/ECS_ARCHITECTURE.md)**
@@ -208,6 +221,6 @@ doc/
 
 ---
 
-**Последнее обновление:** 7 апреля 2026
-**Версия документации:** 2.0
+**Последнее обновление:** 8 апреля 2026  
+**Версия документации:** 2.1  
 **Статус:** Активная
