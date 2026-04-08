@@ -262,7 +262,8 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     });
     container.add(effectText);
 
-    const timeText = this.add.text(0, 0, `Время: ${cardData.dayCost} д.`, textStyle(13, COLORS.text, '500'));
+    const hourCost = this.resolveHourCost(cardData);
+    const timeText = this.add.text(0, 0, `Время: ${hourCost} ч.`, textStyle(13, COLORS.text, '500'));
     container.add(timeText);
 
     const moodText = this.add.text(0, 0, cardData.mood, {
@@ -372,6 +373,12 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
       this.showToast(`Недостаточно денег. Нужно ${cardData.price} ₽`);
       return;
     }
+    const time = world.getComponent(playerId, 'time');
+    const hourCost = this.resolveHourCost(cardData);
+    if (time && typeof time.dayHoursRemaining === 'number' && hourCost > time.dayHoursRemaining) {
+      this.showToast(`Недостаточно времени в сутках. Нужно ${hourCost} ч., осталось ${time.dayHoursRemaining} ч.`);
+      return;
+    }
 
     const summary = this.recoverySystem.applyRecoveryAction(cardData);
 
@@ -398,6 +405,11 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
 
   formatMoney(value) {
     return new Intl.NumberFormat('ru-RU').format(value);
+  }
+
+  resolveHourCost(cardData) {
+    if (typeof cardData.hourCost === 'number' && cardData.hourCost > 0) return cardData.hourCost;
+    return Math.max(1, Number(cardData.dayCost ?? 1)) * 2;
   }
 
   handleResize(gameSize) {

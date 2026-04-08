@@ -7,8 +7,8 @@ import { PLAYER_ENTITY } from '../components/index.js';
  */
 export class PersistenceSystem {
   constructor() {
-    this.currentVersion = '0.2.0';
-    this.currentSaveVersion = 1;
+    this.currentVersion = '1.1.0';
+    this.currentSaveVersion = 2;
     this.saveKey = 'game-life-save';
     this.migrations = {
       '0.1.0': this._migrateFrom_0_1_0.bind(this),
@@ -99,6 +99,9 @@ export class PersistenceSystem {
       currentJob: {
         ...baseCurrentJob,
         ...parsedCurrentJob,
+        salaryPerHour: parsedCurrentJob.salaryPerHour ?? this._resolveSalaryPerHour(parsedCurrentJob),
+        salaryPerDay: parsedCurrentJob.salaryPerDay ?? this._resolveSalaryPerHour(parsedCurrentJob) * 8,
+        salaryPerWeek: parsedCurrentJob.salaryPerWeek ?? this._resolveSalaryPerHour(parsedCurrentJob) * 40,
       },
       housing: {
         ...base.housing,
@@ -108,6 +111,10 @@ export class PersistenceSystem {
       skills: {
         ...base.skills,
         ...(parsed.skills ?? {}),
+      },
+      skillModifiers: {
+        ...(base.skillModifiers ?? {}),
+        ...(parsed.skillModifiers ?? {}),
       },
       education: {
         ...base.education,
@@ -126,6 +133,14 @@ export class PersistenceSystem {
       investments: parsed.investments ?? base.investments,
       eventHistory: parsed.eventHistory ?? base.eventHistory,
       pendingEvents: parsed.pendingEvents ?? base.pendingEvents,
+      time: {
+        ...(base.time ?? {}),
+        ...(parsed.time ?? {}),
+      },
+      eventState: {
+        ...(base.eventState ?? {}),
+        ...(parsed.eventState ?? {}),
+      },
       lifetimeStats: {
         ...base.lifetimeStats,
         ...(parsed.lifetimeStats ?? {}),
@@ -148,6 +163,25 @@ export class PersistenceSystem {
       saveData.gameYears = time.gameYears;
       saveData.currentAge = time.currentAge;
       saveData.startAge = time.startAge;
+      saveData.time = {
+        totalHours: time.totalHours,
+        gameDays: time.gameDays,
+        gameWeeks: time.gameWeeks,
+        gameMonths: time.gameMonths,
+        gameYears: time.gameYears,
+        hourOfDay: time.hourOfDay,
+        dayOfWeek: time.dayOfWeek,
+        weekHoursSpent: time.weekHoursSpent,
+        weekHoursRemaining: time.weekHoursRemaining,
+        dayHoursSpent: time.dayHoursSpent,
+        dayHoursRemaining: time.dayHoursRemaining,
+        sleepHoursToday: time.sleepHoursToday,
+        sleepDebt: time.sleepDebt,
+      };
+      saveData.eventState = {
+        ...(saveData.eventState ?? {}),
+        ...(time.eventState ?? {}),
+      };
     }
 
     // Stats
@@ -162,16 +196,27 @@ export class PersistenceSystem {
       saveData.skills = { ...skills };
     }
 
+    const skillModifiers = this.world.getComponent(playerId, 'skillModifiers');
+    if (skillModifiers) {
+      saveData.skillModifiers = { ...skillModifiers };
+    }
+
     // Work
     const work = this.world.getComponent(playerId, 'work');
     if (work) {
       saveData.currentJob = {
         id: work.id,
         name: work.name,
+        schedule: work.schedule ?? '5/2',
+        employed: work.employed ?? Boolean(work.id),
         level: work.level,
         daysAtWork: work.daysAtWork,
+        salaryPerHour: work.salaryPerHour,
         salaryPerDay: work.salaryPerDay,
         salaryPerWeek: work.salaryPerWeek,
+        requiredHoursPerWeek: work.requiredHoursPerWeek,
+        workedHoursCurrentWeek: work.workedHoursCurrentWeek,
+        totalWorkedHours: work.totalWorkedHours,
       };
     }
 
@@ -221,7 +266,9 @@ export class PersistenceSystem {
     if (lifetimeStats) {
       saveData.lifetimeStats = {
         totalWorkDays: lifetimeStats.totalWorkDays,
+        totalWorkHours: lifetimeStats.totalWorkHours,
         totalEvents: lifetimeStats.totalEvents,
+        totalMicroEvents: lifetimeStats.totalMicroEvents,
         maxMoney: lifetimeStats.maxMoney,
       };
     }
@@ -238,6 +285,7 @@ export class PersistenceSystem {
       saveData.eventHistory = eventHistory.events || [];
       if (!saveData.lifetimeStats) saveData.lifetimeStats = {};
       saveData.lifetimeStats.totalEvents = eventHistory.totalEvents;
+      saveData.lifetimeStats.totalMicroEvents = (eventHistory.events || []).filter((item) => item.type === 'micro').length;
     }
 
     // Event Queue
@@ -390,6 +438,11 @@ export class PersistenceSystem {
       errors.push('Некорректное значение дней');
     }
 
+    const totalHours = Number(saveData.time?.totalHours);
+    if (!Number.isNaN(totalHours) && totalHours < 0) {
+      errors.push('Некорректное значение totalHours');
+    }
+
     if (!saveData.stats || typeof saveData.stats !== 'object') {
       warnings.push('Отсутствуют статы');
     }
@@ -429,7 +482,36 @@ export class PersistenceSystem {
       saveData.version = this.currentVersion;
     }
 
+    // Hour-model compatibility defaults
+    if (!saveData.time || typeof saveData.time !== 'object') {
+      const totalHours = Math.max(0, Number(saveData.gameDays ?? 0) * 24);
+      saveData.time = { totalHours };
+    }
+    if (typeof saveData.time.totalHours !== 'number') {
+      saveData.time.totalHours = Math.max(0, Number(saveData.gameDays ?? 0) * 24);
+    }
+    if (!saveData.eventState || typeof saveData.eventState !== 'object') {
+      saveData.eventState = {};
+    }
+    if (!saveData.currentJob) saveData.currentJob = {};
+    if (typeof saveData.currentJob.salaryPerHour !== 'number') {
+      saveData.currentJob.salaryPerHour = this._resolveSalaryPerHour(saveData.currentJob);
+    }
+    if (typeof saveData.currentJob.salaryPerDay !== 'number') {
+      saveData.currentJob.salaryPerDay = saveData.currentJob.salaryPerHour * 8;
+    }
+    if (typeof saveData.currentJob.salaryPerWeek !== 'number') {
+      saveData.currentJob.salaryPerWeek = saveData.currentJob.salaryPerHour * 40;
+    }
+
     return saveData;
+  }
+
+  _resolveSalaryPerHour(job = {}) {
+    if (typeof job?.salaryPerHour === 'number' && job.salaryPerHour > 0) return job.salaryPerHour;
+    if (typeof job?.salaryPerDay === 'number' && job.salaryPerDay > 0) return Math.round(job.salaryPerDay / 8);
+    if (typeof job?.salaryPerWeek === 'number' && job.salaryPerWeek > 0) return Math.round(job.salaryPerWeek / 40);
+    return 0;
   }
 
   /**

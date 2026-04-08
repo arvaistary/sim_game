@@ -5,10 +5,11 @@
 Все данные игры сохраняются локально в браузере через `localStorage` для обеспечения мгновенного доступа и оффлайн-работы.
 
 **Точки автосохранения:**
-- После завершения каждого рабочего периода
-- После любого действия в фазе восстановления
+- После завершения любого действия игрока (если списаны часы или деньги)
+- После автоматического завершения дня (сон/закрытие суток)
+- После завершения недели
 - После завершения любого случайного события
-- После завершения учебного дня/месяца
+- После завершения месячных и годовых событий
 
 **Слоты сохранений:**
 - **Основной слот** — автоматическое сохранение (перезаписывается)
@@ -21,16 +22,27 @@
 ```javascript
 {
   // Базовая информация
-  version: "1.0.0",
+  version: "1.1.0",
   playerName: "Алексей",
   startAge: 25,
   currentAge: 27,
   
-  // Игровое время
-  gameDays: 540,           // всего прожито игровых дней
-  gameWeeks: 77,           // всего недель
-  gameMonths: 18,          // всего месяцев
-  gameYears: 1.5,          // всего лет
+  // Игровое время (часовая модель)
+  time: {
+    totalHours: 12960,         // всего прожито игровых часов
+    gameDays: 540,             // floor(totalHours / 24)
+    gameWeeks: 77,             // всего недель
+    gameMonths: 19,            // системные месяцы (4 недели)
+    gameYears: 1.6,            // системные годы (12 месяцев)
+    hourOfDay: 9,              // 0-23
+    dayOfWeek: 3,              // 1-7
+    weekHoursSpent: 62,        // потрачено в текущей неделе
+    weekHoursRemaining: 106,   // осталось до конца недели
+    dayHoursSpent: 5,          // потрачено в текущих сутках
+    dayHoursRemaining: 19,     // осталось до конца суток
+    sleepHoursToday: 0,        // сколько сна уже было за сутки
+    sleepDebt: 6               // накопленный недосып
+  },
   
   // Шкалы персонажа
   stats: {
@@ -52,10 +64,14 @@
     id: "office_manager",
     name: "Офисный менеджер",
     schedule: "5/2",
+    employed: true,
     salaryPerWeek: 45000,
-    salaryPerDay: 7500,
+    salaryPerHour: 1125,
+    requiredHoursPerWeek: 40,
+    workedHoursCurrentWeek: 16,
     level: 2,
-    daysAtWork: 45
+    daysAtWork: 45,
+    totalWorkedHours: 1240
   },
   
   // Навыки
@@ -113,8 +129,8 @@
         progress: 0.45,       // 0.0 – 1.0
         skill: "technicalLiteracy",
         targetLevel: 3,
-        daysRequired: 7,
-        daysSpent: 3,
+        hoursRequired: 28,
+        hoursSpent: 12,
         costPaid: 5000
       }
     ]
@@ -190,15 +206,48 @@
   eventHistory: [
     {
       eventId: "promotion_1",
+      timestampHours: 8640,
       day: 360,
-      title: "Повышение на работе"
+      week: 51,
+      type: "weekly",          // micro, weekly, monthly, yearly, work, story
+      title: "Повышение на работе",
+      actionSource: "work_shift"
+    },
+    {
+      eventId: "robbery_market_1",
+      timestampHours: 8643,
+      day: 360,
+      week: 51,
+      type: "micro",
+      title: "Нападение грабителей у магазина",
+      actionSource: "buy_groceries",
+      chanceRoll: 0.0065,
+      finalChance: 0.012,
+      outcomeId: "escaped"
     }
   ],
+
+  // Состояние системы событий
+  eventState: {
+    microEventChanceBaseByAction: {
+      buy_groceries: 0.03,
+      work_shift: 0.05,
+      sport: 0.04
+    },
+    cooldownByEventId: {
+      robbery_market_1: 48      // кулдаун в игровых часах
+    },
+    lastWeeklyEventWeek: 51,
+    lastMonthlyEventMonth: 19,
+    lastYearlyEventYear: 1
+  },
   
   // Статистика для финального экрана
   lifetimeStats: {
     totalWorkDays: 77,
+    totalWorkHours: 1240,
     totalEvents: 45,
+    totalMicroEvents: 19,
     maxMoney: 250000,
     maxSkillLevel: 4,
     childrenBorn: 0,
@@ -231,7 +280,10 @@
 - Кнопка в меню «Импортировать сохранение»
 - Загрузка `.gamelife` файла
 - Проверка версии на совместимость
-- Конвертация старых форматов при необходимости
+- Конвертация старых форматов при необходимости:
+- `gameDays` старого формата конвертируется в `time.totalHours = gameDays * 24`
+- `salaryPerDay` конвертируется в `salaryPerHour` с учётом графика
+- события без `type` считаются `story` по умолчанию
 
 ### 6.4. Механика New Game+
 
@@ -249,4 +301,3 @@
 - Все отношения и события
 - Жильё и мебель
 ---
-

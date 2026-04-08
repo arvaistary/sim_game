@@ -123,7 +123,7 @@ export function applyWorkPeriod(scene, workDays) {
   const workPeriodSystem = adapter.getSystem('workPeriod');
   const playerId = adapter.getPlayerEntityId();
   
-  const summary = workPeriodSystem.applyWorkPeriodResult(playerId, workDays);
+  const summary = workPeriodSystem.applyWorkPeriodResult(workDays);
   
   // Синхронизируем с saveData для совместимости
   adapter.syncToSaveData();

@@ -8,6 +8,7 @@ import {
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { EDUCATION_PROGRAMS } from '../../balance/education-programs.js';
+import { SkillsSystem } from './SkillsSystem.js';
 
 /**
  * Система управления образованием
@@ -20,6 +21,8 @@ export class EducationSystem {
 
   init(world) {
     this.world = world;
+    this.skillsSystem = new SkillsSystem();
+    this.skillsSystem.init(world);
   }
 
   /**
@@ -53,6 +56,13 @@ export class EducationSystem {
    * Начать образовательную программу
    */
   startEducationProgram(program) {
+    const resolvedProgram = typeof program === 'string'
+      ? this.educationPrograms.find((item) => item.id === program)
+      : program;
+    if (!resolvedProgram) {
+      return { success: false, message: 'Образовательная программа не найдена' };
+    }
+
     const playerId = PLAYER_ENTITY;
     const wallet = this.world.getComponent(playerId, WALLET_COMPONENT);
     const education = this.world.getComponent(playerId, EDUCATION_COMPONENT);
@@ -62,24 +72,26 @@ export class EducationSystem {
     }
 
     // Проверяем
-    const validation = this.canStartEducationProgram(program);
+    const validation = this.canStartEducationProgram(resolvedProgram);
     if (!validation.ok) {
       return { success: false, message: validation.reason };
     }
 
     // Списываем деньги
-    wallet.money -= program.cost;
-    wallet.totalSpent += program.cost;
+    wallet.money -= resolvedProgram.cost;
+    wallet.totalSpent += resolvedProgram.cost;
 
     // Создаем активный курс
     const activeCourse = {
-      id: program.id,
-      name: program.title,
-      type: program.typeLabel,
+      id: resolvedProgram.id,
+      name: resolvedProgram.title,
+      type: resolvedProgram.typeLabel,
       progress: 0,
-      daysRequired: program.daysRequired,
+      daysRequired: resolvedProgram.daysRequired,
       daysSpent: 0,
-      costPaid: program.cost,
+      hoursRequired: this._resolveCourseHours(resolvedProgram),
+      hoursSpent: 0,
+      costPaid: resolvedProgram.cost,
     };
 
     if (!education.activeCourses) {
@@ -87,14 +99,14 @@ export class EducationSystem {
     }
     education.activeCourses = [activeCourse];
 
-    return {
-      success: true,
-      message: [
-        `${program.title} начат.`,
-        `Стоимость: ${this._formatMoney(program.cost)} ₽.`,
-        `Понадобится ${program.daysRequired} игровых дн.`,
-      ].join('\n'),
-    };
+      return {
+        success: true,
+        message: [
+          `${resolvedProgram.title} начат.`,
+          `Стоимость: ${this._formatMoney(resolvedProgram.cost)} ₽.`,
+          `Понадобится ${this._resolveCourseHours(resolvedProgram)} игровых ч.`,
+        ].join('\n'),
+      };
   }
 
   /**
@@ -112,21 +124,26 @@ export class EducationSystem {
 
     const course = education.activeCourses?.find(item => item.id === courseId);
     const program = this.educationPrograms.find(item => item.id === courseId);
+    const modifiers = this.skillsSystem.getModifiers();
 
     if (!course || !program) {
       return { completed: false, summary: 'Активный курс не найден.' };
     }
 
-    // Продвигаем время
-    time.gameDays += 1;
-    time.gameWeeks = Math.max(1, Math.floor(time.gameDays / 7));
-    time.gameMonths = Math.max(1, Math.floor(time.gameDays / 30));
-    time.gameYears = Number((time.gameDays / 360).toFixed(1));
-    time.currentAge = time.startAge + Math.floor(time.gameDays / 360);
+    const studyHours = 4;
+    const timeSystem = this.world.systems.find((system) => typeof system.advanceHours === 'function');
+    if (timeSystem) {
+      timeSystem.advanceHours(studyHours, { actionType: 'education' });
+    } else {
+      time.totalHours = (time.totalHours ?? (time.gameDays ?? 0) * 24) + studyHours;
+    }
 
     // Обновляем прогресс курса
     course.daysSpent += 1;
-    course.progress = this._clamp(course.daysSpent / course.daysRequired, 0, 1);
+    course.hoursSpent = (course.hoursSpent ?? 0) + studyHours;
+    const courseHoursRequired = course.hoursRequired ?? this._resolveCourseHours(program);
+    const effectiveStudyHours = (course.hoursSpent ?? 0) * (modifiers.learningSpeedMultiplier ?? 1);
+    course.progress = this._clamp(effectiveStudyHours / courseHoursRequired, 0, 1);
 
     // Применяем изменения статы
     if (stats) {
@@ -138,13 +155,13 @@ export class EducationSystem {
     }
 
     // Проверяем завершение
-    if (course.daysSpent < course.daysRequired) {
+    if (effectiveStudyHours < courseHoursRequired) {
       return {
         completed: false,
         summary: [
-          `Учебный день завершён: ${course.name}.`,
+          `Учебный блок завершён: ${course.name}.`,
           `Прогресс: ${Math.round(course.progress * 100)}%.`,
-          'Энергия -10 • Стресс +8 • Настроение -3',
+          `Время: ${studyHours} ч. • Энергия -10 • Стресс +8 • Настроение -3`,
         ].join('\n'),
       };
     }
@@ -163,7 +180,7 @@ export class EducationSystem {
         `${program.title} завершён.`,
         program.rewardText,
         careerSummary || '',
-        'Последний учебный день тоже повлиял на ресурсы: Энергия -10 • Стресс +8 • Настроение -3',
+        `Последний учебный блок тоже повлиял на ресурсы: ${studyHours} ч. • Энергия -10 • Стресс +8 • Настроение -3`,
       ].filter(Boolean).join('\n'),
     };
   }
@@ -209,13 +226,12 @@ export class EducationSystem {
   _applyCompletionRewards(program) {
     const playerId = PLAYER_ENTITY;
     const stats = this.world.getComponent(playerId, STATS_COMPONENT);
-    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT);
     const education = this.world.getComponent(playerId, EDUCATION_COMPONENT);
     const career = this.world.getComponent(playerId, CAREER_COMPONENT);
 
-    // Навыки
-    if (program.completionSkillChanges && skills) {
-      this._applySkillChanges(skills, program.completionSkillChanges);
+    // Навыки - через единый шлюз SkillsSystem
+    if (program.completionSkillChanges) {
+      this._applySkillChanges(program.completionSkillChanges);
     }
 
     // Статы
@@ -231,8 +247,10 @@ export class EducationSystem {
 
     // Множитель зарплаты
     if (program.salaryMultiplierDelta && career) {
-      career.salaryPerDay = Math.round(career.salaryPerDay * (1 + program.salaryMultiplierDelta));
-      career.salaryPerWeek = career.salaryPerDay * 5;
+      const basePerHour = this._resolveSalaryPerHour(career);
+      career.salaryPerHour = Math.round(basePerHour * (1 + program.salaryMultiplierDelta));
+      career.salaryPerDay = Math.round(career.salaryPerHour * 8);
+      career.salaryPerWeek = Math.round(career.salaryPerHour * 40);
     }
   }
 
@@ -240,7 +258,6 @@ export class EducationSystem {
    * Синхронизировать карьерный прогресс
    */
   _syncCareerProgress() {
-    // Это будет реализовано через CareerProgressSystem
     return '';
   }
 
@@ -254,12 +271,10 @@ export class EducationSystem {
   }
 
   /**
-   * Применить изменения навыков
+   * Применить изменения навыков через SkillsSystem
    */
-  _applySkillChanges(skills, skillChanges = {}) {
-    for (const [key, value] of Object.entries(skillChanges)) {
-      skills[key] = this._clamp((skills[key] ?? 0) + value, 0, 10);
-    }
+  _applySkillChanges(skillChanges = {}) {
+    this.skillsSystem.applySkillChanges(skillChanges, 'education');
   }
 
   /**
@@ -274,5 +289,26 @@ export class EducationSystem {
    */
   _formatMoney(value) {
     return new Intl.NumberFormat('ru-RU').format(value);
+  }
+
+  _resolveCourseHours(program = {}) {
+    if (typeof program.hoursRequired === 'number' && program.hoursRequired > 0) {
+      return program.hoursRequired;
+    }
+    const legacyDays = Math.max(1, Number(program.daysRequired) || 1);
+    return legacyDays * 4;
+  }
+
+  _resolveSalaryPerHour(career = {}) {
+    if (typeof career.salaryPerHour === 'number' && career.salaryPerHour > 0) {
+      return career.salaryPerHour;
+    }
+    if (typeof career.salaryPerDay === 'number' && career.salaryPerDay > 0) {
+      return Math.round(career.salaryPerDay / 8);
+    }
+    if (typeof career.salaryPerWeek === 'number' && career.salaryPerWeek > 0) {
+      return Math.round(career.salaryPerWeek / 40);
+    }
+    return 0;
   }
 }

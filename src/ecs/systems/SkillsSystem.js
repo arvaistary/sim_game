@@ -1,54 +1,96 @@
-import { SKILLS_COMPONENT, PLAYER_ENTITY } from '../components/index.js';
+import { SKILLS_COMPONENT, SKILL_MODIFIERS_COMPONENT, PLAYER_ENTITY } from '../components/index.js';
+import { recalculateSkillModifiers, createBaseSkillModifiers } from '../../balance/skill-modifiers.js';
 
-/**
- * Система управления навыками
- * Применяет изменения к навыкам с clamp в пределах 0-10
- */
 export class SkillsSystem {
   init(world) {
     this.world = world;
+    this._ensureModifiersComponent();
+    this.recalculateModifiers();
   }
 
-  /**
-   * Применить изменения навыков к игроку
-   */
-  applySkillChanges(skillChanges = {}) {
+  _ensureModifiersComponent() {
+    const playerId = PLAYER_ENTITY;
+    let modifiers = this.world.getComponent(playerId, SKILL_MODIFIERS_COMPONENT);
+    if (!modifiers) {
+      modifiers = createBaseSkillModifiers();
+      this.world.addComponent(playerId, SKILL_MODIFIERS_COMPONENT, modifiers);
+    }
+  }
+
+  applySkillChanges(skillChanges = {}, reason = 'unknown') {
     const playerId = PLAYER_ENTITY;
     const skills = this.world.getComponent(playerId, SKILLS_COMPONENT);
     if (!skills) return;
 
+    const validChanges = {};
     for (const [key, value] of Object.entries(skillChanges)) {
-      skills[key] = this._clamp((skills[key] ?? 0) + value, 0, 10);
+      const oldValue = skills[key] ?? 0;
+      const newValue = this._clamp(oldValue + value, 0, 10);
+      if (newValue !== oldValue) {
+        skills[key] = newValue;
+        validChanges[key] = { from: oldValue, to: newValue, delta: value };
+      }
+    }
+
+    if (Object.keys(validChanges).length > 0) {
+      this.recalculateModifiers();
+      return { changed: true, reason, changes: validChanges };
+    }
+
+    return { changed: false, reason, changes: {} };
+  }
+
+  setSkillLevel(skillKey, level, reason = 'unknown') {
+    const playerId = PLAYER_ENTITY;
+    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT);
+    if (!skills) return;
+
+    const clampedLevel = this._clamp(level, 0, 10);
+    const oldLevel = skills[skillKey] ?? 0;
+    skills[skillKey] = clampedLevel;
+
+    if (clampedLevel !== oldLevel) {
+      this.recalculateModifiers();
     }
   }
 
-  /**
-   * Получить текущие навыки
-   */
+  recalculateModifiers() {
+    const playerId = PLAYER_ENTITY;
+    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT);
+    let modifiers = this.world.getComponent(playerId, SKILL_MODIFIERS_COMPONENT);
+
+    if (!modifiers) {
+      modifiers = createBaseSkillModifiers();
+      this.world.addComponent(playerId, SKILL_MODIFIERS_COMPONENT, modifiers);
+    }
+
+    const newModifiers = recalculateSkillModifiers(skills || {});
+
+    for (const key of Object.keys(newModifiers)) {
+      modifiers[key] = newModifiers[key];
+    }
+  }
+
+  getModifiers() {
+    const playerId = PLAYER_ENTITY;
+    return this.world.getComponent(playerId, SKILL_MODIFIERS_COMPONENT) || createBaseSkillModifiers();
+  }
+
   getSkills() {
     const playerId = PLAYER_ENTITY;
     return this.world.getComponent(playerId, SKILLS_COMPONENT);
   }
 
-  /**
-   * Проверить, соответствует ли навык требуемому уровню
-   */
   hasSkillLevel(skillKey, requiredLevel) {
     const skills = this.getSkills();
     return (skills?.[skillKey] ?? 0) >= requiredLevel;
   }
 
-  /**
-   * Получить уровень навыка
-   */
   getSkillLevel(skillKey) {
     const skills = this.getSkills();
     return skills?.[skillKey] ?? 0;
   }
 
-  /**
-   * Ограничить значение в пределах min-max
-   */
   _clamp(value, min = 0, max = 10) {
     return Math.max(min, Math.min(max, value));
   }

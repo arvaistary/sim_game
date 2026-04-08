@@ -111,10 +111,11 @@ export class CareerSceneECS extends Phaser.Scene {
     });
     container.add(jobTitle);
 
+    const hourlySalary = job.salaryPerHour ?? Math.round((job.salaryPerDay ?? 0) / 8);
     const dailyLine = this.add.text(
       0,
       0,
-      `Доход в день: ${this.formatMoney(job.salaryPerDay)} ₽`,
+      `Доход в час: ${this.formatMoney(hourlySalary)} ₽`,
       textStyle(16, CAREER_BODY, '600')
     );
     container.add(dailyLine);
@@ -228,7 +229,7 @@ export class CareerSceneECS extends Phaser.Scene {
     this.notificationModal.show({
       title: job.name,
       description: [
-        `Доход: ${this.formatMoney(job.salaryPerDay)} ₽/день`,
+        `Доход: ${this.formatMoney(job.salaryPerHour ?? Math.round((job.salaryPerDay ?? 0) / 8))} ₽/час`,
         `За неделю: ${this.formatMoney(job.salaryPerWeek)} ₽`,
       ].join('\n'),
     });

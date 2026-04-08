@@ -9,7 +9,8 @@ import {
   createToastMessage,
   textStyle,
 } from '../ui-kit';
-import { BASIC_SKILLS, PROFESSIONAL_SKILLS, SKILLS_TABS } from '../balance/skills-constants.js';
+import { getSkillsByCategory, SKILLS_TABS } from '../balance/skills-constants.js';
+import { buildSkillTooltipText } from '../shared/skill-tooltip-content.js';
 
 /**
  * SkillsScene с полной поддержкой ECS
@@ -48,6 +49,7 @@ export class SkillsScene extends Phaser.Scene {
     this.createContent();
     this.createBackButton();
     this.createToast();
+    this.createSkillTooltip();
     this.contentScrollOffset = 0;
     this.maxContentScroll = 0;
 
@@ -58,6 +60,7 @@ export class SkillsScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off('resize', this.handleResize);
       this.input.off('wheel', this.handleWheel, this);
+      this.hideSkillTooltip();
     });
 
     this.handleResize(this.scale.gameSize);
@@ -120,6 +123,22 @@ export class SkillsScene extends Phaser.Scene {
     this.root.add(this.toast);
   }
 
+  createSkillTooltip() {
+    this.skillTooltip = this.add.container(0, 0);
+    this.skillTooltipBg = this.add.graphics();
+    this.skillTooltipText = this.add.text(0, 0, '', {
+      ...textStyle(12, COLORS.white, '500'),
+      wordWrap: { width: 260 },
+      align: 'left',
+      lineSpacing: 4,
+    });
+    this.skillTooltipText.setOrigin(0, 0);
+    this.skillTooltip.add([this.skillTooltipBg, this.skillTooltipText]);
+    this.skillTooltip.setDepth(2000);
+    this.skillTooltip.setVisible(false);
+    this.root.add(this.skillTooltip);
+  }
+
   selectTab(tabId) {
     this.currentTab = SKILLS_TABS.find(tab => tab.id === tabId);
     if (!this.currentTab) return;
@@ -145,7 +164,7 @@ export class SkillsScene extends Phaser.Scene {
     this.skillCards.removeAll(true);
     this.skillCardViews = [];
 
-    const skills = this.currentTab.id === 'basic' ? BASIC_SKILLS : PROFESSIONAL_SKILLS;
+    const skills = getSkillsByCategory(this.currentTab.id);
     const currentSkills = this.skillsSystem.getSkills();
 
     skills.forEach((skill) => {
@@ -160,13 +179,18 @@ export class SkillsScene extends Phaser.Scene {
     const container = this.add.container(0, 0);
     const cardPanel = createRoundedPanel(this, { panelAlpha: 1, radius: 14, shadowAlpha: 0.15 });
     container.add(cardPanel);
+    const hitArea = this.add.rectangle(0, 0, 10, 10, 0x000000, 0).setOrigin(0, 0);
+    hitArea.setInteractive({ useHandCursor: true });
+    hitArea.on('pointerover', (pointer) => this.showSkillTooltip(skillData, pointer.worldX, pointer.worldY));
+    hitArea.on('pointermove', (pointer) => this.showSkillTooltip(skillData, pointer.worldX, pointer.worldY));
+    hitArea.on('pointerout', () => this.hideSkillTooltip());
 
     // Заголовок навыка
     const skillName = this.add.text(0, 0, skillData.label, textStyle(18, COLORS.text, '700'));
     container.add(skillName);
 
     // Описание
-    const skillDesc = this.add.text(0, 0, skillData.description, {
+    const skillDesc = this.add.text(0, 0, this.describeSkill(skillData), {
       ...textStyle(13, COLORS.text, '400'),
       wordWrap: { width: 280 },
     });
@@ -191,10 +215,12 @@ export class SkillsScene extends Phaser.Scene {
     progressContainer.add(progressFill);
 
     container.add(progressContainer);
+    container.add(hitArea);
 
     return {
       container,
       cardPanel,
+      hitArea,
       skillName,
       skillDesc,
       skillValueText,
@@ -208,6 +234,41 @@ export class SkillsScene extends Phaser.Scene {
 
   showToast(message) {
     this.toast.show(message);
+  }
+
+  describeSkill(skillData) {
+    const effectKeys = Object.keys(skillData.effects || {});
+    const milestoneKeys = Object.keys(skillData.milestones || {});
+    return [
+      skillData.description,
+      effectKeys.length ? `Effects: ${effectKeys.slice(0, 2).join(' • ')}` : '',
+      milestoneKeys.length ? `Milestones: ${milestoneKeys.join(', ')}` : '',
+    ].filter(Boolean).join('\n');
+  }
+
+  showSkillTooltip(skillData, x, y) {
+    const content = buildSkillTooltipText(skillData);
+    if (!content) return;
+
+    this.skillTooltipText.setText(content);
+    const width = this.skillTooltipText.width + 20;
+    const height = this.skillTooltipText.height + 16;
+
+    this.skillTooltipBg.clear();
+    this.skillTooltipBg.fillStyle(0x2b2522, 0.96);
+    this.skillTooltipBg.fillRoundedRect(0, 0, width, height, 10);
+    this.skillTooltipText.setPosition(10, 8);
+
+    const px = Phaser.Math.Clamp(x + 14, 8, this.scale.width - width - 8);
+    const py = Phaser.Math.Clamp(y + 14, 8, this.scale.height - height - 8);
+    this.skillTooltip.setPosition(px, py);
+    this.skillTooltip.setVisible(true);
+  }
+
+  hideSkillTooltip() {
+    if (this.skillTooltip) {
+      this.skillTooltip.setVisible(false);
+    }
   }
 
   handleResize(gameSize) {
@@ -262,7 +323,7 @@ export class SkillsScene extends Phaser.Scene {
     }
 
     const cardGap = 12;
-    const cardHeight = 110;
+    const cardHeight = 146;
     const cardWidth = this.skillsViewport.width;
     const totalHeight = this.skillCardViews.length * cardHeight + Math.max(0, this.skillCardViews.length - 1) * cardGap;
     this.maxContentScroll = Math.max(0, totalHeight - this.skillsViewport.height);
@@ -277,6 +338,7 @@ export class SkillsScene extends Phaser.Scene {
 
   layoutSkillCard(card, width, height) {
     card.cardPanel.resize(0, 0, width, height, 14, 1);
+    card.hitArea.setSize(width, height).setPosition(0, 0);
     card.skillName.setPosition(18, 16);
     card.skillDesc.setPosition(18, 44).setWordWrapWidth(width - 150);
     card.skillValueText.setPosition(width - 18, 16).setOrigin(1, 0);

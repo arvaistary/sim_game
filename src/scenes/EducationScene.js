@@ -216,7 +216,10 @@ export class EducationSceneECS extends Phaser.Scene {
     );
     container.add(costLine);
 
-    const daysText = this.add.text(0, 0, `Срок: ${program.daysRequired} дн.`, textStyle(13, EDU_MUTED, '500'));
+    const hoursRequired = typeof program.hoursRequired === 'number'
+      ? program.hoursRequired
+      : Math.max(1, Number(program.daysRequired ?? 1)) * 4;
+    const daysText = this.add.text(0, 0, `Срок: ${hoursRequired} ч.`, textStyle(13, EDU_MUTED, '500'));
     container.add(daysText);
 
     const rewardText = this.add.text(0, 0, this.formatRewardBullets(program.rewardText), {
@@ -321,7 +324,7 @@ export class EducationSceneECS extends Phaser.Scene {
     const detailsText = this.add.text(
       0,
       0,
-      `Дней: ${course.daysSpent} / ${course.daysRequired}`,
+      `Часов: ${course.hoursSpent ?? 0} / ${course.hoursRequired ?? ((course.daysRequired ?? 1) * 4)}`,
       textStyle(13, EDU_MUTED, '500')
     );
     container.add(detailsText);

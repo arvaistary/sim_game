@@ -6,8 +6,10 @@ import {
   FINANCE_COMPONENT,
   EVENT_QUEUE_COMPONENT,
   EVENT_HISTORY_COMPONENT,
+  TIME_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
+import { SkillsSystem } from './SkillsSystem.js';
 
 /**
  * Система обработки выборов событий
@@ -20,6 +22,8 @@ export class EventChoiceSystem {
 
   init(world) {
     this.world = world;
+    this.skillsSystem = new SkillsSystem();
+    this.skillsSystem.init(world);
   }
 
   /**
@@ -32,49 +36,47 @@ export class EventChoiceSystem {
     }
 
     const playerId = PLAYER_ENTITY;
+    const resolvedChoice = this._resolveChoiceBySkillCheck(choice);
 
     // Применяем финансовые изменения
-    if (choice.moneyDelta !== undefined) {
+    if (resolvedChoice.moneyDelta !== undefined) {
       const wallet = this.world.getComponent(playerId, WALLET_COMPONENT);
       if (wallet) {
-        wallet.money += choice.moneyDelta;
-        if (choice.moneyDelta > 0) {
-          wallet.totalEarnings = (wallet.totalEarnings ?? 0) + choice.moneyDelta;
-        } else if (choice.moneyDelta < 0) {
-          wallet.totalSpent = (wallet.totalSpent ?? 0) + Math.abs(choice.moneyDelta);
+        wallet.money += resolvedChoice.moneyDelta;
+        if (resolvedChoice.moneyDelta > 0) {
+          wallet.totalEarnings = (wallet.totalEarnings ?? 0) + resolvedChoice.moneyDelta;
+        } else if (resolvedChoice.moneyDelta < 0) {
+          wallet.totalSpent = (wallet.totalSpent ?? 0) + Math.abs(resolvedChoice.moneyDelta);
         }
       }
     }
 
     // Применяем изменения статы
-    if (choice.statChanges) {
+    if (resolvedChoice.statChanges) {
       const stats = this.world.getComponent(playerId, STATS_COMPONENT);
       if (stats) {
-        this._applyStatChanges(stats, choice.statChanges);
+        this._applyStatChanges(stats, this._applyEventModifiers(resolvedChoice.statChanges));
       }
     }
 
     // Применяем изменения навыков
-    if (choice.skillChanges) {
-      const skills = this.world.getComponent(playerId, SKILLS_COMPONENT);
-      if (skills) {
-        this._applySkillChanges(skills, choice.skillChanges);
-      }
+    if (resolvedChoice.skillChanges) {
+      this.skillsSystem.applySkillChanges(resolvedChoice.skillChanges, `event:${event.id}`);
     }
 
     // Применяем изменения отношений
-    if (choice.relationshipDelta) {
+    if (resolvedChoice.relationshipDelta) {
       const relationships = this.world.getComponent(playerId, 'relationships');
       if (relationships && relationships.length > 0) {
-        this._applyRelationshipDelta(relationships[0], choice.relationshipDelta);
+        this._applyRelationshipDelta(relationships[0], resolvedChoice.relationshipDelta);
       }
     }
 
     // Применяем изменения расходов
-    if (choice.monthlyExpenseDelta) {
+    if (resolvedChoice.monthlyExpenseDelta) {
       const finance = this.world.getComponent(playerId, FINANCE_COMPONENT);
       if (finance && finance.monthlyExpenses) {
-        Object.entries(choice.monthlyExpenseDelta).forEach(([key, value]) => {
+        Object.entries(resolvedChoice.monthlyExpenseDelta).forEach(([key, value]) => {
           const currentValue = finance.monthlyExpenses[key] ?? 0;
           finance.monthlyExpenses[key] = Math.max(0, currentValue + value);
         });
@@ -82,27 +84,29 @@ export class EventChoiceSystem {
     }
 
     // Применяем изменения уровня жилья
-    if (choice.housingLevelDelta) {
+    if (resolvedChoice.housingLevelDelta) {
       const housing = this.world.getComponent(playerId, HOUSING_COMPONENT);
       if (housing) {
-        this._applyHousingLevelDelta(housing, choice.housingLevelDelta);
+        this._applyHousingLevelDelta(housing, resolvedChoice.housingLevelDelta);
       }
     }
 
     // Записываем событие в историю
-    this._recordEvent(event.id, event.title);
+    this._recordEvent(event.id, event.title, event.type ?? 'story', event.actionSource ?? null);
 
     // Удаляем событие из очереди
     const eventQueue = this.world.getComponent(playerId, EVENT_QUEUE_COMPONENT);
     if (eventQueue && eventQueue.pendingEvents) {
-      const index = eventQueue.pendingEvents.findIndex(e => e.id === event.id);
+      const index = eventQueue.pendingEvents.findIndex(
+        (e) => e.instanceId === event.instanceId || e.id === event.id,
+      );
       if (index > -1) {
         eventQueue.pendingEvents.splice(index, 1);
       }
     }
 
     // Создаем описание результата
-    const message = this._buildEventResultMessage(event, choice);
+    const message = this._buildEventResultMessage(event, resolvedChoice);
 
     return { success: true, message };
   }
@@ -110,7 +114,7 @@ export class EventChoiceSystem {
   /**
    * Записать событие в историю
    */
-  _recordEvent(eventId, title) {
+  _recordEvent(eventId, title, type = 'story', actionSource = null) {
     const playerId = PLAYER_ENTITY;
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
     const eventHistory = this.world.getComponent(playerId, EVENT_HISTORY_COMPONENT);
@@ -126,6 +130,10 @@ export class EventChoiceSystem {
     eventHistory.events.push({
       eventId,
       day: time.gameDays,
+      week: time.gameWeeks,
+      timestampHours: time.totalHours ?? (time.gameDays ?? 0) * 24,
+      type,
+      actionSource,
       title,
     });
 
@@ -144,10 +152,17 @@ export class EventChoiceSystem {
   /**
    * Применить изменения навыков
    */
-  _applySkillChanges(skills, skillChanges = {}) {
-    for (const [key, value] of Object.entries(skillChanges)) {
-      skills[key] = this._clamp((skills[key] ?? 0) + value, 0, 10);
+  _applyEventModifiers(statChanges = {}) {
+    const reduction = this.skillsSystem.getModifiers().negativeEventPenaltyReduction ?? 0;
+    const adjusted = {};
+
+    for (const [key, value] of Object.entries(statChanges)) {
+      adjusted[key] = typeof value === 'number' && value < 0
+        ? Math.round(value * (1 - reduction))
+        : value;
     }
+
+    return adjusted;
   }
 
   /**
@@ -246,5 +261,21 @@ export class EventChoiceSystem {
    */
   _formatMoney(value) {
     return new Intl.NumberFormat('ru-RU').format(value);
+  }
+
+  _resolveChoiceBySkillCheck(choice) {
+    if (!choice?.skillCheck) return choice;
+
+    const skills = this.world.getComponent(PLAYER_ENTITY, SKILLS_COMPONENT) || {};
+    const check = choice.skillCheck;
+    const skillValue = Number(skills[check.key] ?? 0);
+    const passed = skillValue >= Number(check.threshold ?? 0);
+
+    return {
+      ...choice,
+      statChanges: passed ? (check.successStatChanges ?? choice.statChanges ?? {}) : (check.failStatChanges ?? choice.statChanges ?? {}),
+      moneyDelta: passed ? (check.successMoneyDelta ?? choice.moneyDelta) : (check.failMoneyDelta ?? choice.moneyDelta),
+      outcome: `${choice.outcome}${passed ? ' Удалось справиться.' : ' Подготовки не хватило.'}`,
+    };
   }
 }

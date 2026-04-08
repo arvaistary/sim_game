@@ -246,7 +246,8 @@ export class FinanceSceneECS extends Phaser.Scene {
     const costText = this.add.text(0, 0, this.formatMoney(action.amount) + ' ₽', textStyle(16, COLORS.accent, '600'));
     container.add(costText);
 
-    const timeText = this.add.text(0, 0, `Время: ${action.dayCost} д.`, textStyle(12, COLORS.text, '400'));
+    const hourCost = typeof action.hourCost === 'number' ? action.hourCost : Math.max(1, Number(action.dayCost ?? 1)) * 2;
+    const timeText = this.add.text(0, 0, `Время: ${hourCost} ч.`, textStyle(12, COLORS.text, '400'));
     container.add(timeText);
 
     let actionButton;

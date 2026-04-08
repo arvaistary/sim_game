@@ -3,6 +3,7 @@ import {
   TIME_COMPONENT,
   STATS_COMPONENT,
   SKILLS_COMPONENT,
+  SKILL_MODIFIERS_COMPONENT,
   WORK_COMPONENT,
   WALLET_COMPONENT,
   CAREER_COMPONENT,
@@ -38,13 +39,9 @@ export class GameStateAdapter {
     }
 
     // TimeComponent
+    const resolvedTime = this._resolveTimeFromSave(save);
     this.world.addComponent(playerId, TIME_COMPONENT, {
-      gameDays: save.gameDays,
-      gameWeeks: save.gameWeeks,
-      gameMonths: save.gameMonths,
-      gameYears: save.gameYears,
-      currentAge: save.currentAge,
-      startAge: save.startAge,
+      ...resolvedTime,
     });
 
     // StatsComponent
@@ -53,14 +50,23 @@ export class GameStateAdapter {
     // SkillsComponent
     this.world.addComponent(playerId, SKILLS_COMPONENT, { ...save.skills });
 
+    // SkillModifiersComponent
+    this.world.addComponent(playerId, SKILL_MODIFIERS_COMPONENT, { ...(save.skillModifiers || {}) });
+
     // WorkComponent
     this.world.addComponent(playerId, WORK_COMPONENT, {
       id: save.currentJob?.id,
       name: save.currentJob?.name,
+      schedule: save.currentJob?.schedule ?? '5/2',
+      employed: save.currentJob?.employed ?? Boolean(save.currentJob?.id),
       level: save.currentJob?.level,
       daysAtWork: save.currentJob?.daysAtWork,
-      salaryPerDay: save.currentJob?.salaryPerDay,
-      salaryPerWeek: save.currentJob?.salaryPerWeek,
+      salaryPerHour: this._resolveSalaryPerHour(save.currentJob),
+      salaryPerDay: save.currentJob?.salaryPerDay ?? this._resolveSalaryPerHour(save.currentJob) * 8,
+      salaryPerWeek: save.currentJob?.salaryPerWeek ?? this._resolveSalaryPerHour(save.currentJob) * 40,
+      requiredHoursPerWeek: save.currentJob?.requiredHoursPerWeek ?? 40,
+      workedHoursCurrentWeek: save.currentJob?.workedHoursCurrentWeek ?? 0,
+      totalWorkedHours: save.currentJob?.totalWorkedHours ?? 0,
     });
 
     // WalletComponent
@@ -76,8 +82,13 @@ export class GameStateAdapter {
       name: save.currentJob?.name,
       level: save.currentJob?.level,
       daysAtWork: save.currentJob?.daysAtWork,
-      salaryPerDay: save.currentJob?.salaryPerDay,
-      salaryPerWeek: save.currentJob?.salaryPerWeek,
+      salaryPerHour: this._resolveSalaryPerHour(save.currentJob),
+      salaryPerDay: save.currentJob?.salaryPerDay ?? this._resolveSalaryPerHour(save.currentJob) * 8,
+      salaryPerWeek: save.currentJob?.salaryPerWeek ?? this._resolveSalaryPerHour(save.currentJob) * 40,
+      schedule: save.currentJob?.schedule ?? '5/2',
+      requiredHoursPerWeek: save.currentJob?.requiredHoursPerWeek ?? 40,
+      workedHoursCurrentWeek: save.currentJob?.workedHoursCurrentWeek ?? 0,
+      totalWorkedHours: save.currentJob?.totalWorkedHours ?? 0,
     });
 
     // EducationComponent
@@ -145,6 +156,25 @@ export class GameStateAdapter {
       save.gameYears = time.gameYears;
       save.currentAge = time.currentAge;
       save.startAge = time.startAge;
+      save.time = {
+        totalHours: time.totalHours,
+        gameDays: time.gameDays,
+        gameWeeks: time.gameWeeks,
+        gameMonths: time.gameMonths,
+        gameYears: time.gameYears,
+        hourOfDay: time.hourOfDay,
+        dayOfWeek: time.dayOfWeek,
+        weekHoursSpent: time.weekHoursSpent,
+        weekHoursRemaining: time.weekHoursRemaining,
+        dayHoursSpent: time.dayHoursSpent,
+        dayHoursRemaining: time.dayHoursRemaining,
+        sleepHoursToday: time.sleepHoursToday,
+        sleepDebt: time.sleepDebt,
+      };
+      save.eventState = {
+        ...(save.eventState ?? {}),
+        ...(time.eventState ?? {}),
+      };
     }
 
     // Stats
@@ -159,16 +189,27 @@ export class GameStateAdapter {
       save.skills = { ...skills };
     }
 
+    const skillModifiers = this.world.getComponent(playerId, SKILL_MODIFIERS_COMPONENT);
+    if (skillModifiers) {
+      save.skillModifiers = { ...skillModifiers };
+    }
+
     // Work
     const work = this.world.getComponent(playerId, WORK_COMPONENT);
     if (work) {
       save.currentJob = {
         id: work.id,
         name: work.name,
+        schedule: work.schedule ?? '5/2',
+        employed: work.employed ?? Boolean(work.id),
         level: work.level,
         daysAtWork: work.daysAtWork,
+        salaryPerHour: work.salaryPerHour,
         salaryPerDay: work.salaryPerDay,
         salaryPerWeek: work.salaryPerWeek,
+        requiredHoursPerWeek: work.requiredHoursPerWeek,
+        workedHoursCurrentWeek: work.workedHoursCurrentWeek,
+        totalWorkedHours: work.totalWorkedHours,
       };
     }
 
@@ -218,7 +259,9 @@ export class GameStateAdapter {
     if (lifetimeStats) {
       save.lifetimeStats = {
         totalWorkDays: lifetimeStats.totalWorkDays,
+        totalWorkHours: lifetimeStats.totalWorkHours,
         totalEvents: lifetimeStats.totalEvents,
+        totalMicroEvents: lifetimeStats.totalMicroEvents,
         maxMoney: lifetimeStats.maxMoney,
       };
     }
@@ -264,5 +307,41 @@ export class GameStateAdapter {
   setSaveData(newSaveData) {
     this.saveData = newSaveData;
     this.initializeFromSaveData();
+  }
+
+  _resolveTimeFromSave(save) {
+    const totalHours =
+      Number(save.time?.totalHours) ||
+      (Number(save.gameDays ?? 0) * 24);
+    const gameDays = Math.floor(totalHours / 24);
+    const gameWeeks = Math.max(1, Math.floor(totalHours / 168));
+    const gameMonths = Math.max(1, Math.floor(gameWeeks / 4));
+    const gameYears = Number((gameMonths / 12).toFixed(1));
+
+    return {
+      totalHours,
+      gameDays,
+      gameWeeks,
+      gameMonths,
+      gameYears,
+      currentAge: save.currentAge ?? (save.startAge ?? 18) + Math.floor(gameDays / 360),
+      startAge: save.startAge ?? 18,
+      hourOfDay: save.time?.hourOfDay ?? (totalHours % 24),
+      dayOfWeek: save.time?.dayOfWeek ?? ((Math.floor(totalHours / 24) % 7) + 1),
+      weekHoursSpent: save.time?.weekHoursSpent ?? (totalHours % 168),
+      weekHoursRemaining: save.time?.weekHoursRemaining ?? (168 - (totalHours % 168)),
+      dayHoursSpent: save.time?.dayHoursSpent ?? (totalHours % 24),
+      dayHoursRemaining: save.time?.dayHoursRemaining ?? (24 - (totalHours % 24)),
+      sleepHoursToday: save.time?.sleepHoursToday ?? 0,
+      sleepDebt: save.time?.sleepDebt ?? 0,
+      eventState: save.eventState ?? save.time?.eventState ?? {},
+    };
+  }
+
+  _resolveSalaryPerHour(job = {}) {
+    if (typeof job?.salaryPerHour === 'number' && job.salaryPerHour > 0) return job.salaryPerHour;
+    if (typeof job?.salaryPerDay === 'number' && job.salaryPerDay > 0) return Math.round(job.salaryPerDay / 8);
+    if (typeof job?.salaryPerWeek === 'number' && job.salaryPerWeek > 0) return Math.round(job.salaryPerWeek / 40);
+    return 0;
   }
 }

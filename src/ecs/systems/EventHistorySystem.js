@@ -20,7 +20,7 @@ export class EventHistorySystem {
   /**
    * Записать событие в историю
    */
-  recordEvent(eventId, title) {
+  recordEvent(eventId, title, type = 'story', actionSource = null) {
     const playerId = PLAYER_ENTITY;
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
     const eventHistory = this.world.getComponent(playerId, EVENT_HISTORY_COMPONENT);
@@ -36,6 +36,10 @@ export class EventHistorySystem {
     eventHistory.events.push({
       eventId,
       day: time.gameDays,
+      week: time.gameWeeks,
+      timestampHours: time.totalHours ?? (time.gameDays ?? 0) * 24,
+      type,
+      actionSource,
       title,
     });
 

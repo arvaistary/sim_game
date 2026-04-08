@@ -3,7 +3,7 @@ import {
   STATS_COMPONENT, 
   SKILLS_COMPONENT, 
   WALLET_COMPONENT, 
-  HOUSING_COMPONENT, 
+  HOUSING_COMPONENT,
   FURNITURE_COMPONENT,
   RELATIONSHIPS_COMPONENT,
   EDUCATION_COMPONENT,
@@ -11,6 +11,7 @@ import {
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { HOUSING_LEVELS } from '../../balance/housing-levels.js';
+import { SkillsSystem } from './SkillsSystem.js';
 
 /**
  * Система обработки действий восстановления
@@ -23,6 +24,8 @@ export class RecoverySystem {
 
   init(world) {
     this.world = world;
+    this.skillsSystem = new SkillsSystem();
+    this.skillsSystem.init(world);
   }
 
   /**
@@ -73,10 +76,9 @@ export class RecoverySystem {
     const stats = this.world.getComponent(playerId, STATS_COMPONENT);
     this._applyStatChanges(stats, statChanges);
 
-    // Применяем изменения навыков
+    // Применяем изменения навыков через SkillsSystem
     if (cardData.skillChanges) {
-      const skills = this.world.getComponent(playerId, SKILLS_COMPONENT);
-      this._applySkillChanges(skills, cardData.skillChanges);
+      this._applySkillChanges(cardData.skillChanges, 'recovery');
     }
 
     // Обновление комфорта жилья
@@ -114,8 +116,10 @@ export class RecoverySystem {
     // Множитель зарплаты
     if (cardData.salaryMultiplierDelta) {
       const career = this.world.getComponent(playerId, CAREER_COMPONENT);
-      career.salaryPerDay = Math.round(career.salaryPerDay * (1 + cardData.salaryMultiplierDelta));
-      career.salaryPerWeek = career.salaryPerDay * 5;
+      const baseSalaryPerHour = this._resolveSalaryPerHour(career);
+      career.salaryPerHour = Math.round(baseSalaryPerHour * (1 + cardData.salaryMultiplierDelta));
+      career.salaryPerDay = Math.round(career.salaryPerHour * 8);
+      career.salaryPerWeek = Math.round(career.salaryPerHour * 40);
     }
 
     // Уровень образования
@@ -127,14 +131,19 @@ export class RecoverySystem {
 
     // Продвижение времени
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
-    const dayCost = cardData.dayCost ?? 1;
-    time.gameDays += dayCost;
-    time.gameWeeks = Math.max(1, Math.floor(time.gameDays / 7));
-    time.gameMonths = Math.max(1, Math.floor(time.gameDays / 30));
-    time.gameYears = Number((time.gameDays / 360).toFixed(1));
-    time.currentAge = time.startAge + Math.floor(time.gameDays / 360);
+    const hourCost = this._resolveHourCost(cardData);
+    const actionType = this._resolveActionType(cardData);
+    const timeSystem = this.world.systems.find((system) => typeof system.advanceHours === 'function');
+    if (timeSystem) {
+      timeSystem.advanceHours(hourCost, {
+        actionType,
+        sleepHours: actionType === 'sleep' ? hourCost : 0,
+      });
+    } else {
+      time.totalHours = (time.totalHours ?? (time.gameDays ?? 0) * 24) + hourCost;
+    }
 
-    return this._buildRecoverySummary(cardData, statChanges);
+    return this._buildRecoverySummary(cardData, statChanges, hourCost);
   }
 
   /**
@@ -149,7 +158,7 @@ export class RecoverySystem {
     return {
       foodRecoveryMultiplier: (this._hasFurniture(furniture, 'refrigerator') ? 1.2 : 1) + comfortRatio * 0.08,
       workEnergyMultiplier: Math.max(0.78, (this._hasFurniture(furniture, 'good_bed') ? 0.9 : 1) - comfortRatio * 0.08 - (housingLevel - 1) * 0.02),
-      homeMoodBonus: (this._hasFurniture(furniture, 'decor_light') ? 6 : 0) + Math.round(comfortRatio * 4) + (housingLevel - 1) * 2,
+      homeMoodBonus: (this._hasFurniture(furniture, 'decor_light') ? 6 : 1) + Math.round(comfortRatio * 4) + (housingLevel - 1) * 2,
     };
   }
 
@@ -218,7 +227,7 @@ export class RecoverySystem {
       startDate: time.gameDays,
       durationDays: cardData.investmentDurationDays ?? 28,
       maturityDay: time.gameDays + (cardData.investmentDurationDays ?? 28),
-      expectedReturn: cardData.investmentReturn ?? 0,
+      expectedReturn: Math.round((cardData.investmentReturn ?? 0) * (this.skillsSystem.getModifiers().investmentReturnMultiplier ?? 1)),
       totalEarned: 0,
       status: 'active',
     };
@@ -230,11 +239,11 @@ export class RecoverySystem {
   /**
    * Построить резюме восстановления
    */
-  _buildRecoverySummary(cardData, statChanges) {
+  _buildRecoverySummary(cardData, statChanges, hourCost) {
     const changes = this._summarizeStatChanges(statChanges);
     return [
       `${cardData.title} завершено.`,
-      `Потрачено: ${this._formatMoney(cardData.price)} ₽ • Время: ${cardData.dayCost} д.`,
+      `Потрачено: ${this._formatMoney(cardData.price)} ₽ • Время: ${hourCost} ч.`,
       changes || 'Шкалы без заметных изменений.',
     ].join('\n');
   }
@@ -263,17 +272,16 @@ export class RecoverySystem {
    */
   _applyStatChanges(stats, statChanges = {}) {
     for (const [key, value] of Object.entries(statChanges)) {
-      stats[key] = this._clamp((stats[key] ?? 0) + value);
+      stats[key] = this._clamp((stats[key] ?? 1) + value);
     }
   }
 
   /**
-   * Применить изменения навыков
+   * Применить изменения навыков через SkillsSystem
    */
-  _applySkillChanges(skills, skillChanges = {}) {
-    for (const [key, value] of Object.entries(skillChanges)) {
-      skills[key] = this._clamp((skills[key] ?? 0) + value, 0, 10);
-    }
+  _applySkillChanges(skillChanges = {}, reason = 'recovery') {
+    if (!skillChanges || Object.keys(skillChanges).length === 0) return;
+    this.skillsSystem.applySkillChanges(skillChanges, reason);
   }
 
   /**
@@ -288,5 +296,41 @@ export class RecoverySystem {
    */
   _formatMoney(value) {
     return new Intl.NumberFormat('ru-RU').format(value);
+  }
+
+  _resolveHourCost(cardData) {
+    if (typeof cardData.hourCost === 'number' && cardData.hourCost > 0) {
+      return cardData.hourCost;
+    }
+    // Legacy fallback: ранее dayCost был дискретным шагом, теперь это 2 часа за 1 step.
+    const legacyDayCost = Math.max(1, Number(cardData.dayCost) || 1);
+    return legacyDayCost * 2;
+  }
+
+  _resolveSalaryPerHour(career = {}) {
+    if (typeof career.salaryPerHour === 'number' && career.salaryPerHour > 0) {
+      return career.salaryPerHour;
+    }
+    if (typeof career.salaryPerDay === 'number' && career.salaryPerDay > 0) {
+      return Math.round(career.salaryPerDay / 8);
+    }
+    if (typeof career.salaryPerWeek === 'number' && career.salaryPerWeek > 0) {
+      return Math.round(career.salaryPerWeek / 40);
+    }
+    return 0;
+  }
+
+  _resolveActionType(cardData = {}) {
+    const title = String(cardData.title ?? '').toLowerCase();
+    if (title.includes('сон') || title.includes('отдых дома') || title.includes('вечер дома')) {
+      return 'sleep';
+    }
+    if (title.includes('продукт') || title.includes('обед') || title.includes('перекус') || title.includes('магазин')) {
+      return 'buy_groceries';
+    }
+    if (title.includes('спорт')) {
+      return 'sport';
+    }
+    return 'recovery_action';
   }
 }

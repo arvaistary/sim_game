@@ -237,13 +237,14 @@ export const RECOVERY_TABS = [
     title: "Комфорт и жильё",
     subtitle: "Уют комнаты влияет на эффективность восстановления и будущий прогресс.",
     cards: [
-      { title: "Хорошая кровать", price: 18000, dayCost: 1, effect: "Энергия +18 • Здоровье +8 • Комфорт дома +10", mood: "Лучшее вложение в ежедневный цикл", statChanges: { energy: 18, health: 8 }, housingComfortDelta: 10, furnitureId: "good_bed" },
-      { title: "Холодильник", price: 24000, dayCost: 1, effect: "Голод +12 • Комфорт дома +12", mood: "Работает каждый ход", statChanges: { hunger: 12 }, housingComfortDelta: 12, furnitureId: "refrigerator" },
-      { title: "Декор и свет", price: 9500, dayCost: 1, effect: "Комфорт дома +8 • Настроение +5", mood: "Уют без лишней сложности", statChanges: { mood: 5 }, housingComfortDelta: 8, furnitureId: "decor_light" },
+      { title: "Хорошая кровать", price: 18000, dayCost: 1, hourCost: 1, effect: "Энергия +18 • Здоровье +8 • Комфорт дома +10", mood: "Лучшее вложение в ежедневный цикл", statChanges: { energy: 18, health: 8 }, housingComfortDelta: 10, furnitureId: "good_bed" },
+      { title: "Холодильник", price: 24000, dayCost: 1, hourCost: 1, effect: "Голод +12 • Комфорт дома +12", mood: "Работает каждый ход", statChanges: { hunger: 12 }, housingComfortDelta: 12, furnitureId: "refrigerator" },
+      { title: "Декор и свет", price: 9500, dayCost: 1, hourCost: 1, effect: "Комфорт дома +8 • Настроение +5", mood: "Уют без лишней сложности", statChanges: { mood: 5 }, housingComfortDelta: 8, furnitureId: "decor_light" },
       {
         title: "Переехать в 1-комнатную квартиру",
         price: 95000,
         dayCost: 2,
+        hourCost: 6,
         effect: "Уровень жилья 2 • Комфорт до 52 • Домашние бонусы сильнее",
         mood: "Следующий шаг к более устойчивому циклу",
         housingUpgradeLevel: 2,
@@ -252,6 +253,7 @@ export const RECOVERY_TABS = [
         title: "Переехать в уютную квартиру",
         price: 210000,
         dayCost: 3,
+        hourCost: 10,
         effect: "Уровень жилья 3 • Комфорт до 72 • Больше пассивного восстановления",
         mood: "Дорогой, но очень сильный апгрейд качества жизни",
         housingUpgradeLevel: 3,
@@ -266,9 +268,9 @@ export const RECOVERY_TABS = [
     title: "Быстрое восстановление",
     subtitle: "Еда, бытовые мелочи и базовые покупки после рабочей смены.",
     cards: [
-      { title: "Быстрый перекус", price: 150, dayCost: 1, effect: "Голод +35 • Энергия +10 • Стресс -5", mood: "На 5 минут и снова в ритм", statChanges: { hunger: 35, energy: 10, stress: -5 } },
-      { title: "Полноценный обед", price: 450, dayCost: 1, effect: "Голод +65 • Энергия +25 • Настроение +15", mood: "Самый стабильный вариант", statChanges: { hunger: 65, energy: 25, mood: 15 } },
-      { title: "Запас продуктов домой", price: 1200, dayCost: 1, effect: "Голод +25 • Настроение +8 • Комфорт дома +2", mood: "Небольшой буфер комфорта", statChanges: { hunger: 25, mood: 8 }, housingComfortDelta: 2 },
+      { title: "Быстрый перекус", price: 150, dayCost: 1, hourCost: 0.5, effect: "Голод +35 • Энергия +10 • Стресс -5", mood: "На 5 минут и снова в ритм", statChanges: { hunger: 22, energy: 4, stress: -2 } },
+      { title: "Полноценный обед", price: 450, dayCost: 1, hourCost: 1, effect: "Голод +65 • Энергия +25 • Настроение +15", mood: "Самый стабильный вариант", statChanges: { hunger: 40, energy: 10, mood: 4 } },
+      { title: "Запас продуктов домой", price: 1200, dayCost: 1, hourCost: 1.5, effect: "Голод +25 • Настроение +8 • Комфорт дома +2", mood: "Небольшой буфер комфорта", statChanges: { hunger: 18, mood: 4 }, housingComfortDelta: 2 },
     ],
   },
   {
@@ -279,9 +281,9 @@ export const RECOVERY_TABS = [
     title: "Сбросить напряжение",
     subtitle: "Сцены отдыха помогают стабилизировать стресс и настроение.",
     cards: [
-      { title: "Вечер дома", price: 0, dayCost: 1, effect: "Энергия +55 • Настроение +20 • Стресс -25", mood: "Самый бережный отдых", statChanges: { energy: 55, mood: 20, stress: -25 } },
-      { title: "Кино или прогулка", price: 800, dayCost: 1, effect: "Энергия +30 • Настроение +45 • Стресс -30", mood: "Мягкий городской уют", statChanges: { energy: 30, mood: 45, stress: -30 } },
-      { title: "Спортзал", price: 1200, dayCost: 1, effect: "Энергия +40 • Настроение +35 • Стресс -35 • Форма +10", mood: "Хорошо для длинной дистанции", statChanges: { energy: 40, mood: 35, stress: -35, physical: 10 } },
+      { title: "Вечер дома", price: 0, dayCost: 1, hourCost: 8, effect: "Энергия +55 • Настроение +20 • Стресс -25", mood: "Самый бережный отдых", statChanges: { energy: 30, mood: 10, stress: -12 } },
+      { title: "Кино или прогулка", price: 800, dayCost: 1, hourCost: 3, effect: "Энергия +30 • Настроение +45 • Стресс -30", mood: "Мягкий городской уют", statChanges: { energy: 8, mood: 18, stress: -10 } },
+      { title: "Спортзал", price: 1200, dayCost: 1, hourCost: 2, effect: "Энергия +40 • Настроение +35 • Стресс -35 • Форма +10", mood: "Хорошо для длинной дистанции", statChanges: { energy: -8, mood: 10, stress: -14, physical: 5, health: 2 } },
     ],
   },
   {
@@ -292,9 +294,9 @@ export const RECOVERY_TABS = [
     title: "Развитие навыков",
     subtitle: "Книги, курсы и образование открывают новые работы и повышают доход.",
     cards: [
-      { title: "Книга по тайм-менеджменту", price: 900, dayCost: 1, effect: "Навык +1 • Стресс -5", mood: "Дешёвый и быстрый рост", statChanges: { stress: -5 }, skillChanges: { timeManagement: 1 } },
-      { title: "Онлайн-курс", price: 6500, dayCost: 4, effect: "Профессионализм +1 • Коммуникация +1 • Настроение +8", mood: "Средний темп с хорошей отдачей", statChanges: { mood: 8, energy: -8 }, skillChanges: { professionalism: 1, communication: 1 } },
-      { title: "Институт / переподготовка", price: 120000, dayCost: 7, effect: "Профессионализм +2 • ЗП за день +5% • Новая образовательная ступень", mood: "Долгий маршрут к сильной работе", skillChanges: { professionalism: 2 }, salaryMultiplierDelta: 0.05, educationLevel: "Высшее" },
+      { title: "Книга по тайм-менеджменту", price: 900, dayCost: 1, hourCost: 2, effect: "Навык +1 • Стресс -5", mood: "Дешёвый и быстрый рост", statChanges: { stress: -3 }, skillChanges: { timeManagement: 1 } },
+      { title: "Онлайн-курс", price: 6500, dayCost: 4, hourCost: 16, effect: "Профессионализм +1 • Коммуникация +1 • Настроение +8", mood: "Средний темп с хорошей отдачей", statChanges: { mood: 5, energy: -15, stress: 6 }, skillChanges: { professionalism: 1, communication: 1 } },
+      { title: "Институт / переподготовка", price: 120000, dayCost: 7, hourCost: 40, effect: "Профессионализм +2 • ЗП за день +5% • Новая образовательная ступень", mood: "Долгий маршрут к сильной работе", statChanges: { energy: -22, stress: 12 }, skillChanges: { professionalism: 2 }, salaryMultiplierDelta: 0.05, educationLevel: "Высшее" },
     ],
   },
   {
@@ -305,9 +307,9 @@ export const RECOVERY_TABS = [
     title: "Отношения и поддержка",
     subtitle: "Связи снижают стресс, повышают настроение и создают долгосрочные бонусы.",
     cards: [
-      { title: "Встретиться с другом", price: 500, dayCost: 1, effect: "Настроение +18 • Стресс -12 • Отношения +8", mood: "Надёжный способ перевести дух", statChanges: { mood: 18, stress: -12 }, relationshipDelta: 8 },
-      { title: "Позвонить родителям", price: 0, dayCost: 1, effect: "Настроение +10 • Стресс -8", mood: "Небольшой, но частый буст", statChanges: { mood: 10, stress: -8 }, relationshipDelta: 4 },
-      { title: "Свидание", price: 1800, dayCost: 1, effect: "Настроение +22 • Отношения +12", mood: "Для длинной эмоциональной линии", statChanges: { mood: 22, stress: -6 }, relationshipDelta: 12 },
+      { title: "Встретиться с другом", price: 500, dayCost: 1, hourCost: 3, effect: "Настроение +18 • Стресс -12 • Отношения +8", mood: "Надёжный способ перевести дух", statChanges: { mood: 14, stress: -8 }, relationshipDelta: 8 },
+      { title: "Позвонить родителям", price: 0, dayCost: 1, hourCost: 0.5, effect: "Настроение +10 • Стресс -8", mood: "Небольшой, но частый буст", statChanges: { mood: 6, stress: -4 }, relationshipDelta: 4 },
+      { title: "Свидание", price: 1800, dayCost: 1, hourCost: 4, effect: "Настроение +22 • Отношения +12", mood: "Для длинной эмоциональной линии", statChanges: { mood: 18, stress: -6 }, relationshipDelta: 12 },
     ],
   },
   {
@@ -318,9 +320,9 @@ export const RECOVERY_TABS = [
     title: "Деньги и планирование",
     subtitle: "Финансовые решения влияют на стабильность, риски и будущий доход.",
     cards: [
-      { title: "Отложить в резерв", price: 5000, dayCost: 1, effect: "Резерв +5 000 • Стресс -10 • Настроение +6", mood: "Снижает тревожность перед расходами", statChanges: { stress: -10, mood: 6 }, reserveDelta: 5000 },
-      { title: "Открыть депозит", price: 50000, dayCost: 1, effect: "Инвестиция +4 000 • Финансовая грамотность +1", mood: "Низкий риск, спокойный рост", investmentReturn: 4000, investmentDurationDays: 28, skillChanges: { financialLiteracy: 1 } },
-      { title: "Пересмотреть бюджет", price: 0, dayCost: 1, effect: "Стресс -8 • Финансовая грамотность +1", mood: "Хорошая рутина перед крупными целями", statChanges: { stress: -8 }, skillChanges: { financialLiteracy: 1 } },
+      { title: "Отложить в резерв", price: 5000, dayCost: 1, hourCost: 1, effect: "Резерв +5 000 • Стресс -10 • Настроение +6", mood: "Снижает тревожность перед расходами", statChanges: { stress: -6, mood: 3 }, reserveDelta: 5000 },
+      { title: "Открыть депозит", price: 50000, dayCost: 1, hourCost: 2, effect: "Инвестиция +4 000 • Финансовая грамотность +1", mood: "Низкий риск, спокойный рост", investmentReturn: 4000, investmentDurationDays: 28, skillChanges: { financialLiteracy: 1 } },
+      { title: "Пересмотреть бюджет", price: 0, dayCost: 1, hourCost: 1, effect: "Стресс -8 • Финансовая грамотность +1", mood: "Хорошая рутина перед крупными целями", statChanges: { stress: -5, mood: 2 }, skillChanges: { financialLiteracy: 1 } },
     ],
   },
 ];
@@ -333,6 +335,7 @@ export const EDUCATION_PROGRAMS = [
     typeLabel: "Книга",
     cost: 900,
     daysRequired: 2,
+    hoursRequired: 8,
     accentKey: "accent",
     rewardText: "Тайм-менеджмент +1 • Стресс -4",
     completionStatChanges: { stress: -4 },
@@ -345,6 +348,7 @@ export const EDUCATION_PROGRAMS = [
     typeLabel: "Онлайн-курс",
     cost: 6500,
     daysRequired: 5,
+    hoursRequired: 24,
     accentKey: "blue",
     rewardText: "Профессионализм +1 • Коммуникация +1 • Настроение +8",
     completionStatChanges: { mood: 8 },
@@ -357,6 +361,7 @@ export const EDUCATION_PROGRAMS = [
     typeLabel: "Институт",
     cost: 120000,
     daysRequired: 8,
+    hoursRequired: 160,
     accentKey: "sage",
     rewardText: "Профессионализм +2 • ЗП за день +5% • Уровень образования: Высшее",
     completionSkillChanges: { professionalism: 2 },
@@ -492,7 +497,8 @@ const FINANCE_ACTIONS = [
     amount: 10000,
     reserveDelta: 10000,
     dayCost: 1,
-    statChanges: { stress: -10, mood: 4 },
+    hourCost: 1,
+    statChanges: { stress: -6, mood: 3 },
     skillChanges: { financialLiteracy: 1 },
     accentKey: "sage",
     description: "Ликвидные деньги -10 000 ₽ • Резерв +10 000 ₽ • Стресс -10",
@@ -505,7 +511,8 @@ const FINANCE_ACTIONS = [
     expectedReturn: 4000,
     durationDays: 28,
     dayCost: 1,
-    statChanges: { stress: -4, mood: 3 },
+    hourCost: 2,
+    statChanges: { stress: -3, mood: 2 },
     skillChanges: { financialLiteracy: 1 },
     accentKey: "blue",
     description: "Ликвидные деньги -50 000 ₽ • Через 28 дней можно забрать 54 000 ₽",
@@ -516,11 +523,12 @@ const FINANCE_ACTIONS = [
     subtitle: "Чуть снизить тревогу и подправить ежемесячные траты.",
     amount: 0,
     dayCost: 1,
-    statChanges: { stress: -8, mood: 5 },
+    hourCost: 1,
+    statChanges: { stress: -5, mood: 2 },
     skillChanges: { financialLiteracy: 1 },
     monthlyExpenseDelta: {
-      leisure: -1000,
-      education: 500,
+      leisure: -800,
+      education: 400,
     },
     accentKey: "accent",
     description: "Стресс -8 • Финансовая грамотность +1 • Расходы на досуг -1 000 ₽/мес",
@@ -994,7 +1002,10 @@ export function applyRecoveryActionToSave(saveData, cardData) {
     saveData.education.institute = "completed";
   }
 
-  advanceGameTime(saveData, cardData.dayCost ?? 1);
+  const hourCost = typeof cardData.hourCost === "number" && cardData.hourCost > 0
+    ? cardData.hourCost
+    : Math.max(1, Number(cardData.dayCost ?? 1)) * 2;
+  advanceGameTime(saveData, hourCost / 24);
 
   return buildRecoverySummary(cardData, statChanges);
 }
@@ -1274,7 +1285,10 @@ export function applyFinanceActionToSave(saveData, actionId) {
 
   applyStatChanges(saveData.stats, action.statChanges);
   applySkillChanges(saveData.skills, action.skillChanges);
-  advanceGameTime(saveData, action.dayCost ?? 1);
+  const hourCost = typeof action.hourCost === "number" && action.hourCost > 0
+    ? action.hourCost
+    : Math.max(1, Number(action.dayCost ?? 1)) * 2;
+  advanceGameTime(saveData, hourCost / 24);
 
   return [
     `${action.title} выполнено.`,
@@ -1323,6 +1337,10 @@ export function startEducationProgram(saveData, program) {
     progress: 0,
     daysRequired: program.daysRequired,
     daysSpent: 0,
+    hoursRequired: typeof program.hoursRequired === "number" && program.hoursRequired > 0
+      ? program.hoursRequired
+      : Math.max(1, Number(program.daysRequired ?? 1)) * 4,
+    hoursSpent: 0,
     costPaid: program.cost,
   };
 
@@ -1331,7 +1349,7 @@ export function startEducationProgram(saveData, program) {
   return [
     `${program.title} начат.`,
     `Стоимость: ${formatMoney(program.cost)} ₽.`,
-    `Понадобится ${program.daysRequired} игровых дн.`,
+    `Понадобится ${activeCourse.hoursRequired} ч. обучения.`,
   ].join("\n");
 }
 
@@ -1343,9 +1361,15 @@ export function advanceEducationCourseDay(saveData, courseId) {
     return { completed: false, summary: "Активный курс не найден." };
   }
 
-  advanceGameTime(saveData, 1);
+  const studyHoursPerStep = 4;
+  const hoursRequired = typeof course.hoursRequired === "number" && course.hoursRequired > 0
+    ? course.hoursRequired
+    : Math.max(1, Number(course.daysRequired ?? 1)) * studyHoursPerStep;
+  advanceGameTime(saveData, studyHoursPerStep / 24);
   course.daysSpent += 1;
-  course.progress = clamp(course.daysSpent / course.daysRequired, 0, 1);
+  course.hoursSpent = (course.hoursSpent ?? (course.daysSpent - 1) * studyHoursPerStep) + studyHoursPerStep;
+  course.hoursRequired = hoursRequired;
+  course.progress = clamp(course.hoursSpent / hoursRequired, 0, 1);
 
   applyStatChanges(saveData.stats, {
     energy: -10,
@@ -1353,12 +1377,12 @@ export function advanceEducationCourseDay(saveData, courseId) {
     mood: -3,
   });
 
-  if (course.daysSpent < course.daysRequired) {
+  if (course.hoursSpent < hoursRequired) {
     return {
       completed: false,
       summary: [
-        `Учебный день завершён: ${course.name}.`,
-        `Прогресс: ${Math.round(course.progress * 100)}%.`,
+        `Учебная сессия завершена: ${course.name}.`,
+        `Прогресс: ${Math.round(course.progress * 100)}% (${course.hoursSpent}/${hoursRequired} ч.).`,
         "Энергия -10 • Стресс +8 • Настроение -3",
       ].join("\n"),
     };
@@ -1393,9 +1417,12 @@ export function advanceEducationCourseDay(saveData, courseId) {
 
 function buildRecoverySummary(cardData, statChanges) {
   const changes = summarizeStatChanges(statChanges);
+  const hourCost = typeof cardData.hourCost === "number" && cardData.hourCost > 0
+    ? cardData.hourCost
+    : Math.max(1, Number(cardData.dayCost ?? 1)) * 2;
   return [
     `${cardData.title} завершено.`,
-    `Потрачено: ${formatMoney(cardData.price)} ₽ • Время: ${cardData.dayCost} д.`,
+    `Потрачено: ${formatMoney(cardData.price)} ₽ • Время: ${hourCost} ч.`,
     changes || "Шкалы без заметных изменений.",
   ].join("\n");
 }

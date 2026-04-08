@@ -12,7 +12,8 @@ import {
   textStyle,
 } from '../ui-kit';
 import { STAT_DEFS, NAV_ITEMS } from '../shared/constants.js';
-import { BASIC_SKILLS, PROFESSIONAL_SKILLS } from '../balance/skills-constants.js';
+import { ALL_SKILLS, getSkillByKey } from '../balance/skills-constants.js';
+import { buildSkillTooltipText } from '../shared/skill-tooltip-content.js';
 
 const STAT_TOOLTIPS = {
   hunger: 'Показывает насыщение. Низкое значение снижает эффективность и самочувствие.',
@@ -23,7 +24,7 @@ const STAT_TOOLTIPS = {
   physical: 'Физическая форма. Улучшает выносливость и качество восстановления.',
 };
 
-const SKILL_LABELS = [...BASIC_SKILLS, ...PROFESSIONAL_SKILLS].reduce((acc, skill) => {
+const SKILL_LABELS = ALL_SKILLS.reduce((acc, skill) => {
   acc[skill.key] = skill.label;
   return acc;
 }, {});
@@ -101,6 +102,7 @@ export class MainGameSceneECS extends Phaser.Scene {
 
     this.createStats();
     this.createStatTooltip();
+    this.createSkillTooltip();
     this.createHomePreviewBlock();
     this.createActionButton();
     this.createNavigation();
@@ -177,6 +179,22 @@ export class MainGameSceneECS extends Phaser.Scene {
     this.root.add(this.statTooltip);
   }
 
+  createSkillTooltip() {
+    this.skillTooltip = this.add.container(0, 0);
+    this.skillTooltipBg = this.add.graphics();
+    this.skillTooltipText = this.add.text(0, 0, '', {
+      ...textStyle(12, COLORS.white, '500'),
+      wordWrap: { width: 260 },
+      align: 'left',
+      lineSpacing: 4,
+    });
+    this.skillTooltipText.setOrigin(0, 0);
+    this.skillTooltip.add([this.skillTooltipBg, this.skillTooltipText]);
+    this.skillTooltip.setVisible(false);
+    this.skillTooltip.setDepth(3000);
+    this.root.add(this.skillTooltip);
+  }
+
   showStatTooltip(statKey, x, y) {
     const content = STAT_TOOLTIPS[statKey];
     if (!content) return;
@@ -198,6 +216,31 @@ export class MainGameSceneECS extends Phaser.Scene {
 
   hideStatTooltip() {
     this.statTooltip.setVisible(false);
+  }
+
+  showSkillTooltip(skillKey, x, y) {
+    const skill = getSkillByKey(skillKey);
+    const content = buildSkillTooltipText(skill);
+    if (!content) return;
+
+    this.skillTooltipText.setText(content);
+    const width = this.skillTooltipText.width + 20;
+    const height = this.skillTooltipText.height + 16;
+
+    this.skillTooltipBg.clear();
+    this.skillTooltipBg.fillStyle(0x2b2522, 0.96);
+    this.skillTooltipBg.fillRoundedRect(0, 0, width, height, 10);
+    this.skillTooltipText.setPosition(10, 8);
+
+    const px = Phaser.Math.Clamp(x + 14, 8, this.scale.width - width - 8);
+    const py = Phaser.Math.Clamp(y + 14, 8, this.scale.height - height - 8);
+    this.skillTooltip.setPosition(px, py);
+    this.root.bringToTop(this.skillTooltip);
+    this.skillTooltip.setVisible(true);
+  }
+
+  hideSkillTooltip() {
+    this.skillTooltip.setVisible(false);
   }
 
   createHomePreviewBlock() {
@@ -295,6 +338,8 @@ export class MainGameSceneECS extends Phaser.Scene {
       primaryLabel: 'Ок',
       secondaryLabel: 'Закрыть',
     });
+    this.skillsModalList = this.add.container(0, 0);
+    this.skillsModal.add(this.skillsModalList);
     this.escapeMenuModal = createNotificationModal(this, {
       primaryLabel: 'Начать новую игру',
       secondaryLabel: 'Отмена',
@@ -317,13 +362,44 @@ export class MainGameSceneECS extends Phaser.Scene {
     const world = this.sceneAdapter.getWorld();
     const playerId = this.sceneAdapter.getPlayerEntityId();
     const skills = world.getComponent(playerId, 'skills') || {};
-    const lines = Object.entries(skills)
-      .map(([key, value]) => `${SKILL_LABELS[key] || key}: ${value}`)
-      .join('\n');
+    const skillEntries = Object.entries(skills);
+    const lines = skillEntries.length ? 'РќР°РІРµРґРё РЅР° РЅР°РІС‹Рє, С‡С‚РѕР±С‹ СѓРІРёРґРµС‚СЊ РѕРїРёСЃР°РЅРёРµ Рё Р±РѕРЅСѓСЃС‹.' : '';
 
+    this.buildSkillsModalList(skillEntries);
     this.skillsModal.show({
       title: 'Мои навыки',
       description: lines || 'Навыки пока не открыты',
+    });
+    this.skillsModal.description.setText(skillEntries.length ? 'Hover a skill to see details.' : 'No skills yet');
+    this.layoutSkillsModalList();
+  }
+
+  buildSkillsModalList(skillEntries) {
+    this.skillsModalList.removeAll(true);
+    this.skillsModalItems = [];
+
+    skillEntries.forEach(([key, value], index) => {
+      const row = this.add.text(0, 0, `${SKILL_LABELS[key] || key}: ${value}/10`, textStyle(14, COLORS.text, '600'));
+      row.setInteractive({ useHandCursor: true });
+      row.on('pointerover', (pointer) => this.showSkillTooltip(key, pointer.worldX, pointer.worldY));
+      row.on('pointermove', (pointer) => this.showSkillTooltip(key, pointer.worldX, pointer.worldY));
+      row.on('pointerout', () => this.hideSkillTooltip());
+      this.skillsModalList.add(row);
+      this.skillsModalItems.push({ row, index });
+    });
+  }
+
+  layoutSkillsModalList() {
+    if (!this.skillsModalList || !this.skillsModal?.panel) return;
+
+    const modalX = this.skillsModal.panel.x;
+    const modalY = this.skillsModal.panel.y;
+    const startX = modalX + 24;
+    const startY = modalY + 112;
+    const lineHeight = 24;
+
+    this.skillsModalItems?.forEach(({ row, index }) => {
+      row.setPosition(startX, startY + index * lineHeight);
     });
   }
 
@@ -342,22 +418,27 @@ export class MainGameSceneECS extends Phaser.Scene {
 
     const schedule = currentJob.schedule || '5/2';
     const parts = schedule.split('/');
-    const workDays = parts.length === 2 ? parseInt(parts[0], 10) : 5;
+    const scheduleWorkDays = parts.length === 2 ? parseInt(parts[0], 10) : 5;
+    const requiredHoursPerWeek = currentJob.requiredHoursPerWeek || 40;
+    const shiftHours = Math.max(4, Math.round(requiredHoursPerWeek / Math.max(1, scheduleWorkDays)));
+    const salaryPerHour = currentJob.salaryPerHour || Math.round((currentJob.salaryPerDay || 0) / 8);
 
     this.workPeriodModal.show({
-      title: 'Рабочий период',
-      description: `Смена: ${workDays} рабочих дней.\nЗа это время ты получишь зарплату, но потратишь энергию и настроение.`,
+      title: 'Рабочая смена',
+      description: `Смена: ${shiftHours} ч.\nЗа это время ты получишь зарплату, но потратишь энергию и настроение.`,
       event: {
         title: 'Ожидаемый результат',
-        description: `Зарплата: ${this.formatMoney((currentJob.salaryPerDay || 0) * workDays)} ₽`,
+        description: `Зарплата: ${this.formatMoney((salaryPerHour || 0) * shiftHours)} ₽`,
       },
-      onConfirm: () => this.startWorkPeriod(workDays),
+      onConfirm: () => this.startWorkPeriod(shiftHours),
     });
   }
 
-  startWorkPeriod(workDays) {
+  startWorkPeriod(workHours) {
     const playerId = this.sceneAdapter.getPlayerEntityId();
-    const summary = this.workPeriodSystem.applyWorkPeriodResult(playerId, workDays);
+    const summary = this.workPeriodSystem.applyWorkShift
+      ? this.workPeriodSystem.applyWorkShift(workHours)
+      : this.workPeriodSystem.applyWorkPeriodResult(Math.max(1, Math.round(workHours / 8)));
     this.sceneAdapter.syncToSaveData();
     this.persistenceSystem.saveGame(this.sceneAdapter.getSaveData());
     this.refreshTexts();
@@ -381,7 +462,9 @@ export class MainGameSceneECS extends Phaser.Scene {
     this.playerNameText.setText(saveData.playerName || 'Без имени');
     this.jobText.setText(work?.name || 'Безработный');
     this.moneyText.setText(this.formatMoney(wallet?.money || 0) + ' ₽');
-    this.timeText.setText(`День ${time?.gameDays || 1} • ${time?.currentAge || 18} лет`);
+    this.timeText.setText(
+      `День ${time?.gameDays || 1} • ${time?.hourOfDay ?? 0}:00 • Неделя ${time?.gameWeeks || 1} (${time?.weekHoursRemaining ?? 168} ч. осталось) • ${time?.currentAge || 18} лет`,
+    );
     this.comfortText.setText(`Комфорт: ${Math.round(housing?.comfort || 35)}`);
 
     this.statBars.forEach((bar, i) => {
@@ -473,6 +556,7 @@ export class MainGameSceneECS extends Phaser.Scene {
     this.workPeriodModal.resize(this.scale.gameSize);
     this.notificationModal.resize(this.scale.gameSize);
     this.skillsModal.resize(this.scale.gameSize);
+    this.layoutSkillsModalList();
     this.escapeMenuModal.resize(this.scale.gameSize);
   }
 

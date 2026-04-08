@@ -12,6 +12,8 @@ export const STATS_COMPONENT = 'stats';
 
 export const SKILLS_COMPONENT = 'skills';
 
+export const SKILL_MODIFIERS_COMPONENT = 'skillModifiers';
+
 export const WORK_COMPONENT = 'work';
 
 export const RECOVERY_COMPONENT = 'recovery';

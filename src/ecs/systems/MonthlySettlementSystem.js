@@ -3,10 +3,12 @@ import {
   FINANCE_COMPONENT,
   STATS_COMPONENT,
   EVENT_QUEUE_COMPONENT,
+  EVENT_HISTORY_COMPONENT,
   TIME_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { MONTHLY_EXPENSES_DEFAULT } from '../../balance/monthly-expenses-defaults.js';
+import { SkillsSystem } from './SkillsSystem.js';
 
 /**
  * Система месячного расчета
@@ -19,6 +21,8 @@ export class MonthlySettlementSystem {
 
   init(world) {
     this.world = world;
+    this.skillsSystem = new SkillsSystem();
+    this.skillsSystem.init(world);
   }
 
   /**
@@ -35,8 +39,13 @@ export class MonthlySettlementSystem {
       return { success: false, message: 'Не удалось загрузить финансовые данные' };
     }
 
+    const modifiers = this.skillsSystem.getModifiers();
     const monthlyExpenses = finance.monthlyExpenses || { ...this.monthlyExpensesDefault };
-    const monthlyTotal = Object.values(monthlyExpenses).reduce((sum, value) => sum + value, 0);
+    const monthlyTotalBase = Object.values(monthlyExpenses).reduce((sum, value) => sum + value, 0);
+    const monthlyTotal = Math.max(
+      0,
+      Math.round(monthlyTotalBase * (modifiers.dailyExpenseMultiplier ?? 1)) - Math.round(modifiers.passiveIncomeBonus ?? 0),
+    );
 
     // Списываем деньги
     const liquidPaid = Math.min(wallet.money, monthlyTotal);

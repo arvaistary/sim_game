@@ -1,10 +1,12 @@
 import { 
   CAREER_COMPONENT,
+  WORK_COMPONENT,
   SKILLS_COMPONENT,
   EDUCATION_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { CAREER_JOBS } from '../../balance/career-jobs.js';
+import { SkillsSystem } from './SkillsSystem.js';
 
 /**
  * Система управления карьерным прогрессом
@@ -17,6 +19,8 @@ export class CareerProgressSystem {
 
   init(world) {
     this.world = world;
+    this.skillsSystem = new SkillsSystem();
+    this.skillsSystem.init(world);
   }
 
   /**
@@ -33,15 +37,18 @@ export class CareerProgressSystem {
     }
 
     const professionalism = skills.professionalism ?? 0;
+    const modifiers = this.skillsSystem.getModifiers();
     const educationRank = this._getEducationRank(education.educationLevel);
     const currentJobId = career.id;
 
-    return this.careerJobs.map(job => ({
-      ...job,
+      return this.careerJobs.map(job => ({
+        ...job,
       current: currentJobId === job.id,
       unlocked: professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank,
       missingProfessionalism: Math.max(0, job.minProfessionalism - professionalism),
       educationRequiredLabel: this._getEducationLabelByRank(job.minEducationRank),
+      effectiveSalaryPerHour: Math.round((job.salaryPerHour ?? Math.round((job.salaryPerDay ?? 0) / 8)) * (modifiers.salaryMultiplier ?? 1)),
+      effectiveSalaryPerDay: Math.round((job.salaryPerDay ?? ((job.salaryPerHour ?? 0) * 8)) * (modifiers.salaryMultiplier ?? 1)),
     }));
   }
 
@@ -54,6 +61,7 @@ export class CareerProgressSystem {
     const skills = this.world.getComponent(playerId, SKILLS_COMPONENT);
     const education = this.world.getComponent(playerId, EDUCATION_COMPONENT);
     const career = this.world.getComponent(playerId, CAREER_COMPONENT);
+    const work = this.world.getComponent(playerId, WORK_COMPONENT);
 
     if (!skills || !education || !career) {
       return '';
@@ -77,12 +85,24 @@ export class CareerProgressSystem {
       id: unlockedJob.id,
       name: unlockedJob.name,
       level: unlockedJob.level,
+      salaryPerHour: unlockedJob.salaryPerHour,
       salaryPerDay: unlockedJob.salaryPerDay,
       salaryPerWeek: unlockedJob.salaryPerWeek,
       daysAtWork: career.daysAtWork ?? 0,
     });
+    if (work) {
+      Object.assign(work, {
+        id: unlockedJob.id,
+        name: unlockedJob.name,
+        level: unlockedJob.level,
+        salaryPerHour: unlockedJob.salaryPerHour,
+        salaryPerDay: unlockedJob.salaryPerDay,
+        salaryPerWeek: unlockedJob.salaryPerWeek,
+        schedule: unlockedJob.schedule ?? work.schedule ?? '5/2',
+      });
+    }
 
-    return `Карьерный рост: новая должность «${unlockedJob.name}», ставка ${this._formatMoney(unlockedJob.salaryPerDay)} ₽ в день.`;
+    return `Карьерный рост: новая должность «${unlockedJob.name}», ставка ${this._formatMoney(unlockedJob.salaryPerHour)} ₽ в час.`;
   }
 
   /**
@@ -91,6 +111,7 @@ export class CareerProgressSystem {
   changeCareer(jobId) {
     const playerId = PLAYER_ENTITY;
     const career = this.world.getComponent(playerId, CAREER_COMPONENT);
+    const work = this.world.getComponent(playerId, WORK_COMPONENT);
     const skills = this.world.getComponent(playerId, SKILLS_COMPONENT);
     const education = this.world.getComponent(playerId, EDUCATION_COMPONENT);
 
@@ -126,14 +147,29 @@ export class CareerProgressSystem {
       id: job.id,
       name: job.name,
       level: job.level,
+      salaryPerHour: job.salaryPerHour,
       salaryPerDay: job.salaryPerDay,
       salaryPerWeek: job.salaryPerWeek,
       daysAtWork: 0, // Сбрасываем счётчик дней при смене работы
+      workedHoursCurrentWeek: 0,
     });
+    if (work) {
+      Object.assign(work, {
+        id: job.id,
+        name: job.name,
+        level: job.level,
+        salaryPerHour: job.salaryPerHour,
+        salaryPerDay: job.salaryPerDay,
+        salaryPerWeek: job.salaryPerWeek,
+        schedule: job.schedule ?? '5/2',
+        daysAtWork: 0,
+        workedHoursCurrentWeek: 0,
+      });
+    }
 
     return { 
       success: true, 
-      message: `Вы устроились на должность «${job.name}», ставка ${this._formatMoney(job.salaryPerDay)} ₽ в день.` 
+      message: `Вы устроились на должность «${job.name}», ставка ${this._formatMoney(job.salaryPerHour)} ₽ в час.` 
     };
   }
 

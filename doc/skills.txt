@@ -1,0 +1,289 @@
+Как это будет работать в игре
+В любой момент ты можешь посчитать глобальные модификаторы:
+JavaScriptfunction getGlobalModifiers(skillLevels) {
+  const modifiers = {
+    energyDrain: 1,
+    stressGain: 1,
+    salaryMultiplier: 1,
+    shopPrice: 1,
+    // ... и т.д.
+  };
+
+  ALL_SKILLS.forEach(skill => {
+    const level = skillLevels[skill.key] || 0;
+    if (level === 0) return;
+
+    Object.keys(skill.effects).forEach(effectKey => {
+      if (typeof skill.effects[effectKey] === 'function') {
+        // Применяем эффект (нужно будет написать логику под каждый тип)
+        // Например: modifiers.energyDrain *= skill.effects.energyDrainMultiplier(level);
+      }
+    });
+  });
+
+  return modifiers;
+}
+
+1. Базовые навыки (15)
+Навык,Ключевой эффект (на 10 уровне),Пороговые бонусы (уровень),Основное влияние на игру
+Тайм-менеджмент,"−25% падения Энергии, −20% роста Стресса",6: +1 возможный ход в неделю,"Шкалы, работа, обучение"
+Коммуникация,"+20% шанс положительных событий, +40% скорость отношений",10: +15% ЗП при переговорах,"События, отношения, карьера"
+Финансовая грамотность,"−18% цены в магазине, +35% доход от инвестиций",6: +500 руб пассивного дохода в месяц,"Экономика, магазин"
+Здоровый образ жизни,"−22% падения Голода, −30% скорость старения",10: +25% эффективность восстановления,"Шкалы, здоровье, старение"
+Адаптивность,−40% штрафов от негативных событий,6: −20% стоимость смены работы,"События, карьера"
+Дисциплина,"+25% скорость обучения, +15% шанс бонусной эффективности на работе",10: можно пропускать 1 ход в неделю без сильного штрафа,"Обучение, работа"
+Физическая форма,+40 к максимальной Энергии,6: −18% стресса от работы,"Шкалы, энергия"
+Эмоциональный интеллект,+45% восстановление Настроения,10: −25% влияние негативных событий,"Настроение, отношения"
+Организованность,"−15% ежедневных расходов, +25% эффективность мебели",6: +10% комфорта дома,"Дом, экономика"
+Базовая креативность,+40% доход от хобби,10: +10% шанс редких позитивных событий,"Хобби, события"
+Стрессоустойчивость,−35% роста стресса от работы,6: иммунитет к лёгким стрессовым событиям,"Шкалы, работа"
+Самоконтроль,−20% падения всех шкал при низком настроении,10: автоматическое небольшое восстановление шкал раз в неделю,Все шкалы
+Любознательность,+30% скорость обучения всем навыкам,6: +1 случайный уровень навыка каждые 50 игровых дней,Обучение
+Эмпатия,"+50% качество отношений, + бонусы от друзей",10: друзья иногда помогают деньгами или событиями,Отношения
+Память,−15% забывание прогресса обучения при перерывах,6: +10% эффективность повторного обучения,Обучение
+
+2. Профессиональные навыки (15)
+Навык,Ключевой эффект (на 10 уровне),Пороговые бонусы,Основное влияние
+Профессионализм,+40% к ЗП на любой работе,10: +20% шанс повышения,"Карьера, ЗП"
+Лидерство,"+35% шанс повышения, +50% бонус от командных событий",6: открывает руководящие должности,Карьера
+Переговоры,+60% стартовая ЗП при устройстве на работу,10: можно торговаться за условия,"Карьера, экономика"
+Аналитическое мышление,"+40% доход от инвестиций, −40% риск",6: лучше предсказываются события,"Инвестиции, события"
+Специализация,+70% ЗП только в своей карьерной ветке,10: разблокирует топовые позиции,Карьера
+Стрессоустойчивость (проф),−35% стресса + иммунитет к выгоранию,6: можно работать сверхурочно без штрафа,"Работа, шкалы"
+Техническая грамотность,"+60% скорость технических курсов, +40% бонус от гаджетов дома",10: +15% ЗП в IT/инженерных профессиях,"Обучение, дом"
+Кулинария,+70% восстановление от еды,6: можно готовить дома с бонусом,"Шкалы, экономия"
+Маркетинг,+90% доход от хобби и побочного бизнеса,10: пассивный доход от личного бренда,Экономика
+Финансовый анализ,"+50% доход от акций, разблокирует продвинутые инвестиции",6: снижает налоги,Инвестиции
+Управление персоналом,+40% эффективность подчинённых (если есть бизнес),10: можно нанимать сотрудников,Бизнес
+Продажи,+55% успех при продаже вещей/услуг,6: лучше условия в магазине,Экономика
+Стратегическое планирование,+30% общая эффективность всех действий,10: раз в год можно «перепланировать» жизнь (бонус),Всё
+Юридическая грамотность,−30% штрафов и проблем с законом,6: лучше контракты,События
+Медицинские знания,+80% эффективность лечения и восстановления здоровья,10: замедляет старение на 40%,Здоровье
+
+3. Личностные / Социальные навыки (10)
+Навык,Ключевой эффект (на 10 уровне),Пороговые бонусы,Основное влияние
+Харизма,+60% скорость прокачки отношений,10: NPC чаще помогают,Отношения
+Юмор,+50% восстановление Настроения от развлечений,6: +20% шанс позитивных случайных событий,"Настроение, события"
+Терпение,−30% падения шкал при длительной рутине,10: иммунитет к скуке,Шкалы
+Оптимизм,+25% общее восстановление всех шкал,6: реже негативные события,Все шкалы
+Ответственность,−25% штрафов за пропущенные действия,10: бонус к репутации,События
+Гибкость мышления,+35% эффективность адаптации к возрастным изменениям,6: меньше штрафов от старения,Старение
+Щедрость,+40% качество подарков и помощи от NPC,10: иногда получают ответные подарки,Отношения
+Самодисциплина (расш.),Автоматическое небольшое восстановление дисциплины,—,Все системы
+Интуиция,+30% шанс угадать лучший выбор в событиях,6: подсказки в сложных событиях,События
+Мудрость,Снижает негативные эффекты возраста после 50 лет,10: +1 год к ожидаемой продолжительности жизни,Старение
+
+4. Творческие / Хобби навыки (10)
+Навык,Ключевой эффект (на 10 уровне),Пороговые бонусы,Основное влияние
+Художественное мастерство,+80% доход от продажи картин/работ,10: разблокирует выставки,"Экономика, хобби"
+Музыкальные способности,+70% восстановление Настроения от музыки,6: можно зарабатывать на выступлениях,Настроение
+Писательское мастерство,+60% доход от книг/блога,10: пассивный доход от royalties,Экономика
+Фотография,+50% бонус к социальным событиям,6: улучшает отношения,Отношения
+Садоводство,"+40% комфорта дома от растений, + бонус к здоровью",10: бесплатная еда из сада,"Дом, здоровье"
+Ремесло / Handiness,−30% стоимость ремонта и улучшения дома,6: можно чинить вещи самостоятельно,Дом
+Танец,+55% восстановление энергии от активного отдыха,—,Шкалы
+Актёрское мастерство,+40% успех в публичных событиях,10: разблокирует медиа-карьеру,Карьера
+Дизайн интерьера,+60% бонус комфорта от мебели,6: скидки на мебель,Дом
+Кулинарное искусство (расш),+100% восстановление от домашней еды,10: можно открыть небольшой бизнес,"Шкалы, экономика"
+
+1. Объект skillModifiers + функция пересчёта
+JavaScript/**
+ * skillModifiers.js
+ * Глобальные модификаторы, рассчитанные на основе уровней всех навыков
+ */
+
+export let skillModifiers = {
+    // === Шкалы ===
+    hungerDrainMultiplier: 1.0,        // множитель падения голода
+    energyDrainMultiplier: 1.0,
+    stressGainMultiplier: 1.0,
+    moodRecoveryMultiplier: 1.0,
+    healthDecayMultiplier: 1.0,        // скорость старения / падения здоровья
+
+    // === Работа и экономика ===
+    salaryMultiplier: 1.0,             // общий множитель ЗП
+    workEfficiencyMultiplier: 1.0,     // эффективность рабочего периода
+    shopPriceMultiplier: 1.0,          // цены в магазине
+    investmentReturnMultiplier: 1.0,
+
+    // === Обучение ===
+    learningSpeedMultiplier: 1.0,      // скорость прохождения курсов и книг
+
+    // === Дом и комфорт ===
+    homeComfortMultiplier: 1.0,        // эффективность мебели
+    dailyExpenseMultiplier: 1.0,       // ежедневные расходы
+
+    // === События ===
+    positiveEventChanceBonus: 0.0,     // дополнительный шанс положительных событий
+    negativeEventPenaltyReduction: 0.0,// снижение штрафа от негативных событий
+
+    // === Отношения ===
+    relationshipGainMultiplier: 1.0,
+
+    // === Хобби и пассивный доход ===
+    hobbyIncomeMultiplier: 1.0,
+    passiveIncomeBonus: 0,             // фиксированная прибавка в рублях в месяц
+
+    // === Специальные ===
+    maxEnergyBonus: 0,
+    agingSpeedMultiplier: 1.0,
+    foodRecoveryMultiplier: 1.0,
+};
+
+// =============================================
+// Основная функция пересчёта модификаторов
+// =============================================
+
+export function recalculateSkillModifiers(skillLevels) {
+    // skillLevels — объект вида { timeManagement: 7, professionalism: 4, ... }
+
+    // Сбрасываем все модификаторы к базовым значениям
+    Object.keys(skillModifiers).forEach(key => {
+        if (typeof skillModifiers[key] === 'number') {
+            skillModifiers[key] = (key.includes('Bonus') || key.includes('passiveIncome')) ? 0 : 1.0;
+        }
+    });
+
+    // Проходим по всем навыкам и применяем их эффекты
+    ALL_SKILLS.forEach(skill => {
+        const level = skillLevels[skill.key] || 0;
+        if (level <= 0) return;
+
+        const lvl = level; // для удобства
+
+        switch (skill.key) {
+
+            // ====================== БАЗОВЫЕ НАВЫКИ ======================
+            case 'timeManagement':
+                skillModifiers.energyDrainMultiplier *= (1 - lvl * 0.025);
+                skillModifiers.stressGainMultiplier *= (1 - lvl * 0.02);
+                skillModifiers.workEfficiencyMultiplier *= (1 + lvl * 0.015);
+                skillModifiers.learningSpeedMultiplier *= (1 + lvl * 0.03);
+                break;
+
+            case 'communication':
+                skillModifiers.positiveEventChanceBonus += lvl * 0.012;
+                skillModifiers.relationshipGainMultiplier *= (1 + lvl * 0.04);
+                break;
+
+            case 'financialLiteracy':
+                skillModifiers.shopPriceMultiplier *= (1 - lvl * 0.018);
+                skillModifiers.investmentReturnMultiplier *= (1 + lvl * 0.035);
+                skillModifiers.passiveIncomeBonus += lvl * 80;
+                break;
+
+            case 'healthyLifestyle':
+                skillModifiers.hungerDrainMultiplier *= (1 - lvl * 0.022);
+                skillModifiers.healthDecayMultiplier *= (1 - lvl * 0.03);
+                skillModifiers.foodRecoveryMultiplier *= (1 + lvl * 0.04);
+                break;
+
+            case 'adaptability':
+                skillModifiers.negativeEventPenaltyReduction += lvl * 0.04;
+                break;
+
+            case 'discipline':
+                skillModifiers.learningSpeedMultiplier *= (1 + lvl * 0.025);
+                break;
+
+            case 'physicalFitness':
+                skillModifiers.maxEnergyBonus += lvl * 4;
+                skillModifiers.energyDrainMultiplier *= (1 - lvl * 0.01);
+                break;
+
+            case 'emotionalIntelligence':
+                skillModifiers.moodRecoveryMultiplier *= (1 + lvl * 0.045);
+                skillModifiers.negativeEventPenaltyReduction += lvl * 0.025;
+                break;
+
+            case 'organization':
+                skillModifiers.homeComfortMultiplier *= (1 + lvl * 0.025);
+                skillModifiers.dailyExpenseMultiplier *= (1 - lvl * 0.015);
+                break;
+
+            case 'basicCreativity':
+                skillModifiers.hobbyIncomeMultiplier *= (1 + lvl * 0.04);
+                skillModifiers.positiveEventChanceBonus += lvl * 0.01;
+                break;
+
+            // ====================== ПРОФЕССИОНАЛЬНЫЕ НАВЫКИ ======================
+            case 'professionalism':
+                skillModifiers.salaryMultiplier *= (1 + lvl * 0.04);
+                skillModifiers.workEfficiencyMultiplier *= (1 + lvl * 0.02);
+                break;
+
+            case 'leadership':
+                skillModifiers.salaryMultiplier *= (1 + lvl * 0.02); // бонус за управление
+                break;
+
+            case 'negotiations':
+                skillModifiers.salaryMultiplier *= (1 + lvl * 0.025);
+                skillModifiers.shopPriceMultiplier *= (1 - lvl * 0.008);
+                break;
+
+            case 'stressResistance':
+                skillModifiers.stressGainMultiplier *= (1 - lvl * 0.035);
+                break;
+
+            case 'cooking':
+                skillModifiers.foodRecoveryMultiplier *= (1 + lvl * 0.07);
+                skillModifiers.dailyExpenseMultiplier *= (1 - lvl * 0.03);
+                break;
+
+            case 'marketing':
+                skillModifiers.hobbyIncomeMultiplier *= (1 + lvl * 0.09);
+                skillModifiers.passiveIncomeBonus += lvl * 120;
+                break;
+
+            case 'specialization':
+                skillModifiers.salaryMultiplier *= (1 + lvl * 0.07); // очень сильный бонус в своей сфере
+                break;
+
+            case 'technicalLiteracy':
+                skillModifiers.learningSpeedMultiplier *= (1 + lvl * 0.06);
+                skillModifiers.homeComfortMultiplier *= (1 + lvl * 0.04);
+                break;
+
+            case 'advancedHealth':
+                skillModifiers.healthDecayMultiplier *= (1 - lvl * 0.025);
+                skillModifiers.agingSpeedMultiplier *= (1 - lvl * 0.025);
+                break;
+
+            // ====================== ЛИЧНОСТНЫЕ И ТВОРЧЕСКИЕ ======================
+            case 'charisma': // если добавишь харизму
+                skillModifiers.relationshipGainMultiplier *= (1 + lvl * 0.06);
+                break;
+
+            case 'humor':
+                skillModifiers.moodRecoveryMultiplier *= (1 + lvl * 0.05);
+                break;
+
+            // Добавляй новые навыки сюда по аналогии...
+
+            default:
+                // Для навыков, у которых пока нет специфической логики
+                break;
+        }
+    });
+
+    // Ограничиваем множители разумными пределами
+    skillModifiers.salaryMultiplier = Math.max(0.5, Math.min(3.0, skillModifiers.salaryMultiplier));
+    skillModifiers.shopPriceMultiplier = Math.max(0.4, Math.min(1.0, skillModifiers.shopPriceMultiplier));
+    skillModifiers.stressGainMultiplier = Math.max(0.3, skillModifiers.stressGainMultiplier);
+
+    console.log('✅ skillModifiers пересчитаны:', skillModifiers);
+    return skillModifiers;
+}
+Как использовать в игре
+JavaScript// Пример: при изменении уровня навыка
+function onSkillLevelChanged(skillKey, newLevel) {
+    playerSkills[skillKey] = newLevel;           // сохраняем уровень
+    recalculateSkillModifiers(playerSkills);     // пересчитываем все модификаторы
+}
+
+// В любом месте игры используем так:
+const modifiers = skillModifiers;
+
+const finalSalary = baseSalary * modifiers.salaryMultiplier;
+const hungerLoss = baseHungerLoss * modifiers.hungerDrainMultiplier;
+const shopPrice = itemPrice * modifiers.shopPriceMultiplier;

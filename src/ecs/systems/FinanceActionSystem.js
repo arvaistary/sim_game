@@ -3,10 +3,10 @@ import {
   TIME_COMPONENT,
   WALLET_COMPONENT,
   FINANCE_COMPONENT,
-  SKILLS_COMPONENT,
   STATS_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
+import { SkillsSystem } from './SkillsSystem.js';
 
 const FINANCE_ACTIONS = [
   {
@@ -16,7 +16,8 @@ const FINANCE_ACTIONS = [
     amount: 10000,
     reserveDelta: 10000,
     dayCost: 1,
-    statChanges: { stress: -10, mood: 4 },
+    hourCost: 1,
+    statChanges: { stress: -6, mood: 3 },
     skillChanges: { financialLiteracy: 1 },
     accentKey: 'sage',
     description: 'Ликвидные деньги -10 000 ₽ • Резерв +10 000 ₽ • Стресс -10',
@@ -29,7 +30,8 @@ const FINANCE_ACTIONS = [
     expectedReturn: 4000,
     durationDays: 28,
     dayCost: 1,
-    statChanges: { stress: -4, mood: 3 },
+    hourCost: 2,
+    statChanges: { stress: -3, mood: 2 },
     skillChanges: { financialLiteracy: 1 },
     accentKey: 'blue',
     description: 'Ликвидные деньги -50 000 ₽ • Через 28 дней можно забрать 54 000 ₽',
@@ -40,11 +42,12 @@ const FINANCE_ACTIONS = [
     subtitle: 'Чуть снизить тревогу и подправить ежемесячные траты.',
     amount: 0,
     dayCost: 1,
-    statChanges: { stress: -8, mood: 5 },
+    hourCost: 1,
+    statChanges: { stress: -5, mood: 2 },
     skillChanges: { financialLiteracy: 1 },
     monthlyExpenseDelta: {
-      leisure: -1000,
-      education: 500,
+      leisure: -800,
+      education: 400,
     },
     accentKey: 'accent',
     description: 'Стресс -8 • Финансовая грамотность +1 • Расходы на досуг -1 000 ₽/мес',
@@ -62,6 +65,8 @@ export class FinanceActionSystem {
 
   init(world) {
     this.world = world;
+    this.skillsSystem = new SkillsSystem();
+    this.skillsSystem.init(world);
   }
 
   /**
@@ -97,7 +102,8 @@ export class FinanceActionSystem {
 
     const monthlyExpensesTotal = expenseLines.reduce((sum, item) => sum + item.amount, 0);
     const career = this.world.getComponent(playerId, CAREER_COMPONENT);
-    const monthlyIncome = (career?.salaryPerWeek ?? 0) * 4;
+    const salaryPerHour = this._resolveSalaryPerHour(career);
+    const monthlyIncome = Math.round((salaryPerHour * 40) * 4);
     const reserveFund = finance.reserveFund ?? 0;
 
     const activeInvestments = investments.map((investment) => {
@@ -141,11 +147,19 @@ export class FinanceActionSystem {
     if (!overview) {
       return [];
     }
+    const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT);
 
     return this.financeActions.map(action => ({
       ...action,
-      available: overview.liquidMoney >= action.amount,
-      reason: overview.liquidMoney >= action.amount ? '' : `Нужно ${this._formatMoney(action.amount)} ₽ свободных денег.`,
+      available:
+        overview.liquidMoney >= action.amount &&
+        (!time || typeof time.dayHoursRemaining !== 'number' || this._resolveHourCost(action) <= time.dayHoursRemaining),
+      reason:
+        overview.liquidMoney < action.amount
+          ? `Нужно ${this._formatMoney(action.amount)} ₽ свободных денег.`
+          : (time && typeof time.dayHoursRemaining === 'number' && this._resolveHourCost(action) > time.dayHoursRemaining
+            ? `Недостаточно времени в сутках. Нужно ${this._resolveHourCost(action)} ч., осталось ${time.dayHoursRemaining} ч.`
+            : ''),
     }));
   }
 
@@ -197,20 +211,19 @@ export class FinanceActionSystem {
 
     // Применяем изменения навыков
     if (action.skillChanges) {
-      const skills = this.world.getComponent(playerId, SKILLS_COMPONENT);
-      if (skills) {
-        this._applySkillChanges(skills, action.skillChanges);
-      }
+      this.skillsSystem.applySkillChanges(action.skillChanges, `finance:${action.id}`);
     }
 
     // Продвигаем время
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
     if (time) {
-      time.gameDays += action.dayCost ?? 1;
-      time.gameWeeks = Math.max(1, Math.floor(time.gameDays / 7));
-      time.gameMonths = Math.max(1, Math.floor(time.gameDays / 30));
-      time.gameYears = Number((time.gameDays / 360).toFixed(1));
-      time.currentAge = time.startAge + Math.floor(time.gameDays / 360);
+      const timeSystem = this.world.systems.find((system) => typeof system.advanceHours === 'function');
+      const hourCost = this._resolveHourCost(action);
+      if (timeSystem) {
+        timeSystem.advanceHours(hourCost, { actionType: 'finance_action' });
+      } else {
+        time.totalHours = (time.totalHours ?? (time.gameDays ?? 0) * 24) + hourCost;
+      }
     }
 
     const message = [
@@ -239,7 +252,7 @@ export class FinanceActionSystem {
       startDate: time.gameDays,
       durationDays: action.durationDays ?? 28,
       maturityDay: time.gameDays + (action.durationDays ?? 28),
-      expectedReturn: action.expectedReturn ?? 0,
+      expectedReturn: Math.round((action.expectedReturn ?? 0) * (this.skillsSystem.getModifiers().investmentReturnMultiplier ?? 1)),
       totalEarned: 0,
       status: 'active',
     };
@@ -313,5 +326,17 @@ export class FinanceActionSystem {
    */
   _formatMoney(value) {
     return new Intl.NumberFormat('ru-RU').format(value);
+  }
+
+  _resolveHourCost(action) {
+    if (typeof action.hourCost === 'number' && action.hourCost > 0) return action.hourCost;
+    return Math.max(1, Number(action.dayCost ?? 1)) * 2;
+  }
+
+  _resolveSalaryPerHour(career = {}) {
+    if (typeof career.salaryPerHour === 'number' && career.salaryPerHour > 0) return career.salaryPerHour;
+    if (typeof career.salaryPerDay === 'number' && career.salaryPerDay > 0) return Math.round(career.salaryPerDay / 8);
+    if (typeof career.salaryPerWeek === 'number' && career.salaryPerWeek > 0) return Math.round(career.salaryPerWeek / 40);
+    return 0;
   }
 }

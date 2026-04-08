@@ -127,10 +127,28 @@ export class SceneAdapter {
    * Настроить хуки для событий времени
    */
   _setupTimeHooks() {
-    // Недельные события (будут реализованы позже)
+    // Недельные события
     this.systems.time.onWeeklyEvent((weekNumber) => {
-      // Автоматически обрабатываются через MonthlySettlementSystem
-      // при достижении недельного интервала
+      this._queuePeriodicEvent({
+        id: 'weekly_summary',
+        type: 'weekly',
+        title: `Итоги недели #${weekNumber}`,
+        description: 'Неделя завершена. Подведите итоги и выберите фокус на следующую.',
+        choices: [
+          {
+            label: 'Восстановиться',
+            outcome: 'Вы дали себе немного выдохнуть.',
+            statChanges: { stress: -6, mood: 6 },
+          },
+          {
+            label: 'Сфокусироваться на работе',
+            outcome: 'Темп сохранён, но цена — чуть больше стресса.',
+            statChanges: { stress: 3 },
+            skillChanges: { professionalism: 1 },
+          },
+        ],
+        instanceId: `weekly_summary_${weekNumber}`,
+      });
     });
 
     // Месячные события
@@ -141,6 +159,29 @@ export class SceneAdapter {
     // События по возрасту (будут реализованы позже)
     this.systems.time.onAgeEvent((previousAge, currentAge) => {
       console.log(`Age event: ${previousAge} -> ${currentAge}`);
+    });
+
+    this.systems.time.onYearlyEvent((yearNumber) => {
+      this._queuePeriodicEvent({
+        id: 'yearly_reflection',
+        type: 'yearly',
+        title: `Год ${yearNumber}: большой итог`,
+        description: 'Прошёл ещё один год. Время подвести большой итог и выбрать приоритет.',
+        choices: [
+          {
+            label: 'Сделать упор на здоровье',
+            outcome: 'Вы перераспределили фокус в пользу долгой дистанции.',
+            statChanges: { health: 8, stress: -6 },
+          },
+          {
+            label: 'Сделать упор на карьеру',
+            outcome: 'Карьерный темп растёт, но цена — выше нагрузка.',
+            statChanges: { stress: 6, mood: -2 },
+            skillChanges: { professionalism: 1 },
+          },
+        ],
+        instanceId: `yearly_reflection_${yearNumber}`,
+      });
     });
   }
 
@@ -193,5 +234,11 @@ export class SceneAdapter {
   destroy() {
     this.world.clear();
     this.systems = {};
+  }
+
+  _queuePeriodicEvent(event) {
+    const eventQueueSystem = this.systems.eventQueue;
+    if (!eventQueueSystem) return;
+    eventQueueSystem.queuePendingEvent(event);
   }
 }
