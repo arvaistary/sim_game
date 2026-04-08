@@ -6,7 +6,7 @@ import {
   CAREER_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
-import { CAREER_JOBS } from '../data/career-jobs.js';
+import { CAREER_JOBS } from '../../balance/career-jobs.js';
 
 /**
  * Система обработки рабочих периодов

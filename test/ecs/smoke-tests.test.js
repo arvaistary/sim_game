@@ -1,6 +1,6 @@
 import { ECSWorld } from '../../src/ecs/world.js';
 import { SceneAdapter } from '../../src/ecs/adapters/SceneAdapter.js';
-import { defaultSaveData } from '../../src/ecs/data/default-save.js';
+import { defaultSaveData } from '../../src/balance/default-save.js';
 import { StatsSystem } from '../../src/ecs/systems/StatsSystem.js';
 import { WorkPeriodSystem } from '../../src/ecs/systems/WorkPeriodSystem.js';
 import { RecoverySystem } from '../../src/ecs/systems/RecoverySystem.js';

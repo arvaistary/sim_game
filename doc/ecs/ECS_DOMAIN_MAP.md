@@ -168,18 +168,24 @@
 
 ## Константы и данные
 
-| Константа | Тип | ECS Расположение | Приоритет |
-|-----------|-----|-----------------|-----------|
-| `DEFAULT_SAVE` | Data | `src/ecs/data/default-save.js` | P0 |
-| `RECOVERY_TABS` | Data | `src/ecs/data/recovery-tabs.js` | P0 |
-| `EDUCATION_PROGRAMS` | Data | `src/ecs/data/education-programs.js` | P0 |
-| `CAREER_JOBS` | Data | `src/ecs/data/career-jobs.js` | P0 |
-| `HOUSING_LEVELS` | Data | `src/ecs/data/housing-levels.js` | P0 |
-| `FINANCE_ACTIONS` | Data | `src/ecs/data/finance-actions.js` | P0 |
-| `WORK_RESULT_TIERS` | Data | `src/ecs/data/work-result-tiers.js` | P0 |
-| `WORK_RANDOM_EVENTS` | Data | `src/ecs/data/work-random-events.js` | P0 |
-| `GLOBAL_PROGRESS_EVENTS` | Data | `src/ecs/data/global-progress-events.js` | P0 |
-| `FINANCE_EMERGENCY_EVENTS` | Data | `src/ecs/data/finance-emergency-events.js` | P0 |
+Централизованный **баланс** (экономика, работы, жильё, навыки UI, образование, демо-сейв): каталог **`src/balance/`** (см. `index.js`).  
+Константы ниже, которые остаются в legacy-слое, живут в **`src/game-state.js`** (часть не экспортируется напрямую, используется через API модуля).
+
+| Константа | Тип | Расположение | Приоритет |
+|-----------|-----|----------------|-----------|
+| `DEFAULT_SAVE` (демо ECS / тесты) | Data | `src/balance/default-save.js` | P0 |
+| `MONTHLY_EXPENSES_DEFAULT` | Data | `src/balance/monthly-expenses-defaults.js` | P0 |
+| `EDUCATION_PROGRAMS` | Data | `src/balance/education-programs.js` | P0 |
+| `CAREER_JOBS` | Data | `src/balance/career-jobs.js` | P0 |
+| `HOUSING_LEVELS` | Data | `src/balance/housing-levels.js` | P0 |
+| `BASIC_SKILLS`, `PROFESSIONAL_SKILLS`, `SKILLS_TABS` | Data | `src/balance/skills-constants.js` | P0 |
+| `DEFAULT_SAVE` (merge при load, чистый старт) | Data | `src/game-state.js` | P0 |
+| `RECOVERY_TABS` | Data | `src/game-state.js` | P0 |
+| `FINANCE_ACTIONS` | Data | `src/game-state.js` / дубли в `FinanceActionSystem` | P0 |
+| `WORK_RESULT_TIERS` | Data | `src/game-state.js` | P0 |
+| `WORK_RANDOM_EVENTS` | Data | `src/game-state.js` | P0 |
+| `GLOBAL_PROGRESS_EVENTS` | Data | `src/game-state.js` | P0 |
+| `FINANCE_EMERGENCY_EVENTS` | Data | `src/game-state.js` | P0 |
 
 ---
 

@@ -10,7 +10,7 @@ import {
   CAREER_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
-import { HOUSING_LEVELS } from '../data/housing-levels.js';
+import { HOUSING_LEVELS } from '../../balance/housing-levels.js';
 
 /**
  * Система обработки действий восстановления

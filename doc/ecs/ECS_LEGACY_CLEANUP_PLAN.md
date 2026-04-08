@@ -187,7 +187,7 @@ this.registry.set('saveData', this.saveData);
 
 // Стало:
 import { PersistenceSystem } from '../ecs/systems/index.js';
-import { defaultSaveData } from '../ecs/data/default-save.js';
+import { defaultSaveData } from '../balance/default-save.js';
 
 this.persistenceSystem = new PersistenceSystem();
 this.persistenceSystem.init(this.sceneAdapter.getWorld());

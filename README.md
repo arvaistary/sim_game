@@ -35,6 +35,7 @@ npm run dev
 - `src/style.css` — fullscreen shell for the canvas.
 - `src/scenes/` — Phaser scenes (see `doc/core/SCENES_REFERENCE.md`).
 - `src/ecs/` — ECS world, components, systems, adapters.
+- `src/balance/` — tunable game data: jobs, housing, demo save, skill UI defs, education programs, default monthly expenses (`index.js` re-exports).
 - `doc/` — documentation: **core/**, **GDD/**, **ecs/**.
 
 ## Implemented Scenes (see `src/scenes/`)
@@ -64,6 +65,6 @@ npm run dev
 
 ## Notes For Further Development
 
-- Prefer **ECS systems** for new stateful logic; `game-state.js` as shared helpers/constants.
+- Prefer **ECS systems** for new stateful logic; put numbers and static tables in **`src/balance/`**; `game-state.js` for save merge defaults and legacy helpers.
 - New UI: extend `ui-kit.js`, follow patterns in `doc/core/SCENES_REFERENCE.md`.
 - ECS docs: `doc/ecs/`.

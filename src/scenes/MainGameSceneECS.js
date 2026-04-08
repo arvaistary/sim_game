@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { SceneAdapter } from '../ecs/adapters/SceneAdapter.js';
 import { PersistenceSystem } from '../ecs/systems/index.js';
-import { DEFAULT_SAVE } from '../ecs/data/default-save.js';
+import { DEFAULT_SAVE } from '../balance/default-save.js';
 import {
   COLORS,
   createEventModal,
@@ -12,7 +12,7 @@ import {
   textStyle,
 } from '../ui-kit';
 import { STAT_DEFS, NAV_ITEMS } from '../shared/constants.js';
-import { BASIC_SKILLS, PROFESSIONAL_SKILLS } from '../shared/skills-constants.js';
+import { BASIC_SKILLS, PROFESSIONAL_SKILLS } from '../balance/skills-constants.js';
 
 const STAT_TOOLTIPS = {
   hunger: 'Показывает насыщение. Низкое значение снижает эффективность и самочувствие.',

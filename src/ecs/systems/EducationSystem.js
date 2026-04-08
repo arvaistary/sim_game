@@ -7,46 +7,7 @@ import {
   TIME_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
-
-const EDUCATION_PROGRAMS = [
-  {
-    id: 'time_management_book',
-    title: 'Книга по тайм-менеджменту',
-    subtitle: 'Короткий и дешёвый способ подтянуть базовую дисциплину.',
-    typeLabel: 'Книга',
-    cost: 900,
-    daysRequired: 2,
-    accentKey: 'accent',
-    rewardText: 'Тайм-менеджмент +1 • Стресс -4',
-    completionStatChanges: { stress: -4 },
-    completionSkillChanges: { timeManagement: 1 },
-  },
-  {
-    id: 'online_productivity_course',
-    title: 'Онлайн-курс',
-    subtitle: 'Несколько дней системного обучения с хорошей отдачей в работе.',
-    typeLabel: 'Онлайн-курс',
-    cost: 6500,
-    daysRequired: 5,
-    accentKey: 'blue',
-    rewardText: 'Профессионализм +1 • Коммуникация +1 • Настроение +8',
-    completionStatChanges: { mood: 8 },
-    completionSkillChanges: { professionalism: 1, communication: 1 },
-  },
-  {
-    id: 'institute_retraining',
-    title: 'Институт / переподготовка',
-    subtitle: 'Длинный маршрут к новой ступени карьеры и более сильной базовой ставке.',
-    typeLabel: 'Институт',
-    cost: 120000,
-    daysRequired: 8,
-    accentKey: 'sage',
-    rewardText: 'Профессионализм +2 • ЗП за день +5% • Уровень образования: Высшее',
-    completionSkillChanges: { professionalism: 2 },
-    salaryMultiplierDelta: 0.05,
-    educationLevel: 'Высшее',
-  },
-];
+import { EDUCATION_PROGRAMS } from '../../balance/education-programs.js';
 
 /**
  * Система управления образованием

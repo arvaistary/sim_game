@@ -1,3 +1,4 @@
+/** Демо-сейв для ECS-сцен и тестов. Базовые значения при merge загрузки — в `game-state.js` (DEFAULT_SAVE). */
 export const DEFAULT_SAVE = {
   version: '0.2.0',
   playerName: 'Алексей',
@@ -77,3 +78,6 @@ export const DEFAULT_SAVE = {
     physical: 49,
   },
 };
+
+/** Алиас для тестов и сценариев, ожидающих объектное имя сохранения. */
+export const defaultSaveData = DEFAULT_SAVE;

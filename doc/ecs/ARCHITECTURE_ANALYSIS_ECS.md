@@ -1,6 +1,6 @@
 # Анализ архитектуры проекта Game Life - ECS версия
 
-**Последнее обновление:** 7 апреля 2026
+**Последнее обновление:** 8 апреля 2026
 
 ## Краткое резюме
 
@@ -36,11 +36,12 @@ src/
 │   │   ├── TimeSystem.js       # Время игры
 │   │   ├── SkillsSystem.js     # Навыки
 │   │   └── index.js           # Экспорт всех систем
-│   ├── data/                     # Данные ECS
-│   │   ├── default-save.js     # Данные по умолчанию
-│   │   ├── career-jobs.js      # Доступные работы
-│   │   └── housing-levels.js   # Уровни жилья
-│   └── index.js                   # Экспорт ECS-ядра
+│   └── index.js                   # Экспорт ECS-ядра (при наличии)
+├── balance/                     # Баланс и статический контент
+│   ├── default-save.js         # Демо-сейв ECS / тесты
+│   ├── career-jobs.js          # Доступные работы
+│   ├── housing-levels.js       # Уровни жилья
+│   └── …                       # см. src/balance/index.js
 ├── scenes/                      # Сцены Phaser
 │   ├── MainGameSceneECS.js     # Главная сцена (ECS версия)
 │   ├── RecoveryScene.js        # Сцена восстановления (ECS)

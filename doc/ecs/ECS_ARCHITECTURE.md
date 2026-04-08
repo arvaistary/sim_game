@@ -141,13 +141,18 @@ RELATIONSHIPS_COMPONENT = 'relationships'
 - `getWorld()` - получить ECS мир
 - `destroy()` - уничтожить адаптер
 
-### 5. Data (`src/ecs/data/`)
+### 5. Баланс и игровые данные (`src/balance/`)
 
-Конфигурационные данные:
+Числовой баланс и статический контент вынесены в отдельный модуль (реэкспорт в `index.js`):
 
-- `default-save.js` - дефолтное сохранение
-- `career-jobs.js` - список работ
-- `housing-levels.js` - уровни жилья
+- `default-save.js` — демо-сейв для ECS-сцен и тестов (`DEFAULT_SAVE`, `defaultSaveData`)
+- `career-jobs.js` — должности и зарплаты (`CAREER_JOBS`)
+- `housing-levels.js` — уровни жилья и цены (`HOUSING_LEVELS`)
+- `skills-constants.js` — подписи и цвета навыков для UI (`BASIC_SKILLS`, `PROFESSIONAL_SKILLS`, `SKILLS_TABS`)
+- `education-programs.js` — программы обучения: стоимость, длительность, награды (`EDUCATION_PROGRAMS`)
+- `monthly-expenses-defaults.js` — базовые месячные статьи расходов (`MONTHLY_EXPENSES_DEFAULT`)
+
+Базовые значения для **слияния при загрузке сохранений** и «чистого старта» по-прежнему задаются отдельным `DEFAULT_SAVE` в `src/game-state.js` (совместимость с legacy).
 
 ## Пример использования
 

@@ -46,11 +46,16 @@ src/ecs/
 ├── adapters/
 │   ├── SceneAdapter.js               # Адаптер Phaser сцен
 │   └── GameStateAdapter.js           # Адаптер для saveData
-├── data/
-│   ├── default-save.js               # Дефолтное сохранение
-│   ├── career-jobs.js                # Список работ
-│   └── housing-levels.js             # Уровни жилья
-└── index.js                          # Главный экспорт
+└── index.js                          # Главный экспорт (если используется)
+
+src/balance/                          # Данные баланса (отдельно от ecs/)
+├── default-save.js                   # Демо-сейв для ECS и тестов
+├── career-jobs.js                    # Список работ
+├── housing-levels.js               # Уровни жилья
+├── skills-constants.js
+├── education-programs.js
+├── monthly-expenses-defaults.js
+└── index.js
 ```
 
 ---

@@ -40,10 +40,11 @@
 14. ✅ **EducationSystem** - образование
 
 ### 4. Данные и конфигурация (100%)
-- ✅ **default-save.js** - дефолтное сохранение
-- ✅ **career-jobs.js** - 4 уровня карьеры
-- ✅ **housing-levels.js** - 3 уровня жилья
-- ✅ **shared/constants.js** - константы для UI
+- ✅ **`src/balance/default-save.js`** — демо-сейв для ECS и тестов
+- ✅ **`src/balance/career-jobs.js`** — 4 уровня карьеры
+- ✅ **`src/balance/housing-levels.js`** — 3 уровня жилья
+- ✅ **`src/balance/skills-constants.js`** — подписи навыков для UI
+- ✅ **`src/shared/constants.js`** — общие константы для UI
 
 ### 5. Интеграция в сцены (80%)
 - ✅ **RecoveryScene.js** - полная интеграция ECS
@@ -85,13 +86,17 @@ src/ecs/                          # ECS ядро
 │   ├── EventHistorySystem.js        # События (история) ✅
 │   ├── EducationSystem.js           # Образование ✅
 │   └── MigrationSystem.js         # Версионирование ✅
-├── adapters/
-│   ├── SceneAdapter.js             # Адаптер сцен ✅
-│   └── GameStateAdapter.js        # Адаптер saveData ✅
-└── data/
-    ├── default-save.js              # Дефолтное сохранение ✅
-    ├── career-jobs.js               # Работы ✅
-    └── housing-levels.js            # Уровни жилья ✅
+└── adapters/
+    ├── SceneAdapter.js             # Адаптер сцен ✅
+    └── GameStateAdapter.js         # Адаптер saveData ✅
+
+src/balance/                        # Баланс (вынесен из ecs/data)
+├── default-save.js                  # Демо-сейв ✅
+├── career-jobs.js                   # Работы ✅
+├── housing-levels.js                # Уровни жилья ✅
+├── skills-constants.js              # Навыки UI ✅
+├── education-programs.js            # Программы обучения ✅
+└── monthly-expenses-defaults.js     # Базовые месячные расходы ✅
 
 src/scenes/                         # Сцены с ECS
 ├── RecoveryScene.js               # Восстановление ✅

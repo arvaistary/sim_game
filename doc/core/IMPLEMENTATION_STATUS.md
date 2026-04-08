@@ -318,6 +318,7 @@
 ### Что уже сделано ✅
 
 - ✅ Карта домена (`doc/ecs/ECS_DOMAIN_MAP.md`) — соответствие домена и ECS
+- ✅ Данные баланса вынесены в `src/balance/` (работы, жильё, демо-сейв, навыки UI, образование, месячные расходы по умолчанию)
 - ✅ ECS ядро (`src/ecs/`) - World, Components, Systems, Adapters
 - ✅ SceneAdapter (`src/ecs/adapters/SceneAdapter.js`) - интеграция Phaser сцен с ECS
 - ✅ GameStateAdapter (`src/ecs/adapters/GameStateAdapter.js`) - совместимость с saveData

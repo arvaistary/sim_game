@@ -122,7 +122,7 @@
 
 **Файлы:**
 - `src/ecs/systems/PersistenceSystem.js` - управление сохранениями
-- `src/ecs/data/default-save.js` - данные по умолчанию
+- `src/balance/default-save.js` - демо-данные по умолчанию для ECS и тестов (merge при загрузке — `DEFAULT_SAVE` в `game-state.js`)
 
 ### ✅ Этап 6: Тестирование и контроль регрессий
 

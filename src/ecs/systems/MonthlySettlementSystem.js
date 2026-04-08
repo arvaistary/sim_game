@@ -6,6 +6,7 @@ import {
   TIME_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
+import { MONTHLY_EXPENSES_DEFAULT } from '../../balance/monthly-expenses-defaults.js';
 
 /**
  * Система месячного расчета
@@ -13,13 +14,7 @@ import {
  */
 export class MonthlySettlementSystem {
   constructor() {
-    this.monthlyExpensesDefault = {
-      housing: 16000,
-      food: 9000,
-      transport: 4500,
-      leisure: 6500,
-      education: 2500,
-    };
+    this.monthlyExpensesDefault = { ...MONTHLY_EXPENSES_DEFAULT };
   }
 
   init(world) {

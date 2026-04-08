@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { SceneAdapter } from '../ecs/adapters/SceneAdapter.js';
 import { PersistenceSystem } from '../ecs/systems/index.js';
-import { DEFAULT_SAVE } from '../ecs/data/default-save.js';
+import { DEFAULT_SAVE } from '../balance/default-save.js';
 import {
   COLORS,
   createRoundedButton,
@@ -9,7 +9,7 @@ import {
   createToastMessage,
   textStyle,
 } from '../ui-kit';
-import { BASIC_SKILLS, PROFESSIONAL_SKILLS, SKILLS_TABS } from '../shared/skills-constants.js';
+import { BASIC_SKILLS, PROFESSIONAL_SKILLS, SKILLS_TABS } from '../balance/skills-constants.js';
 
 /**
  * SkillsScene с полной поддержкой ECS

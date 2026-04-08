@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { SceneAdapter } from '../../ecs/adapters/SceneAdapter.js';
 import { PersistenceSystem } from '../../ecs/systems/index.js';
 import { WALLET_COMPONENT } from '../../ecs/components/index.js';
-import { DEFAULT_SAVE } from '../../ecs/data/default-save.js';
+import { DEFAULT_SAVE } from '../../balance/default-save.js';
 import {
   COLORS,
   createNotificationModal,

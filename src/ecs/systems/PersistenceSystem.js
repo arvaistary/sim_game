@@ -1,4 +1,4 @@
-import { DEFAULT_SAVE } from '../data/default-save.js';
+import { DEFAULT_SAVE } from '../../balance/default-save.js';
 import { PLAYER_ENTITY } from '../components/index.js';
 
 /**

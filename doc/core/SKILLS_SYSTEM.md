@@ -110,7 +110,7 @@
 ### Файлы
 
 - **`src/scenes/SkillsScene.js`** - основная сцена отображения навыков
-- **`src/shared/skills-constants.js`** - константы и определения навыков
+- **`src/balance/skills-constants.js`** - константы и определения навыков (подписи, цвета, вкладки UI)
 - **`src/ecs/systems/SkillsSystem.js`** - ECS система управления навыками
 
 ## Интеграция с ECS

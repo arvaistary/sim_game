@@ -105,9 +105,12 @@
 |------|-----------|-----------|
 | `src/ecs/components/index.js` | Высокий | Низкая |
 | `src/shared/constants.js` | Высокий | Низкая |
-| `src/ecs/data/default-save.js` | Высокий | Средняя |
-| `src/ecs/data/career-jobs.js` | Средний | Средняя |
-| `src/ecs/data/housing-levels.js` | Средний | Низкая |
+| `src/balance/default-save.js` | Высокий | Средняя |
+| `src/balance/career-jobs.js` | Средний | Средняя |
+| `src/balance/housing-levels.js` | Средний | Низкая |
+| `src/balance/skills-constants.js` | Средний | Низкая |
+| `src/balance/education-programs.js` | Средний | Средняя |
+| `src/balance/monthly-expenses-defaults.js` | Средний | Низкая |
 
 ### Задачи
 
@@ -140,7 +143,7 @@
 
 - [ ] Мигрировать `src/shared/constants.js` → `constants.ts`
 
-- [ ] Мигрировать `src/ecs/data/*.js` → `*.ts`
+- [ ] Мигрировать `src/balance/*.js` → `*.ts`
 
 ### Критерий завершения
 
