@@ -1,4 +1,4 @@
-import { 
+import {
   PLAYER_ENTITY,
   TIME_COMPONENT,
   STATS_COMPONENT,
@@ -13,7 +13,8 @@ import {
   LIFETIME_STATS_COMPONENT,
   RELATIONSHIPS_COMPONENT,
   EVENT_HISTORY_COMPONENT,
-  EVENT_QUEUE_COMPONENT
+  EVENT_QUEUE_COMPONENT,
+  ACTIVITY_LOG_COMPONENT,
 } from '../components/index.js';
 
 /**
@@ -134,6 +135,12 @@ export class GameStateAdapter {
     // EventQueueComponent
     this.world.addComponent(playerId, EVENT_QUEUE_COMPONENT, {
       pendingEvents: save.pendingEvents || [],
+    });
+
+    // ActivityLogComponent
+    this.world.addComponent(playerId, ACTIVITY_LOG_COMPONENT, {
+      entries: save.activityLog?.entries || [],
+      totalEntries: save.activityLog?.totalEntries || 0,
     });
 
     // Investments (как массив в компоненте)
@@ -290,6 +297,15 @@ export class GameStateAdapter {
     const investments = this.world.getComponent(playerId, 'investment');
     if (investments) {
       save.investments = investments;
+    }
+
+    // Activity Log
+    const activityLog = this.world.getComponent(playerId, ACTIVITY_LOG_COMPONENT);
+    if (activityLog) {
+      save.activityLog = {
+        entries: activityLog.entries || [],
+        totalEntries: activityLog.totalEntries || 0,
+      };
     }
   }
 

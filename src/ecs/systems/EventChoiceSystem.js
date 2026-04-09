@@ -36,7 +36,7 @@ export class EventChoiceSystem {
     }
 
     const playerId = PLAYER_ENTITY;
-    const resolvedChoice = this._resolveChoiceBySkillCheck(choice);
+    const resolvedChoice = this._resolveChoiceBySkillCheck(choice, event);
 
     // Применяем финансовые изменения
     if (resolvedChoice.moneyDelta !== undefined) {
@@ -89,6 +89,27 @@ export class EventChoiceSystem {
       if (housing) {
         this._applyHousingLevelDelta(housing, resolvedChoice.housingLevelDelta);
       }
+    }
+
+    // Логирование события в ActivityLog
+    if (this.world && this.world.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:event', {
+        detail: {
+          category: event.type || event.actionSource || 'random',
+          title: `⚡ ${event.title}`,
+          description: (event.description || event.title) + ' → ' + (choice.text || choice.outcome || ''),
+          icon: null,
+          metadata: {
+            eventId: event.id,
+            instanceId: event.instanceId,
+            choiceIndex,
+            choiceText: choice.text || choice.outcome || '',
+            statChanges: resolvedChoice.statChanges || null,
+            moneyDelta: resolvedChoice.moneyDelta || 0,
+            skillChanges: resolvedChoice.skillChanges || null,
+          },
+        },
+      }));
     }
 
     // Записываем событие в историю
@@ -263,13 +284,33 @@ export class EventChoiceSystem {
     return new Intl.NumberFormat('ru-RU').format(value);
   }
 
-  _resolveChoiceBySkillCheck(choice) {
+  _resolveChoiceBySkillCheck(choice, event = null) {
     if (!choice?.skillCheck) return choice;
 
     const skills = this.world.getComponent(PLAYER_ENTITY, SKILLS_COMPONENT) || {};
     const check = choice.skillCheck;
     const skillValue = Number(skills[check.key] ?? 0);
     const passed = skillValue >= Number(check.threshold ?? 0);
+
+    // Логирование предотвращения события через навык
+    if (passed && this.world && this.world.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:prevented', {
+        detail: {
+          category: 'skill_prevented',
+          title: `🛡️ Навык предотвратил: ${event?.title || 'Событие'}`,
+          description: `Навык "${check.key}" (${skillValue}) превысил порог ${check.threshold}. Исход изменён.`,
+          icon: null,
+          metadata: {
+            eventId: event?.id || null,
+            skillName: check.key,
+            skillLevel: skillValue,
+            threshold: Number(check.threshold ?? 0),
+            originalOutcome: choice.outcome || '',
+            newOutcome: check.successStatChanges ? JSON.stringify(check.successStatChanges) : '',
+          },
+        },
+      }));
+    }
 
     return {
       ...choice,

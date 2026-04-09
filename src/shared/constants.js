@@ -18,4 +18,5 @@ export const NAV_ITEMS = [
   { id: 'hobby', icon: 'Х', label: 'Хобби' },
   { id: 'health', icon: 'З', label: 'Здоровье' },
   { id: 'selfdev', icon: 'Р', label: 'Развитие' },
+  { id: 'activityLog', icon: '📋', label: 'Журнал' },
 ];

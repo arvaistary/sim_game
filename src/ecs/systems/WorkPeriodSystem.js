@@ -105,6 +105,24 @@ export class WorkPeriodSystem {
     // Синхронизация прогресса карьеры
     const careerUpdateSummary = this._syncCareerProgress();
 
+    // Логирование активности
+    if (this.world && this.world.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:action', {
+        detail: {
+          category: 'work',
+          title: '💼 Отработана смена',
+          description: `Отработано ${workHours}ч. Заработано $${this._formatMoney(totalSalaryWithBonus)}`,
+          icon: null,
+          metadata: {
+            hoursWorked: workHours,
+            earned: totalSalaryWithBonus,
+            jobId: workComponent.id,
+            jobName: workComponent.name,
+          },
+        },
+      }));
+    }
+
     // Создание резюме
     return this._buildWorkPeriodSummary(workHours, totalSalaryWithBonus, combinedStatChanges, eventChoice, careerUpdateSummary);
   }

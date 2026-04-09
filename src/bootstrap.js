@@ -18,6 +18,7 @@ import { SkillsScene } from "./scenes/SkillsScene.js";
 import { HobbyScene } from "./scenes/HobbyScene.js";
 import { HealthScene } from "./scenes/HealthScene.js";
 import { SelfdevScene } from "./scenes/SelfdevScene.js";
+import { ActivityLogScene } from "./scenes/ActivityLogScene.js";
 
 const config = {
   type: Phaser.AUTO,
@@ -43,6 +44,7 @@ const config = {
     HobbyScene,
     HealthScene,
     SelfdevScene,
+    ActivityLogScene,
   ],
   scale: {
     mode: Phaser.Scale.RESIZE,

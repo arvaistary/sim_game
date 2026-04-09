@@ -99,6 +99,23 @@ export class EducationSystem {
     }
     education.activeCourses = [activeCourse];
 
+    // Логирование записи на курс
+    if (this.world && this.world.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:education', {
+        detail: {
+          category: 'enrollment',
+          title: '📚 Записан на курс',
+          description: `${resolvedProgram.title}. Стоимость: ${this._formatMoney(resolvedProgram.cost)} ₽. Длительность: ${this._resolveCourseHours(resolvedProgram)} ч.`,
+          icon: null,
+          metadata: {
+            programId: resolvedProgram.id,
+            programName: resolvedProgram.title,
+            skillsGained: resolvedProgram.completionSkillChanges || {},
+          },
+        },
+      }));
+    }
+
       return {
         success: true,
         message: [
@@ -173,6 +190,23 @@ export class EducationSystem {
 
     // Удаляем курс из активных
     education.activeCourses = education.activeCourses.filter(item => item.id !== courseId);
+
+    // Логирование завершения курса
+    if (this.world && this.world.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:education', {
+        detail: {
+          category: 'course_complete',
+          title: '🎓 Обучение завершено',
+          description: `${program.title} завершён. ${program.rewardText || ''}`.trim(),
+          icon: null,
+          metadata: {
+            programId: program.id,
+            programName: program.title,
+            skillsGained: program.completionSkillChanges || {},
+          },
+        },
+      }));
+    }
 
     return {
       completed: true,

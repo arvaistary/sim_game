@@ -226,6 +226,26 @@ export class FinanceActionSystem {
       }
     }
 
+    // Логирование финансовой операции
+    if (this.world && this.world.eventBus) {
+      const financeCategory = action.id === 'reserve_transfer' ? 'expense'
+        : action.id === 'open_deposit' ? 'purchase'
+        : 'expense';
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:finance', {
+        detail: {
+          category: financeCategory,
+          title: `💰 ${action.title}`,
+          description: action.description || action.title,
+          icon: null,
+          metadata: {
+            amount: action.amount,
+            item: action.id,
+            balance: wallet.money,
+          },
+        },
+      }));
+    }
+
     const message = [
       `${action.title} выполнено.`,
       action.description,

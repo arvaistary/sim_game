@@ -156,6 +156,24 @@ export class TimeSystem {
       for (let month = previousMonth + 1; month <= timeComponent.gameMonths; month += 1) {
         events.monthly.push(month);
         this._triggerMonthlyEvents(month);
+
+        // Логирование смены месяца
+        if (this.world && this.world.eventBus) {
+          this.world.eventBus.dispatchEvent(new CustomEvent('activity:time', {
+            detail: {
+              category: 'new_month',
+              title: '🗓️ Новый месяц',
+              description: `Начался ${month}й месяц ${Math.floor(month / this.MONTHS_IN_YEAR)}го года. Возраст: ${timeComponent.currentAge}`,
+              icon: null,
+              metadata: {
+                month,
+                year: Math.floor(month / this.MONTHS_IN_YEAR),
+                age: timeComponent.currentAge,
+                totalHours: timeComponent.totalHours,
+              },
+            },
+          }));
+        }
       }
     }
 
@@ -164,6 +182,24 @@ export class TimeSystem {
       for (let year = previousYearIndex + 1; year <= currentYearIndex; year += 1) {
         events.yearly.push(year);
         this._triggerYearlyEvents(year);
+
+        // Логирование смены года
+        if (this.world && this.world.eventBus) {
+          this.world.eventBus.dispatchEvent(new CustomEvent('activity:time', {
+            detail: {
+              category: 'new_year',
+              title: '🎆 Новый год',
+              description: `Начался ${year}й год. Возраст: ${timeComponent.currentAge}`,
+              icon: null,
+              metadata: {
+                month: timeComponent.gameMonths,
+                year,
+                age: timeComponent.currentAge,
+                totalHours: timeComponent.totalHours,
+              },
+            },
+          }));
+        }
       }
     }
 

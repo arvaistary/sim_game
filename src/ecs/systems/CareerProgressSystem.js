@@ -70,6 +70,7 @@ export class CareerProgressSystem {
     const professionalism = skills.professionalism ?? 0;
     const educationRank = this._getEducationRank(education.educationLevel);
     const currentLevel = career.level ?? 1;
+    const oldPosition = career.name ?? 'Неизвестно';
 
     // Находим высшую доступную работу
     const unlockedJob = this.careerJobs
@@ -78,6 +79,23 @@ export class CareerProgressSystem {
 
     if (!unlockedJob || unlockedJob.level <= currentLevel) {
       return '';
+    }
+
+    // Логирование карьерного изменения
+    if (this.world && this.world.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:career', {
+        detail: {
+          category: 'promotion',
+          title: '📈 Повышение!',
+          description: `${oldPosition} → ${unlockedJob.name}. Новая ставка: ${this._formatMoney(unlockedJob.salaryPerHour)} ₽/ч`,
+          icon: null,
+          metadata: {
+            oldPosition,
+            newPosition: unlockedJob.name,
+            newSalary: unlockedJob.salaryPerHour,
+          },
+        },
+      }));
     }
 
     // Обновляем карьерные данные
@@ -142,6 +160,10 @@ export class CareerProgressSystem {
       };
     }
 
+    // Запоминаем старую должность
+    const oldPosition = career.name ?? 'Неизвестно';
+    const isDemotion = job.level < (career.level ?? 1);
+
     // Применяем изменение
     Object.assign(career, {
       id: job.id,
@@ -167,9 +189,26 @@ export class CareerProgressSystem {
       });
     }
 
-    return { 
-      success: true, 
-      message: `Вы устроились на должность «${job.name}», ставка ${this._formatMoney(job.salaryPerHour)} ₽ в час.` 
+    // Логирование смены работы
+    if (this.world && this.world.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:career', {
+        detail: {
+          category: isDemotion ? 'demotion' : 'promotion',
+          title: isDemotion ? '📉 Понижение' : '📈 Смена должности',
+          description: `${oldPosition} → ${job.name}. Ставка: ${this._formatMoney(job.salaryPerHour)} ₽/ч`,
+          icon: null,
+          metadata: {
+            oldPosition,
+            newPosition: job.name,
+            newSalary: job.salaryPerHour,
+          },
+        },
+      }));
+    }
+
+    return {
+      success: true,
+      message: `Вы устроились на должность «${job.name}», ставка ${this._formatMoney(job.salaryPerHour)} ₽ в час.`
     };
   }
 

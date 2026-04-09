@@ -279,35 +279,22 @@ export class MainGameSceneECS extends Phaser.Scene {
       hit.on('pointerover', () => this.tweens.add({ targets: container, y: container.baseY - 4, duration: 180 }));
       hit.on('pointerout', () => this.tweens.add({ targets: container, y: container.baseY, duration: 180 }));
       hit.on('pointerup', () => {
-        if (item.id === 'education') {
-          this.scene.start('EducationScene');
+        const sceneMap = {
+          education: 'EducationScene',
+          finance: 'FinanceScene',
+          skills: 'SkillsScene',
+          home: 'HomeScene',
+          shop: 'ShopScene',
+          fun: 'FunScene',
+          social: 'SocialScene',
+          activityLog: 'ActivityLogScene',
+        };
+        const sceneName = sceneMap[item.id];
+        if (sceneName) {
+          this.navigateTo(sceneName, item.label);
           return;
         }
-        if (item.id === 'finance') {
-          this.scene.start('FinanceScene');
-          return;
-        }
-        if (item.id === 'skills') {
-          this.scene.start('SkillsScene');
-          return;
-        }
-        if (item.id === 'home') {
-          this.scene.start('HomeScene');
-          return;
-        }
-        if (item.id === 'shop') {
-          this.scene.start('ShopScene');
-          return;
-        }
-        if (item.id === 'fun') {
-          this.scene.start('FunScene');
-          return;
-        }
-        if (item.id === 'social') {
-          this.scene.start('SocialScene');
-          return;
-        }
-        this.scene.start('RecoveryScene', { initialTab: item.id });
+        this.navigateTo('RecoveryScene', item.label, { initialTab: item.id });
       });
 
       container.baseY = 0;
@@ -318,6 +305,25 @@ export class MainGameSceneECS extends Phaser.Scene {
       this.root.add(container);
       return container;
     });
+  }
+
+  navigateTo(sceneName, label, data) {
+    if (this.sceneAdapter && this.sceneAdapter.world && this.sceneAdapter.world.eventBus) {
+      this.sceneAdapter.world.eventBus.dispatchEvent(new CustomEvent('activity:navigation', {
+        detail: {
+          category: 'scene_change',
+          title: '🗺️ Переход: ' + sceneName,
+          description: 'Перешёл в ' + label,
+          icon: null,
+          metadata: { from: 'MainGameSceneECS', to: sceneName },
+        },
+      }));
+    }
+    if (data) {
+      this.scene.start(sceneName, data);
+    } else {
+      this.scene.start(sceneName);
+    }
   }
 
   createToast() {

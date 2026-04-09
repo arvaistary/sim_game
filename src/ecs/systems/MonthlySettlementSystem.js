@@ -135,6 +135,26 @@ export class MonthlySettlementSystem {
       this._queuePendingEvent(reserveWarningEvent);
     }
 
+    // Логирование месячного расчёта
+    if (this.world && this.world.eventBus) {
+      const time = this.world.getComponent(playerId, TIME_COMPONENT);
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:finance', {
+        detail: {
+          category: 'monthly_settlement',
+          title: '📅 Месячный расчёт',
+          description: `Доход: $0, Расходы: $${this._formatMoney(monthlyTotal)}, Баланс: $${this._formatMoney(wallet.money)}`,
+          icon: null,
+          metadata: {
+            income: 0,
+            expenses: monthlyTotal,
+            balance: wallet.money,
+            month: monthNumber,
+            year: time ? Math.floor((time.gameMonths ?? 0) / 12) : 0,
+          },
+        },
+      }));
+    }
+
     const message = [
       `Месяц ${monthNumber} закрыт.`,
       `Списано: ${this._formatMoney(liquidPaid)} ₽ (личные) + ${this._formatMoney(reservePaid)} ₽ (резерв).`,

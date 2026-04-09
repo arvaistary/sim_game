@@ -16,6 +16,7 @@ import { EventHistorySystem } from '../systems/EventHistorySystem.js';
 import { EducationSystem } from '../systems/EducationSystem.js';
 import { MigrationSystem } from '../systems/MigrationSystem.js';
 import { ActionSystem } from '../systems/ActionSystem.js';
+import { ActivityLogSystem } from '../systems/ActivityLogSystem.js';
 import { PLAYER_ENTITY } from '../components/index.js';
 
 /**
@@ -127,6 +128,11 @@ export class SceneAdapter {
     const actionSystem = new ActionSystem();
     this.world.addSystem(actionSystem);
     this.systems.action = actionSystem;
+
+    // Activity Log System
+    const activityLogSystem = new ActivityLogSystem();
+    this.world.addSystem(activityLogSystem);
+    this.systems.activityLog = activityLogSystem;
   }
 
   /**

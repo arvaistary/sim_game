@@ -17,3 +17,4 @@ export { EventHistorySystem } from './EventHistorySystem.js';
 export { EducationSystem } from './EducationSystem.js';
 export { MigrationSystem } from './MigrationSystem.js';
 export { ActionSystem } from './ActionSystem.js';
+export { ActivityLogSystem } from './ActivityLogSystem.js';

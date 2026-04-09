@@ -287,6 +287,25 @@ export class ActionSystem {
       }
     }
 
+    // Логирование действия в ActivityLog
+    if (this.world && this.world.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:action', {
+        detail: {
+          category: action.category || action.actionSource || 'general',
+          title: `📝 ${action.label || action.name || action.id}`,
+          description: parts.join(', ') || action.effect || '',
+          icon: action.icon || null,
+          metadata: {
+            actionId: action.id,
+            statChanges,
+            moneyDelta: -(action.price || 0),
+            skillChanges: action.skillChanges || null,
+            hoursSpent: action.hourCost || 0,
+          },
+        },
+      }));
+    }
+
     return {
       success: true,
       summary: parts.join(', ') || action.effect,

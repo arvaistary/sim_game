@@ -48,3 +48,6 @@ export const SUBSCRIPTION_COMPONENT = 'subscriptions';
 export const COOLDOWN_COMPONENT = 'cooldowns';
 export const COMPLETED_ACTIONS_COMPONENT = 'completedActions';
 export const CREDIT_COMPONENT = 'credits';
+
+// Activity Log
+export const ACTIVITY_LOG_COMPONENT = 'activity_log';
