@@ -21,6 +21,11 @@ The project already has the main game loop skeleton:
 - Housing tiers with passive weekly recovery effects and manual downgrade decision
 - Scroll support for long panels and lists
 - Reusable UI kit and fullscreen responsive layout
+- **ActionSystem** — ECS-система обработки действий (~222 действия в 10 категориях: shop, fun, social, home, education, finance, career, hobby, health, selfdev)
+- **Hourly rates** — почасовые ставки work/neutral/sleep из GDD 5.2
+- **3 новых сцены:** `HobbyScene`, `HealthScene`, `SelfdevScene`
+- **Новые ECS-компоненты:** SUBSCRIPTION_COMPONENT, COOLDOWN_COMPONENT, COMPLETED_ACTIONS_COMPONENT, CREDIT_COMPONENT
+- **39 тестов:** 25 ActionSystem + 14 hourly-rates
 
 ## Next High-Priority Steps
 

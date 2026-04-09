@@ -42,3 +42,9 @@ export const EVENT_HISTORY_COMPONENT = 'event_history';
 export const LIFETIME_STATS_COMPONENT = 'lifetime_stats';
 
 export const RELATIONSHIPS_COMPONENT = 'relationships';
+
+// Новые компоненты для системы действий
+export const SUBSCRIPTION_COMPONENT = 'subscriptions';
+export const COOLDOWN_COMPONENT = 'cooldowns';
+export const COMPLETED_ACTIONS_COMPONENT = 'completedActions';
+export const CREDIT_COMPONENT = 'credits';

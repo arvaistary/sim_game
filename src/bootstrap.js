@@ -15,6 +15,9 @@ import { FinanceSceneECS } from "./scenes/FinanceScene.js";
 import { EducationSceneECS } from "./scenes/EducationScene.js";
 import { EventQueueSceneECS } from "./scenes/EventQueueScene.js";
 import { SkillsScene } from "./scenes/SkillsScene.js";
+import { HobbyScene } from "./scenes/HobbyScene.js";
+import { HealthScene } from "./scenes/HealthScene.js";
+import { SelfdevScene } from "./scenes/SelfdevScene.js";
 
 const config = {
   type: Phaser.AUTO,
@@ -37,6 +40,9 @@ const config = {
     EducationSceneECS,
     EventQueueSceneECS,
     SkillsScene,
+    HobbyScene,
+    HealthScene,
+    SelfdevScene,
   ],
   scale: {
     mode: Phaser.Scale.RESIZE,

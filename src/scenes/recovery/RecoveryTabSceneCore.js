@@ -12,6 +12,8 @@ import {
   textStyle,
 } from '../../ui-kit';
 import { RECOVERY_TABS } from '../../game-state.js';
+import { getActionsByCategory } from '../../balance/actions/index.js';
+import { ActionSystem } from '../../ecs/systems/ActionSystem.js';
 
 function formatEffectBulletText(effect) {
   const raw = (effect || '').trim();
@@ -59,6 +61,9 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     this.recoverySystem = this.sceneAdapter.getSystem('recovery');
     this.statsSystem = this.sceneAdapter.getSystem('stats');
     this.actionCardViews = [];
+
+    // Попробовать получить ActionSystem (новый путь через реестр действий)
+    this.actionSystem = this._tryGetActionSystem();
 
     this.cameras.main.setBackgroundColor(COLORS.background);
 
@@ -214,9 +219,37 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     this.root.add(this.notificationModal);
   }
 
+  /**
+   * Попробовать получить или создать ActionSystem.
+   * Сначала ищем в sceneAdapter (если зарегистрирован),
+   * затем создаём локальный экземпляр с world от sceneAdapter.
+   * @returns {ActionSystem | null}
+   */
+  _tryGetActionSystem() {
+    try {
+      const existing = this.sceneAdapter.getSystem('action');
+      if (existing) return existing;
+
+      const world = this.sceneAdapter.getWorld();
+      if (world) {
+        const actionSystem = new ActionSystem();
+        actionSystem.init(world);
+        return actionSystem;
+      }
+    } catch (_e) {
+      // ActionSystem недоступен — используем старый путь
+    }
+    return null;
+  }
+
   selectTab(tabId) {
     this.currentTab = RECOVERY_TABS.find((tab) => tab.id === tabId);
     if (!this.currentTab) return;
+
+    // Попробовать получить действия из реестра (новый путь)
+    this.currentActions = this.actionSystem
+      ? getActionsByCategory(tabId)
+      : null;
 
     this.cardsScrollY = 0;
 
@@ -231,7 +264,9 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     this.cardsContainer.removeAll(true);
     this.actionCardViews = [];
 
-    this.currentTab.cards.forEach((card, index) => {
+    // Новый путь: действия из реестра; старый путь: cards из RECOVERY_TABS
+    const cards = this.currentActions || this.currentTab.cards;
+    cards.forEach((card, index) => {
       const cardView = this.createActionCard(card, index);
       this.actionCardViews.push(cardView);
       this.cardsContainer.add(cardView.container);
@@ -244,6 +279,12 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     const priceChipBg = this.add.graphics();
     container.add(cardPanel);
     container.add(priceChipBg);
+
+    // Проверка доступности через ActionSystem
+    let availability = { available: true };
+    if (this.actionSystem && cardData.id) {
+      availability = this.actionSystem.canExecute(cardData.id);
+    }
 
     const priceText = this.add.text(0, 0, this.formatMoney(cardData.price) + ' ₽', textStyle(13, COLORS.text, '700'));
     priceText.setOrigin(0, 0.5);
@@ -274,15 +315,31 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     });
     container.add(moodText);
 
+    // Причина недоступности (показывается только если действие недоступно)
+    let reasonText = null;
+    if (!availability.available) {
+      reasonText = this.add.text(0, 0, `⚠ ${availability.reason}`, {
+        ...textStyle(12, '#ff6b6b', '500'),
+        wordWrap: { width: 320 },
+        lineSpacing: 4,
+      });
+      container.add(reasonText);
+    }
+
     const actionButton = createRoundedButton(this, {
-      label: 'Применить',
+      label: availability.available ? 'Применить' : 'Недоступно',
       onClick: () => this.applyAction(cardData),
-      fillColor: COLORS.accent,
+      fillColor: availability.available ? COLORS.accent : COLORS.neutral,
       fontSize: 15,
       width: 148,
       height: 44,
     });
     container.add(actionButton);
+
+    // Стиль недоступной карточки: приглушённый фон
+    if (!availability.available) {
+      container.setAlpha(0.6);
+    }
 
     cardPanel.setSize(400, 260);
 
@@ -295,7 +352,9 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
       effectText,
       timeText,
       moodText,
+      reasonText,
       actionButton,
+      availability,
     };
   }
 
@@ -305,6 +364,7 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     cardObj.titleText.setWordWrapWidth(innerW);
     cardObj.effectText.setWordWrapWidth(innerW);
     cardObj.moodText.setWordWrapWidth(innerW);
+    if (cardObj.reasonText) cardObj.reasonText.setWordWrapWidth(innerW);
 
     const chipPadY = 5;
     const chipH = Math.max(28, cardObj.priceText.height + chipPadY * 2);
@@ -313,6 +373,7 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     h += cardObj.effectText.height + 10;
     h += cardObj.timeText.height + 8;
     h += cardObj.moodText.height + 16;
+    if (cardObj.reasonText) h += cardObj.reasonText.height + 8;
     h += 72;
     return Math.max(248, h);
   }
@@ -354,6 +415,12 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     y += cardObj.timeText.height + 8;
 
     cardObj.moodText.setPosition(left + pad, y);
+    y += cardObj.moodText.height + 8;
+
+    if (cardObj.reasonText) {
+      cardObj.reasonText.setWordWrapWidth(innerW);
+      cardObj.reasonText.setPosition(left + pad, y);
+    }
 
     const btnW = cardObj.actionButton.width;
     const btnH = cardObj.actionButton.height;
@@ -361,6 +428,27 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
   }
 
   applyAction(cardData) {
+    // Новый путь: выполнить через ActionSystem
+    if (this.actionSystem && cardData.id) {
+      const result = this.actionSystem.execute(cardData.id);
+      if (!result.success) {
+        this.showToast(result.error);
+        return;
+      }
+
+      this.sceneAdapter.syncToSaveData();
+      this.persistenceSystem.saveGame(this.sceneAdapter.getSaveData());
+
+      this.refreshContent();
+      this.notificationModal.show({
+        title: 'Действие завершено',
+        description: result.summary,
+        onConfirm: () => this.scene.start('MainGameScene'),
+      });
+      return;
+    }
+
+    // Старый путь: через RecoverySystem (обратная совместимость)
     const playerId = this.sceneAdapter.getPlayerEntityId();
     const world = this.sceneAdapter.getWorld();
     const wallet = world.getComponent(playerId, WALLET_COMPONENT);

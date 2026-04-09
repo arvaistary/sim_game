@@ -15,4 +15,7 @@ export const NAV_ITEMS = [
   { id: 'skills', icon: 'Н', label: 'Навыки' },
   { id: 'social', icon: 'С', label: 'Соц. жизнь' },
   { id: 'finance', icon: 'Ф', label: 'Финансы' },
+  { id: 'hobby', icon: 'Х', label: 'Хобби' },
+  { id: 'health', icon: 'З', label: 'Здоровье' },
+  { id: 'selfdev', icon: 'Р', label: 'Развитие' },
 ];
