@@ -3,6 +3,7 @@ import {
   WORK_COMPONENT,
   SKILLS_COMPONENT,
   EDUCATION_COMPONENT,
+  TIME_COMPONENT,
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { CAREER_JOBS } from '../../balance/career-jobs.js';
@@ -140,6 +141,15 @@ export class CareerProgressSystem {
     const job = this.careerJobs.find(j => j.id === jobId);
     if (!job) {
       return { success: false, reason: 'Работа не найдена' };
+    }
+
+    const time = this.world.getComponent(playerId, TIME_COMPONENT);
+    const blockedUntil = time?.eventState?.jobRehireBlockedUntilWeekByJobId?.[jobId];
+    if (typeof blockedUntil === 'number' && typeof time.gameWeeks === 'number' && time.gameWeeks < blockedUntil) {
+      return {
+        success: false,
+        reason: `Эту должность пока нельзя взять снова: недоступна до начала ${blockedUntil}-й игровой недели (сейчас неделя ${time.gameWeeks}).`,
+      };
     }
 
     // Проверяем требования

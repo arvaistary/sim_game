@@ -1,3 +1,37 @@
+import {
+  WORK_RANDOM_EVENTS,
+  GLOBAL_PROGRESS_EVENTS,
+  FINANCE_EMERGENCY_EVENTS,
+} from "./balance/game-events.js";
+import { INITIAL_SAVE } from "./balance/initial-save.js";
+import { RECOVERY_TABS } from "./balance/recovery-tabs.js";
+import { EDUCATION_PROGRAMS } from "./balance/education-programs.js";
+import { CAREER_JOBS } from "./balance/career-jobs.js";
+import { EDUCATION_PATHS } from "./balance/education-paths.js";
+import { HOUSING_LEVELS } from "./balance/housing-levels.js";
+import { LEGACY_FINANCE_SCENE_ACTIONS } from "./balance/legacy-finance-scene-actions.js";
+import { WORK_RESULT_TIERS } from "./balance/work-result-tiers.js";
+import {
+  LEGACY_WORK_PERIOD_RANDOM_EVENT_CHANCE,
+  LEGACY_BASE_STAT_CHANGES_PER_WORK_DAY,
+} from "./balance/work-economy.js";
+import { getEducationRank, getEducationLabelByRank } from "./balance/education-ranks.js";
+import { formatStatChangesBulletListRu } from "./shared/stat-changes-format.js";
+
+const DEFAULT_SAVE = INITIAL_SAVE;
+
+export { INITIAL_SAVE as DEFAULT_SAVE };
+export {
+  WORK_RANDOM_EVENTS,
+  GLOBAL_PROGRESS_EVENTS,
+  FINANCE_EMERGENCY_EVENTS,
+  RECOVERY_TABS,
+  EDUCATION_PROGRAMS,
+  CAREER_JOBS,
+  EDUCATION_PATHS,
+  HOUSING_LEVELS,
+};
+
 function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
@@ -18,7 +52,7 @@ export function parseSchedule(schedule) {
 }
 
 export function pickWorkPeriodEvent(saveData) {
-  const hasEvent = Math.random() < 0.15;
+  const hasEvent = Math.random() < LEGACY_WORK_PERIOD_RANDOM_EVENT_CHANCE;
   if (!hasEvent) {
     return null;
   }
@@ -58,15 +92,8 @@ export function applyWorkPeriodResult(saveData, workDays, eventChoice = null) {
   const baseSalaryPerDay = saveData.currentJob.salaryPerDay;
   const totalSalary = baseSalaryPerDay * workDays;
 
-  const baseStatChangesPerDay = {
-    hunger: -18,
-    energy: -24,
-    stress: 12,
-    mood: -2,
-  };
-
   const totalBaseStatChanges = {};
-  Object.entries(baseStatChangesPerDay).forEach(([key, value]) => {
+  Object.entries(LEGACY_BASE_STAT_CHANGES_PER_WORK_DAY).forEach(([key, value]) => {
     totalBaseStatChanges[key] = value * workDays;
   });
 
@@ -101,15 +128,8 @@ export function applyPeriodEventChoiceToSave(saveData, event, eventChoice, workD
   const baseSalaryPerDay = saveData.currentJob.salaryPerDay;
   const totalSalary = baseSalaryPerDay * workDays;
 
-  const baseStatChangesPerDay = {
-    hunger: -18,
-    energy: -24,
-    stress: 12,
-    mood: -2,
-  };
-
   const totalBaseStatChanges = {};
-  Object.entries(baseStatChangesPerDay).forEach(([key, value]) => {
+  Object.entries(LEGACY_BASE_STAT_CHANGES_PER_WORK_DAY).forEach(([key, value]) => {
     totalBaseStatChanges[key] = value * workDays;
   });
 
@@ -163,656 +183,6 @@ export function buildWorkPeriodSummary(workDays, salary, statChanges, eventChoic
 export function clone(value) {
   return structuredClone(value);
 }
-
-export const DEFAULT_SAVE = {
-  version: "0.2.0",
-  playerName: "",
-  startAge: 18,
-  currentAge: 18,
-  gameDays: 0,
-  gameWeeks: 0,
-  gameMonths: 0,
-  gameYears: 0,
-  money: 5000,
-  totalEarnings: 0,
-  totalSpent: 0,
-  currentJob: null,
-  housing: {
-    level: 0,
-    name: "Комната",
-    comfort: 0,
-    furniture: [],
-    lastWeeklyBonus: null,
-  },
-  skills: {
-    professionalism: 0,
-    communication: 0,
-    timeManagement: 0,
-    healthyLifestyle: 0,
-    financialLiteracy: 0,
-    stressResistance: 0,
-  },
-  education: {
-    school: "none",
-    institute: "none",
-    educationLevel: "Нет",
-    activeCourses: [],
-  },
-  relationships: [],
-  investments: [],
-  finance: {
-    reserveFund: 0,
-    monthlyExpenses: {
-      housing: 0,
-      food: 0,
-      transport: 0,
-      leisure: 0,
-      education: 0,
-    },
-    lastMonthlySettlement: null,
-  },
-  eventHistory: [],
-  pendingEvents: [],
-  lifetimeStats: {
-    totalWorkDays: 0,
-    totalEvents: 0,
-    maxMoney: 0,
-  },
-  stats: {
-    hunger: 80,
-    energy: 80,
-    stress: 20,
-    mood: 70,
-    health: 90,
-    physical: 70,
-  },
-};
-
-export const RECOVERY_TABS = [
-  {
-    id: "home",
-    label: "Дом",
-    icon: "Д",
-    accentKey: "sage",
-    title: "Комфорт и жильё",
-    subtitle: "Уют комнаты влияет на эффективность восстановления и будущий прогресс.",
-    cards: [
-      { title: "Хорошая кровать", price: 18000, dayCost: 1, hourCost: 1, effect: "Энергия +18 • Здоровье +8 • Комфорт дома +10", mood: "Лучшее вложение в ежедневный цикл", statChanges: { energy: 18, health: 8 }, housingComfortDelta: 10, furnitureId: "good_bed" },
-      { title: "Холодильник", price: 24000, dayCost: 1, hourCost: 1, effect: "Голод +12 • Комфорт дома +12", mood: "Работает каждый ход", statChanges: { hunger: 12 }, housingComfortDelta: 12, furnitureId: "refrigerator" },
-      { title: "Декор и свет", price: 9500, dayCost: 1, hourCost: 1, effect: "Комфорт дома +8 • Настроение +5", mood: "Уют без лишней сложности", statChanges: { mood: 5 }, housingComfortDelta: 8, furnitureId: "decor_light" },
-      {
-        title: "Переехать в 1-комнатную квартиру",
-        price: 95000,
-        dayCost: 2,
-        hourCost: 6,
-        effect: "Уровень жилья 2 • Комфорт до 52 • Домашние бонусы сильнее",
-        mood: "Следующий шаг к более устойчивому циклу",
-        housingUpgradeLevel: 2,
-      },
-      {
-        title: "Переехать в уютную квартиру",
-        price: 210000,
-        dayCost: 3,
-        hourCost: 10,
-        effect: "Уровень жилья 3 • Комфорт до 72 • Больше пассивного восстановления",
-        mood: "Дорогой, но очень сильный апгрейд качества жизни",
-        housingUpgradeLevel: 3,
-      },
-    ],
-  },
-  {
-    id: "shop",
-    label: "Магазин",
-    icon: "М",
-    accentKey: "accent",
-    title: "Быстрое восстановление",
-    subtitle: "Еда, бытовые мелочи и базовые покупки после рабочей смены.",
-    cards: [
-      { title: "Быстрый перекус", price: 150, dayCost: 1, hourCost: 0.5, effect: "Голод +35 • Энергия +10 • Стресс -5", mood: "На 5 минут и снова в ритм", statChanges: { hunger: 22, energy: 4, stress: -2 } },
-      { title: "Полноценный обед", price: 450, dayCost: 1, hourCost: 1, effect: "Голод +65 • Энергия +25 • Настроение +15", mood: "Самый стабильный вариант", statChanges: { hunger: 40, energy: 10, mood: 4 } },
-      { title: "Запас продуктов домой", price: 1200, dayCost: 1, hourCost: 1.5, effect: "Голод +25 • Настроение +8 • Комфорт дома +2", mood: "Небольшой буфер комфорта", statChanges: { hunger: 18, mood: 4 }, housingComfortDelta: 2 },
-    ],
-  },
-  {
-    id: "fun",
-    label: "Развлечения",
-    icon: "Р",
-    accentKey: "blue",
-    title: "Сбросить напряжение",
-    subtitle: "Сцены отдыха помогают стабилизировать стресс и настроение.",
-    cards: [
-      { title: "Вечер дома", price: 0, dayCost: 1, hourCost: 8, effect: "Энергия +55 • Настроение +20 • Стресс -25", mood: "Самый бережный отдых", statChanges: { energy: 30, mood: 10, stress: -12 } },
-      { title: "Кино или прогулка", price: 800, dayCost: 1, hourCost: 3, effect: "Энергия +30 • Настроение +45 • Стресс -30", mood: "Мягкий городской уют", statChanges: { energy: 8, mood: 18, stress: -10 } },
-      { title: "Спортзал", price: 1200, dayCost: 1, hourCost: 2, effect: "Энергия +40 • Настроение +35 • Стресс -35 • Форма +10", mood: "Хорошо для длинной дистанции", statChanges: { energy: -8, mood: 10, stress: -14, physical: 5, health: 2 } },
-    ],
-  },
-  {
-    id: "education",
-    label: "Обучение",
-    icon: "О",
-    accentKey: "accent",
-    title: "Развитие навыков",
-    subtitle: "Книги, курсы и образование открывают новые работы и повышают доход.",
-    cards: [
-      { title: "Книга по тайм-менеджменту", price: 900, dayCost: 1, hourCost: 2, effect: "Навык +1 • Стресс -5", mood: "Дешёвый и быстрый рост", statChanges: { stress: -3 }, skillChanges: { timeManagement: 1 } },
-      { title: "Онлайн-курс", price: 6500, dayCost: 4, hourCost: 16, effect: "Профессионализм +1 • Коммуникация +1 • Настроение +8", mood: "Средний темп с хорошей отдачей", statChanges: { mood: 5, energy: -15, stress: 6 }, skillChanges: { professionalism: 1, communication: 1 } },
-      { title: "Институт / переподготовка", price: 120000, dayCost: 7, hourCost: 40, effect: "Профессионализм +2 • ЗП за день +5% • Новая образовательная ступень", mood: "Долгий маршрут к сильной работе", statChanges: { energy: -22, stress: 12 }, skillChanges: { professionalism: 2 }, salaryMultiplierDelta: 0.05, educationLevel: "Высшее" },
-    ],
-  },
-  {
-    id: "social",
-    label: "Соц. жизнь",
-    icon: "С",
-    accentKey: "blue",
-    title: "Отношения и поддержка",
-    subtitle: "Связи снижают стресс, повышают настроение и создают долгосрочные бонусы.",
-    cards: [
-      { title: "Встретиться с другом", price: 500, dayCost: 1, hourCost: 3, effect: "Настроение +18 • Стресс -12 • Отношения +8", mood: "Надёжный способ перевести дух", statChanges: { mood: 14, stress: -8 }, relationshipDelta: 8 },
-      { title: "Позвонить родителям", price: 0, dayCost: 1, hourCost: 0.5, effect: "Настроение +10 • Стресс -8", mood: "Небольшой, но частый буст", statChanges: { mood: 6, stress: -4 }, relationshipDelta: 4 },
-      { title: "Свидание", price: 1800, dayCost: 1, hourCost: 4, effect: "Настроение +22 • Отношения +12", mood: "Для длинной эмоциональной линии", statChanges: { mood: 18, stress: -6 }, relationshipDelta: 12 },
-    ],
-  },
-  {
-    id: "finance",
-    label: "Финансы",
-    icon: "Ф",
-    accentKey: "sage",
-    title: "Деньги и планирование",
-    subtitle: "Финансовые решения влияют на стабильность, риски и будущий доход.",
-    cards: [
-      { title: "Отложить в резерв", price: 5000, dayCost: 1, hourCost: 1, effect: "Резерв +5 000 • Стресс -10 • Настроение +6", mood: "Снижает тревожность перед расходами", statChanges: { stress: -6, mood: 3 }, reserveDelta: 5000 },
-      { title: "Открыть депозит", price: 50000, dayCost: 1, hourCost: 2, effect: "Инвестиция +4 000 • Финансовая грамотность +1", mood: "Низкий риск, спокойный рост", investmentReturn: 4000, investmentDurationDays: 28, skillChanges: { financialLiteracy: 1 } },
-      { title: "Пересмотреть бюджет", price: 0, dayCost: 1, hourCost: 1, effect: "Стресс -8 • Финансовая грамотность +1", mood: "Хорошая рутина перед крупными целями", statChanges: { stress: -5, mood: 2 }, skillChanges: { financialLiteracy: 1 } },
-    ],
-  },
-];
-
-export const EDUCATION_PROGRAMS = [
-  {
-    id: "time_management_book",
-    title: "Книга по тайм-менеджменту",
-    subtitle: "Короткий и дешёвый способ подтянуть базовую дисциплину.",
-    typeLabel: "Книга",
-    cost: 900,
-    daysRequired: 2,
-    hoursRequired: 8,
-    accentKey: "accent",
-    rewardText: "Тайм-менеджмент +1 • Стресс -4",
-    completionStatChanges: { stress: -4 },
-    completionSkillChanges: { timeManagement: 1 },
-  },
-  {
-    id: "online_productivity_course",
-    title: "Онлайн-курс",
-    subtitle: "Несколько дней системного обучения с хорошей отдачей в работе.",
-    typeLabel: "Онлайн-курс",
-    cost: 6500,
-    daysRequired: 5,
-    hoursRequired: 24,
-    accentKey: "blue",
-    rewardText: "Профессионализм +1 • Коммуникация +1 • Настроение +8",
-    completionStatChanges: { mood: 8 },
-    completionSkillChanges: { professionalism: 1, communication: 1 },
-  },
-  {
-    id: "institute_retraining",
-    title: "Институт / переподготовка",
-    subtitle: "Длинный маршрут к новой ступени карьеры и более сильной базовой ставке.",
-    typeLabel: "Институт",
-    cost: 120000,
-    daysRequired: 8,
-    hoursRequired: 160,
-    accentKey: "sage",
-    rewardText: "Профессионализм +2 • ЗП за день +5% • Уровень образования: Высшее",
-    completionSkillChanges: { professionalism: 2 },
-    salaryMultiplierDelta: 0.05,
-    educationLevel: "Высшее",
-  },
-];
-
-export const CAREER_JOBS = [
-  {
-    id: "office_employee",
-    name: "Офисный сотрудник",
-    schedule: "5/2",
-    level: 1,
-    salaryPerDay: 8400,
-    salaryPerWeek: 42000,
-    minProfessionalism: 0,
-    minEducationRank: -1,
-    minAge: 16,
-  },
-  {
-    id: "project_coordinator",
-    name: "Координатор проектов",
-    schedule: "5/2",
-    level: 2,
-    salaryPerDay: 9800,
-    salaryPerWeek: 49000,
-    minProfessionalism: 3,
-    minEducationRank: -1,
-    minAge: 18,
-  },
-  {
-    id: "business_analyst",
-    name: "Бизнес-аналитик",
-    schedule: "5/2",
-    level: 3,
-    salaryPerDay: 12800,
-    salaryPerWeek: 64000,
-    minProfessionalism: 4,
-    minEducationRank: 0,
-    minAge: 21,
-  },
-  {
-    id: "team_lead",
-    name: "Тимлид",
-    schedule: "5/2",
-    level: 4,
-    salaryPerDay: 15600,
-    salaryPerWeek: 78000,
-    minProfessionalism: 6,
-    minEducationRank: 1,
-    minAge: 25,
-  },
-];
-
-export const EDUCATION_PATHS = [
-  {
-    id: "none",
-    label: "Сразу в жизнь",
-    description: "Пропустить образование и начать работать",
-    result: {
-      educationLevel: "Нет",
-      skills: {
-        timeManagement: 1,
-        communication: 1,
-        financialLiteracy: 1,
-      },
-      startAge: 18,
-    },
-  },
-  {
-    id: "school",
-    label: "Пройти школу",
-    description: "Мини-игра на 10-12 минут для получения базовых навыков",
-    result: {
-      educationLevel: "Среднее",
-      skills: {
-        timeManagement: 1,
-        communication: 1,
-        financialLiteracy: 1,
-        healthyLifestyle: 1,
-      },
-      startAge: 18,
-    },
-  },
-  {
-    id: "institute",
-    label: "Пройти школу + Институт",
-    description: "Полный путь образования с получением продвинутого навыка",
-    result: {
-      educationLevel: "Высшее",
-      skills: {
-        timeManagement: 1,
-        communication: 1,
-        financialLiteracy: 1,
-        healthyLifestyle: 1,
-        professionalism: 1,
-      },
-      startAge: 18,
-    },
-  },
-];
-
-export const HOUSING_LEVELS = [
-  {
-    level: 1,
-    name: "Студия",
-    baseComfort: 35,
-    monthlyHousingCost: 16000,
-    upgradePrice: 0,
-  },
-  {
-    level: 2,
-    name: "1-комнатная квартира",
-    baseComfort: 52,
-    monthlyHousingCost: 26000,
-    upgradePrice: 95000,
-  },
-  {
-    level: 3,
-    name: "Уютная квартира",
-    baseComfort: 72,
-    monthlyHousingCost: 38000,
-    upgradePrice: 210000,
-  },
-];
-
-const FINANCE_ACTIONS = [
-  {
-    id: "reserve_transfer",
-    title: "Пополнить резерв",
-    subtitle: "Переложить часть свободных денег в финансовую подушку.",
-    amount: 10000,
-    reserveDelta: 10000,
-    dayCost: 1,
-    hourCost: 1,
-    statChanges: { stress: -6, mood: 3 },
-    skillChanges: { financialLiteracy: 1 },
-    accentKey: "sage",
-    description: "Ликвидные деньги -10 000 ₽ • Резерв +10 000 ₽ • Стресс -10",
-  },
-  {
-    id: "open_deposit",
-    title: "Открыть вклад",
-    subtitle: "Заморозить капитал на 28 дней ради спокойного дохода.",
-    amount: 50000,
-    expectedReturn: 4000,
-    durationDays: 28,
-    dayCost: 1,
-    hourCost: 2,
-    statChanges: { stress: -3, mood: 2 },
-    skillChanges: { financialLiteracy: 1 },
-    accentKey: "blue",
-    description: "Ликвидные деньги -50 000 ₽ • Через 28 дней можно забрать 54 000 ₽",
-  },
-  {
-    id: "budget_review",
-    title: "Пересобрать бюджет",
-    subtitle: "Чуть снизить тревогу и подправить ежемесячные траты.",
-    amount: 0,
-    dayCost: 1,
-    hourCost: 1,
-    statChanges: { stress: -5, mood: 2 },
-    skillChanges: { financialLiteracy: 1 },
-    monthlyExpenseDelta: {
-      leisure: -800,
-      education: 400,
-    },
-    accentKey: "accent",
-    description: "Стресс -8 • Финансовая грамотность +1 • Расходы на досуг -1 000 ₽/мес",
-  },
-];
-
-const WORK_RESULT_TIERS = [
-  {
-    minClicks: 58,
-    grade: "Отличная смена",
-    description: "Высокий темп работы. День прошёл эффективно и без заметных потерь по качеству.",
-    color: "#4EBF7A",
-    salaryMultiplier: 0.18,
-    statChanges: { hunger: -16, energy: -18, stress: 8, mood: 6 },
-  },
-  {
-    minClicks: 40,
-    grade: "Стабильный результат",
-    description: "Нормальная продуктивность без перегрузки. Это надёжный базовый итог рабочей фазы.",
-    color: "#6D9DC5",
-    salaryMultiplier: 0,
-    statChanges: { hunger: -18, energy: -24, stress: 12, mood: -2 },
-  },
-  {
-    minClicks: 24,
-    grade: "Тяжёлая смена",
-    description: "Ритм просел. День закрыт, но с потерей темпа и более заметной усталостью.",
-    color: "#E8B94A",
-    salaryMultiplier: -0.12,
-    statChanges: { hunger: -22, energy: -30, stress: 18, mood: -8, health: -3 },
-  },
-  {
-    minClicks: 0,
-    grade: "Провальный темп",
-    description: "Смена прошла тяжело: ошибок больше, ресурсов меньше, а настроение проседает.",
-    color: "#D14D4D",
-    salaryMultiplier: -0.25,
-    statChanges: { hunger: -26, energy: -36, stress: 24, mood: -14, health: -6 },
-  },
-];
-
-const WORK_RANDOM_EVENTS = [
-  {
-    id: "deadline_push",
-    title: "Срочный дедлайн",
-    description: "Команде внезапно нужно закрыть задачу до конца дня. Можно впрячься самому или быстро собрать помощь.",
-    probability: 0.22,
-    cooldownDays: 20,
-    minClicks: 24,
-    choices: [
-      {
-        label: "Рвануть самому",
-        outcome: "Ты вытянул дедлайн ценой лишних сил, зато руководство это заметило.",
-        salaryMultiplier: 0.25,
-        statChanges: { energy: -20, stress: 15 },
-      },
-      {
-        label: "Собрать помощь",
-        outcome: "Коллеги включились в последний момент. Темп ниже, но нагрузка мягче.",
-        salaryMultiplier: 0.1,
-        statChanges: { energy: -10, stress: 6, mood: 4 },
-      },
-    ],
-  },
-  {
-    id: "colleague_help",
-    title: "Коллега помог",
-    description: "Сосед по отделу заметил, что ты тонешь в задачах, и предложил подхватить часть рутины.",
-    probability: 0.18,
-    cooldownDays: 16,
-    choices: [
-      {
-        label: "Принять помощь",
-        outcome: "Ты сохранил силы и закончил день спокойнее обычного.",
-        salaryMultiplier: 0.1,
-        statChanges: { mood: 10, stress: -4 },
-      },
-      {
-        label: "Справиться самому",
-        outcome: "Удалось доказать самостоятельность, но день вышел немного тяжелее.",
-        salaryMultiplier: 0.04,
-        statChanges: { stress: 6, energy: -8 },
-      },
-    ],
-  },
-  {
-    id: "tech_issues",
-    title: "Технические неполадки",
-    description: "Рабочий инструмент подвёл в середине смены. Можно задержаться и чинить процесс или смириться с потерями.",
-    probability: 0.2,
-    cooldownDays: 18,
-    choices: [
-      {
-        label: "Остаться и добить",
-        outcome: "Часть дня удалось спасти, но усталость заметно выросла.",
-        salaryMultiplier: -0.05,
-        statChanges: { energy: -12, stress: 8 },
-      },
-      {
-        label: "Сообщить и свернуть",
-        outcome: "Потери по деньгам выше, зато ты не выгорел окончательно.",
-        salaryMultiplier: -0.15,
-        statChanges: { energy: -6, mood: -4 },
-      },
-    ],
-  },
-  {
-    id: "mid_month_raise",
-    title: "Повышение в середине месяца",
-    description: "Руководитель отметил твой темп и предлагает чуть поднять ставку уже с этого дня.",
-    probability: 0.08,
-    cooldownDays: 90,
-    minClicks: 58,
-    requiresSkill: { professionalism: 2 },
-    choices: [
-      {
-        label: "Взять ответственность",
-        outcome: "Ставка выросла, но ожидания тоже стали выше.",
-        salaryMultiplier: 0.1,
-        permanentSalaryMultiplier: 0.05,
-        statChanges: { mood: 12, stress: 8 },
-      },
-      {
-        label: "Оставить как есть",
-        outcome: "Ты сохранил привычный ритм без дополнительной нагрузки.",
-        salaryMultiplier: 0,
-        statChanges: { stress: -2, mood: 2 },
-      },
-    ],
-  },
-  {
-    id: "strategy_session",
-    title: "Стратегическая сессия",
-    description: "Тебя позвали на встречу, где нужны не только руки, но и структурное мышление. Это шанс показать взрослый уровень.",
-    probability: 0.14,
-    cooldownDays: 28,
-    minClicks: 40,
-    requiresSkill: { professionalism: 4 },
-    requiresEducationRank: 1,
-    choices: [
-      {
-        label: "Вести обсуждение",
-        outcome: "Ты уверенно собрал аргументы и получил заметный плюс к доверию команды.",
-        salaryMultiplier: 0.16,
-        statChanges: { stress: 10, mood: 8 },
-      },
-      {
-        label: "Поддержать аналитикой",
-        outcome: "Ты сработал аккуратно и полезно, без лишнего давления на себя.",
-        salaryMultiplier: 0.08,
-        statChanges: { stress: 4, mood: 4 },
-      },
-    ],
-  },
-  {
-    id: "client_presentation",
-    title: "Презентация для клиента",
-    description: "Клиенту нужен понятный разбор ситуации. Здесь образование и коммуникация уже действительно влияют на исход.",
-    probability: 0.12,
-    cooldownDays: 24,
-    minClicks: 40,
-    requiresSkill: { communication: 3 },
-    requiresEducationRank: 1,
-    choices: [
-      {
-        label: "Выступить самому",
-        outcome: "Презентация вышла убедительной, и день принёс больше пользы, чем обычно.",
-        salaryMultiplier: 0.18,
-        statChanges: { mood: 10, energy: -8 },
-      },
-      {
-        label: "Собрать материалы",
-        outcome: "Ты не выходил на первый план, но обеспечил команде сильную базу.",
-        salaryMultiplier: 0.1,
-        statChanges: { stress: -2, energy: -4 },
-      },
-    ],
-  },
-];
-
-export const GLOBAL_PROGRESS_EVENTS = [
-  {
-    id: "weekly_bonus_moment",
-    type: "weekly",
-    title: "Конец недели",
-    description: "Неделя закрыта. Можно перевести дух, взять маленький бонус к настроению или спокойно спланировать следующую.",
-    choices: [
-      {
-        label: "Наградить себя",
-        outcome: "Небольшой ритуал завершения недели помогает не рассыпаться на дистанции.",
-        moneyDelta: -900,
-        statChanges: { mood: 12, stress: -8 },
-      },
-      {
-        label: "Планировать дальше",
-        outcome: "Ты сохранил деньги и чуть снизил тревогу перед следующими днями.",
-        statChanges: { stress: -5 },
-        skillChanges: { timeManagement: 1 },
-      },
-    ],
-  },
-  {
-    id: "weekly_friend_ping",
-    type: "weekly",
-    title: "Сообщение от друга",
-    description: "Под конец недели написал старый друг: зовёт выбраться на прогулку и выдохнуть после работы.",
-    choices: [
-      {
-        label: "Встретиться",
-        outcome: "Короткая встреча заметно подняла настроение и поддержала отношения.",
-        moneyDelta: -500,
-        statChanges: { mood: 10, stress: -6 },
-        relationshipDelta: 8,
-      },
-      {
-        label: "Ответить позже",
-        outcome: "Ты сохранил силы сегодня, но контакт чуть остыл.",
-        statChanges: { energy: 4 },
-        relationshipDelta: -3,
-      },
-    ],
-  },
-  {
-    id: "age_30_reunion",
-    type: "age",
-    title: "30 лет: встреча выпускников",
-    triggerAge: 30,
-    description: "Тебя приглашают на встречу выпускников. Можно сравнить свой путь с чужими историями и немного переосмыслить цель.",
-    choices: [
-      {
-        label: "Пойти",
-        outcome: "Вечер вышел тёплым и немного вдохновляющим.",
-        moneyDelta: -500,
-        statChanges: { mood: 12, stress: -4 },
-        skillChanges: { communication: 1 },
-      },
-      {
-        label: "Не идти",
-        outcome: "Ты сохранил спокойствие и остался в своём ритме.",
-        statChanges: { stress: -2 },
-      },
-    ],
-  },
-];
-
-export const FINANCE_EMERGENCY_EVENTS = [
-  {
-    id: "finance_reserve_warning",
-    title: "Резерв почти закончился",
-    description: "Подушка стала слишком тонкой. Пора решить, что важнее: срочно ужаться по тратам или удержать привычный ритм.",
-    choices: [
-      {
-        label: "Жёстко урезать досуг",
-        outcome: "Ты быстро стабилизировал бюджет, но настроение просело.",
-        statChanges: { stress: -4, mood: -6 },
-        skillChanges: { financialLiteracy: 1 },
-        monthlyExpenseDelta: { leisure: -2000 },
-      },
-      {
-        label: "Оставить как есть",
-        outcome: "Комфорт сохранился, но тревога о деньгах стала сильнее.",
-        statChanges: { stress: 8, mood: -2 },
-      },
-    ],
-  },
-  {
-    id: "finance_cash_gap",
-    title: "Кассовый разрыв месяца",
-    description: "Обязательные расходы съели почти всё. Нужно быстро решать, откуда взять воздух на следующий цикл.",
-    choices: [
-      {
-        label: "Переложить из резерва",
-        outcome: "Ты закрыл дыру за счёт подушки и немного снизил давление.",
-        statChanges: { stress: -3 },
-      },
-      {
-        label: "Сократить жильё",
-        outcome: "Решение неприятное, но бюджет станет заметно легче уже со следующего месяца.",
-        statChanges: { mood: -8, stress: 4 },
-        housingLevelDelta: -1,
-      },
-    ],
-  },
-];
 
 export function loadSave() {
   const stored = window.localStorage.getItem("game-life-save");
@@ -1243,7 +613,7 @@ export function getHousingOverview(saveData) {
 
 export function getFinanceActions(saveData) {
   const overview = getFinanceOverview(saveData);
-  return FINANCE_ACTIONS.map((action) => ({
+  return LEGACY_FINANCE_SCENE_ACTIONS.map((action) => ({
     ...action,
     available: overview.liquidMoney >= action.amount,
     reason: overview.liquidMoney >= action.amount ? "" : `Нужно ${formatMoney(action.amount)} ₽ свободных денег.`,
@@ -1251,7 +621,7 @@ export function getFinanceActions(saveData) {
 }
 
 export function applyFinanceActionToSave(saveData, actionId) {
-  const action = FINANCE_ACTIONS.find((item) => item.id === actionId);
+  const action = LEGACY_FINANCE_SCENE_ACTIONS.find((item) => item.id === actionId);
   if (!action) {
     return "Финансовое действие не найдено.";
   }
@@ -1422,7 +792,8 @@ function buildRecoverySummary(cardData, statChanges) {
     : Math.max(1, Number(cardData.dayCost ?? 1)) * 2;
   return [
     `${cardData.title} завершено.`,
-    `Потрачено: ${formatMoney(cardData.price)} ₽ • Время: ${hourCost} ч.`,
+    `Потрачено: ${formatMoney(cardData.price)} ₽`,
+    `Время: ${hourCost} ч.`,
     changes || "Шкалы без заметных изменений.",
   ].join("\n");
 }
@@ -1445,19 +816,7 @@ function buildWorkSummary(outcome, salary, statChanges, eventChoice, careerUpdat
 }
 
 function summarizeStatChanges(statChanges = {}) {
-  const defs = [
-    ["hunger", "Голод"],
-    ["energy", "Энергия"],
-    ["stress", "Стресс"],
-    ["mood", "Настроение"],
-    ["health", "Здоровье"],
-    ["physical", "Форма"],
-  ];
-
-  return defs
-    .filter(([key]) => statChanges?.[key])
-    .map(([key, label]) => `${label} ${statChanges[key] > 0 ? "+" : ""}${statChanges[key]}`)
-    .join(" • ");
+  return formatStatChangesBulletListRu(statChanges);
 }
 
 function pickWorkEvent(saveData, clickCount) {
@@ -1758,26 +1117,4 @@ function syncCareerProgress(saveData) {
   };
 
   return `Карьерный рост: новая должность «${unlockedJob.name}», ставка ${formatMoney(unlockedJob.salaryPerDay)} ₽ в день.`;
-}
-
-function getEducationRank(level) {
-  const map = {
-    "Нет": -1,
-    "Среднее": 0,
-    "Высшее": 1,
-    MBA: 2,
-  };
-
-  return map[level] ?? -1;
-}
-
-function getEducationLabelByRank(rank) {
-  const map = {
-    [-1]: "Нет",
-    0: "Среднее",
-    1: "Высшее",
-    2: "MBA",
-  };
-
-  return map[rank] ?? "Нет";
 }

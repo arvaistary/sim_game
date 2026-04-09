@@ -161,15 +161,22 @@ export function createModalCard(scene, options = {}) {
   } = options;
 
   const root = scene.add.container(0, 0);
-  const backdrop = scene.add.rectangle(0, 0, 10, 10, 0x3c2f2f, 0.32).setOrigin(0);
+  const backdrop = scene.add.rectangle(0, 0, 10, 10, 0x3c2f2f, 0.32).setOrigin(0).setInteractive();
   const panel = createRoundedPanel(scene, { panelAlpha: 1, radius: 24 });
   const illustration = scene.add.graphics();
-  const title = scene.add.text(0, 0, "", textStyle(24, COLORS.text, "700")).setOrigin(0.5, 0);
+  const title = scene.add
+    .text(0, 0, "", {
+      ...textStyle(24, COLORS.text, "700"),
+      align: "center",
+      wordWrap: { width: width - 48 },
+    })
+    .setOrigin(0.5, 0);
   const description = scene.add.text(0, 0, "", {
     ...textStyle(16, COLORS.text, "500"),
-    align: "center",
+    align: "left",
+    lineSpacing: 4,
     wordWrap: { width: width - 48 },
-  }).setOrigin(0.5, 0);
+  }).setOrigin(0, 0);
 
   const primaryButton = createRoundedButton(scene, {
     label: primaryLabel,
@@ -195,7 +202,33 @@ export function createModalCard(scene, options = {}) {
     const sceneWidth = gameSize.width;
     const sceneHeight = gameSize.height;
     const cardWidth = Math.min(width, sceneWidth - 36);
-    const cardHeight = Math.min(height, sceneHeight - 48);
+    const maxCardHeight = sceneHeight - 48;
+    const horizontalPad = 24;
+    const wrapW = cardWidth - horizontalPad * 2;
+    const topPad = 20;
+    const titleDescGap = 14;
+    const descButtonsGap = 16;
+    const bottomPad = 20;
+    const betweenButtons = 12;
+    const primaryH = 50;
+    const secondaryH = 46;
+    const bottomReserve = bottomPad + secondaryH + betweenButtons + primaryH + 8;
+
+    title.setStyle({
+      ...textStyle(24, COLORS.text, "700"),
+      align: "center",
+      wordWrap: { width: wrapW },
+    });
+    description.setStyle({
+      ...textStyle(16, COLORS.text, "500"),
+      align: "left",
+      lineSpacing: 4,
+      wordWrap: { width: wrapW },
+    });
+    description.setWordWrapWidth(wrapW);
+
+    const contentMinHeight = topPad + title.height + titleDescGap + description.height + descButtonsGap + bottomReserve;
+    const cardHeight = Math.min(Math.max(height, contentMinHeight), maxCardHeight);
     const x = (sceneWidth - cardWidth) / 2;
     const y = (sceneHeight - cardHeight) / 2;
 
@@ -203,17 +236,16 @@ export function createModalCard(scene, options = {}) {
     backdrop.height = sceneHeight;
     panel.resize(x, y, cardWidth, cardHeight, 24, 1);
 
-    // Position content with 16px top padding
-    title.setPosition(x + cardWidth / 2, y + 16);
-    description.setPosition(x + cardWidth / 2, y + 48).setWordWrapWidth(cardWidth - 48);
+    const centerX = x + cardWidth / 2;
+    title.setPosition(centerX, y + topPad);
+    description.setPosition(x + horizontalPad, title.y + title.height + titleDescGap);
 
-    // Position buttons with 16px bottom padding
-    secondaryButton.resize(cardWidth - 48, 46);
-    secondaryButton.setPosition(x + cardWidth / 2, y + cardHeight - 16 - 23);
-    primaryButton.resize(cardWidth - 48, 50);
-    primaryButton.setPosition(x + cardWidth / 2, y + cardHeight - 16 - 46 - 35);
+    secondaryButton.resize(cardWidth - 48, secondaryH);
+    const secondaryCenterY = y + cardHeight - bottomPad - secondaryH / 2;
+    secondaryButton.setPosition(centerX, secondaryCenterY);
+    primaryButton.resize(cardWidth - 48, primaryH);
+    primaryButton.setPosition(centerX, secondaryCenterY - secondaryH / 2 - betweenButtons - primaryH / 2);
 
-    // Hide illustration for this simpler layout
     illustration.setVisible(false);
   };
 
@@ -226,14 +258,21 @@ export function createModalCard(scene, options = {}) {
 
     primaryButton.hit.removeAllListeners("pointerup");
     secondaryButton.hit.removeAllListeners("pointerup");
+    const confirmHandler = config.onPrimary ?? config.onConfirm;
+    const cancelHandler = config.onSecondary ?? config.onCancel;
     primaryButton.hit.on("pointerup", () => {
-      config.onPrimary?.();
+      confirmHandler?.();
       if (config.closeOnPrimary !== false) {
         root.hide();
       }
     });
     secondaryButton.hit.on("pointerup", () => {
-      config.onSecondary?.();
+      cancelHandler?.();
+      root.hide();
+    });
+
+    backdrop.removeAllListeners("pointerup");
+    backdrop.on("pointerup", () => {
       root.hide();
     });
 
@@ -312,11 +351,16 @@ export function createToastMessage(scene, options = {}) {
   root.show = (message) => {
     text.setText(message);
     scene.tweens.killTweensOf(root);
-    root.setAlpha(0).setY(root.y + 8);
+    const ax = typeof root.layoutAnchorX === "number" ? root.layoutAnchorX : root.x;
+    const ay = typeof root.layoutAnchorY === "number" ? root.layoutAnchorY : root.y;
+    root.layoutAnchorX = ax;
+    root.layoutAnchorY = ay;
+    root.setPosition(ax, ay + 6);
+    root.setAlpha(0);
     scene.tweens.add({
       targets: root,
       alpha: 1,
-      y: root.y - 8,
+      y: ay,
       duration: 220,
       ease: "Cubic.easeOut",
       yoyo: true,

@@ -64,11 +64,8 @@ export function validateRecoveryAction(saveData, cardData) {
 
 // Временные экспорты для обратной совместимости
 // TODO: Удалить после полной миграции всех сцен
-export { 
-  RECOVERY_TABS,
-  formatMoney,
-  parseSchedule,
-} from '../../game-state.js';
+export { RECOVERY_TABS } from '../../balance/recovery-tabs.js';
+export { formatMoney, parseSchedule } from '../../game-state.js';
 
 // TODO: Эти функции должны быть заменены на ECS версии
 // Они оставлены для временной совместимости

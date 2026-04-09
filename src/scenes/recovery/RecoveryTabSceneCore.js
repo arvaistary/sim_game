@@ -11,9 +11,10 @@ import {
   createToastMessage,
   textStyle,
 } from '../../ui-kit';
-import { RECOVERY_TABS } from '../../game-state.js';
+import { RECOVERY_TABS } from '../../balance/recovery-tabs.js';
 import { getActionsByCategory } from '../../balance/actions/index.js';
 import { ActionSystem } from '../../ecs/systems/ActionSystem.js';
+import { getSkillByKey } from '../../balance/skills-constants.js';
 
 function formatEffectBulletText(effect) {
   const raw = (effect || '').trim();
@@ -25,6 +26,32 @@ function formatEffectBulletText(effect) {
 }
 
 const SCROLL_CARDS_BOTTOM_PAD = 50;
+const ITEM_REQUIREMENT_LABELS = {
+  fitness_membership: 'абонемент в фитнес-клуб',
+};
+
+function toReadableRequirementReason(reason) {
+  const raw = typeof reason === 'string' ? reason.trim() : '';
+  if (!raw) return '';
+
+  const skillMatch = raw.match(/^Нужен навык\s+([A-Za-z0-9_]+)\s*[≥>=]\s*(\d+)/);
+  if (skillMatch) {
+    const skillKey = skillMatch[1];
+    const requiredValue = skillMatch[2];
+    const skill = getSkillByKey(skillKey);
+    const skillLabel = skill?.label || skillKey;
+    return `Нужен навык: ${skillLabel} ≥ ${requiredValue}`;
+  }
+
+  const itemMatch = raw.match(/^Нужен предмет:\s*([A-Za-z0-9_]+)/);
+  if (itemMatch) {
+    const itemKey = itemMatch[1];
+    const itemLabel = ITEM_REQUIREMENT_LABELS[itemKey] || itemKey;
+    return `Нужен предмет: ${itemLabel}`;
+  }
+
+  return raw;
+}
 
 /**
  * Базовая сцена одного раздела восстановления (дом, магазин, развлечения, соц. жизнь).
@@ -208,7 +235,7 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
 
   createToast() {
     this.toast = createToastMessage(this, { width: 220, height: 48 });
-    this.root.add(this.toast);
+    this.toast.setDepth(25000);
   }
 
   createModals() {
@@ -318,7 +345,7 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
     // Причина недоступности (показывается только если действие недоступно)
     let reasonText = null;
     if (!availability.available) {
-      reasonText = this.add.text(0, 0, `⚠ ${availability.reason}`, {
+      reasonText = this.add.text(0, 0, `⚠ ${toReadableRequirementReason(availability.reason)}`, {
         ...textStyle(12, '#ff6b6b', '500'),
         wordWrap: { width: 320 },
         lineSpacing: 4,
@@ -462,9 +489,13 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
       return;
     }
     const time = world.getComponent(playerId, 'time');
+    const timeSystem = this.sceneAdapter.getSystem('time');
+    if (time && timeSystem?.normalizeTimeComponent) {
+      timeSystem.normalizeTimeComponent(time);
+    }
     const hourCost = this.resolveHourCost(cardData);
-    if (time && typeof time.dayHoursRemaining === 'number' && hourCost > time.dayHoursRemaining) {
-      this.showToast(`Недостаточно времени в сутках. Нужно ${hourCost} ч., осталось ${time.dayHoursRemaining} ч.`);
+    if (time && typeof time.weekHoursRemaining === 'number' && hourCost > time.weekHoursRemaining) {
+      this.showToast(`Недостаточно времени в неделе. Нужно ${hourCost} ч., осталось ${time.weekHoursRemaining} ч.`);
       return;
     }
 
@@ -575,7 +606,12 @@ export class RecoveryTabSceneCore extends Phaser.Scene {
 
     this.backButton.setPosition(this.contentCard.x + this.contentCard.width / 2, h - safeX - 36);
 
-    this.toast.setPosition(w / 2, h - 100);
+    const toastW = this.toast.widthValue ?? 220;
+    const toastX = (w - toastW) / 2;
+    const toastY = safeX + 20;
+    this.toast.layoutAnchorX = toastX;
+    this.toast.layoutAnchorY = toastY;
+    this.toast.setPosition(toastX, toastY);
 
     this.notificationModal.resize(gameSize);
   }

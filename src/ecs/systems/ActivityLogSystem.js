@@ -20,8 +20,8 @@ export const LOG_ENTRY_TYPES = {
   EDUCATION: 'education',
 };
 
-/** Максимальное количество хранимых записей */
-const MAX_ENTRIES = 500;
+/** Максимальное количество хранимых записей (старые удаляются) */
+const MAX_ENTRIES = 200;
 
 /**
  * Система логирования активности игрока
@@ -40,9 +40,19 @@ export class ActivityLogSystem {
 
     // Инициализировать компонент, если его нет
     this._ensureComponent();
+    this._trimEntriesIfNeeded();
 
     // Подписаться на события eventBus
     this._subscribeToEvents();
+  }
+
+  /** Усечь уже загруженный лог из сейва до MAX_ENTRIES (хвост — самые новые). */
+  _trimEntriesIfNeeded() {
+    const log = this._getLog();
+    if (!log?.entries?.length) return;
+    if (log.entries.length > MAX_ENTRIES) {
+      log.entries = log.entries.slice(-MAX_ENTRIES);
+    }
   }
 
   // ─── Публичные методы ────────────────────────────────────────────
@@ -103,21 +113,54 @@ export class ActivityLogSystem {
 
     const { limit = 50, offset = 0, type, sinceTotalHours } = options;
 
-    let filtered = log.entries;
-
-    if (type) {
-      filtered = filtered.filter(e => e.type === type);
-    }
-
-    if (typeof sinceTotalHours === 'number') {
-      filtered = filtered.filter(e => e.timestamp.totalHours > sinceTotalHours);
-    }
+    const filtered = this._filterEntries(log.entries, { type, sinceTotalHours });
 
     const total = filtered.length;
     const sliced = filtered.slice(offset, offset + limit);
     const hasMore = offset + limit < total;
 
     return { entries: sliced, total, hasMore };
+  }
+
+  /**
+   * Окно записей, заканчивающееся у «хвоста» списка (для журнала: сначала показываем последние).
+   * @param {object} [options]
+   * @param {number} [options.limit=50]
+   * @param {string|null} [options.type]
+   * @param {number} [options.endBefore] — индекс в отфильтрованном массиве (не включая); по умолчанию length
+   * @returns {{ entries: object[], total: number, hasMoreOlder: boolean, rangeStart: number, rangeEnd: number }}
+   */
+  getEntriesWindowEndingAt(options = {}) {
+    const log = this._getLog();
+    if (!log) {
+      return { entries: [], total: 0, hasMoreOlder: false, rangeStart: 0, rangeEnd: 0 };
+    }
+
+    const { limit = 50, type, sinceTotalHours, endBefore } = options;
+    const filtered = this._filterEntries(log.entries, { type, sinceTotalHours });
+    const total = filtered.length;
+    const end = typeof endBefore === 'number' ? Math.min(endBefore, total) : total;
+    const start = Math.max(0, end - limit);
+    const entries = filtered.slice(start, end);
+
+    return {
+      entries,
+      total,
+      hasMoreOlder: start > 0,
+      rangeStart: start,
+      rangeEnd: end,
+    };
+  }
+
+  _filterEntries(entries, { type, sinceTotalHours } = {}) {
+    let filtered = entries;
+    if (type) {
+      filtered = filtered.filter((e) => e.type === type);
+    }
+    if (typeof sinceTotalHours === 'number') {
+      filtered = filtered.filter((e) => e.timestamp.totalHours > sinceTotalHours);
+    }
+    return filtered;
   }
 
   /**

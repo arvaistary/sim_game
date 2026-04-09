@@ -83,7 +83,12 @@ export function getSleepDebtPenalty(sleepDebt) {
 export function calculateStatChanges(actionType, hours, flatStatChanges = {}, modifiers = {}, currentAge = 25, sleepDebt = 0) {
   const rates = HOURLY_RATES[actionType] || HOURLY_RATES.neutral;
   const agingMultiplier = getAgingPenalty(currentAge);
-  const sleepPenalty = getSleepDebtPenalty(sleepDebt);
+  const sleepPenaltyRaw = getSleepDebtPenalty(sleepDebt);
+  // Во время сна долг сна не должен «съедать» прирост энергии (иначе при 0 энергии и большом долге сон бесполезен)
+  const sleepPenalty =
+    actionType === 'sleep'
+      ? { ...sleepPenaltyRaw, energyPenalty: 0 }
+      : sleepPenaltyRaw;
 
   const result = {};
 

@@ -18,6 +18,10 @@ import { MigrationSystem } from '../systems/MigrationSystem.js';
 import { ActionSystem } from '../systems/ActionSystem.js';
 import { ActivityLogSystem } from '../systems/ActivityLogSystem.js';
 import { PLAYER_ENTITY } from '../components/index.js';
+import {
+  createWeeklySummaryQueuedEvent,
+  createYearlyReflectionQueuedEvent,
+} from '../../balance/game-events.js';
 
 /**
  * SceneAdapter - базовый класс для адаптации Phaser сцен к ECS
@@ -141,26 +145,11 @@ export class SceneAdapter {
   _setupTimeHooks() {
     // Недельные события
     this.systems.time.onWeeklyEvent((weekNumber) => {
-      this._queuePeriodicEvent({
-        id: 'weekly_summary',
-        type: 'weekly',
-        title: `Итоги недели #${weekNumber}`,
-        description: 'Неделя завершена. Подведите итоги и выберите фокус на следующую.',
-        choices: [
-          {
-            label: 'Восстановиться',
-            outcome: 'Вы дали себе немного выдохнуть.',
-            statChanges: { stress: -6, mood: 6 },
-          },
-          {
-            label: 'Сфокусироваться на работе',
-            outcome: 'Темп сохранён, но цена — чуть больше стресса.',
-            statChanges: { stress: 3 },
-            skillChanges: { professionalism: 1 },
-          },
-        ],
-        instanceId: `weekly_summary_${weekNumber}`,
-      });
+      this.systems.workPeriod.handleWeekRollover(weekNumber);
+    });
+
+    this.systems.time.onWeeklyEvent((weekNumber) => {
+      this._queuePeriodicEvent(createWeeklySummaryQueuedEvent(weekNumber));
     });
 
     // Месячные события
@@ -174,26 +163,7 @@ export class SceneAdapter {
     });
 
     this.systems.time.onYearlyEvent((yearNumber) => {
-      this._queuePeriodicEvent({
-        id: 'yearly_reflection',
-        type: 'yearly',
-        title: `Год ${yearNumber}: большой итог`,
-        description: 'Прошёл ещё один год. Время подвести большой итог и выбрать приоритет.',
-        choices: [
-          {
-            label: 'Сделать упор на здоровье',
-            outcome: 'Вы перераспределили фокус в пользу долгой дистанции.',
-            statChanges: { health: 8, stress: -6 },
-          },
-          {
-            label: 'Сделать упор на карьеру',
-            outcome: 'Карьерный темп растёт, но цена — выше нагрузка.',
-            statChanges: { stress: 6, mood: -2 },
-            skillChanges: { professionalism: 1 },
-          },
-        ],
-        instanceId: `yearly_reflection_${yearNumber}`,
-      });
+      this._queuePeriodicEvent(createYearlyReflectionQueuedEvent(yearNumber));
     });
   }
 

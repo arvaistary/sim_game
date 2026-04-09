@@ -178,21 +178,16 @@ describe('ActivityLogSystem', () => {
       expect(log.totalEntries).toBe(3);
     });
 
-    test('rotates entries when exceeding MAX_ENTRIES (500)', () => {
-      // Заполняем 502 записи
-      for (let i = 0; i < 502; i++) {
+    test('rotates entries when exceeding MAX_ENTRIES (200)', () => {
+      for (let i = 0; i < 202; i++) {
         system.addEntry({ type: LOG_ENTRY_TYPES.ACTION, title: `Entry ${i}` });
       }
 
       const log = mockWorld.getComponent('player', 'activity_log');
-      // После ротации должно быть 500 записей
-      expect(log.entries.length).toBe(500);
-      // totalEntries должен быть 502
-      expect(log.totalEntries).toBe(502);
-      // Первая запись теперь с id=2 (две старые удалены)
+      expect(log.entries.length).toBe(200);
+      expect(log.totalEntries).toBe(202);
       expect(log.entries[0].id).toBe(2);
-      // Последняя запись с id=501
-      expect(log.entries[499].id).toBe(501);
+      expect(log.entries[199].id).toBe(201);
     });
 
     test('includes timestamp from TIME_COMPONENT', () => {

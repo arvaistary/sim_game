@@ -50,6 +50,9 @@ const config = {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
+  dom: {
+    createContainer: true,
+  },
 };
 
 const game = new Phaser.Game(config);

@@ -8,6 +8,11 @@ import {
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { MONTHLY_EXPENSES_DEFAULT } from '../../balance/monthly-expenses-defaults.js';
+import {
+  EVENT_FINANCE_CASH_GAP,
+  EVENT_FINANCE_RESERVE_WARNING,
+  cloneQueuedEventTemplate,
+} from '../../balance/game-events.js';
 import { SkillsSystem } from './SkillsSystem.js';
 
 /**
@@ -70,27 +75,7 @@ export class MonthlySettlementSystem {
         });
       }
 
-      // Создаем событие дефицита
-      const cashGapEvent = {
-        id: 'finance_cash_gap',
-        type: 'emergency',
-        title: 'Кассовый разрыв месяца',
-        description: 'Обязательные расходы съели почти всё. Нужно быстро решить, откуда взять воздух на следующий цикл.',
-        choices: [
-          {
-            label: 'Переложить из резерва',
-            outcome: 'Ты закрыл дыру за счёт подушки и немного снизил давление.',
-            statChanges: { stress: -3 },
-          },
-          {
-            label: 'Сократить жильё',
-            outcome: 'Решение неприятное, но бюджет станет заметно легче уже со следующего месяца.',
-            statChanges: { mood: -8, stress: 4 },
-            housingLevelDelta: -1,
-          },
-        ],
-      };
-      this._queuePendingEvent(cashGapEvent);
+      this._queuePendingEvent(cloneQueuedEventTemplate(EVENT_FINANCE_CASH_GAP));
     } else if (reservePaid > 0 && stats) {
       // Небольшой стресс от использования резерва
       this._applyStatChanges(stats, {
@@ -112,27 +97,7 @@ export class MonthlySettlementSystem {
 
     // Проверяем уровень резерва и создаем предупреждение если нужно
     if ((finance.reserveFund ?? 0) < monthlyTotal * 0.35) {
-      const reserveWarningEvent = {
-        id: 'finance_reserve_warning',
-        type: 'emergency',
-        title: 'Резерв почти закончился',
-        description: 'Подушка стала слишком тонкой. Пора решить, что важнее: срочно ужаться по тратам или удержать привычный ритм.',
-        choices: [
-          {
-            label: 'Жёстко урезать досуг',
-            outcome: 'Ты быстро стабилизировал бюджет, но настроение просело.',
-            statChanges: { stress: -4, mood: -6 },
-            skillChanges: { financialLiteracy: 1 },
-            monthlyExpenseDelta: { leisure: -2000 },
-          },
-          {
-            label: 'Оставить как есть',
-            outcome: 'Комфорт сохранился, но тревога о деньгах стала сильнее.',
-            statChanges: { stress: 8, mood: -2 },
-          },
-        ],
-      };
-      this._queuePendingEvent(reserveWarningEvent);
+      this._queuePendingEvent(cloneQueuedEventTemplate(EVENT_FINANCE_RESERVE_WARNING));
     }
 
     // Логирование месячного расчёта

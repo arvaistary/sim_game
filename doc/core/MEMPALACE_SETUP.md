@@ -6,7 +6,7 @@
 
 - локальное Python-окружение: `.venv`
 - установлен пакет `mempalace`
-- npm-скрипты для запуска MemPalace через это окружение
+- npm-скрипты для запуска MemPalace через это окружение (лаунчер `scripts/mempalace.mjs` выставляет UTF-8 и работает из cmd и PowerShell)
 - локальное хранилище palace в `.mempalace/palace` (в git не коммитится)
 
 ## Быстрый запуск
@@ -46,7 +46,7 @@ npm run mem:status
 
 ```bash
 npm run mem:wakeup
-.venv\Scripts\python -m mempalace.cli --palace ./.mempalace/palace search "ключевые решения по теме задачи"
+npm run mem:search -- "ключевые решения по теме задачи"
 ```
 
 1. **Сформировать brief для ассистента**
@@ -80,11 +80,11 @@ npm run mem:status
 Чтобы быстро вытаскивать нужный контекст перед делегированием, используйте однотипные запросы:
 
 ```bash
-.venv\Scripts\python -m mempalace.cli --palace ./.mempalace/palace search "StartScene onboarding flow решение"
-.venv\Scripts\python -m mempalace.cli --palace ./.mempalace/palace search "education school institute balancing"
-.venv\Scripts\python -m mempalace.cli --palace ./.mempalace/palace search "career progression requirements salary"
-.venv\Scripts\python -m mempalace.cli --palace ./.mempalace/palace search "finance reserve monthly expenses events"
-.venv\Scripts\python -m mempalace.cli --palace ./.mempalace/palace search "ui-kit adaptive cards mobile layout"
+npm run mem:search -- "StartScene onboarding flow решение"
+npm run mem:search -- "education school institute balancing"
+npm run mem:search -- "career progression requirements salary"
+npm run mem:search -- "finance reserve monthly expenses events"
+npm run mem:search -- "ui-kit adaptive cards mobile layout"
 ```
 
 ## Skill + slash-команда для делегирования
@@ -114,12 +114,14 @@ npm run mem:status
 1. Агент выполнит задачу на основе brief.
 1. Агент повторно запишет новое знание в MemPalace (`mem:mine`).
 
-## Полезные команды напрямую
+## Полезные команды
 
 ```bash
-.venv\Scripts\python -m mempalace.cli --palace ./.mempalace/palace search "start scene education flow"
-.venv\Scripts\python -m mempalace.cli --palace ./.mempalace/palace compress --wing game_life
+npm run mem:search -- "start scene education flow"
+npm run mem -- compress --wing game_life
 ```
+
+Произвольная подкоманда CLI: `npm run mem -- <аргументы mempalace>` (корень проекта, palace `./.mempalace/palace`).
 
 ## Примечания
 

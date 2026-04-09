@@ -1,4 +1,5 @@
 import { STATS_COMPONENT, PLAYER_ENTITY } from '../components/index.js';
+import { formatStatChangesBulletListRu } from '../../shared/stat-changes-format.js';
 
 /**
  * Система управления статистикой
@@ -45,10 +46,7 @@ export class StatsSystem {
    * Создать строку с описанием изменений
    */
   summarizeStatChanges(statChanges = {}) {
-    return this.statDefs
-      .filter(([key]) => statChanges?.[key])
-      .map(([key, label]) => `${label} ${statChanges[key] > 0 ? '+' : ''}${statChanges[key]}`)
-      .join(' • ');
+    return formatStatChangesBulletListRu(statChanges);
   }
 
   /**

@@ -10,10 +10,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "mem:init": "cmd /c \"set PYTHONIOENCODING=utf-8&& echo.|.venv\\Scripts\\python -m mempalace.cli --palace ./.mempalace/palace init . --yes\"",
-    "mem:mine": "set PYTHONIOENCODING=utf-8&& .venv\\Scripts\\python -m mempalace.cli --palace ./.mempalace/palace mine .",
-    "mem:status": "set PYTHONIOENCODING=utf-8&& .venv\\Scripts\\python -m mempalace.cli --palace ./.mempalace/palace status",
-    "mem:wakeup": "set PYTHONIOENCODING=utf-8&& .venv\\Scripts\\python -m mempalace.cli --palace ./.mempalace/palace wake-up"
+    "mem": "node scripts/mempalace.mjs",
+    "mem:init": "node scripts/mempalace.mjs init . --yes",
+    "mem:mine": "node scripts/mempalace.mjs mine .",
+    "mem:status": "node scripts/mempalace.mjs status",
+    "mem:wakeup": "node scripts/mempalace.mjs wake-up",
+    "mem:search": "node scripts/mempalace.mjs search"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,49 @@
+/**
+ * Действия экрана «Финансы» в legacy game-state (getFinanceActions / applyFinanceActionToSave).
+ * Не путать с `balance/actions/finance-actions.js` — там ECS-реестр recovery-действий.
+ */
+export const LEGACY_FINANCE_SCENE_ACTIONS = [
+  {
+    id: 'reserve_transfer',
+    title: 'Пополнить резерв',
+    subtitle: 'Переложить часть свободных денег в финансовую подушку.',
+    amount: 10000,
+    reserveDelta: 10000,
+    dayCost: 1,
+    hourCost: 1,
+    statChanges: { stress: -6, mood: 3 },
+    skillChanges: { financialLiteracy: 1 },
+    accentKey: 'sage',
+    description: 'Ликвидные деньги -10 000 ₽ • Резерв +10 000 ₽ • Стресс -10',
+  },
+  {
+    id: 'open_deposit',
+    title: 'Открыть вклад',
+    subtitle: 'Заморозить капитал на 28 дней ради спокойного дохода.',
+    amount: 50000,
+    expectedReturn: 4000,
+    durationDays: 28,
+    dayCost: 1,
+    hourCost: 2,
+    statChanges: { stress: -3, mood: 2 },
+    skillChanges: { financialLiteracy: 1 },
+    accentKey: 'blue',
+    description: 'Ликвидные деньги -50 000 ₽ • Через 28 дней можно забрать 54 000 ₽',
+  },
+  {
+    id: 'budget_review',
+    title: 'Пересобрать бюджет',
+    subtitle: 'Чуть снизить тревогу и подправить ежемесячные траты.',
+    amount: 0,
+    dayCost: 1,
+    hourCost: 1,
+    statChanges: { stress: -5, mood: 2 },
+    skillChanges: { financialLiteracy: 1 },
+    monthlyExpenseDelta: {
+      leisure: -800,
+      education: 400,
+    },
+    accentKey: 'accent',
+    description: 'Стресс -8 • Финансовая грамотность +1 • Расходы на досуг -1 000 ₽/мес',
+  },
+];

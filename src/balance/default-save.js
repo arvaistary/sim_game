@@ -1,4 +1,4 @@
-/** Демо-сейв для ECS-сцен и тестов. Базовые значения при merge загрузки — в `game-state.js` (DEFAULT_SAVE). */
+/** Демо-сейв для ECS-сцен и тестов (не старт новой игры). Старт новой игры: `initial-save.js` → legacy `DEFAULT_SAVE` в `game-state.js`. */
 export const DEFAULT_SAVE = {
   version: '1.1.0',
   playerName: 'Алексей',

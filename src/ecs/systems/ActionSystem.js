@@ -17,6 +17,7 @@ import {
 } from '../components/index.js';
 import { StatsSystem } from './StatsSystem.js';
 import { SkillsSystem } from './SkillsSystem.js';
+import { resolveActivityLogDescription } from '../../shared/activity-log-formatters.js';
 
 /**
  * Система выполнения действий игрока
@@ -65,12 +66,15 @@ export class ActionSystem {
       }
     }
 
-    // Проверка времени
+    // Проверка времени: только недельный пул (как у рабочих смен), без лимита «остаток суток»
     const timeSystem = this._getTimeSystem();
-    if (timeSystem && timeSystem.getDayHoursRemaining) {
-      const remaining = timeSystem.getDayHoursRemaining();
-      if (action.hourCost > remaining) {
-        return { available: false, reason: `Не хватает времени (${action.hourCost}ч нужно, ${remaining.toFixed(1)}ч осталось)` };
+    if (timeSystem && typeof timeSystem.getWeekHoursRemaining === 'function') {
+      const weekLeft = timeSystem.getWeekHoursRemaining();
+      if (action.hourCost > weekLeft) {
+        return {
+          available: false,
+          reason: `Не хватает времени в неделе (${action.hourCost} ч нужно, ${Number(weekLeft.toFixed(1))} ч осталось)`,
+        };
       }
     }
 
@@ -229,10 +233,14 @@ export class ActionSystem {
       }
     }
 
-    // 7. Продвинуть время
+    // 7. Продвинуть время (сон — учёт sleepHours / sleepDebt в TimeSystem)
     const timeSystem = this._getTimeSystem();
     if (timeSystem && timeSystem.advanceHours) {
-      timeSystem.advanceHours(action.hourCost);
+      const isSleep = (action.actionType || '') === 'sleep';
+      timeSystem.advanceHours(action.hourCost, {
+        actionType: isSleep ? 'sleep' : 'default',
+        sleepHours: isSleep ? action.hourCost : 0,
+      });
     }
 
     // 8. Записать кулдаун
@@ -274,41 +282,35 @@ export class ActionSystem {
       this._addFurnitureItem(action.grantsItem);
     }
 
-    // Формировать summary
-    const parts = [];
-    if (statChanges) {
-      for (const [key, val] of Object.entries(statChanges)) {
-        if (val !== 0) parts.push(`${key}: ${val > 0 ? '+' : ''}${val.toFixed(1)}`);
-      }
-    }
-    if (action.skillChanges) {
-      for (const [key, val] of Object.entries(action.skillChanges)) {
-        parts.push(`${key}: +${val}`);
-      }
-    }
+    // Формировать summary в человекочитаемом формате
+    const actionEntryDraft = {
+      type: 'action',
+      description: '',
+      metadata: {
+        statChanges,
+        moneyDelta: -(action.price || 0),
+        skillChanges: action.skillChanges || null,
+        hoursSpent: action.hourCost || 0,
+      },
+    };
+    const normalizedDescription = resolveActivityLogDescription(actionEntryDraft);
 
     // Логирование действия в ActivityLog
     if (this.world && this.world.eventBus) {
       this.world.eventBus.dispatchEvent(new CustomEvent('activity:action', {
         detail: {
           category: action.category || action.actionSource || 'general',
-          title: `📝 ${action.label || action.name || action.id}`,
-          description: parts.join(', ') || action.effect || '',
+          title: `📝 ${action.title || action.label || action.name || action.id}`,
+          description: normalizedDescription || action.effect || '',
           icon: action.icon || null,
-          metadata: {
-            actionId: action.id,
-            statChanges,
-            moneyDelta: -(action.price || 0),
-            skillChanges: action.skillChanges || null,
-            hoursSpent: action.hourCost || 0,
-          },
+          metadata: { actionId: action.id, ...actionEntryDraft.metadata },
         },
       }));
     }
 
     return {
       success: true,
-      summary: parts.join(', ') || action.effect,
+      summary: normalizedDescription || action.effect,
     };
   }
 

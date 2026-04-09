@@ -7,6 +7,7 @@ import {
   STATS_COMPONENT,
   WALLET_COMPONENT,
 } from '../components/index.js';
+import { MICRO_EVENT_BY_ACTION, buildMicroQueuedEvent } from '../../balance/game-events.js';
 
 /**
  * Система управления временем
@@ -25,20 +26,6 @@ export class TimeSystem {
     this.yearlyEventCallbacks = [];
     this.ageEventCallbacks = [];
 
-    this.microEventDefinitions = {
-      buy_groceries: {
-        id: 'micro_robbery_market',
-        baseChance: 0.01,
-        title: 'Подозрительные люди у магазина',
-        description: 'Возле магазина вас попытались ограбить.',
-      },
-      default: {
-        id: 'micro_street_encounter',
-        baseChance: 0.03,
-        title: 'Случайная встреча',
-        description: 'Небольшое случайное событие в течение дня.',
-      },
-    };
   }
 
   init(world) {
@@ -51,6 +38,22 @@ export class TimeSystem {
 
   update() {
     // Время в игре продвигается действиями игрока через advanceHours().
+  }
+
+  /** Остаток часов в текущих сутках (после нормализации по totalHours). */
+  getDayHoursRemaining() {
+    const timeComponent = this.world?.getComponent(PLAYER_ENTITY, TIME_COMPONENT);
+    if (!timeComponent) return 0;
+    this.normalizeTimeComponent(timeComponent);
+    return timeComponent.dayHoursRemaining;
+  }
+
+  /** Остаток часов в текущей 168-часовой неделе. */
+  getWeekHoursRemaining() {
+    const timeComponent = this.world?.getComponent(PLAYER_ENTITY, TIME_COMPONENT);
+    if (!timeComponent) return 0;
+    this.normalizeTimeComponent(timeComponent);
+    return timeComponent.weekHoursRemaining;
   }
 
   /**
@@ -66,14 +69,14 @@ export class TimeSystem {
 
     const totalHours = Math.max(0, Math.floor(timeComponent.totalHours));
     const totalDays = Math.floor(totalHours / this.HOURS_IN_DAY);
-    const totalWeeks = Math.max(1, Math.floor(totalHours / this.HOURS_IN_WEEK));
-    const totalMonths = Math.max(1, Math.floor(totalWeeks / this.WEEKS_IN_MONTH));
-    const totalYears = Number((totalMonths / this.MONTHS_IN_YEAR).toFixed(1));
+    // 1-я игровая неделя = часы [0..167], 2-я = [168..335]; иначе rollover недели и хуки не срабатывают.
+    const weekIndex0 = Math.floor(totalHours / this.HOURS_IN_WEEK);
+    const monthIndex0 = Math.floor(weekIndex0 / this.WEEKS_IN_MONTH);
 
     timeComponent.gameDays = totalDays;
-    timeComponent.gameWeeks = totalWeeks;
-    timeComponent.gameMonths = totalMonths;
-    timeComponent.gameYears = totalYears;
+    timeComponent.gameWeeks = weekIndex0 + 1;
+    timeComponent.gameMonths = monthIndex0 + 1;
+    timeComponent.gameYears = Number(((monthIndex0 + 1) / this.MONTHS_IN_YEAR).toFixed(1));
     timeComponent.currentAge = (timeComponent.startAge ?? 18) + Math.floor(totalDays / this.DAYS_IN_AGE_YEAR);
 
     timeComponent.hourOfDay = ((totalHours % this.HOURS_IN_DAY) + this.HOURS_IN_DAY) % this.HOURS_IN_DAY;
@@ -94,14 +97,29 @@ export class TimeSystem {
       timeComponent.eventState.cooldownByEventId = {};
     }
     if (typeof timeComponent.eventState.lastWeeklyEventWeek !== 'number') {
-      timeComponent.eventState.lastWeeklyEventWeek = Math.max(0, totalWeeks - 1);
+      timeComponent.eventState.lastWeeklyEventWeek = Math.max(0, weekIndex0);
     }
     if (typeof timeComponent.eventState.lastMonthlyEventMonth !== 'number') {
-      timeComponent.eventState.lastMonthlyEventMonth = Math.max(0, totalMonths - 1);
+      timeComponent.eventState.lastMonthlyEventMonth = Math.max(0, monthIndex0);
     }
     if (typeof timeComponent.eventState.lastYearlyEventYear !== 'number') {
-      timeComponent.eventState.lastYearlyEventYear = Math.max(0, Math.floor(totalMonths / this.MONTHS_IN_YEAR));
+      timeComponent.eventState.lastYearlyEventYear = Math.max(0, Math.floor(monthIndex0 / this.MONTHS_IN_YEAR));
     }
+  }
+
+  /**
+   * Индекс календарного года (0-based) из 1-based счётчика месяцев игры (1 = первый месяц).
+   */
+  _calendarYearIndex0FromMonth(month1Based) {
+    const m = Math.max(1, Math.floor(Number(month1Based) || 1));
+    return Math.floor((m - 1) / this.MONTHS_IN_YEAR);
+  }
+
+  /**
+   * Номер календарного года для UI (1-based): месяцы 1–12 → год 1, 13–24 → год 2.
+   */
+  _displayCalendarYearFromMonth(month1Based) {
+    return this._calendarYearIndex0FromMonth(month1Based) + 1;
   }
 
   /**
@@ -121,7 +139,7 @@ export class TimeSystem {
 
     const previousWeek = timeComponent.gameWeeks;
     const previousMonth = timeComponent.gameMonths;
-    const previousYearIndex = Math.floor(previousMonth / this.MONTHS_IN_YEAR);
+    const previousYearIndex = this._calendarYearIndex0FromMonth(previousMonth);
     const previousAge = timeComponent.currentAge;
     const previousDay = timeComponent.gameDays;
 
@@ -157,17 +175,20 @@ export class TimeSystem {
         events.monthly.push(month);
         this._triggerMonthlyEvents(month);
 
-        // Логирование смены месяца
+        // Логирование смены месяца (month — абсолютный 1-based; в тексте — месяц внутри года)
         if (this.world && this.world.eventBus) {
+          const monthInYear = ((month - 1) % this.MONTHS_IN_YEAR) + 1;
+          const calendarYear = this._displayCalendarYearFromMonth(month);
           this.world.eventBus.dispatchEvent(new CustomEvent('activity:time', {
             detail: {
               category: 'new_month',
               title: '🗓️ Новый месяц',
-              description: `Начался ${month}й месяц ${Math.floor(month / this.MONTHS_IN_YEAR)}го года. Возраст: ${timeComponent.currentAge}`,
+              description: `Начался ${monthInYear}-й месяц ${calendarYear}-го года. Возраст: ${timeComponent.currentAge}`,
               icon: null,
               metadata: {
                 month,
-                year: Math.floor(month / this.MONTHS_IN_YEAR),
+                monthInYear,
+                year: calendarYear,
                 age: timeComponent.currentAge,
                 totalHours: timeComponent.totalHours,
               },
@@ -177,23 +198,23 @@ export class TimeSystem {
       }
     }
 
-    const currentYearIndex = Math.floor(timeComponent.gameMonths / this.MONTHS_IN_YEAR);
+    const currentYearIndex = this._calendarYearIndex0FromMonth(timeComponent.gameMonths);
     if (currentYearIndex > previousYearIndex) {
-      for (let year = previousYearIndex + 1; year <= currentYearIndex; year += 1) {
-        events.yearly.push(year);
-        this._triggerYearlyEvents(year);
+      for (let yi = previousYearIndex + 1; yi <= currentYearIndex; yi += 1) {
+        const displayYear = yi + 1;
+        events.yearly.push(displayYear);
+        this._triggerYearlyEvents(displayYear);
 
-        // Логирование смены года
         if (this.world && this.world.eventBus) {
           this.world.eventBus.dispatchEvent(new CustomEvent('activity:time', {
             detail: {
               category: 'new_year',
               title: '🎆 Новый год',
-              description: `Начался ${year}й год. Возраст: ${timeComponent.currentAge}`,
+              description: `Начался ${displayYear}-й календарный год. Возраст: ${timeComponent.currentAge}`,
               icon: null,
               metadata: {
                 month: timeComponent.gameMonths,
-                year,
+                year: displayYear,
                 age: timeComponent.currentAge,
                 totalHours: timeComponent.totalHours,
               },
@@ -277,7 +298,7 @@ export class TimeSystem {
     const wallet = this.world.getComponent(playerId, WALLET_COMPONENT) || {};
     if (!time || !queue) return null;
 
-    const def = this.microEventDefinitions[actionType] || this.microEventDefinitions.default;
+    const def = MICRO_EVENT_BY_ACTION[actionType] || MICRO_EVENT_BY_ACTION.default;
     const riskByMoney = (wallet.money ?? 0) > 150000 ? 1.25 : 1;
     const riskByStress = (stats?.stress ?? 0) >= 75 ? 1.2 : 1;
     const riskByEnergy = (stats?.energy ?? 50) <= 25 ? 1.15 : 1;
@@ -315,54 +336,7 @@ export class TimeSystem {
   _buildMicroEvent(def, actionType) {
     const playerId = PLAYER_ENTITY;
     const time = this.world.getComponent(playerId, TIME_COMPONENT);
-    const instanceId = `${def.id}_${time.totalHours}`;
-
-    if (def.id === 'micro_robbery_market') {
-      return {
-        ...def,
-        type: 'micro',
-        actionSource: actionType,
-        instanceId,
-        choices: [
-          {
-            label: 'Попытаться убежать',
-            outcome: 'Вы рванули с места. Всё решает подготовка и реакция.',
-            skillCheck: {
-              key: 'physicalFitness',
-              threshold: 4,
-              successStatChanges: { stress: -4, mood: 2 },
-              failStatChanges: { health: -6, stress: 8, mood: -4 },
-              failMoneyDelta: -1200,
-            },
-          },
-          {
-            label: 'Отдать часть денег',
-            outcome: 'Конфликт не обострился, но кошелёк похудел.',
-            moneyDelta: -900,
-            statChanges: { stress: 5, mood: -2 },
-          },
-        ],
-      };
-    }
-
-    return {
-      ...def,
-      type: 'micro',
-      actionSource: actionType,
-      instanceId,
-      choices: [
-        {
-          label: 'Реагировать спокойно',
-          outcome: 'Вы выбрали спокойный вариант и сохранили темп.',
-          statChanges: { stress: -3, mood: 2 },
-        },
-        {
-          label: 'Проигнорировать',
-          outcome: 'Ничего критичного не произошло, но остался осадок.',
-          statChanges: { stress: 2 },
-        },
-      ],
-    };
+    return buildMicroQueuedEvent(def, actionType, time.totalHours);
   }
 
   _clampChance(value) {

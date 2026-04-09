@@ -7,6 +7,7 @@ import {
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { SkillsSystem } from './SkillsSystem.js';
+import { formatStatChangesBulletListRu } from '../../shared/stat-changes-format.js';
 
 const FINANCE_ACTIONS = [
   {
@@ -147,20 +148,23 @@ export class FinanceActionSystem {
     if (!overview) {
       return [];
     }
-    const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT);
+    const time = this._normalizePlayerTime();
 
-    return this.financeActions.map(action => ({
-      ...action,
-      available:
-        overview.liquidMoney >= action.amount &&
-        (!time || typeof time.dayHoursRemaining !== 'number' || this._resolveHourCost(action) <= time.dayHoursRemaining),
-      reason:
-        overview.liquidMoney < action.amount
-          ? `Нужно ${this._formatMoney(action.amount)} ₽ свободных денег.`
-          : (time && typeof time.dayHoursRemaining === 'number' && this._resolveHourCost(action) > time.dayHoursRemaining
-            ? `Недостаточно времени в сутках. Нужно ${this._resolveHourCost(action)} ч., осталось ${time.dayHoursRemaining} ч.`
-            : ''),
-    }));
+    return this.financeActions.map((action) => {
+      const cost = this._resolveHourCost(action);
+      const weekBlocked =
+        time && typeof time.weekHoursRemaining === 'number' && cost > time.weekHoursRemaining;
+      return {
+        ...action,
+        available: overview.liquidMoney >= action.amount && !weekBlocked,
+        reason:
+          overview.liquidMoney < action.amount
+            ? `Нужно ${this._formatMoney(action.amount)} ₽ свободных денег.`
+            : weekBlocked
+              ? `Недостаточно времени в неделе. Нужно ${cost} ч., осталось ${time.weekHoursRemaining} ч.`
+              : '',
+      };
+    });
   }
 
   /**
@@ -184,6 +188,14 @@ export class FinanceActionSystem {
       return { success: false, message: `Недостаточно свободных денег. Нужно ${this._formatMoney(action.amount)} ₽.` };
     }
 
+    const timePrecheck = this._normalizePlayerTime();
+    const hourCost = this._resolveHourCost(action);
+    if (timePrecheck && typeof timePrecheck.weekHoursRemaining === 'number' && hourCost > timePrecheck.weekHoursRemaining) {
+      return {
+        success: false,
+        message: `Недостаточно времени в неделе. Нужно ${hourCost} ч., осталось ${timePrecheck.weekHoursRemaining} ч.`,
+      };
+    }
     if (action.id === 'reserve_transfer') {
       wallet.money -= action.amount;
       finance.reserveFund = Math.max(0, (finance.reserveFund ?? 0) + action.reserveDelta);
@@ -319,19 +331,7 @@ export class FinanceActionSystem {
    * Суммировать изменения статов
    */
   _summarizeStatChanges(statChanges = {}) {
-    const defs = [
-      ['hunger', 'Голод'],
-      ['energy', 'Энергия'],
-      ['stress', 'Стресс'],
-      ['mood', 'Настроение'],
-      ['health', 'Здоровье'],
-      ['physical', 'Форма'],
-    ];
-
-    return defs
-      .filter(([key]) => statChanges?.[key])
-      .map(([key, label]) => `${label} ${statChanges[key] > 0 ? '+' : ''}${statChanges[key]}`)
-      .join(' • ');
+    return formatStatChangesBulletListRu(statChanges);
   }
 
   /**
@@ -346,6 +346,15 @@ export class FinanceActionSystem {
    */
   _formatMoney(value) {
     return new Intl.NumberFormat('ru-RU').format(value);
+  }
+
+  _normalizePlayerTime() {
+    const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT);
+    const timeSystem = this.world.systems?.find((s) => typeof s.normalizeTimeComponent === 'function');
+    if (time && timeSystem) {
+      timeSystem.normalizeTimeComponent(time);
+    }
+    return time;
   }
 
   _resolveHourCost(action) {

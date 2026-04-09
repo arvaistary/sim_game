@@ -330,9 +330,11 @@ export class GameStateAdapter {
       Number(save.time?.totalHours) ||
       (Number(save.gameDays ?? 0) * 24);
     const gameDays = Math.floor(totalHours / 24);
-    const gameWeeks = Math.max(1, Math.floor(totalHours / 168));
-    const gameMonths = Math.max(1, Math.floor(gameWeeks / 4));
-    const gameYears = Number((gameMonths / 12).toFixed(1));
+    const weekIndex0 = Math.floor(totalHours / 168);
+    const monthIndex0 = Math.floor(weekIndex0 / 4);
+    const gameWeeks = weekIndex0 + 1;
+    const gameMonths = monthIndex0 + 1;
+    const gameYears = Number(((monthIndex0 + 1) / 12).toFixed(1));
 
     return {
       totalHours,

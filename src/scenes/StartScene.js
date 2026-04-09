@@ -1,8 +1,6 @@
 import Phaser from 'phaser';
-import {
-  DEFAULT_SAVE,
-  EDUCATION_PATHS,
-} from '../game-state.js';
+import { DEFAULT_SAVE } from '../game-state.js';
+import { EDUCATION_PATHS } from '../balance/education-paths.js';
 import { PersistenceSystem } from '../ecs/systems/PersistenceSystem.js';
 import {
   COLORS,

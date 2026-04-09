@@ -22,8 +22,9 @@ Use this skill when the user provides a new task description and wants the agent
    - `npm run mem:status`
    - `npm run mem:wakeup`
 2. Build 3-6 focused queries from the task (domain terms, scene names, systems, constraints).
-3. Run MemPalace search for each query:
-   - `.venv\Scripts\python -m mempalace.cli --palace ./.mempalace/palace search "<query>"`
+3. Run MemPalace search for each query (UTF-8 лаунчер, без ошибок cp1251 на Windows):
+   - `npm run mem:search -- "<query>"`
+   - Любая подкоманда CLI: `npm run mem -- <args…>` (например `npm run mem -- compress --wing game_life`).
 4. Produce a concise execution brief with:
    - Objective
    - Relevant prior decisions from memory

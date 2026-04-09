@@ -7,10 +7,10 @@ import {
   createRoundedPanel,
   textStyle,
 } from '../ui-kit';
+import { resolveActivityLogDescription, resolveActivityLogTitle } from '../shared/activity-log-formatters.js';
 
 // ─── Константы ────────────────────────────────────────────────────────
 
-const SCENE_BG = 0x1a1a2e;
 const PAGE_SIZE = 30;
 const LOAD_THRESHOLD = 200;
 const CARD_BOTTOM_PAD = 40;
@@ -29,18 +29,18 @@ const FILTERS = [
 
 /** Цвета фона карточек по типу записи */
 const TYPE_COLORS = {
-  action: 0x2a3a2a,
-  event: 0x3a2a3a,
-  finance: 0x3a3a2a,
-  career: 0x2a2a3a,
-  prevented: 0x3a2a2a,
-  education: 0x2a3a3a,
-  time: 0x333333,
-  stat_change: 0x2d2d2d,
-  skill_change: 0x2d2d2d,
-  navigation: 0x2d2d2d,
+  action: 0xf5ede6,
+  event: 0xf0eaf4,
+  finance: 0xf4f0e6,
+  career: 0xeaf0f4,
+  prevented: 0xf4eaea,
+  education: 0xeaf4f0,
+  time: 0xf2efea,
+  stat_change: 0xf0eded,
+  skill_change: 0xf0eded,
+  navigation: 0xf0eded,
 };
-const DEFAULT_CARD_COLOR = 0x2d2d2d;
+const DEFAULT_CARD_COLOR = 0xf0eded;
 
 // ─── Сцена ────────────────────────────────────────────────────────────
 
@@ -61,10 +61,10 @@ export class ActivityLogScene extends Phaser.Scene {
 
     this.activityLogSystem = this.sceneAdapter.getSystem('activityLog');
 
-    // Состояние пагинации
+    // Состояние пагинации (окно от «хвоста» лога; старее — при прокрутке вверх)
     this.activeFilter = null;
-    this.currentOffset = 0;
-    this.hasMore = true;
+    this.logRangeStart = 0;
+    this.hasMoreOlder = false;
     this.isLoading = false;
     this.entryCards = [];
 
@@ -76,13 +76,14 @@ export class ActivityLogScene extends Phaser.Scene {
     this.scrollTouch = { active: false, startY: 0, startScroll: 0, moved: false };
 
     // UI
-    this.cameras.main.setBackgroundColor(SCENE_BG);
+    this.cameras.main.setBackgroundColor(COLORS.background);
     this.root = this.add.container(0, 0);
 
     this.createHeader();
     this.createFilterBar();
     this.createScrollArea();
     this.createBackButton();
+    this.filterBarHeight = 32;
 
     // Обработчики ввода
     this.scale.on('resize', this.handleResize, this);
@@ -99,37 +100,28 @@ export class ActivityLogScene extends Phaser.Scene {
       this.input.off('pointerup', this.onPointerUp, this);
     });
 
-    // Первая загрузка записей
-    this.loadEntries(true);
+    // Первая загрузка записей (последняя страница + скролл вниз)
     this.handleResize(this.scale.gameSize);
+    this.loadEntries(true);
     this.animateEntrance();
   }
 
   // ── Заголовок ─────────────────────────────────────────────────────
 
   createHeader() {
-    this.headerPanel = createRoundedPanel(this, {
-      fillColor: 0x252545,
-      lineColor: 0x3a3a5e,
-      shadowColor: 0x111122,
-      panelAlpha: 1,
-      radius: 14,
-      shadowAlpha: 0.3,
-    });
+    this.headerPanel = createRoundedPanel(this, { panelAlpha: 1, radius: 18, shadowAlpha: 0.22 });
     this.root.add(this.headerPanel);
 
-    this.headerTitle = this.add.text(0, 0, '📋 Журнал событий', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#ffffff',
-      fontStyle: 'bold',
-    });
+    this.headerTitle = this.add.text(0, 0, '📋 Журнал событий', textStyle(24, COLORS.text, '700'));
     this.root.add(this.headerTitle);
   }
 
   // ── Панель фильтров ───────────────────────────────────────────────
 
   createFilterBar() {
+    this.filterPanel = createRoundedPanel(this, { panelAlpha: 1, radius: 18, shadowAlpha: 0.22 });
+    this.root.add(this.filterPanel);
+
     this.filterContainer = this.add.container(0, 0);
     this.root.add(this.filterContainer);
 
@@ -148,47 +140,43 @@ export class ActivityLogScene extends Phaser.Scene {
   _createFilterButton(filter) {
     const container = this.add.container(0, 0);
 
-    const bg = this.add.rectangle(0, 0, 90, 32, 0x333355, 1).setOrigin(0.5);
-    bg.setStrokeStyle(1, 0x555577);
-    bg.setInteractive({ useHandCursor: true });
+    const bg = this.add.graphics();
+    const hit = this.add.rectangle(0, 0, 90, 32, 0x000000, 0).setOrigin(0);
+    hit.setInteractive({ useHandCursor: true });
 
-    const label = this.add.text(0, 0, filter.label, {
-      fontFamily: 'Arial',
-      fontSize: '13px',
-      color: '#cccccc',
-    }).setOrigin(0.5);
+    const label = this.add.text(0, 0, filter.label, textStyle(13, COLORS.text, '500')).setOrigin(0.5);
 
-    container.add([bg, label]);
+    container.add([bg, label, hit]);
+    const btn = { container, bg, hit, label, filter, width: 90, height: 32 };
+    this._renderFilterButton(btn, COLORS.neutral, 1, COLORS.line);
 
-    bg.on('pointerdown', () => {
+    hit.on('pointerdown', () => {
       this._onFilterClick(filter);
     });
 
     // Hover-эффект
-    bg.on('pointerover', () => {
+    hit.on('pointerover', () => {
       if (this.activeFilter !== filter.type) {
-        bg.setFillStyle(0x444466);
+        this._renderFilterButton(btn, COLORS.accentSoft, 1, COLORS.line);
       }
     });
-    bg.on('pointerout', () => {
+    hit.on('pointerout', () => {
       if (this.activeFilter !== filter.type) {
-        bg.setFillStyle(0x333355);
+        this._renderFilterButton(btn, COLORS.neutral, 1, COLORS.line);
       }
     });
 
-    return { container, bg, label, filter };
+    return btn;
   }
 
   _highlightFilter(activeIndex) {
     this.filterButtons.forEach((btn, i) => {
       if (i === activeIndex) {
-        btn.bg.setFillStyle(0x5555aa);
-        btn.bg.setStrokeStyle(2, 0x8888dd);
-        btn.label.setColor('#ffffff');
+        this._renderFilterButton(btn, COLORS.accent, 2, COLORS.accent);
+        btn.label.setStyle(textStyle(13, COLORS.white, '600'));
       } else {
-        btn.bg.setFillStyle(0x333355);
-        btn.bg.setStrokeStyle(1, 0x555577);
-        btn.label.setColor('#cccccc');
+        this._renderFilterButton(btn, COLORS.neutral, 1, COLORS.line);
+        btn.label.setStyle(textStyle(13, COLORS.text, '500'));
       }
     });
   }
@@ -207,14 +195,7 @@ export class ActivityLogScene extends Phaser.Scene {
   // ── Область скролла ───────────────────────────────────────────────
 
   createScrollArea() {
-    this.scrollPanel = createRoundedPanel(this, {
-      fillColor: 0x20203a,
-      lineColor: 0x3a3a5e,
-      shadowColor: 0x111122,
-      panelAlpha: 1,
-      radius: 14,
-      shadowAlpha: 0.25,
-    });
+    this.scrollPanel = createRoundedPanel(this, { panelAlpha: 1, radius: 18, shadowAlpha: 0.22 });
     this.root.add(this.scrollPanel);
 
     // Маска для обрезки контента
@@ -230,20 +211,12 @@ export class ActivityLogScene extends Phaser.Scene {
     this.root.add(this.cardsContainer);
 
     // Сообщение «пусто»
-    this.emptyText = this.add.text(0, 0, 'Записей пока нет', {
-      fontFamily: 'Arial',
-      fontSize: '16px',
-      color: '#888888',
-    }).setOrigin(0.5);
+    this.emptyText = this.add.text(0, 0, 'Записей пока нет', textStyle(16, COLORS.text, '400')).setOrigin(0.5);
     this.emptyText.setVisible(false);
     this.root.add(this.emptyText);
 
     // Индикатор загрузки
-    this.loadingText = this.add.text(0, 0, 'Загрузка...', {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#888888',
-    }).setOrigin(0.5);
+    this.loadingText = this.add.text(0, 0, 'Загрузка...', textStyle(14, COLORS.text, '400')).setOrigin(0.5);
     this.loadingText.setVisible(false);
     this.root.add(this.loadingText);
   }
@@ -254,7 +227,7 @@ export class ActivityLogScene extends Phaser.Scene {
     this.backButton = createRoundedButton(this, {
       label: '← Назад',
       onClick: () => this.backToMain(),
-      fillColor: 0x333355,
+      fillColor: COLORS.neutral,
       fontSize: 16,
       width: 140,
       height: 44,
@@ -269,22 +242,20 @@ export class ActivityLogScene extends Phaser.Scene {
   // ── Загрузка записей (ленивая пагинация) ──────────────────────────
 
   loadEntries(reset = false) {
-    if (reset) {
-      this.currentOffset = 0;
-      this.hasMore = true;
-      this.cardsScrollY = 0;
-      this.entryCards = [];
-      this.cardsContainer.removeAll(true);
-    }
+    if (!reset) return;
 
-    if (!this.hasMore && !reset) return;
     if (this.isLoading) return;
 
     this.isLoading = true;
     this.loadingText.setVisible(true);
 
-    const result = this.activityLogSystem.getEntries({
-      offset: this.currentOffset,
+    this.logRangeStart = 0;
+    this.hasMoreOlder = false;
+    this.cardsScrollY = 0;
+    this.entryCards = [];
+    this.cardsContainer.removeAll(true);
+
+    const result = this.activityLogSystem.getEntriesWindowEndingAt({
       limit: PAGE_SIZE,
       type: this.activeFilter,
     });
@@ -292,28 +263,66 @@ export class ActivityLogScene extends Phaser.Scene {
     this.isLoading = false;
     this.loadingText.setVisible(false);
 
-    if (reset) {
-      this.entryCards = [];
-      this.cardsContainer.removeAll(true);
-    }
+    this.logRangeStart = result.rangeStart;
+    this.hasMoreOlder = result.hasMoreOlder;
 
-    const { entries, hasMore } = result;
-    this.hasMore = hasMore;
-
-    entries.forEach((entry) => {
+    result.entries.forEach((entry) => {
       const card = this._createEntryCard(entry);
       this.entryCards.push(card);
       this.cardsContainer.add(card.container);
     });
 
-    this.currentOffset += entries.length;
-
-    // Показать/скрыть сообщение «пусто»
     this.emptyText.setVisible(this.entryCards.length === 0);
 
-    // Пересчитать layout
     this._layoutCards();
     this.handleResize(this.scale.gameSize);
+    this._scrollToBottom();
+  }
+
+  loadOlderEntries() {
+    if (!this.hasMoreOlder || this.isLoading || this.logRangeStart <= 0) return;
+
+    this.isLoading = true;
+    this.loadingText.setVisible(true);
+
+    const result = this.activityLogSystem.getEntriesWindowEndingAt({
+      limit: PAGE_SIZE,
+      type: this.activeFilter,
+      endBefore: this.logRangeStart,
+    });
+
+    this.isLoading = false;
+    this.loadingText.setVisible(false);
+
+    if (result.entries.length === 0) {
+      this.hasMoreOlder = false;
+      return;
+    }
+
+    const prevContentH = this.scrollContentHeight;
+    const prevScroll = this.cardsScrollY;
+
+    for (let i = result.entries.length - 1; i >= 0; i--) {
+      const card = this._createEntryCard(result.entries[i]);
+      this.entryCards.unshift(card);
+      this.cardsContainer.addAt(card.container, 0);
+    }
+
+    this.logRangeStart = result.rangeStart;
+    this.hasMoreOlder = result.hasMoreOlder;
+
+    this._layoutCards();
+    const delta = this.scrollContentHeight - prevContentH;
+    this.cardsScrollY = prevScroll - delta;
+    this.handleResize(this.scale.gameSize);
+  }
+
+  _scrollToBottom() {
+    if (this.entryCards.length === 0) return;
+    const maxScroll = Math.min(0, this.scrollViewportH - this.scrollContentHeight);
+    this.cardsScrollY = maxScroll;
+    this._clampScroll();
+    this._applyScrollPosition();
   }
 
   // ── Карточка записи ───────────────────────────────────────────────
@@ -323,26 +332,21 @@ export class ActivityLogScene extends Phaser.Scene {
 
     const bgColor = TYPE_COLORS[entry.type] || DEFAULT_CARD_COLOR;
     const bg = this.add.rectangle(0, 0, 100, 60, bgColor, 1).setOrigin(0);
-    bg.setStrokeStyle(1, 0x444466);
+    bg.setStrokeStyle(1, COLORS.line);
     container.add(bg);
 
     // Иконка + заголовок
-    const titleStr = entry.title || 'Без заголовка';
+    const titleStr = resolveActivityLogTitle(entry);
     const titleText = this.add.text(12, 10, titleStr, {
-      fontFamily: 'Arial',
-      fontSize: '15px',
-      color: '#ffffff',
-      fontStyle: 'bold',
+      ...textStyle(15, COLORS.text, '700'),
       wordWrap: { width: 660 },
     });
     container.add(titleText);
 
     // Описание
-    const descStr = entry.description || '';
+    const descStr = resolveActivityLogDescription(entry);
     const descText = this.add.text(12, 0, descStr, {
-      fontFamily: 'Arial',
-      fontSize: '13px',
-      color: '#cccccc',
+      ...textStyle(13, COLORS.text, '500'),
       wordWrap: { width: 660 },
       lineSpacing: 3,
     });
@@ -351,11 +355,7 @@ export class ActivityLogScene extends Phaser.Scene {
     // Временная метка
     const ts = entry.timestamp || {};
     const timeStr = `День ${ts.day ?? 0}, ${ts.hour ?? 0}:00 — Возраст ${ts.age ?? 0}`;
-    const timeText = this.add.text(12, 0, timeStr, {
-      fontFamily: 'Arial',
-      fontSize: '11px',
-      color: '#888888',
-    });
+    const timeText = this.add.text(12, 0, timeStr, textStyle(11, COLORS.text, '400'));
     container.add(timeText);
 
     return { container, bg, titleText, descText, timeText, entry };
@@ -436,7 +436,7 @@ export class ActivityLogScene extends Phaser.Scene {
     this.cardsScrollY -= delta * 0.45;
     this._clampScroll();
     this._applyScrollPosition();
-    this._checkLoadMore();
+    this._checkLoadOlder();
   }
 
   // ── Скролл: pointer (drag) ────────────────────────────────────────
@@ -459,7 +459,7 @@ export class ActivityLogScene extends Phaser.Scene {
       this.cardsScrollY = this.scrollTouch.startScroll + dy;
       this._clampScroll();
       this._applyScrollPosition();
-      this._checkLoadMore();
+      this._checkLoadOlder();
     }
   }
 
@@ -490,14 +490,13 @@ export class ActivityLogScene extends Phaser.Scene {
     );
   }
 
-  _checkLoadMore() {
-    if (!this.hasMore || this.isLoading) return;
+  _checkLoadOlder() {
+    if (!this.hasMoreOlder || this.isLoading) return;
     if (this.entryCards.length === 0) return;
 
-    // Если прокрутили достаточно близко к концу — подгрузить
-    const distanceToBottom = this.scrollContentHeight + this.cardsScrollY - this.scrollViewportH;
-    if (distanceToBottom < LOAD_THRESHOLD) {
-      this.loadEntries(false);
+    // Близко к верху списка — подгрузить более старые записи
+    if (this.cardsScrollY > -LOAD_THRESHOLD) {
+      this.loadOlderEntries();
     }
   }
 
@@ -516,11 +515,14 @@ export class ActivityLogScene extends Phaser.Scene {
 
     // Панель фильтров
     const filterTop = this.headerPanel.y + this.headerPanel.height + 8;
-    this.filterContainer.setPosition((w - maxW) / 2 + 8, filterTop);
-    this._layoutFilterButtons(maxW - 16);
+    const filterInnerPad = 8;
+    this.filterPanel.setPosition((w - maxW) / 2, filterTop);
+    this.filterContainer.setPosition(this.filterPanel.x + filterInnerPad, this.filterPanel.y + filterInnerPad);
+    this.filterBarHeight = this._layoutFilterButtons(maxW - filterInnerPad * 2);
+    this.filterPanel.setSize(maxW, this.filterBarHeight + filterInnerPad * 2);
 
     // Область скролла
-    const scrollTop = filterTop + 44;
+    const scrollTop = filterTop + this.filterPanel.height + 10;
     const bottomReserve = 70;
     const scrollH = Math.max(200, h - scrollTop - bottomReserve);
     this.scrollPanel.setSize(maxW, scrollH);
@@ -564,21 +566,46 @@ export class ActivityLogScene extends Phaser.Scene {
 
   _layoutFilterButtons(maxW) {
     let x = 0;
+    let y = 0;
     const gap = 6;
+    const rowH = 32;
 
     this.filterButtons.forEach((btn) => {
       const labelWidth = btn.label.width + 20;
       const btnW = Math.max(60, Math.min(labelWidth, 110));
-      btn.bg.setSize(btnW, 32);
-      btn.container.setPosition(x, 0);
+      if (x > 0 && x + btnW > maxW) {
+        x = 0;
+        y += rowH + gap;
+      }
+      btn.width = btnW;
+      btn.height = 32;
+      btn.hit.setSize(btnW, 32);
+      btn.label.setPosition(btnW / 2, 16);
+      if (this.activeFilter === btn.filter.type) {
+        this._renderFilterButton(btn, COLORS.accent, 2, COLORS.accent);
+      } else {
+        this._renderFilterButton(btn, COLORS.neutral, 1, COLORS.line);
+      }
+      btn.container.setPosition(x, y);
       x += btnW + gap;
     });
+
+    return y + rowH;
+  }
+
+  _renderFilterButton(btn, fillColor, strokeWidth, strokeColor) {
+    btn.bg.clear();
+    btn.bg.fillStyle(fillColor, 1);
+    btn.bg.lineStyle(strokeWidth, strokeColor, 1);
+    btn.bg.fillRoundedRect(0, 0, btn.width, btn.height, 10);
+    btn.bg.strokeRoundedRect(0, 0, btn.width, btn.height, 10);
   }
 
   // ── Анимация появления ────────────────────────────────────────────
 
   animateEntrance() {
     this.headerPanel.alpha = 0;
+    this.filterPanel.alpha = 0;
     this.filterContainer.alpha = 0;
     this.scrollPanel.alpha = 0;
     this.backButton.alpha = 0;
@@ -587,6 +614,14 @@ export class ActivityLogScene extends Phaser.Scene {
       targets: this.headerPanel,
       alpha: 1,
       duration: 300,
+      ease: 'Cubic.easeOut',
+    });
+
+    this.tweens.add({
+      targets: this.filterPanel,
+      alpha: 1,
+      duration: 380,
+      delay: 60,
       ease: 'Cubic.easeOut',
     });
 

@@ -11,6 +11,7 @@ import {
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { HOUSING_LEVELS } from '../../balance/housing-levels.js';
+import { formatStatChangesBulletListRu } from '../../shared/stat-changes-format.js';
 import { SkillsSystem } from './SkillsSystem.js';
 
 /**
@@ -243,7 +244,8 @@ export class RecoverySystem {
     const changes = this._summarizeStatChanges(statChanges);
     return [
       `${cardData.title} завершено.`,
-      `Потрачено: ${this._formatMoney(cardData.price)} ₽ • Время: ${hourCost} ч.`,
+      `Потрачено: ${this._formatMoney(cardData.price)} ₽`,
+      `Время: ${hourCost} ч.`,
       changes || 'Шкалы без заметных изменений.',
     ].join('\n');
   }
@@ -252,19 +254,7 @@ export class RecoverySystem {
    * Суммировать изменения статов
    */
   _summarizeStatChanges(statChanges = {}) {
-    const defs = [
-      ['hunger', 'Голод'],
-      ['energy', 'Энергия'],
-      ['stress', 'Стресс'],
-      ['mood', 'Настроение'],
-      ['health', 'Здоровье'],
-      ['physical', 'Форма'],
-    ];
-
-    return defs
-      .filter(([key]) => statChanges?.[key])
-      .map(([key, label]) => `${label} ${statChanges[key] > 0 ? '+' : ''}${statChanges[key]}`)
-      .join(' • ');
+    return formatStatChangesBulletListRu(statChanges);
   }
 
   /**

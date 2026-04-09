@@ -85,7 +85,8 @@ export class PersistenceSystem {
   _mergeAndMigrate(parsed) {
     const base = structuredClone(DEFAULT_SAVE);
     const baseCurrentJob = base.currentJob ?? {};
-    const parsedCurrentJob = parsed.currentJob ?? {};
+    const parsedHasJob = parsed.currentJob && parsed.currentJob.id;
+    const parsedCurrentJob = parsedHasJob ? parsed.currentJob : {};
     
     return {
       ...base,
@@ -96,13 +97,15 @@ export class PersistenceSystem {
         ...base.stats,
         ...(parsed.stats ?? {}),
       },
-      currentJob: {
-        ...baseCurrentJob,
-        ...parsedCurrentJob,
-        salaryPerHour: parsedCurrentJob.salaryPerHour ?? this._resolveSalaryPerHour(parsedCurrentJob),
-        salaryPerDay: parsedCurrentJob.salaryPerDay ?? this._resolveSalaryPerHour(parsedCurrentJob) * 8,
-        salaryPerWeek: parsedCurrentJob.salaryPerWeek ?? this._resolveSalaryPerHour(parsedCurrentJob) * 40,
-      },
+      currentJob: parsedHasJob
+        ? {
+            ...baseCurrentJob,
+            ...parsedCurrentJob,
+            salaryPerHour: parsedCurrentJob.salaryPerHour ?? this._resolveSalaryPerHour(parsedCurrentJob),
+            salaryPerDay: parsedCurrentJob.salaryPerDay ?? this._resolveSalaryPerHour(parsedCurrentJob) * 8,
+            salaryPerWeek: parsedCurrentJob.salaryPerWeek ?? this._resolveSalaryPerHour(parsedCurrentJob) * 40,
+          }
+        : null,
       housing: {
         ...base.housing,
         ...(parsed.housing ?? {}),

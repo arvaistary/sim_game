@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { SceneAdapter } from '../ecs/adapters/SceneAdapter.js';
 import { PersistenceSystem } from '../ecs/systems/PersistenceSystem.js';
+import { formatStatChangesBulletListRu } from '../shared/stat-changes-format.js';
 import {
   COLORS,
   createRoundedButton,
@@ -30,7 +31,6 @@ export class EventQueueSceneECS extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(COLORS.background);
 
     this.root = this.add.container(0, 0);
-    this.createHeader();
     this.createEventDisplay();
     this.createBackButton();
     this.createToast();
@@ -46,15 +46,6 @@ export class EventQueueSceneECS extends Phaser.Scene {
     this.animateEntrance();
   }
 
-  createHeader() {
-    this.headerCard = createRoundedPanel(this, { panelAlpha: 1, radius: 18, shadowAlpha: 0.22 });
-    this.root.add(this.headerCard);
-
-    this.headerTitle = this.add.text(0, 0, 'Events', textStyle(28, COLORS.text, '700'));
-    this.headerSubtitle = this.add.text(0, 0, 'Events queue and choices', textStyle(16, COLORS.text, '500'));
-    this.root.add([this.headerTitle, this.headerSubtitle]);
-  }
-
   createEventDisplay() {
     this.eventCard = createRoundedPanel(this, { panelAlpha: 1, radius: 18, shadowAlpha: 0.22 });
     this.root.add(this.eventCard);
@@ -65,15 +56,15 @@ export class EventQueueSceneECS extends Phaser.Scene {
     this.eventDescription = this.add.text(0, 0, '', textStyle(16, COLORS.text, '500'), { wordWrap: { width: 400 } });
     this.root.add(this.eventDescription);
 
-    this.choicesContainer = this.add.container(0, 0);
-    this.root.add(this.choicesContainer);
+    this.eventStatImpact = this.add.text(0, 0, '', textStyle(15, COLORS.text, '600'));
+    this.root.add(this.eventStatImpact);
 
     this.choiceButtons = [];
   }
 
   createBackButton() {
     this.backButton = createRoundedButton(this, {
-      label: 'Back',
+      label: 'Назад',
       onClick: () => this.scene.start('MainGameScene'),
       fillColor: COLORS.neutral,
       fontSize: 16,
@@ -98,7 +89,7 @@ export class EventQueueSceneECS extends Phaser.Scene {
     this.resultModal.add(this.resultText);
 
     this.resultButton = createRoundedButton(this, {
-      label: 'OK',
+      label: 'Ок',
       onClick: () => this.hideResult(),
       fillColor: COLORS.accent,
       fontSize: 16,
@@ -110,12 +101,36 @@ export class EventQueueSceneECS extends Phaser.Scene {
     this.resultTitle.setText(title);
     this.resultText.setText(text);
     this.resultModal.setVisible(true);
-    this.resultModal.setSize(460, 250);
-    this.resultModal.setPosition((this.scale.width - 460) / 2, (this.scale.height - 250) / 2);
+    this.layoutResultModal();
+  }
 
-    this.resultTitle.setPosition(24, 30);
-    this.resultText.setPosition(24, 70);
-    this.resultButton.setPosition(230, 190);
+  layoutResultModal() {
+    if (!this.resultModal?.visible) return;
+
+    const w = this.scale.width;
+    const h = this.scale.height;
+    const isDesktop = w >= 768;
+    const modalW = isDesktop ? 460 : w - 40;
+    const pad = 24;
+    this.resultTitle.setStyle({ wordWrap: { width: modalW - pad * 2 } });
+    this.resultTitle.setText(this.resultTitle.text);
+    const titleH = this.resultTitle.height;
+    this.resultText.setStyle({ wordWrap: { width: modalW - pad * 2 } });
+    this.resultText.setText(this.resultText.text);
+    const textH = this.resultText.height;
+    const modalH = Math.min(
+      h - 48,
+      Math.max(220, pad + titleH + 16 + textH + 16 + 52 + pad),
+    );
+    const x = isDesktop ? (w - modalW) / 2 : 20;
+    const y = (h - modalH) / 2;
+
+    this.resultModal.setSize(modalW, modalH);
+    this.resultModal.setPosition(x, y);
+
+    this.resultTitle.setPosition(pad, pad);
+    this.resultText.setPosition(pad, pad + titleH + 12);
+    this.resultButton.setPosition(modalW / 2, modalH - pad - 26);
   }
 
   hideResult() {
@@ -137,7 +152,6 @@ export class EventQueueSceneECS extends Phaser.Scene {
 
     this.currentEvent = nextEvent;
     this.updateEventDisplay();
-    this.createChoiceButtons();
   }
 
   updateEventDisplay() {
@@ -146,8 +160,19 @@ export class EventQueueSceneECS extends Phaser.Scene {
     this.eventTitle.setText(this.currentEvent.title);
     this.eventDescription.setText(this.currentEvent.description);
 
+    const impactLine = formatStatChangesBulletListRu(this.currentEvent.statImpact);
+    if (impactLine) {
+      this.eventStatImpact.setText(`Последствия:\n${impactLine}`);
+      this.eventStatImpact.setVisible(true);
+    } else {
+      this.eventStatImpact.setText('');
+      this.eventStatImpact.setVisible(false);
+    }
+
     this.removeChoiceButtons();
     this.createChoiceButtons();
+
+    this.handleResize(this.scale.gameSize);
   }
 
   createChoiceButtons() {
@@ -161,6 +186,8 @@ export class EventQueueSceneECS extends Phaser.Scene {
         onClick: () => this.selectChoice(index),
         fillColor: COLORS.accent,
         fontSize: 16,
+        width: Math.max(200, (this.eventCard?.width ?? 400) - 48),
+        height: 48,
       });
       this.root.add(button);
       this.choiceButtons.push(button);
@@ -170,16 +197,41 @@ export class EventQueueSceneECS extends Phaser.Scene {
   }
 
   removeChoiceButtons() {
-    this.choiceButtons.forEach(button => button.destroy());
+    this.choiceButtons.forEach((button) => button.destroy());
     this.choiceButtons = [];
   }
 
+  _contentBottomBeforeChoices() {
+    if (this.eventStatImpact.visible && this.eventStatImpact.text) {
+      return this.eventStatImpact.y + this.eventStatImpact.height;
+    }
+    return this.eventDescription.y + this.eventDescription.height;
+  }
+
   updateButtonPositions() {
-    const startX = this.eventCard.x + 24;
-    const startY = this.eventCard.y + 200;
+    if (!this.eventCard || this.choiceButtons.length === 0) return;
+
+    const pad = 24;
+    const card = this.eventCard;
+    const btnW = Math.max(160, card.width - pad * 2);
+    const btnH = 48;
+    const gap = 10;
+    const centerX = card.x + card.width / 2;
+
+    const descBottom = this._contentBottomBeforeChoices();
+    const backReserve = 88;
+    const cardBottom = card.y + card.height;
+    let cy = descBottom + gap + btnH / 2;
+    const totalH =
+      this.choiceButtons.length * btnH + Math.max(0, this.choiceButtons.length - 1) * gap;
+    const maxBottom = Math.min(this.scale.height - backReserve, cardBottom - pad);
+    if (cy + totalH - btnH / 2 > maxBottom) {
+      cy = Math.max(descBottom + btnH / 2 + gap, maxBottom - totalH + btnH / 2);
+    }
 
     this.choiceButtons.forEach((button, index) => {
-      button.setPosition(startX + 120 * index, startY);
+      button.resize(btnW, btnH);
+      button.setPosition(centerX, cy + index * (btnH + gap));
     });
   }
 
@@ -191,7 +243,6 @@ export class EventQueueSceneECS extends Phaser.Scene {
       this.sceneAdapter.syncToSaveData();
       this.persistenceSystem.saveGame(this.sceneAdapter.getSaveData());
 
-      // Показываем модальное окно с результатом
       const resultText = [
         result.message,
         result.summary || '',
@@ -199,7 +250,6 @@ export class EventQueueSceneECS extends Phaser.Scene {
 
       this.showResult('Результат выбора', resultText);
 
-      // Загружаем следующее событие после закрытия модального окна
       this.time.delayedCall(1500, () => {
         this.hideResult();
         this.time.delayedCall(300, () => {
@@ -212,11 +262,13 @@ export class EventQueueSceneECS extends Phaser.Scene {
   }
 
   showNoEvents() {
-    this.eventTitle.setText('No events');
-    this.eventDescription.setText('There are no pending events to handle.');
+    this.eventTitle.setText('Нет событий');
+    this.eventDescription.setText('В очереди ничего не ожидает вашего решения.');
+    this.eventStatImpact.setText('');
+    this.eventStatImpact.setVisible(false);
     this.removeChoiceButtons();
 
-    const noEventsText = this.add.text(0, 0, 'Return to main screen', textStyle(14, COLORS.neutral, '400'));
+    const noEventsText = this.add.text(0, 0, 'Вернитесь на главный экран', textStyle(14, COLORS.neutral, '400'));
     this.root.add(noEventsText);
     this.noEventsText = noEventsText;
   }
@@ -229,57 +281,56 @@ export class EventQueueSceneECS extends Phaser.Scene {
     const w = gameSize.width;
     const h = gameSize.height;
     const isDesktop = w >= 768;
+    const topY = 20;
 
-    this.headerCard.setSize(isDesktop ? 460 : w - 40, 100);
-    this.headerCard.setPosition(isDesktop ? (w - 460) / 2 : 20, 20);
+    this.eventCard.setSize(isDesktop ? 480 : w - 40, h - topY - 100);
+    this.eventCard.setPosition(isDesktop ? (w - 480) / 2 : 20, topY);
 
-    this.headerTitle.setPosition(this.headerCard.x + 24, this.headerCard.y + 30);
-    this.headerSubtitle.setPosition(this.headerCard.x + 24, this.headerCard.y + 65);
+    const pad = 24;
+    const contentW = this.eventCard.width - pad * 2;
+    this.eventTitle.setPosition(this.eventCard.x + pad, this.eventCard.y + pad);
+    this.eventTitle.setStyle({ wordWrap: { width: contentW } });
+    this.eventDescription.setStyle({ wordWrap: { width: contentW } });
+    this.eventDescription.setPosition(
+      this.eventCard.x + pad,
+      this.eventTitle.y + this.eventTitle.height + 12,
+    );
 
-    this.eventCard.setSize(isDesktop ? 480 : w - 40, h - 180);
-    this.eventCard.setPosition(isDesktop ? (w - 480) / 2 : 20, 140);
-
-    this.eventTitle.setPosition(this.eventCard.x + 24, this.eventCard.y + 30);
-    this.eventDescription.setPosition(this.eventCard.x + 24, this.eventCard.y + 70);
-    this.eventDescription.setStyle({ wordWrap: { width: this.eventCard.width - 48 } });
+    if (this.eventStatImpact.visible && this.eventStatImpact.text) {
+      this.eventStatImpact.setStyle({ wordWrap: { width: contentW } });
+      this.eventStatImpact.setPosition(
+        this.eventCard.x + pad,
+        this.eventDescription.y + this.eventDescription.height + 14,
+      );
+    } else {
+      this.eventStatImpact.setPosition(
+        this.eventCard.x + pad,
+        this.eventDescription.y + this.eventDescription.height + 8,
+      );
+    }
 
     this.updateButtonPositions();
 
-    this.backButton.setPosition(this.eventCard.x + this.eventCard.width / 2, h - 60);
+    this.backButton.setPosition(this.eventCard.x + this.eventCard.width / 2, h - 56);
     this.toast.setPosition(w / 2, h - 120);
 
     if (this.noEventsText) {
       this.noEventsText.setPosition(this.eventCard.x + this.eventCard.width / 2, this.eventCard.y + this.eventCard.height / 2);
     }
 
-    // Обновляем позицию модального окна если оно видимо
-    if (this.resultModal && this.resultModal.visible) {
-      this.resultModal.setSize(isDesktop ? 460 : w - 40, 250);
-      this.resultModal.setPosition(isDesktop ? (w - 460) / 2 : 20, (h - 250) / 2);
-
-      this.resultTitle.setPosition(24, 30);
-      this.resultText.setPosition(24, 70);
-      this.resultButton.setPosition(this.resultModal.width / 2, 190);
+    if (this.resultModal?.visible) {
+      this.layoutResultModal();
     }
   }
 
   animateEntrance() {
-    this.headerCard.alpha = 0;
     this.eventCard.alpha = 0;
     this.backButton.alpha = 0;
-
-    this.tweens.add({
-      targets: this.headerCard,
-      alpha: 1,
-      duration: 400,
-      ease: 'Cubic.easeOut',
-    });
 
     this.tweens.add({
       targets: this.eventCard,
       alpha: 1,
       duration: 500,
-      delay: 100,
       ease: 'Cubic.easeOut',
     });
 
@@ -287,7 +338,7 @@ export class EventQueueSceneECS extends Phaser.Scene {
       targets: this.backButton,
       alpha: 1,
       duration: 400,
-      delay: 300,
+      delay: 200,
       ease: 'Cubic.easeOut',
     });
   }

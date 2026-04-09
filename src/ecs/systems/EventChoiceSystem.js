@@ -10,6 +10,7 @@ import {
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { SkillsSystem } from './SkillsSystem.js';
+import { formatStatChangesBulletListRu } from '../../shared/stat-changes-format.js';
 
 /**
  * Система обработки выборов событий
@@ -37,6 +38,8 @@ export class EventChoiceSystem {
 
     const playerId = PLAYER_ENTITY;
     const resolvedChoice = this._resolveChoiceBySkillCheck(choice, event);
+    const mergedStatChanges = this._mergeStatImpactWithChoice(event, resolvedChoice.statChanges);
+    const resolvedForMessage = { ...resolvedChoice, statChanges: mergedStatChanges };
 
     // Применяем финансовые изменения
     if (resolvedChoice.moneyDelta !== undefined) {
@@ -51,11 +54,11 @@ export class EventChoiceSystem {
       }
     }
 
-    // Применяем изменения статы
-    if (resolvedChoice.statChanges) {
+    // Применяем изменения статы (база события + выбор)
+    if (mergedStatChanges && Object.keys(mergedStatChanges).length > 0) {
       const stats = this.world.getComponent(playerId, STATS_COMPONENT);
       if (stats) {
-        this._applyStatChanges(stats, this._applyEventModifiers(resolvedChoice.statChanges));
+        this._applyStatChanges(stats, this._applyEventModifiers(mergedStatChanges));
       }
     }
 
@@ -104,7 +107,7 @@ export class EventChoiceSystem {
             instanceId: event.instanceId,
             choiceIndex,
             choiceText: choice.text || choice.outcome || '',
-            statChanges: resolvedChoice.statChanges || null,
+            statChanges: mergedStatChanges && Object.keys(mergedStatChanges).length ? mergedStatChanges : null,
             moneyDelta: resolvedChoice.moneyDelta || 0,
             skillChanges: resolvedChoice.skillChanges || null,
           },
@@ -127,9 +130,25 @@ export class EventChoiceSystem {
     }
 
     // Создаем описание результата
-    const message = this._buildEventResultMessage(event, resolvedChoice);
+    const message = this._buildEventResultMessage(event, resolvedForMessage);
 
     return { success: true, message };
+  }
+
+  _mergeStatImpactWithChoice(event, choiceStatChanges) {
+    const base =
+      event?.statImpact && typeof event.statImpact === 'object' ? { ...event.statImpact } : {};
+    const extra =
+      choiceStatChanges && typeof choiceStatChanges === 'object' ? choiceStatChanges : {};
+    const merged = { ...base };
+    for (const [k, v] of Object.entries(extra)) {
+      if (typeof v === 'number' && typeof merged[k] === 'number') {
+        merged[k] = merged[k] + v;
+      } else {
+        merged[k] = v;
+      }
+    }
+    return merged;
   }
 
   /**
@@ -255,19 +274,7 @@ export class EventChoiceSystem {
    * Суммировать изменения статы
    */
   _summarizeStatChanges(statChanges = {}) {
-    const defs = [
-      ['hunger', 'Голод'],
-      ['energy', 'Энергия'],
-      ['stress', 'Стресс'],
-      ['mood', 'Настроение'],
-      ['health', 'Здоровье'],
-      ['physical', 'Форма'],
-    ];
-
-    return defs
-      .filter(([key]) => statChanges?.[key])
-      .map(([key, label]) => `${label} ${statChanges[key] > 0 ? '+' : ''}${statChanges[key]}`)
-      .join(' • ');
+    return formatStatChangesBulletListRu(statChanges);
   }
 
   /**

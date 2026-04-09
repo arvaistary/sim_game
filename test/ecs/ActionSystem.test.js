@@ -49,6 +49,7 @@ function createMockWorld(state = {}) {
   let totalHours = 100;
 
   const mockTimeSystem = {
+    getWeekHoursRemaining: () => 168,
     getDayHoursRemaining: () => 20,
     getTotalHours: () => totalHours,
     advanceHours: (h) => { totalHours += h; },
@@ -88,18 +89,17 @@ describe('ActionSystem', () => {
       expect(result.reason).toContain('денег');
     });
 
-    test('возвращает available:false если не хватает времени', () => {
+    test('возвращает available:false если не хватает времени в неделе', () => {
       mockWorld = createMockWorld();
-      // Заменяем TimeSystem в массиве systems
       mockWorld.systems = [{
-        getDayHoursRemaining: () => 2,
+        getWeekHoursRemaining: () => 2,
         getTotalHours: () => 100,
         advanceHours: (h) => {},
       }];
       actionSystem.init(mockWorld);
       const result = actionSystem.canExecute('fun_lazy_day'); // 12ч
       expect(result.available).toBe(false);
-      expect(result.reason).toContain('времени');
+      expect(result.reason).toContain('неделе');
     });
 
     test('возвращает available:false для одноразового действия после выполнения', () => {

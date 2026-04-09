@@ -9,7 +9,10 @@ import {
   PLAYER_ENTITY 
 } from '../components/index.js';
 import { CAREER_JOBS } from '../../balance/career-jobs.js';
+import { createWeeklyJobDismissalQueuedEvent } from '../../balance/game-events.js';
 import { SkillsSystem } from './SkillsSystem.js';
+import { EventQueueSystem } from './EventQueueSystem.js';
+import { formatStatChangesBulletListRu } from '../../shared/stat-changes-format.js';
 
 /**
  * Система обработки рабочих периодов
@@ -32,6 +35,125 @@ export class WorkPeriodSystem {
   }
 
   /**
+   * Смена игровой недели (вызывается из TimeSystem при rollover).
+   * Сверяет отработанные часы с нормой, при недоборе — увольнение + событие + кулдаун на ту же должность.
+   */
+  handleWeekRollover(newWeekNumber) {
+    const playerId = PLAYER_ENTITY;
+    const timeComponent = this.world.getComponent(playerId, TIME_COMPONENT);
+    const work = this.world.getComponent(playerId, WORK_COMPONENT);
+    if (!timeComponent || !work) return;
+
+    if (!timeComponent.eventState || typeof timeComponent.eventState !== 'object') {
+      timeComponent.eventState = {};
+    }
+
+    this._pruneExpiredJobRehireBlocks(timeComponent);
+
+    const hasJob = Boolean(work.id && work.employed !== false);
+    if (!hasJob) {
+      work.workedHoursCurrentWeek = 0;
+      const careerEmpty = this.world.getComponent(playerId, CAREER_COMPONENT);
+      if (careerEmpty) careerEmpty.workedHoursCurrentWeek = 0;
+      return;
+    }
+
+    const required = Math.max(0, Number(work.requiredHoursPerWeek) || 40);
+    const worked = Math.max(0, Number(work.workedHoursCurrentWeek) || 0);
+
+    if (worked < required) {
+      this._dismissForUnderwork({
+        jobId: work.id,
+        jobName: work.name || work.id,
+        newWeekNumber,
+        worked,
+        required,
+        timeComponent,
+      });
+    }
+
+    work.workedHoursCurrentWeek = 0;
+    const career = this.world.getComponent(playerId, CAREER_COMPONENT);
+    if (career) career.workedHoursCurrentWeek = 0;
+  }
+
+  _pruneExpiredJobRehireBlocks(timeComponent) {
+    const map = timeComponent.eventState?.jobRehireBlockedUntilWeekByJobId;
+    if (!map || typeof map !== 'object') return;
+    const currentWeek = timeComponent.gameWeeks ?? 1;
+    for (const jobId of Object.keys(map)) {
+      const until = map[jobId];
+      if (typeof until === 'number' && currentWeek >= until) {
+        delete map[jobId];
+      }
+    }
+  }
+
+  _dismissForUnderwork({ jobId, jobName, newWeekNumber, worked, required, timeComponent }) {
+    const playerId = PLAYER_ENTITY;
+    const work = this.world.getComponent(playerId, WORK_COMPONENT);
+    const career = this.world.getComponent(playerId, CAREER_COMPONENT);
+
+    if (!timeComponent.eventState.jobRehireBlockedUntilWeekByJobId || typeof timeComponent.eventState.jobRehireBlockedUntilWeekByJobId !== 'object') {
+      timeComponent.eventState.jobRehireBlockedUntilWeekByJobId = {};
+    }
+    // Следующую игровую неделю (пока gameWeeks < newWeekNumber + 1) нельзя снова взять эту должность
+    timeComponent.eventState.jobRehireBlockedUntilWeekByJobId[jobId] = newWeekNumber + 1;
+
+    const preservedDays = work?.daysAtWork ?? 0;
+    const preservedTotal = work?.totalWorkedHours ?? 0;
+
+    const unemployed = {
+      id: null,
+      name: 'Безработный',
+      schedule: '—',
+      employed: false,
+      level: 0,
+      salaryPerHour: 0,
+      salaryPerDay: 0,
+      salaryPerWeek: 0,
+      requiredHoursPerWeek: 0,
+      workedHoursCurrentWeek: 0,
+      daysAtWork: preservedDays,
+      totalWorkedHours: preservedTotal,
+    };
+
+    Object.assign(work, unemployed);
+    if (career) {
+      Object.assign(career, {
+        ...unemployed,
+        daysAtWork: career.daysAtWork ?? preservedDays,
+        totalWorkedHours: career.totalWorkedHours ?? preservedTotal,
+      });
+    }
+
+    const eventQueue = this.world.getSystem(EventQueueSystem);
+    if (eventQueue) {
+      eventQueue.queuePendingEvent(
+        createWeeklyJobDismissalQueuedEvent({
+          jobName,
+          worked,
+          required,
+          newWeekNumber,
+          jobId,
+        }),
+      );
+    }
+
+    if (this.world?.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:career', {
+        detail: {
+          category: 'dismissal',
+          title: '📤 Увольнение',
+          description: `Недобор часов (${worked}/${required} ч). Потеряна должность «${jobName}». Повторный найм на неё недоступен следующую неделю.`,
+          icon: null,
+          metadata: { jobId, jobName, worked, required, week: newWeekNumber },
+        },
+      }));
+    }
+  }
+
+  /**
    * Применить рабочую смену в часовой модели.
    */
   applyWorkShift(workHours = 8, eventChoice = null) {
@@ -45,6 +167,31 @@ export class WorkPeriodSystem {
     if (!workComponent || !walletComponent || !statsComponent || !timeComponent) {
       console.error('Missing required components for work period');
       return '';
+    }
+
+    if (!workComponent.id || workComponent.employed === false) {
+      return '';
+    }
+
+    const timeSystem = this.world.systems.find((system) => typeof system.advanceHours === 'function');
+    if (timeSystem?.normalizeTimeComponent) {
+      timeSystem.normalizeTimeComponent(timeComponent);
+    }
+    const jobRequired = Math.max(0, Number(workComponent.requiredHoursPerWeek) || 0);
+    const jobWorked = Math.max(0, Number(workComponent.workedHoursCurrentWeek) || 0);
+    const jobHoursLeft = jobRequired > 0 ? Math.max(0, jobRequired - jobWorked) : Number.POSITIVE_INFINITY;
+
+    if (jobRequired > 0 && workHours > jobHoursLeft) {
+      return [
+        'Смена не проведена.',
+        `По договору на этой неделе по работе осталось ${jobHoursLeft} ч. из нормы ${jobRequired} ч. (уже отработано ${jobWorked} ч.). Смена на ${workHours} ч. превышает лимит — нельзя отработать больше нормы до новой игровой недели.`,
+      ].join('\n');
+    }
+
+    // Работа списывает общий недельный пул свободного времени (168 ч / неделя).
+    const weekLeft = timeComponent.weekHoursRemaining ?? 168;
+    if (workHours > weekLeft) {
+      return ['Смена не проведена.', `В текущей неделе осталось ${weekLeft} ч. свободного времени, для смены нужно ${workHours} ч.`].join('\n');
     }
 
     const modifiers = this.skillsSystem.getModifiers();
@@ -76,7 +223,12 @@ export class WorkPeriodSystem {
     workComponent.daysAtWork = (workComponent.daysAtWork ?? 0) + Math.max(1, Math.round(workHours / 8));
     workComponent.workedHoursCurrentWeek = (workComponent.workedHoursCurrentWeek ?? 0) + workHours;
     workComponent.totalWorkedHours = (workComponent.totalWorkedHours ?? 0) + workHours;
-    
+
+    const careerComponent = this.world.getComponent(playerId, CAREER_COMPONENT);
+    if (careerComponent) {
+      careerComponent.workedHoursCurrentWeek = workComponent.workedHoursCurrentWeek;
+    }
+
     // Обновление пожизненной статистики
     const lifetimeStats = this.world.getComponent(playerId, 'lifetime_stats');
     if (lifetimeStats) {
@@ -95,7 +247,6 @@ export class WorkPeriodSystem {
     }
 
     // Продвижение времени
-    const timeSystem = this.world.systems.find((system) => typeof system.advanceHours === 'function');
     if (timeSystem) {
       timeSystem.advanceHours(workHours, { actionType: 'work_shift' });
     } else {
@@ -111,7 +262,7 @@ export class WorkPeriodSystem {
         detail: {
           category: 'work',
           title: '💼 Отработана смена',
-          description: `Отработано ${workHours}ч. Заработано $${this._formatMoney(totalSalaryWithBonus)}`,
+          description: `Отработано ${workHours} ч. Заработано ${this._formatMoney(totalSalaryWithBonus)} ₽`,
           icon: null,
           metadata: {
             hoursWorked: workHours,
@@ -246,19 +397,7 @@ export class WorkPeriodSystem {
    * Суммировать изменения статов в строку
    */
   _summarizeStatChanges(statChanges = {}) {
-    const defs = [
-      ['hunger', 'Голод'],
-      ['energy', 'Энергия'],
-      ['stress', 'Стресс'],
-      ['mood', 'Настроение'],
-      ['health', 'Здоровье'],
-      ['physical', 'Форма'],
-    ];
-
-    return defs
-      .filter(([key]) => statChanges?.[key])
-      .map(([key, label]) => `${label} ${statChanges[key] > 0 ? '+' : ''}${statChanges[key]}`)
-      .join(' • ');
+    return formatStatChangesBulletListRu(statChanges);
   }
 
   /**
@@ -284,6 +423,12 @@ export class WorkPeriodSystem {
     }
     if (typeof workComponent.salaryPerWeek === 'number' && workComponent.salaryPerWeek > 0) {
       return Math.round(workComponent.salaryPerWeek / 40);
+    }
+    if (workComponent?.id) {
+      const job = CAREER_JOBS.find((item) => item.id === workComponent.id);
+      if (job?.salaryPerHour) {
+        return job.salaryPerHour;
+      }
     }
     return 0;
   }
