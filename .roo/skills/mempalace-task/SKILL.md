@@ -1,57 +1,76 @@
 ---
 name: mempalace-task
-description: # MemPalace Delegator
-
-Use this skill when the user provides a new task description and wants the agent to gather project memory context from MemPalace before implementation.
-
-## Trigger
-
-- User asks to start a new task and wants context from MemPalace.
-- User asks to delegate a task to an assistant with prior project decisions.
-- Slash command `/mempalace-task` is invoked with task text.
-
-## Inputs
-
-- Task description in natural language.
-- Optional constraints (files, deadlines, forbidden changes).
-
-## Required workflow
-
-1. Run:
-   - `npm run mem:mine`
-   - `npm run mem:status`
-   - `npm run mem:wakeup`
-2. Build 3-6 focused queries from the task (domain terms, scene names, systems, constraints).
-3. Run MemPalace search for each query (UTF-8 лаунчер, без ошибок cp1251 на Windows):
-   - `npm run mem:search -- "<query>"`
-   - Любая подкоманда CLI: `npm run mem -- <args…>` (например `npm run mem -- compress --wing game_life`).
-4. Produce a concise execution brief with:
-   - Objective
-   - Relevant prior decisions from memory
-   - Affected files/systems
-   - Guardrails and non-goals
-   - Validation plan
-5. Proceed with implementation using this brief.
-6. After implementation, run `npm run mem:mine` to persist the new context.
-
-## Output format
-
-- `Task Brief`
-  - Goal
-  - Context from MemPalace
-  - Files to touch
-  - Constraints
-  - Acceptance criteria
-- `Execution Plan` (short, actionable)
-
-## Notes
-
-- Prefer project-local memory over assumptions.
-- If memory conflicts, call out the conflict and choose the most recent/explicit decision.
+description: Собрать контекст из MemPalace перед реализацией задачи. /mempalace-task Запускает mine → status → wakeup → search, формирует execution brief, затем выполняет задачу.
 ---
 
-# Mempalace Task
+# MemPalace Task
 
 ## Instructions
 
-Add your skill instructions here.
+Используй этот навык, когда пользователь даёт новую задачу и нужно собрать контекст из памяти проекта (MemPalace) перед реализацией.
+
+### Шаг 1: Подготовка памяти
+
+Запусти последовательно (каждая команда должна завершиться перед следующей):
+
+```
+npm run mem:mine
+npm run mem:status
+npm run mem:wakeup
+```
+
+Если любая команда падает (non-zero exit code), запиши ошибку в brief и продолжай без памяти MemPalace.
+
+### Шаг 2: Построить поисковые запросы
+
+Из описания задачи построй 3–6 целевых запросов:
+- Доменные термины (названия систем, компонентов, сцен)
+- Имена файлов и модулей
+- Ограничения и требования
+
+### Шаг 3: Поиск в MemPalace
+
+Для каждого запроса выполни:
+```
+npm run mem:search -- "<query>"
+```
+
+Альтернативно, любая подкоманда CLI:
+```
+npm run mem -- <args…>
+```
+
+Примеры:
+- `npm run mem -- search "engine systems architecture"`
+- `npm run mem -- compress --wing game_life`
+
+### Шаг 4: Сформировать Execution Brief
+
+Собери краткий brief:
+- **Objective** — цель задачи
+- **Context from MemPalace** — релевантные решения из памяти
+- **Affected files/systems** — затрагиваемые файлы и системы
+- **Guardrails** — ограничения и non-goals
+- **Validation plan** — как проверить результат
+
+### Шаг 5: Реализация
+
+Выполни задачу, используя brief как контекст.
+
+### Шаг 6: Сохранить контекст
+
+После реализации запусти:
+```
+npm run mem:mine
+```
+
+## Output format
+
+- **Task Brief**: Goal, Context, Files, Constraints, Acceptance criteria
+- **Execution Plan**: короткий, actionable план
+
+## Notes
+
+- Предпочитай проектную память предположениям.
+- Если память конфликтует, укажи конфликт и выбери самое свежее/явное решение.
+- Если MemPalace недоступен (ошибки Python, venv не найден), работай без памяти, но укажи это в brief.

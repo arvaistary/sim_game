@@ -1,0 +1,6 @@
+.section-title{font-size:$font-size-sm;font-weight:$font-weight-bold;margin:0 0 $space-2}
+.expense-list{display:flex;flex-direction:column;gap:$space-1}
+.expense-row{display:flex;justify-content:space-between;padding:$space-1 0;font-size:$font-size-sm}
+.expense-row.total{border-top:1px solid var(--color-border);margin-top:$space-1;padding-top:$space-2;font-weight:$font-weight-bold}
+.expense-name{color:var(--color-text-secondary)}
+.expense-value{font-weight:$font-weight-semibold}

@@ -1,35 +1,35 @@
 import { gameCommands } from '@/domain/game-facade/commands'
-import { ECSWorld } from '@/domain/ecs/world'
+import { GameWorld } from '@/domain/engine/world'
 
 export const appGameCommands = {
-  executeLifestyleAction(world: ECSWorld, cardData: Record<string, unknown>): string {
+  executeLifestyleAction(world: GameWorld, cardData: Record<string, unknown>): string {
     return gameCommands.applyRecoveryAction(world, cardData)
   },
-  simulateWorkShift(world: ECSWorld, hours: number): string {
+  simulateWorkShift(world: GameWorld, hours: number): string {
     return gameCommands.applyWorkShift(world, hours)
   },
-  startEducationProgram(world: ECSWorld, programId: string): string {
+  startEducationProgram(world: GameWorld, programId: string): string {
     return gameCommands.startEducationProgram(world, programId)
   },
-  advanceEducation(world: ECSWorld): string {
+  advanceEducation(world: GameWorld): string {
     return gameCommands.advanceEducation(world)
   },
-  executeFinanceDecision(world: ECSWorld, actionId: string): string {
+  executeFinanceDecision(world: GameWorld, actionId: string): string {
     return gameCommands.applyFinanceAction(world, actionId)
   },
-  executeAction(world: ECSWorld, actionId: string): string {
+  executeAction(world: GameWorld, actionId: string): string {
     return gameCommands.executeAction(world, actionId)
   },
-  resolveEventDecision(world: ECSWorld, eventId: string, choiceId: string): string {
+  resolveEventDecision(world: GameWorld, eventId: string, choiceId: string): string {
     return gameCommands.applyEventChoice(world, eventId, choiceId)
   },
-  collectInvestment(world: ECSWorld, investmentId: string): string {
+  collectInvestment(world: GameWorld, investmentId: string): string {
     return gameCommands.collectInvestment(world, investmentId)
   },
-  advanceTime(world: ECSWorld, hours: number): void {
+  advanceTime(world: GameWorld, hours: number): void {
     gameCommands.advanceTime(world, hours)
   },
-  applyMonthlySettlement(world: ECSWorld): string {
+  applyMonthlySettlement(world: GameWorld): string {
     return gameCommands.applyMonthlySettlement(world)
   },
 }

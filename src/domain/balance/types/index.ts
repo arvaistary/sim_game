@@ -291,4 +291,5 @@ export interface NavItem {
   label: string
 }
 
+export type * from './activity-log'
 export type * from '../actions/types'

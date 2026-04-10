@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref } from 'vue'
+import { watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   message: string
@@ -28,10 +28,10 @@ const emit = defineEmits<{
 }>()
 
 const iconMap: Record<string, string> = {
-  info: 'ℹ️',
-  success: 'вњ…',
-  warning: '⚠️',
-  error: 'вќЊ',
+  info: 'i',
+  success: '+',
+  warning: '!',
+  error: 'x',
 }
 
 watch(() => props.visible, (val) => {
@@ -53,12 +53,13 @@ watch(() => props.visible, (val) => {
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  border-radius: var(--radius-button);
-  background: var(--color-panel);
-  border: 1px solid var(--color-line);
-  box-shadow: 0 4px 16px rgba(60, 47, 47, 0.15);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-bg-card) 96%, transparent);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-popover);
   z-index: 2000;
   max-width: 90vw;
+  backdrop-filter: blur(12px);
 }
 
 .toast--success {
@@ -70,7 +71,7 @@ watch(() => props.visible, (val) => {
 }
 
 .toast--warning {
-  border-color: var(--color-accent);
+  border-color: var(--color-brand-accent);
 }
 
 .toast__icon {
@@ -80,7 +81,7 @@ watch(() => props.visible, (val) => {
 .toast__message {
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--color-text-primary);
 }
 
 /* Transition */

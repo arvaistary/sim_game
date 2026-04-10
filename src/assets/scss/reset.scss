@@ -1,0 +1,121 @@
+// ===== Nexus UI Reset =====
+// Modern CSS reset based on Josh Comeau's reset + custom additions
+
+// Box sizing rules
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+// Remove default margin
+* {
+  margin: 0;
+}
+
+// Set core root defaults
+html {
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+// Set core body defaults
+body {
+  min-height: 100vh;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+}
+
+// Remove list styles
+ul,
+ol {
+  list-style: none;
+}
+
+// Make images and media easier to work with
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+// Inherit fonts for inputs and buttons
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+// Remove all animations and transitions for users who prefer reduced motion
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Remove default button styles
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+// Remove default link styles
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+// Remove default heading margins
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}
+
+// Remove default paragraph margins
+p {
+  margin: 0;
+}
+
+// Remove default form element styles
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+// Remove default table styles
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+// Remove outline for non-keyboard focus
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// Set default focus-visible styles
+:focus-visible {
+  outline: 2px solid var(--color-action-primary, #00B2FF);
+  outline-offset: 2px;
+}
+
+// Remove default scrollbar styling (we'll add our own)
+html {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}

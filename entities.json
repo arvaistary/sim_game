@@ -1,7 +1,13 @@
 {
   "people": [],
   "projects": [
-    "game_life",
-    "Game Life"
+    "Nuxt",
+    "Phaser",
+    "Entity",
+    "Component",
+    "Update",
+    "Game",
+    "Architecture",
+    "Balance"
   ]
 }

@@ -1,0 +1,356 @@
+// ===== Nexus UI Global Styles =====
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// ===== Root CSS Custom Properties (for JS runtime theming) =====
+:root {
+  --color-brand-primary: #{$color-brand-primary};
+  --color-brand-accent: #{$color-brand-accent};
+  --color-brand-secondary: #{$color-brand-secondary};
+  --color-white: #{$color-neutral-0};
+
+  // Colors - Light theme
+  --color-bg-page: #{$color-bg-page};
+  --color-bg-surface: #{$color-bg-surface};
+  --color-bg-card: #{$color-bg-card};
+  --color-bg-sidebar: #{$color-bg-sidebar};
+  --color-bg-header: #{$color-bg-header};
+  --color-bg-elevated: #{$color-bg-elevated};
+
+  --color-text-primary: #{$color-text-primary};
+  --color-text-secondary: #{$color-text-secondary};
+  --color-text-tertiary: #{$color-text-tertiary};
+
+  --color-border: #{$color-border};
+  --color-border-subtle: #{$color-border-subtle};
+
+  --color-action-primary: #{$color-action-primary};
+  --color-action-primary-hover: #{$color-action-primary-hover};
+  --color-action-primary-active: #{$color-action-primary-active};
+  --color-action-secondary: #{$color-action-secondary};
+  --color-action-danger: #{$color-action-danger};
+
+  --color-status-success: #{$color-status-success};
+  --color-status-warning: #{$color-status-warning};
+  --color-status-danger: #{$color-status-danger};
+  --color-status-info: #{$color-status-info};
+  --color-pastel-purple: #{$color-pastel-purple};
+  --color-pastel-orange: #{$color-pastel-orange};
+  --color-pastel-blue: #{$color-pastel-blue};
+  --color-pastel-green: #{$color-pastel-green};
+  --color-pastel-pink: #{$color-pastel-pink};
+  --color-pastel-teal: #{$color-pastel-teal};
+  --color-pastel-purple-strong: #{$color-pastel-purple-strong};
+  --color-pastel-orange-strong: #{$color-pastel-orange-strong};
+  --color-pastel-blue-strong: #{$color-pastel-blue-strong};
+  --color-pastel-green-strong: #{$color-pastel-green-strong};
+  --color-pastel-pink-strong: #{$color-pastel-pink-strong};
+  --color-pastel-teal-strong: #{$color-pastel-teal-strong};
+
+  // Shadows
+  --shadow-xs: #{$shadow-xs};
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+  --shadow-xl: #{$shadow-xl};
+  --shadow-card: #{$shadow-card};
+  --shadow-popover: #{$shadow-popover};
+  --shadow-button-hover: #{$shadow-button-hover};
+  --shadow-button: #{$shadow-sm};
+
+  // Radius
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+  --radius-xl: #{$radius-xl};
+  --radius-2xl: #{$radius-2xl};
+  --radius-full: #{$radius-full};
+
+  // Spacing
+  --space-1: #{$space-1};
+  --space-2: #{$space-2};
+  --space-3: #{$space-3};
+  --space-4: #{$space-4};
+  --space-5: #{$space-5};
+  --space-6: #{$space-6};
+  --space-8: #{$space-8};
+
+  // Typography
+  --font-family-sans: #{$font-family-sans};
+
+  // Layout
+  --size-sidebar: #{$size-sidebar};
+  --size-sidebar-collapsed: #{$size-sidebar-collapsed};
+  --size-header-height: #{$size-header-height};
+
+  // Transitions
+  --transition-fast: #{$transition-fast};
+  --transition-normal: #{$transition-normal};
+  --transition-slow: #{$transition-slow};
+
+  // Legacy alias layer for in-flight components.
+  --color-bg: var(--color-bg-page);
+  --color-bg-light: var(--color-bg-surface);
+  --color-accent: var(--color-brand-accent);
+  --color-accent-soft: var(--color-pastel-orange);
+  --color-sage: var(--color-pastel-green-strong);
+  --color-blue: var(--color-brand-primary);
+  --color-neutral: var(--color-bg-elevated);
+  --color-text: var(--color-text-primary);
+  --color-panel: var(--color-bg-card);
+  --color-line: var(--color-border);
+  --color-shadow: #{$color-neutral-300};
+  --font-main: var(--font-family-sans);
+  --radius-panel: var(--radius-2xl);
+  --radius-button: var(--radius-md);
+  --radius-small: var(--radius-sm);
+  --shadow-panel: var(--shadow-card);
+}
+
+// Dark theme overrides
+html[data-theme="dark"] {
+  --color-bg-page: #{$color-dark-bg-page};
+  --color-bg-surface: #{$color-dark-bg-surface};
+  --color-bg-card: #{$color-dark-bg-card};
+  --color-bg-sidebar: #{$color-dark-bg-sidebar};
+  --color-bg-header: #{$color-dark-bg-header};
+  --color-bg-elevated: #{$color-dark-bg-elevated};
+
+  --color-text-primary: #{$color-dark-text-primary};
+  --color-text-secondary: #{$color-dark-text-secondary};
+  --color-text-tertiary: #{$color-dark-text-tertiary};
+
+  --color-border: #{$color-dark-border};
+  --color-border-subtle: #{$color-dark-border-subtle};
+
+  --color-action-primary: #{$color-dark-action-primary};
+  --color-action-primary-hover: #{$color-dark-action-primary-hover};
+  --color-action-primary-active: #{$color-dark-action-primary-active};
+  --color-action-secondary: #{$color-dark-action-secondary};
+  --color-action-danger: #{$color-dark-action-danger};
+
+  --color-accent-soft: rgba(255, 107, 107, 0.16);
+  --color-sage: #{$color-pastel-green};
+  --color-blue: #{$color-dark-action-primary};
+  --color-neutral: rgba(255, 255, 255, 0.08);
+  --color-shadow: rgba(15, 23, 42, 0.45);
+  --shadow-button: 0 4px 12px rgba(15, 23, 42, 0.3);
+}
+
+// ===== Base elements =====
+
+html {
+  font-family: $font-family-sans;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  @include transition(background-color, color);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--color-text-primary);
+  background:
+    radial-gradient(circle at top right, rgba(0, 178, 255, 0.12), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(255, 107, 107, 0.10), transparent 32%),
+    linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-page) 100%);
+}
+
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at top right, rgba(51, 196, 255, 0.18), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(123, 97, 255, 0.14), transparent 34%),
+    linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-page) 100%);
+}
+
+// Headings
+h1, .text-h1 {
+  @include typography-heading-1;
+  color: $color-text-primary;
+
+  @include dark-theme {
+    color: $color-dark-text-primary;
+  }
+}
+
+h2, .text-h2 {
+  @include typography-heading-2;
+  color: $color-text-primary;
+
+  @include dark-theme {
+    color: $color-dark-text-primary;
+  }
+}
+
+h3, .text-h3 {
+  @include typography-heading-3;
+  color: $color-text-primary;
+
+  @include dark-theme {
+    color: $color-dark-text-primary;
+  }
+}
+
+// Links
+a {
+  color: $color-action-primary;
+  text-decoration: none;
+  @include transition(color);
+
+  @include hover-event {
+    color: $color-action-primary-hover;
+  }
+}
+
+// Images
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+// ===== Layout =====
+
+.container {
+  @include base-container;
+}
+
+// Main content area
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  @include scrollbar-thin;
+}
+
+// Dashboard grid
+.dashboard-grid {
+  display: grid;
+  gap: $space-5;
+  grid-template-columns: 1fr;
+
+  @include respond-to('md') {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to('lg') {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include respond-to('xl') {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// ===== Utility Classes =====
+
+// Text
+.text-primary { color: $color-text-primary; }
+.text-secondary { color: $color-text-secondary; }
+.text-tertiary { color: $color-text-tertiary; }
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.text-truncate { @include truncate; }
+
+.font-regular { font-weight: $font-weight-regular; }
+.font-medium { font-weight: $font-weight-medium; }
+.font-semibold { font-weight: $font-weight-semibold; }
+.font-bold { font-weight: $font-weight-bold; }
+
+.text-xs { font-size: $font-size-xs; }
+.text-sm { font-size: $font-size-sm; }
+.text-base { font-size: $font-size-base; }
+.text-lg { font-size: $font-size-lg; }
+.text-xl { font-size: $font-size-xl; }
+.text-2xl { font-size: $font-size-2xl; }
+.text-3xl { font-size: $font-size-3xl; }
+.text-4xl { font-size: $font-size-4xl; }
+
+// Flex
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-row { flex-direction: row; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.gap-1 { gap: $space-1; }
+.gap-2 { gap: $space-2; }
+.gap-3 { gap: $space-3; }
+.gap-4 { gap: $space-4; }
+.gap-5 { gap: $space-5; }
+.gap-6 { gap: $space-6; }
+
+// Size
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.w-auto { width: auto; }
+.h-auto { height: auto; }
+
+// Overflow
+.overflow-auto { overflow: auto; }
+.overflow-hidden { overflow: hidden; }
+.overflow-scroll { overflow: scroll; }
+
+// Radius
+.rounded-sm { border-radius: $radius-sm; }
+.rounded-md { border-radius: $radius-md; }
+.rounded-lg { border-radius: $radius-lg; }
+.rounded-xl { border-radius: $radius-xl; }
+.rounded-2xl { border-radius: $radius-2xl; }
+.rounded-full { border-radius: $radius-full; }
+
+// Shadow
+.shadow-sm { box-shadow: $shadow-sm; }
+.shadow-md { box-shadow: $shadow-md; }
+.shadow-card { @include shadow-card; }
+.shadow-popover { @include shadow-popover; }
+
+// Display
+.block { display: block; }
+.inline-block { display: inline-block; }
+.inline { display: inline; }
+.hidden { display: none; }
+
+// Position
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+
+// Spacing
+.p-2 { padding: $space-2; }
+.p-3 { padding: $space-3; }
+.p-4 { padding: $space-4; }
+.p-5 { padding: $space-5; }
+.p-6 { padding: $space-6; }
+
+.m-2 { margin: $space-2; }
+.m-3 { margin: $space-3; }
+.m-4 { margin: $space-4; }
+.m-5 { margin: $space-5; }
+.m-6 { margin: $space-6; }
+
+// Visibility (accessible)
+.visually-hidden { @include visually-hidden; }
+
+// Cursor
+.cursor-pointer { cursor: pointer; }
+.cursor-default { cursor: default; }
+
+// ===== Scrollbar =====
+
+* {
+  @include scrollbar-thin;
+}

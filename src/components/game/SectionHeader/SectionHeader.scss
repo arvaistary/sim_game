@@ -1,0 +1,11 @@
+.section-header__title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  margin: 0 0 $space-1;
+}
+
+.section-header__subtitle {
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+  margin: 0;
+}

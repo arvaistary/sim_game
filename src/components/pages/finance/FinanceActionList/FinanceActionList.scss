@@ -1,0 +1,8 @@
+.section-title{font-size:$font-size-sm;font-weight:$font-weight-bold;margin:0 0 $space-2}
+.action-list{display:flex;flex-direction:column;gap:$space-2}
+.action-card{padding:$space-3;border-radius:var(--radius-md);background:var(--color-bg-elevated);cursor:pointer;transition:all .2s}
+.action-card:hover{background:var(--color-accent-soft)}
+.action-header{display:flex;justify-content:space-between;margin-bottom:$space-1}
+.action-title{font-size:$font-size-sm;font-weight:$font-weight-semibold}
+.action-amount{font-size:$font-size-sm;font-weight:$font-weight-bold;color:var(--color-brand-accent)}
+.action-desc{font-size:$font-size-xs;color:var(--color-text-secondary)}

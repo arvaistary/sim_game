@@ -4,9 +4,9 @@ import { describe, expect, it } from 'vitest'
 
 const LEGACY_KEYS = ['event_queue', 'event_history', 'lifetime_stats', 'activity_log']
 const ALLOWLIST = new Set([
-  'src/domain/ecs/world.ts',
-  'src/domain/ecs/components/index.ts',
-  'src/types/ecs.ts',
+  'src/domain/engine/world.ts',
+  'src/domain/engine/components/index.ts',
+  'src/domain/engine/types/index.ts',
 ])
 
 async function collectFiles(dir: string): Promise<string[]> {
@@ -20,8 +20,8 @@ async function collectFiles(dir: string): Promise<string[]> {
   return nested.flat()
 }
 
-describe('Canonical ECS runtime keys', () => {
-  it('does not use legacy ECS keys outside compatibility boundary', async () => {
+describe('Canonical engine runtime keys', () => {
+  it('does not use legacy keys outside compatibility boundary', async () => {
     const srcDir = path.resolve(process.cwd(), 'src')
     const files = await collectFiles(srcDir)
     const violations: string[] = []

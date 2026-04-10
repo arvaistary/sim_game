@@ -18,13 +18,13 @@ async function collectTsFiles(dir: string): Promise<string[]> {
 }
 
 describe('Architecture boundaries for stores', () => {
-  it('does not import ECS systems directly from stores', async () => {
+  it('does not import engine systems directly from stores', async () => {
     const files = await collectTsFiles(STORES_DIR)
     const violations: string[] = []
 
     for (const file of files) {
       const source = await readFile(file, 'utf8')
-      const hasDirectSystemsImport = /from\s+['"][^'"]*domain\/ecs\/systems\//.test(source)
+      const hasDirectSystemsImport = /from\s+['"][^'"]*domain\/engine\/systems\//.test(source)
       if (hasDirectSystemsImport) {
         violations.push(path.relative(process.cwd(), file))
       }

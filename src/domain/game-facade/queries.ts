@@ -1,46 +1,45 @@
 import { getSystemContext } from '@/domain/game-facade/system-context'
-import { ECSWorld } from '@/domain/ecs/world'
-
-type AnyRecord = Record<string, unknown>
+import type { AnyRecord } from '@/domain/game-facade/index.types'
+import { GameWorld } from '@/domain/engine/world'
 
 export const gameQueries = {
-  getCareerTrack(world: ECSWorld): Array<AnyRecord> {
+  getCareerTrack(world: GameWorld): Array<AnyRecord> {
     const ctx = getSystemContext(world)
     return ctx.careerProgress.getCareerTrack() as unknown as Array<AnyRecord>
   },
-  getActivityLogEntries(world: ECSWorld, count = 8): Array<AnyRecord> {
+  getActivityLogEntries(world: GameWorld, count = 8): Array<AnyRecord> {
     const ctx = getSystemContext(world)
     return ctx.activityLog.getRecentEntries(count) as unknown as Array<AnyRecord>
   },
-  canStartEducationProgram(world: ECSWorld, programId: string): boolean {
+  canStartEducationProgram(world: GameWorld, programId: string): boolean {
     const ctx = getSystemContext(world)
     const programs = ctx.education.getEducationPrograms()
     const program = programs.find(p => p.id === programId)
     if (!program) return false
     return ctx.education.canStartEducationProgram(program).ok
   },
-  getFinanceOverview(world: ECSWorld) {
+  getFinanceOverview(world: GameWorld) {
     const ctx = getSystemContext(world)
     return ctx.financeAction.getFinanceOverview()
   },
-  getInvestments(world: ECSWorld) {
+  getInvestments(world: GameWorld) {
     const ctx = getSystemContext(world)
     return ctx.investment.getAllInvestments()
   },
-  canExecuteAction(world: ECSWorld, actionId: string): { canExecute: boolean; reason?: string } {
+  canExecuteAction(world: GameWorld, actionId: string): { canExecute: boolean; reason?: string } {
     const ctx = getSystemContext(world)
     const check = ctx.action.canExecute(actionId)
     return { canExecute: check.available, reason: check.reason }
   },
-  getNextEvent(world: ECSWorld): AnyRecord | null {
+  getNextEvent(world: GameWorld): AnyRecord | null {
     const ctx = getSystemContext(world)
     return ctx.eventQueue.getNextEvent()
   },
-  getActivityLog(world: ECSWorld, filter?: string, limit?: number) {
+  getActivityLog(world: GameWorld, filter?: string, limit?: number) {
     const ctx = getSystemContext(world)
     return ctx.activityLog.getEntries({ limit: limit ?? 50, offset: 0, type: filter ?? undefined }).entries
   },
-  getActivityLogWindow(world: ECSWorld, count: number, beforeIndex?: number) {
+  getActivityLogWindow(world: GameWorld, count: number, beforeIndex?: number) {
     const ctx = getSystemContext(world)
     return ctx.activityLog.getEntriesWindowEndingAt({ limit: count, endBefore: beforeIndex })
   },

@@ -1,12 +1,26 @@
 wing: game_life
 rooms:
 - name: artifact
-  description: Screenshot artifacts and generated visual outputs
+  description: Files from artifact/
 - name: documentation
-  description: Project docs, plans, GDD, architecture and implementation notes
+  description: Files from doc/
+- name: plans
+  description: Files from plans/
+- name: public
+  description: Files from public/
+- name: scripts
+  description: Files from scripts/
 - name: src
-  description: Game source code (scenes, state management, UI kit, ECS)
+  description: Files from src/
 - name: testing
-  description: Automated tests and test fixtures
+  description: Files from test/
+- name: backend
+  description: Files from server/
+- name: design
+  description: Files from assets/
+- name: frontend
+  description: Files from components/
+- name: configuration
+  description: Files from infrastructure/
 - name: general
-  description: Repo files outside main domain rooms
+  description: Files that don't fit other rooms

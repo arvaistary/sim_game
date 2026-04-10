@@ -1,0 +1,80 @@
+.card {
+  position: relative;
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.profile-name {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.profile-job {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-secondary);
+  line-height: 1.3;
+}
+
+.profile-money {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: var(--color-text-primary);
+  margin-top: $space-1;
+}
+
+.profile-time {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.profile-comfort {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-secondary);
+}
+
+.profile-buttons {
+  display: flex;
+  gap: $space-3;
+  margin-top: auto;
+  padding-top: $space-2;
+}
+
+@media (max-width: $breakpoint-lg) {
+  .profile-card {
+    width: 100%;
+  }
+
+  .profile-name {
+    font-size: $font-size-2xl;
+  }
+
+  .profile-money {
+    font-size: $font-size-xl;
+  }
+
+  .profile-job {
+    font-size: $font-size-xs;
+  }
+
+  .profile-time {
+    font-size: $font-size-xs;
+  }
+
+  .profile-comfort {
+    font-size: $font-size-xs;
+  }
+
+  .profile-buttons {
+    padding-top: $space-1;
+  }
+}

@@ -20,8 +20,8 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   small?: boolean
 }>(), {
-  color: 'var(--color-neutral)',
-  textColor: 'var(--color-text)',
+  color: 'var(--color-action-primary)',
+  textColor: 'var(--color-text-on-primary)',
   disabled: false,
   small: false,
 })
@@ -41,21 +41,22 @@ const buttonStyle = computed(() => ({
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 48px;
   padding: 12px 20px;
   border: none;
-  border-radius: var(--radius-button);
-  font-family: var(--font-main);
-  font-size: 15px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-sans);
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  box-shadow: var(--shadow-button);
+  box-shadow: var(--shadow-sm);
   user-select: none;
 }
 
 .game-button:hover:not(.game-button--disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(60, 47, 47, 0.12);
+  box-shadow: var(--shadow-button-hover);
 }
 
 .game-button:active:not(.game-button--disabled) {
@@ -68,8 +69,9 @@ const buttonStyle = computed(() => ({
 }
 
 .game-button--small {
+  min-height: 40px;
   padding: 8px 14px;
-  font-size: 13px;
+  font-size: 14px;
 }
 </style>
 

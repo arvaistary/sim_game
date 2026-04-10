@@ -1,0 +1,28 @@
+.card {
+  position: relative;
+}
+
+.scales-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: var(--color-text-primary);
+  margin-bottom: $space-2;
+}
+
+.stat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  flex: 1;
+}
+
+@media (max-width: $breakpoint-lg) {
+  .scales-card {
+    width: calc(50% - 6px);
+  }
+}

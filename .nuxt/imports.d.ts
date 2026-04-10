@@ -31,11 +31,8 @@ export { requestIdleCallback, cancelIdleCallback } from '#app/compat/idle-callba
 export { setInterval } from '#app/compat/interval';
 export { definePageMeta, PageMeta } from '#app/composables/pages';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
-export { useActions } from '../src/composables/useActions';
-export { useActivityLog, DisplayLogEntry } from '../src/composables/useActivityLog';
-export { useEvents } from '../src/composables/useEvents';
-export { useFinance } from '../src/composables/useFinance';
-export { useToast, ToastItem } from '../src/composables/useToast';
+export { formatMoney, formatEffect } from '../src/utils/format';
 export { useGameStore } from '../src/stores/game.store';
 export { defineStore, acceptHMRUpdate, usePinia, storeToRefs } from '../node_modules/@pinia/nuxt/dist/runtime/composables';
 export { useColorMode } from '../node_modules/@nuxtjs/color-mode/dist/runtime/composables';
+export { useNuxtDevTools } from '../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools';

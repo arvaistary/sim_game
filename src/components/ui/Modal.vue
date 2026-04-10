@@ -5,7 +5,7 @@
         <div class="modal-content" :style="contentStyle">
           <div class="modal-header">
             <h3 class="modal-title">{{ title }}</h3>
-            <button v-if="showClose" class="modal-close" @click="close">вњ•</button>
+            <button v-if="showClose" class="modal-close" @click="close" aria-label="Close dialog">x</button>
           </div>
           <div class="modal-body">
             <slot />
@@ -46,7 +46,7 @@ const contentStyle = { maxWidth: props.maxWidth }
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(60, 47, 47, 0.4);
+  background: rgba(15, 23, 42, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,10 +55,10 @@ const contentStyle = { maxWidth: props.maxWidth }
 }
 
 .modal-content {
-  background: var(--color-panel);
-  border-radius: var(--radius-panel);
-  border: 1px solid var(--color-line);
-  box-shadow: var(--shadow-panel);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-popover);
   width: 100%;
   overflow: hidden;
 }
@@ -73,14 +73,14 @@ const contentStyle = { maxWidth: props.maxWidth }
 .modal-title {
   font-size: 18px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-text-primary);
 }
 
 .modal-close {
   background: none;
   border: none;
   font-size: 18px;
-  color: var(--color-text);
+  color: var(--color-text-secondary);
   opacity: 0.5;
   cursor: pointer;
   padding: 4px;
@@ -92,7 +92,7 @@ const contentStyle = { maxWidth: props.maxWidth }
 
 .modal-body {
   padding: 0 20px 16px;
-  color: var(--color-text);
+  color: var(--color-text-primary);
   font-size: 14px;
   line-height: 1.5;
 }

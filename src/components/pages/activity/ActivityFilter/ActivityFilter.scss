@@ -1,0 +1,4 @@
+.filter-row{display:flex;gap:$space-2;overflow-x:auto;padding-bottom:$space-1;-webkit-overflow-scrolling:touch;flex-shrink:0}
+.filter-btn{padding:$space-2 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-card);color:var(--color-text-primary);font-size:$font-size-xs;font-weight:$font-weight-medium;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s}
+.filter-btn.active{background:var(--color-brand-accent);color:var(--color-text-on-accent);border-color:var(--color-brand-accent);font-weight:$font-weight-semibold}
+.filter-btn:hover:not(.active){background:var(--color-accent-soft)}

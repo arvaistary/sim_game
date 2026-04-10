@@ -33,18 +33,23 @@ const env = {
   ...process.env,
   PYTHONIOENCODING: 'utf-8',
   PYTHONUTF8: '1',
+  // mempalace currently emits a known runpy RuntimeWarning on `-m mempalace.cli`.
+  // It is noisy but not actionable from this wrapper.
+  PYTHONWARNINGS:
+    "ignore:'mempalace.cli' found in sys.modules after import of package 'mempalace':RuntimeWarning",
 };
 
 const isInit = passthrough[0] === 'init';
+const stdio = isInit ? ['pipe', 'inherit', 'inherit'] : 'inherit';
 
 const result = spawnSync(
   python,
   ['-m', 'mempalace.cli', '--palace', './.mempalace/palace', ...passthrough],
   {
     cwd: root,
-    stdio: 'inherit',
+    stdio,
     env,
-    // как legacy `echo.|` для неинтерактивного init
+    // Неинтерактивный init: отправляем Enter в stdin.
     input: isInit ? '\n' : undefined,
   },
 );

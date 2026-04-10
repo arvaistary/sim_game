@@ -13,17 +13,17 @@ const props = withDefaults(defineProps<{
   radius?: number
   padding?: string
 }>(), {
-  color: 'var(--color-panel)',
+  color: 'var(--color-bg-card)',
   shadow: true,
-  radius: 22,
-  padding: '16px',
+  radius: 24,
+  padding: '24px',
 })
 
 const panelStyle = computed(() => ({
   backgroundColor: props.color,
   borderRadius: `${props.radius}px`,
-  boxShadow: props.shadow ? 'var(--shadow-panel)' : 'none',
-  border: `1px solid var(--color-line)`,
+  boxShadow: props.shadow ? 'var(--shadow-card)' : 'none',
+  border: `1px solid var(--color-border)`,
   padding: props.padding,
 }))
 </script>

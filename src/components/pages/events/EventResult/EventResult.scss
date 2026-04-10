@@ -1,0 +1,4 @@
+.result-panel{display:flex;flex-direction:column;gap:$space-3}
+.result-title{font-size:$font-size-lg;font-weight:$font-weight-bold;margin:0}
+.result-text{font-size:$font-size-sm;line-height:1.5;white-space:pre-line;margin:0;color:var(--color-text-secondary)}
+.result-actions{display:flex;gap:$space-2;margin-top:$space-1}

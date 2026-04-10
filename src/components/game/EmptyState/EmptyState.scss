@@ -1,0 +1,10 @@
+.empty-state {
+  text-align: center;
+  padding: $space-5;
+}
+
+.empty-state__text {
+  font-size: $font-size-sm;
+  color: var(--color-text-secondary);
+  margin: 0;
+}

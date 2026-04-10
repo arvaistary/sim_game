@@ -1,6 +1,5 @@
 import type { SaveRepository } from '@/application/game/ports/SaveRepository'
-
-const DEFAULT_SAVE_KEY = 'game_life_save_vue'
+import { DEFAULT_SAVE_KEY } from './constants'
 
 export class LocalStorageSaveRepository implements SaveRepository {
   constructor(private readonly saveKey: string = DEFAULT_SAVE_KEY) {}

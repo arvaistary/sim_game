@@ -1,0 +1,62 @@
+.action-card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+
+  &.disabled {
+    opacity: 0.5;
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.card-price {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: var(--color-brand-accent);
+}
+
+.card-effect {
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+  margin: $space-1 0;
+  white-space: pre-line;
+  line-height: $line-height-base;
+}
+
+.card-mood {
+  font-size: $font-size-xs;
+  color: var(--color-pastel-green-strong);
+  font-style: italic;
+  margin: 2px 0;
+}
+
+.card-meta {
+  display: flex;
+  gap: $space-2;
+  margin-top: 2px;
+}
+
+.meta-tag {
+  font-size: 10px;
+  background: var(--color-bg-elevated);
+  padding: 2px $space-2;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}

@@ -1,5 +1,4 @@
 import type { BalanceAction } from './types'
-import type { ActionCategoryDef } from '@/domain/balance/types'
 
 import { SHOP_ACTIONS } from './shop-actions'
 import { FUN_ACTIONS } from './fun-actions'
@@ -23,19 +22,7 @@ export { CAREER_ACTIONS } from './career-actions'
 export { HOBBY_ACTIONS } from './hobby-actions'
 export { HEALTH_ACTIONS } from './health-actions'
 export { SELFDEV_ACTIONS } from './selfdev-actions'
-
-export const ACTION_CATEGORIES: ActionCategoryDef[] = [
-  { id: 'shop', label: 'Магазин', icon: '🛒' },
-  { id: 'fun', label: 'Отдых', icon: '🎮' },
-  { id: 'home', label: 'Дом', icon: '🏠' },
-  { id: 'social', label: 'Социальное', icon: '👥' },
-  { id: 'education', label: 'Образование', icon: '📚' },
-  { id: 'finance', label: 'Финансы', icon: '💰' },
-  { id: 'career', label: 'Карьера', icon: '💼' },
-  { id: 'hobby', label: 'Хобби', icon: '🎨' },
-  { id: 'health', label: 'Здоровье', icon: '🏥' },
-  { id: 'selfdev', label: 'Саморазвитие', icon: '🧠' },
-]
+export { ACTION_CATEGORIES } from './constants'
 
 const ALL_ACTIONS_MAP = new Map<string, BalanceAction>()
 

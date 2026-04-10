@@ -3,7 +3,16 @@ dist
 .DS_Store
 *.log
 .roo
-.cursor
+.roo/
+# .cursor
+# .cursor/
 .kilo
+.kilo/
 .venv
+.venv/
 .mempalace/
+.tmp-mempalace/
+
+
+.nuxt/
+.output/

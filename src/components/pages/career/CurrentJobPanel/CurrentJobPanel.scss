@@ -1,0 +1,4 @@
+.section-title{font-size:$font-size-sm;font-weight:$font-weight-bold;margin:0 0 $space-2}
+.current-job{display:flex;justify-content:space-between;align-items:center}
+.job-name{font-size:$font-size-base;font-weight:$font-weight-bold}
+.job-salary{font-size:$font-size-sm;color:var(--color-brand-accent);font-weight:$font-weight-semibold}

@@ -200,4 +200,3 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
     effect: 'Музыкальные способности +2, Креативность +2',
   },
 ]
-

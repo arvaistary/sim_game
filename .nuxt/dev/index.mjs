@@ -15,7 +15,7 @@ import { snakeCase } from 'file://E:/project/games/game_life/node_modules/scule/
 import { createHead as createHead$1, propsToString, renderSSRHead } from 'file://E:/project/games/game_life/node_modules/unhead/dist/server.mjs';
 import { stringify, uneval } from 'file://E:/project/games/game_life/node_modules/devalue/index.js';
 import { isVNode, isRef, toValue } from 'file://E:/project/games/game_life/node_modules/vue/index.mjs';
-import { createHooks } from 'file://E:/project/games/game_life/node_modules/hookable/dist/index.mjs';
+import { createHooks } from 'file://E:/project/games/game_life/node_modules/nitropack/node_modules/hookable/dist/index.mjs';
 import { createFetch, Headers as Headers$1 } from 'file://E:/project/games/game_life/node_modules/ofetch/dist/node.mjs';
 import { fetchNodeRequestHandler, callNodeRequestHandler } from 'file://E:/project/games/game_life/node_modules/node-mock-http/dist/index.mjs';
 import { createStorage, prefixStorage } from 'file://E:/project/games/game_life/node_modules/unstorage/dist/index.mjs';
@@ -26,7 +26,7 @@ import { readFile } from 'node:fs/promises';
 import consola, { consola as consola$1 } from 'file://E:/project/games/game_life/node_modules/consola/dist/index.mjs';
 import { ErrorParser } from 'file://E:/project/games/game_life/node_modules/youch-core/build/index.js';
 import { Youch } from 'file://E:/project/games/game_life/node_modules/youch/build/index.js';
-import { SourceMapConsumer } from 'file://E:/project/games/game_life/node_modules/source-map/source-map.js';
+import { SourceMapConsumer } from 'file://E:/project/games/game_life/node_modules/nitropack/node_modules/source-map/source-map.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { getContext } from 'file://E:/project/games/game_life/node_modules/unctx/dist/index.mjs';
 import { captureRawStackTrace, parseRawStackTrace } from 'file://E:/project/games/game_life/node_modules/errx/dist/index.js';
@@ -2020,7 +2020,7 @@ if (!window.__NUXT_DEVTOOLS_TIME_METRIC__) {
 window.__NUXT_DEVTOOLS_TIME_METRIC__.appInit = Date.now()
 `;
 
-const _ClAsiI3nFx4PbiSb3fqdp8yK3XBwJf9Ok5vi3_A40I = (function(nitro) {
+const _aOX2thA_uwXqJTYcmE4ASy43xjOSpECFWanbWdwq64 = (function(nitro) {
   nitro.hooks.hook("render:html", (htmlContext) => {
     htmlContext.head.push(`<script>${script$1}<\/script>`);
   });
@@ -2028,7 +2028,7 @@ const _ClAsiI3nFx4PbiSb3fqdp8yK3XBwJf9Ok5vi3_A40I = (function(nitro) {
 
 const rootDir = "E:/project/games/game_life";
 
-const appHead = {"meta":[{"charset":"utf-8"},{"name":"viewport","content":"width=device-width, initial-scale=1"},{"name":"description","content":"Cozy turn-based life simulator"}],"link":[],"style":[],"script":[],"noscript":[],"title":"Game Life"};
+const appHead = {"meta":[{"charset":"utf-8"},{"name":"viewport","content":"width=device-width, initial-scale=1"},{"name":"description","content":"Cozy turn-based life simulator"}],"link":[{"rel":"preconnect","href":"https://fonts.googleapis.com"},{"rel":"preconnect","href":"https://fonts.gstatic.com","crossorigin":"anonymous"},{"rel":"stylesheet","href":"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"}],"style":[],"script":[],"noscript":[],"title":"Game Life"};
 
 const appRootTag = "div";
 
@@ -2128,7 +2128,7 @@ function onConsoleLog(callback) {
 	consola$1.wrapConsole();
 }
 
-const script = "\"use strict\";(()=>{const t=window,e=document.documentElement,c=[\"dark\",\"light\"],n=getStorageValue(\"localStorage\",\"nuxt-color-mode\")||\"system\";let i=n===\"system\"?u():n;const r=e.getAttribute(\"data-color-mode-forced\");r&&(i=r),l(i),t[\"__NUXT_COLOR_MODE__\"]={preference:n,value:i,getColorScheme:u,addColorScheme:l,removeColorScheme:d};function l(o){const s=\"\"+o+\"-mode\",a=\"\";e.classList?e.classList.add(s):e.className+=\" \"+s,a&&e.setAttribute(\"data-\"+a,o)}function d(o){const s=\"\"+o+\"-mode\",a=\"\";e.classList?e.classList.remove(s):e.className=e.className.replace(new RegExp(s,\"g\"),\"\"),a&&e.removeAttribute(\"data-\"+a)}function f(o){return t.matchMedia(\"(prefers-color-scheme\"+o+\")\")}function u(){if(t.matchMedia&&f(\"\").media!==\"not all\"){for(const o of c)if(f(\":\"+o).matches)return o}return\"light\"}})();function getStorageValue(t,e){switch(t){case\"localStorage\":return window.localStorage.getItem(e);case\"sessionStorage\":return window.sessionStorage.getItem(e);case\"cookie\":return getCookie(e);default:return null}}function getCookie(t){const c=(\"; \"+window.document.cookie).split(\"; \"+t+\"=\");if(c.length===2)return c.pop()?.split(\";\").shift()}";
+const script = "\"use strict\";(()=>{const t=window,e=document.documentElement,c=[\"dark\",\"light\"],n=getStorageValue(\"localStorage\",\"nuxt-color-mode\")||\"light\";let i=n===\"system\"?u():n;const r=e.getAttribute(\"data-color-mode-forced\");r&&(i=r),l(i),t[\"__NUXT_COLOR_MODE__\"]={preference:n,value:i,getColorScheme:u,addColorScheme:l,removeColorScheme:d};function l(o){const s=\"\"+o+\"\",a=\"theme\";e.classList?e.classList.add(s):e.className+=\" \"+s,a&&e.setAttribute(\"data-\"+a,o)}function d(o){const s=\"\"+o+\"\",a=\"theme\";e.classList?e.classList.remove(s):e.className=e.className.replace(new RegExp(s,\"g\"),\"\"),a&&e.removeAttribute(\"data-\"+a)}function f(o){return t.matchMedia(\"(prefers-color-scheme\"+o+\")\")}function u(){if(t.matchMedia&&f(\"\").media!==\"not all\"){for(const o of c)if(f(\":\"+o).matches)return o}return\"light\"}})();function getStorageValue(t,e){switch(t){case\"localStorage\":return window.localStorage.getItem(e);case\"sessionStorage\":return window.sessionStorage.getItem(e);case\"cookie\":return getCookie(e);default:return null}}function getCookie(t){const c=(\"; \"+window.document.cookie).split(\"; \"+t+\"=\");if(c.length===2)return c.pop()?.split(\";\").shift()}";
 
 const _i8qQL2P77hChJjieQzOG2ClbQ3XLMhmHJGSEUebNlw = (function(nitro) {
   nitro.hooks.hook("render:html", (htmlContext) => {
@@ -2137,7 +2137,7 @@ const _i8qQL2P77hChJjieQzOG2ClbQ3XLMhmHJGSEUebNlw = (function(nitro) {
 });
 
 const plugins = [
-  _ClAsiI3nFx4PbiSb3fqdp8yK3XBwJf9Ok5vi3_A40I,
+  _aOX2thA_uwXqJTYcmE4ASy43xjOSpECFWanbWdwq64,
 _KfXRzaIVMxSVxUxOZccqo3quiH3Ef6y2FS_hkBGUsI,
 _i8qQL2P77hChJjieQzOG2ClbQ3XLMhmHJGSEUebNlw,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw

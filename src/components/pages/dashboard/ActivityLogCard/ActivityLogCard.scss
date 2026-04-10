@@ -1,0 +1,59 @@
+.card {
+  position: relative;
+}
+
+.log-card-wrapper {
+  cursor: pointer;
+}
+
+.log-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: var(--color-text-primary);
+  margin-bottom: $space-2;
+}
+
+.log-entries {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.log-empty {
+  font-size: $font-size-sm;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+.log-entry {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.log-hint {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-regular;
+  color: var(--color-text-tertiary);
+  text-align: center;
+  margin-top: auto;
+  padding-top: $space-1;
+}
+
+@media (max-width: $breakpoint-lg) {
+  .log-card-wrapper {
+    width: calc(50% - 6px);
+  }
+}

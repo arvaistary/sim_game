@@ -1,0 +1,74 @@
+.nav-wrapper {
+  flex-shrink: 0;
+}
+
+.nav-grid {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: $space-1 2px;
+  transition: transform var(--transition-fast);
+  min-width: 64px;
+}
+
+.nav-item:hover {
+  transform: translateY(-2px);
+}
+
+.nav-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: var(--color-accent-soft);
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: var(--color-text-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.nav-dot--active {
+  background-color: var(--color-accent);
+}
+
+.nav-item:hover .nav-dot {
+  background-color: var(--color-accent);
+}
+
+.nav-label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 640px) {
+  .nav-grid {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .nav-dot {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .nav-label {
+    font-size: 9px;
+  }
+}

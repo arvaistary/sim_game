@@ -31,14 +31,15 @@ const show = ref(false)
   left: 50%;
   transform: translateX(-50%);
   padding: 6px 10px;
-  background: var(--color-text);
+  background: var(--color-text-primary);
   color: var(--color-white);
   font-size: 12px;
   line-height: 1.4;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
   z-index: 500;
   pointer-events: none;
+  box-shadow: var(--shadow-card);
 }
 
 .tooltip-enter-active,

@@ -1,16 +1,15 @@
-import { DEFAULT_SAVE } from '@/domain/balance/default-save'
-import { PLAYER_ENTITY } from '@/domain/ecs/components'
-import { ECSWorld } from '@/domain/ecs/world'
-import { ActivityLogSystem } from '@/domain/ecs/systems/ActivityLogSystem'
+import { DEFAULT_SAVE } from '@/domain/balance/constants/default-save'
+import { PLAYER_ENTITY } from '@/domain/engine/components'
+import { GameWorld } from '@/domain/engine/world'
+import { ActivityLogSystem } from '@/domain/engine/systems/ActivityLogSystem'
 import { gameCommands } from '@/domain/game-facade/commands'
 import { gameQueries } from '@/domain/game-facade/queries'
 import { resetSystemContext } from '@/domain/game-facade/system-context'
+import type { AnyRecord } from '@/domain/game-facade/index.types'
 
-type AnyRecord = Record<string, unknown>
-
-export function createWorldFromSave(saveData?: AnyRecord): ECSWorld {
+export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
   const data = saveData || (structuredClone(DEFAULT_SAVE) as unknown as AnyRecord)
-  const world = new ECSWorld()
+  const world = new GameWorld()
   resetSystemContext(world)
 
   world.entities.set(PLAYER_ENTITY, { id: PLAYER_ENTITY, components: new Set() as never })

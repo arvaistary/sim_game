@@ -1,0 +1,1 @@
+// SkillsSystem constants

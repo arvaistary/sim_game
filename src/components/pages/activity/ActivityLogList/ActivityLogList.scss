@@ -1,0 +1,15 @@
+.log-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:$space-2;padding-bottom:$space-5}
+.log-entry{transition:all .2s}
+.log-entry--action{background:color-mix(in srgb,var(--color-pastel-orange) 72%,transparent)}
+.log-entry--event{background:color-mix(in srgb,var(--color-pastel-purple) 72%,transparent)}
+.log-entry--finance{background:color-mix(in srgb,var(--color-pastel-pink) 54%,var(--color-bg-card))}
+.log-entry--career{background:color-mix(in srgb,var(--color-pastel-blue) 72%,transparent)}
+.log-entry--education{background:color-mix(in srgb,var(--color-pastel-green) 72%,transparent)}
+.log-entry--time{background:color-mix(in srgb,var(--color-bg-elevated) 88%,transparent)}
+.entry-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:$space-1}
+.entry-title{font-size:$font-size-sm;font-weight:$font-weight-semibold}
+.entry-day{font-size:$font-size-xs;color:var(--color-text-tertiary)}
+.entry-desc{font-size:$font-size-xs;color:var(--color-text-secondary);margin:$space-1 0 0;line-height:1.4}
+.empty-panel{text-align:center;padding:$space-5}
+.empty-text{font-size:$font-size-sm;color:var(--color-text-secondary);margin:0}
+.loading{text-align:center;font-size:$font-size-xs;color:var(--color-text-tertiary);padding:$space-2}

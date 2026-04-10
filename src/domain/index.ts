@@ -1,3 +1,3 @@
 export * as balance from './balance'
-export * as ecs from './ecs'
+export * as engine from './engine'
 export * from './game-facade'

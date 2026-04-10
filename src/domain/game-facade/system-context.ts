@@ -1,48 +1,31 @@
-import { PLAYER_ENTITY } from '@/domain/ecs/components'
-import { ActionSystem } from '@/domain/ecs/systems/ActionSystem'
-import { ActivityLogSystem } from '@/domain/ecs/systems/ActivityLogSystem'
-import { CareerProgressSystem } from '@/domain/ecs/systems/CareerProgressSystem'
-import { EducationSystem } from '@/domain/ecs/systems/EducationSystem'
-import { EventChoiceSystem } from '@/domain/ecs/systems/EventChoiceSystem'
-import { EventQueueSystem } from '@/domain/ecs/systems/EventQueueSystem'
-import { FinanceActionSystem } from '@/domain/ecs/systems/FinanceActionSystem'
-import { InvestmentSystem } from '@/domain/ecs/systems/InvestmentSystem'
-import { MonthlySettlementSystem } from '@/domain/ecs/systems/MonthlySettlementSystem'
-import { RecoverySystem } from '@/domain/ecs/systems/RecoverySystem'
-import { TimeSystem } from '@/domain/ecs/systems/TimeSystem'
-import { WorkPeriodSystem } from '@/domain/ecs/systems/WorkPeriodSystem'
-import { ECSWorld } from '@/domain/ecs/world'
+import { PLAYER_ENTITY } from '@/domain/engine/components'
+import { ActionSystem } from '@/domain/engine/systems/ActionSystem'
+import { ActivityLogSystem } from '@/domain/engine/systems/ActivityLogSystem'
+import { CareerProgressSystem } from '@/domain/engine/systems/CareerProgressSystem'
+import { EducationSystem } from '@/domain/engine/systems/EducationSystem'
+import { EventChoiceSystem } from '@/domain/engine/systems/EventChoiceSystem'
+import { EventQueueSystem } from '@/domain/engine/systems/EventQueueSystem'
+import { FinanceActionSystem } from '@/domain/engine/systems/FinanceActionSystem'
+import { InvestmentSystem } from '@/domain/engine/systems/InvestmentSystem'
+import { MonthlySettlementSystem } from '@/domain/engine/systems/MonthlySettlementSystem'
+import { RecoverySystem } from '@/domain/engine/systems/RecoverySystem'
+import { TimeSystem } from '@/domain/engine/systems/TimeSystem'
+import { WorkPeriodSystem } from '@/domain/engine/systems/WorkPeriodSystem'
+import { GameWorld } from '@/domain/engine/world'
+import type { SystemContext } from '@/domain/game-facade/index.types'
 
-export const ECS_DOMAIN_EVENT = {
-  timeAdvanced: 'ecs:time_advanced',
-  recoveryApplied: 'ecs:recovery_applied',
-} as const
+// Re-export for backward compatibility
+export { GAME_DOMAIN_EVENT } from '@/domain/game-facade/index.constants'
+export type { SystemContext, AnyRecord } from '@/domain/game-facade/index.types'
 
-export interface SystemContext {
-  world: ECSWorld
-  playerId: string
-  action: ActionSystem
-  activityLog: ActivityLogSystem
-  careerProgress: CareerProgressSystem
-  education: EducationSystem
-  eventChoice: EventChoiceSystem
-  eventQueue: EventQueueSystem
-  financeAction: FinanceActionSystem
-  investment: InvestmentSystem
-  monthlySettlement: MonthlySettlementSystem
-  recovery: RecoverySystem
-  time: TimeSystem
-  workPeriod: WorkPeriodSystem
-}
+const contextCache = new WeakMap<GameWorld, SystemContext>()
 
-const contextCache = new WeakMap<ECSWorld, SystemContext>()
-
-function initSystem<T extends { init(world: ECSWorld): void }>(system: T, world: ECSWorld): T {
+function initSystem<T extends { init(world: GameWorld): void }>(system: T, world: GameWorld): T {
   system.init(world)
   return system
 }
 
-export function getSystemContext(world: ECSWorld): SystemContext {
+export function getSystemContext(world: GameWorld): SystemContext {
   const cached = contextCache.get(world)
   if (cached) {
     return cached
@@ -69,6 +52,6 @@ export function getSystemContext(world: ECSWorld): SystemContext {
   return context
 }
 
-export function resetSystemContext(world: ECSWorld): void {
+export function resetSystemContext(world: GameWorld): void {
   contextCache.delete(world)
 }

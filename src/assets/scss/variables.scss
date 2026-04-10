@@ -1,0 +1,261 @@
+// ===== Nexus UI Design Tokens =====
+// Based on 8pt grid system
+// Architecture: Primitive → Semantic → Component
+
+// ===== Colors: Primitive =====
+
+// Brand / Accent
+$color-brand-primary: #00B2FF;     // бирюзово-голубой (Health+, Alutem, MagicHeal)
+$color-brand-accent: #FF6B6B;      // кораллово-оранжевый (Eduhouse, Lordbank)
+$color-brand-secondary: #7B61FF;    // фиолетовый (Clarity, YourEducation)
+
+// Neutral scale
+$color-neutral-0: #FFFFFF;
+$color-neutral-50: #F8F7F4;        // бежевый фон (Eduhouse)
+$color-neutral-100: #F1F0EB;
+$color-neutral-200: #E2E8F0;
+$color-neutral-300: #CBD5E1;
+$color-neutral-400: #94A3B8;
+$color-neutral-500: #64748B;
+$color-neutral-600: #475569;
+$color-neutral-700: #334155;
+$color-neutral-800: #1F2A44;       // основной текст
+$color-neutral-900: #0F172A;
+
+// Semantic colors
+$color-success: #22C55E;
+$color-warning: #F59E0B;
+$color-danger: #EF4444;
+$color-info: #3B82F6;
+
+// Pastel accents (for cards and badges)
+$color-pastel-purple: #EDE9FE;
+$color-pastel-orange: #FFF7ED;
+$color-pastel-blue: #EFF6FF;
+$color-pastel-green: #ECFDF5;
+$color-pastel-pink: #FCE7F3;
+$color-pastel-teal: #CCFBF1;
+$color-pastel-purple-strong: #3B1F7A;
+$color-pastel-orange-strong: #5C2E00;
+$color-pastel-blue-strong: #1E3A5F;
+$color-pastel-green-strong: #14532D;
+$color-pastel-pink-strong: #5B1A47;
+$color-pastel-teal-strong: #134E4A;
+
+// ===== Colors: Semantic (Light theme) =====
+
+// Background
+$color-bg-page: $color-neutral-50;
+$color-bg-surface: $color-neutral-0;
+$color-bg-card: $color-neutral-0;
+$color-bg-sidebar: $color-neutral-0;
+$color-bg-header: $color-neutral-0;
+$color-bg-elevated: $color-neutral-100;
+
+// Text
+$color-text-primary: $color-neutral-800;
+$color-text-secondary: $color-neutral-500;
+$color-text-tertiary: $color-neutral-400;
+$color-text-on-primary: $color-neutral-0;
+$color-text-on-accent: $color-neutral-0;
+
+// Border / Divider
+$color-border: $color-neutral-200;
+$color-border-subtle: $color-neutral-100;
+
+// Interactive
+$color-action-primary: $color-brand-primary;
+$color-action-primary-hover: #0099E0;
+$color-action-primary-active: #0080C0;
+$color-action-secondary: $color-brand-secondary;
+$color-action-danger: $color-danger;
+
+// Status
+$color-status-success: $color-success;
+$color-status-warning: $color-warning;
+$color-status-danger: $color-danger;
+$color-status-info: $color-brand-primary;
+
+// ===== Colors: Dark theme =====
+
+// Background
+$color-dark-bg-page: $color-neutral-900;
+$color-dark-bg-surface: #1E2937;
+$color-dark-bg-card: #1E2937;
+$color-dark-bg-sidebar: $color-neutral-900;
+$color-dark-bg-header: #1E2937;
+$color-dark-bg-elevated: #242836;
+
+// Text
+$color-dark-text-primary: #F1F5F9;
+$color-dark-text-secondary: $color-neutral-400;
+$color-dark-text-tertiary: $color-neutral-500;
+
+// Border
+$color-dark-border: $color-neutral-700;
+$color-dark-border-subtle: #1E2937;
+
+// Interactive
+$color-dark-action-primary: #33C4FF;
+$color-dark-action-primary-hover: $color-brand-primary;
+$color-dark-action-primary-active: #0099E0;
+$color-dark-action-secondary: #9B85FF;
+$color-dark-action-danger: #F87171;
+
+// ===== Typography =====
+
+$font-family-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+$font-family-mono: "SF Mono", ui-monospace, monospace;
+
+// Font weights
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Font sizes (multiples of 2px, close to 8pt rhythm)
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-base: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+$font-size-3xl: 28px;
+$font-size-4xl: 32px;
+$font-size-5xl: 40px;
+
+// Line heights (multiples of 8)
+$line-height-tight: 1.1;
+$line-height-base: 1.5;
+$line-height-relaxed: 1.6;
+
+// Tracking
+$tracking-heading: -0.02em;
+$tracking-base: 0;
+
+// ===== Spacing (8pt Grid) =====
+
+$space-0: 0;
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 24px;
+$space-6: 32px;
+$space-7: 40px;
+$space-8: 48px;
+$space-9: 56px;
+$space-10: 64px;
+$space-12: 96px;
+$space-16: 128px;
+
+// Semantic spacing
+$space-component-padding: $space-6;
+$space-card-padding: $space-5;
+$space-section-gap: $space-8;
+$space-element-gap: $space-4;
+$space-inline-gap: $space-3;
+
+// ===== Layout Dimensions =====
+
+$size-sidebar: 280px;
+$size-sidebar-collapsed: 72px;
+$size-header-height: 72px;
+$size-content-max-width: 1440px;
+
+// ===== Border Radius =====
+
+$radius-xs: 4px;
+$radius-sm: 8px;
+$radius-md: 12px;        // кнопки, input (основной)
+$radius-lg: 16px;
+$radius-xl: 20px;
+$radius-2xl: 24px;       // основной для карточек
+$radius-full: 9999px;
+
+// ===== Shadows =====
+
+$shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);   // основной для карточек
+$shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.10);
+
+// Semantic shadows
+$shadow-card: $shadow-lg;
+$shadow-popover: $shadow-xl;
+$shadow-button-hover: 0 4px 12px rgba(0, 178, 255, 0.25);
+
+// ===== Z-indices =====
+
+$z-index-neg: -1;
+$z-index-zero: 0;
+$z-index-base: 1;
+$z-index-content: 2;
+$z-index-on-content: 10;
+$z-index-on-page: 20;
+$z-index-blur: 30;
+$z-index-content-with-blur: 40;
+$z-index-dropdown: 100;
+$z-index-sticky: 200;
+$z-index-fixed: 300;
+$z-index-overlay-backdrop: 400;
+$z-index-modal: 999;
+$z-index-toast: 1000;
+
+// ===== Breakpoints =====
+
+// Desktop
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// ===== Transitions =====
+
+$transition-fast: 150ms ease;
+$transition-normal: 200ms ease-out;
+$transition-slow: 300ms ease-out;
+
+// ===== Component-specific Tokens =====
+
+// Button
+$button-height: 48px;
+$button-radius: $radius-md;
+$button-padding-x: $space-6;
+$button-font-size: $font-size-base;
+$button-font-weight: $font-weight-semibold;
+
+// Card
+$card-radius: $radius-2xl;
+$card-padding: $space-6;
+$card-shadow: $shadow-card;
+
+// Input
+$input-height: 48px;
+$input-radius: $radius-md;
+$input-border: $color-border;
+$input-focus-border: $color-action-primary;
+
+// Progress Bar
+$progress-radius: $radius-full;
+$progress-height: 8px;
+
+// Avatar
+$avatar-size-sm: 32px;
+$avatar-size-md: 40px;
+$avatar-size-lg: 48px;
+$avatar-size-xl: 64px;
+$avatar-border-width: 2px;
+
+// Table
+$table-row-hover: #F8FAFC;
+$table-padding: $space-4;
+
+// Badge
+$badge-radius: $radius-sm;
+$badge-padding-x: $space-2;
+$badge-padding-y: $space-1;
+$badge-font-size: $font-size-xs;
+$badge-font-weight: $font-weight-medium;

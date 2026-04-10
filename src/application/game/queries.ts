@@ -1,40 +1,40 @@
 import { gameQueries } from '@/domain/game-facade/queries'
-import { ECSWorld } from '@/domain/ecs/world'
-import type { EventQueueComponent, FinanceComponent, InvestmentComponent, WalletComponent } from '@/domain/ecs/types'
+import { GameWorld } from '@/domain/engine/world'
+import type { EventQueueComponent, FinanceComponent, InvestmentComponent, WalletComponent } from '@/domain/engine/types'
 
 export const appGameQueries = {
-  getCareerTrack(world: ECSWorld): Array<Record<string, unknown>> {
+  getCareerTrack(world: GameWorld): Array<Record<string, unknown>> {
     return gameQueries.getCareerTrack(world)
   },
-  getActivityLogEntries(world: ECSWorld, count = 8): Array<Record<string, unknown>> {
+  getActivityLogEntries(world: GameWorld, count = 8): Array<Record<string, unknown>> {
     return gameQueries.getActivityLogEntries(world, count)
   },
-  canStartEducationProgram(world: ECSWorld, programId: string): boolean {
+  canStartEducationProgram(world: GameWorld, programId: string): boolean {
     return gameQueries.canStartEducationProgram(world, programId)
   },
-  getFinanceOverview(world: ECSWorld) {
+  getFinanceOverview(world: GameWorld) {
     return gameQueries.getFinanceOverview(world)
   },
-  getInvestments(world: ECSWorld) {
+  getInvestments(world: GameWorld) {
     return gameQueries.getInvestments(world)
   },
-  canExecuteAction(world: ECSWorld, actionId: string): { canExecute: boolean; reason?: string } {
+  canExecuteAction(world: GameWorld, actionId: string): { canExecute: boolean; reason?: string } {
     return gameQueries.canExecuteAction(world, actionId)
   },
-  peekScheduledEvent(world: ECSWorld): Record<string, unknown> | null {
+  peekScheduledEvent(world: GameWorld): Record<string, unknown> | null {
     return gameQueries.getNextEvent(world)
   },
-  getActivityLog(world: ECSWorld, filter?: string, limit?: number) {
+  getActivityLog(world: GameWorld, filter?: string, limit?: number) {
     return gameQueries.getActivityLog(world, filter, limit)
   },
-  getActivityTimelineWindow(world: ECSWorld, count: number, beforeIndex?: number) {
+  getActivityTimelineWindow(world: GameWorld, count: number, beforeIndex?: number) {
     return gameQueries.getActivityLogWindow(world, count, beforeIndex)
   },
-  getEventQueue(world: ECSWorld, playerId: string): EventQueueComponent['queue'] {
+  getEventQueue(world: GameWorld, playerId: string): EventQueueComponent['queue'] {
     const component = world.getComponent<EventQueueComponent>(playerId, 'eventQueue')
     return component?.queue ?? []
   },
-  getFinanceSnapshot(world: ECSWorld, playerId: string) {
+  getFinanceSnapshot(world: GameWorld, playerId: string) {
     const wallet = world.getComponent<WalletComponent>(playerId, 'wallet')
     const finance = world.getComponent<FinanceComponent>(playerId, 'finance')
     const investments = world.getComponent<InvestmentComponent>(playerId, 'investment')

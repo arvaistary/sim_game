@@ -414,4 +414,3 @@ export const FUN_ACTIONS: BalanceAction[] = [
     mood: '🏖️ Солнце, песок и волны',
   },
 ]
-

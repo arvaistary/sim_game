@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{
   showValue?: boolean
 }>(), {
   max: 100,
-  color: 'var(--color-sage)',
+  color: 'var(--color-status-success)',
   height: 8,
   showValue: false,
 })
@@ -36,15 +36,15 @@ const fillStyle = computed(() => ({
 <style scoped>
 .progress-bar {
   width: 100%;
-  background-color: var(--color-neutral);
-  border-radius: 4px;
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--radius-full);
   overflow: hidden;
   position: relative;
 }
 
 .progress-bar__fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: var(--radius-full);
   transition: width var(--transition-normal);
 }
 
@@ -55,7 +55,7 @@ const fillStyle = computed(() => ({
   transform: translateY(-50%);
   font-size: 10px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-text-primary);
 }
 </style>
 

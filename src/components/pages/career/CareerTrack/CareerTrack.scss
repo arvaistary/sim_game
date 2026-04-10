@@ -1,0 +1,15 @@
+.section-title{font-size:$font-size-sm;font-weight:$font-weight-bold;margin:0 0 $space-2}
+.career-track{display:flex;flex-direction:column;gap:$space-2}
+.job-card{transition:all .2s}
+.job-card.current{border-left:4px solid var(--color-brand-accent)}
+.job-card.locked{opacity:.6}
+.job-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:$space-1}
+.job-title{font-size:$font-size-sm;font-weight:$font-weight-semibold}
+.badge{font-size:10px;padding:2px $space-2;border-radius:var(--radius-sm);font-weight:$font-weight-semibold}
+.current-badge{background:var(--color-accent-soft);color:var(--color-brand-accent)}
+.unlock-badge{background:var(--color-pastel-green);color:var(--color-pastel-green-strong)}
+.lock-badge{opacity:.5}
+.job-details{display:flex;gap:$space-3;flex-wrap:wrap;margin:$space-1 0}
+.detail{font-size:$font-size-xs;color:var(--color-text-secondary)}
+.job-reqs{margin-top:$space-1;display:flex;flex-direction:column;gap:2px}
+.req{font-size:$font-size-xs;color:var(--color-text-tertiary)}

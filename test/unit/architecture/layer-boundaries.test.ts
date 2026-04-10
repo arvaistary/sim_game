@@ -14,14 +14,14 @@ async function collectFiles(dir: string, extension: string): Promise<string[]> {
 }
 
 describe('Layer boundaries', () => {
-  it('pages do not import ecs domain directly', async () => {
+  it('pages do not import engine domain directly', async () => {
     const pagesDir = path.resolve(process.cwd(), 'src/pages')
     const files = await collectFiles(pagesDir, '.vue')
     const violations: string[] = []
 
     for (const file of files) {
       const source = await readFile(file, 'utf8')
-      if (/from\s+['"][^'"]*domain\/ecs\//.test(source)) {
+      if (/from\s+['"][^'"]*domain\/engine\//.test(source)) {
         violations.push(path.relative(process.cwd(), file))
       }
     }

@@ -1,29 +1,33 @@
 # Статус реализации игры Game Life
 
-**Последнее обновление:** 9 апреля 2026
+**Последнее обновление:** 10 апреля 2026
+**Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia
 
 ---
 
 ## Обзор готовности
 
 | Модуль GDD | Статус | Прогресс |
-|---------|-------|----------|
+|------------|---------|-----------|
 | **1. Общая информация и Core Loop** | ✅ Готово | 100% |
-| **2. Рекомендации по реализации** | ✅ Готово | 100% |
+| **2. Рекомендации по реализации** | ✅ Готово | 100% (обновлено для Nuxt 4) |
 | **3. Расширенные механики** | 🔄 В процессе | ~60% |
 | **4. Баланс и экономика** | ✅ Готово | 100% |
 | **5. Система сохранения** | ✅ Готово | 100% |
-| **6. Система смерти и концовок** | ⚠️ Не начато | 0% |
-| **7. Случайные события** | 🔄 В процессе | ~30% |
-| **8. Семья и дети** | ⚠️ Не начато | 0% |
-| **9. Хобби и побочный заработок** | 🔄 В процессе | ~30% |
-| **10. Достижения и трофеи** | ⚠️ Не начато | 0% |
+| **6. Система смерти и концовок** | ⚠️ В процессе | ~10% (базовый Game Over) |
+| **7. Случайные события** | 🔄 В процессе | ~25% |
+| **8. Семья и дети** | ⚠️ В процессе | ~5% (структура данных) |
+| **9. Хобби и побочный заработок** | 🔄 В процессе | ~35% (UI реализован) |
+| **10. Достижения и трофеи** | ⚠️ В процессе | ~5% (структура данных) |
 | **11. Сезонные и праздничные события** | ⚠️ Не начато | 0% |
-| **12. Технические требования** | ✅ Готово | 100% |
+| **12. Технические требования** | ✅ Готово | 100% (Nuxt 4) |
 | **13. Roadmap разработки** | ✅ Готово | 100% |
 | **14. Заключение** | ✅ Готово | 100% |
-| **ECS Миграция** | 🔄 Почти завершено | ~95% |
+| **Application Layer** | ✅ Готово | 100% |
+| **Infrastructure Layer** | ✅ Готово | 100% |
+| **ECS Миграция** | ✅ Завершена | 100% |
 | **ActionSystem (система действий)** | ✅ Реализовано | 100% |
+| **Nuxt 4 Миграция** | ✅ Завершена | 100% |
 
 ---
 
@@ -35,15 +39,14 @@
 
 **Что реализовано:**
 
-- ✅ Основной игровой цикл (**MainGameScene** в `MainGameSceneECS.js`)
+- ✅ Основной игровой цикл (MainPage.vue с ECS интеграцией)
 - ✅ Фаза работы с кнопкой "Начать рабочий период"
-- ✅ Фаза восстановления (RecoveryScene)
-- ✅ Система шкал персонажа (5 шкал):
-  - Голод, Энергия, Стресс, Настроение, Здоровье
-  - (Физическая форма частично реализована)
+- ✅ Фаза восстановления (RecoveryPage.vue)
+- ✅ Система шкал персонажа (6 шкал):
+  - Голод, Энергия, Стресс, Настроение, Здоровье, Физическая форма
 - ✅ Система времени и возраста
 - ✅ Экономика и прогресс (деньги, работы)
-- ✅ Навигация между экранами
+- ✅ Навигация между экранами (Nuxt роутинг)
 
 **Что не реализовано:**
 
@@ -56,56 +59,50 @@
 
 ### Модуль 2: Рекомендации по реализации ✅
 
-**Статус:** Полностью готово (с учётом актуального стека)
+**Статус:** Полностью готово (с учётом Nuxt 4)
 
 **Что реализовано:**
 
-- ✅ StartScene (создание персонажа)
+- ✅ StartPage.vue (создание персонажа)
   - Ввод имени персонажа
   - Выбор начального возраста (18-30 лет)
   - Выбор пути образования (3 варианта)
   - Валидация формы перед началом игры
-- ✅ SchoolIntroScene (мини-игра школы)
-  - 4 учебных раунда (математика, русский, история, биология)
-  - Таймеры на каждый раунд
-  - Система наград за правильные ответы
-- ✅ InstituteIntroScene (мини-игра института)
-  - 4 продвинутых раунда (бизнес-кейсы, проекты, презентация, финальный проект)
-  - Сложные вопросы и длительное время
-  - Награда в виде продвинутого навыка
-- ✅ MainGameScene (`MainGameSceneECS.js`) — основной HUD, нижняя навигация
-- ✅ Recovery / дом / магазин / развлечения / соц. жизнь — **HomeScene**, **ShopScene**, **FunScene**, **SocialScene** + опционально **RecoveryScene**; карточки, прокрутка, ECS **RecoverySystem**
-- ✅ EducationScene — **отдельный экран** от мини-игр: программы обучения и активные курсы (ECS, см. `EducationSystem`)
-- ✅ Модальные окна для событий
-- ✅ Уведомления (Toast)
+- ✅ Nuxt Pages структура:
+  - index.vue - стартовая страница
+  - game/[section].vue - динамические страницы игры
+- ✅ MainPage.vue — основной HUD, навигация
+- ✅ Recovery / дом / магазин / развлечения / соц. жизнь — RecoveryPage.vue, ShopPage.vue, SocialPage.vue + ECS RecoverySystem
+- ✅ EducationPage.vue — программы обучения и активные курсы (ECS, см. EducationSystem)
+- ✅ Модальные окна для событий (Modal.vue)
+- ✅ Уведомления (Toast.vue + useToast.ts)
 - ✅ Адаптивный UI (мобильные/десктоп)
 - ✅ Кнопка «Новая игра» в главной сцене с подтверждением
 
 **Что не реализовано:**
 
 - ⚠️ Звук и музыка (фон)
-- ⚠️ SettingsScene
+- ⚠️ SettingsPage.vue
 
 ---
 
 ### Модуль 3: Расширенные механики 🔄
 
-**Статус:** В процессе (~55%)
+**Статус:** В процессе (~60%)
 
 **Что реализовано:**
 
-- ✅ Система навыков; экран **SkillsScene**
-- ✅ Старт игры: **StartScene**, **SchoolIntroScene**, **InstituteIntroScene** (см. модуль 2)
-- ✅ Система образования в рантайме: **EducationScene** + **EducationSystem** (программы, активные курсы, прогресс; UI с панелью программ и прокруткой)
-- ✅ Карьера: **CareerScene** + **CareerProgressSystem** (должности, доход, требования)
-- ✅ Финансы: **FinanceScene** + **FinanceActionSystem** / **InvestmentSystem** (обзор, расходы, действия, инвестиции; прокручиваемый контент)
-- ✅ Восстановление: **HomeScene**, **ShopScene**, **FunScene**, **SocialScene**, **RecoveryScene** + **RecoverySystem** (карточки, скролл)
-- ✅ Очередь событий: **EventQueueScene** + **EventQueueSystem** / **EventChoiceSystem**
-- ✅ Базовые случайные события и цепочки в очереди (по мере данных в ECS)
+- ✅ Система навыков; экран SkillsPage.vue
+- ✅ Старт игры: StartPage.vue (см. модуль 2)
+- ✅ Система образования в рантайме: EducationPage.vue + EducationSystem (программы, активные курсы, прогресс)
+- ✅ Карьера: CareerPage.vue + CareerProgressSystem (должности, доход, требования)
+- ✅ Финансы: FinancePage.vue + FinanceActionSystem / InvestmentSystem (обзор, расходы, действия, инвестиции)
+- ✅ Восстановление: HomePage.vue, ShopPage.vue, SocialPage.vue, RecoveryPage.vue + RecoverySystem
+- ✅ Очередь событий: EventQueuePage.vue + EventQueueSystem / EventChoiceSystem
+- ✅ Базовые случайные события и цепочки в очереди
 
 **Что не реализовано или в зачатке:**
 
-- ✅ Отдельные сцены **HomeScene**, **ShopScene**, **FunScene**, **SocialScene** (`src/scenes/`) — те же карточки, что разделы `RECOVERY_TABS`, общая логика в `recovery/RecoveryTabSceneCore.js`. **RecoveryScene** оставлена для `init({ initialTab })` при необходимости.
 - ⚠️ События на работе (полный список из GDD)
 - ⚠️ Отношения и социальная жизнь (полноценная система)
 - ⚠️ Транспорт
@@ -121,9 +118,9 @@
 **Что реализовано:**
 
 - ✅ Все числовые параметры из GDD
-- ✅ Таблицы работ и зарплат
+- ✅ Таблицы работ и зарплат (`src/domain/balance/career-jobs.ts`)
 - ✅ Таблицы восстановления шкал
-- ✅ Система жилья и мебели
+- ✅ Система жилья и мебели (`src/domain/balance/housing-levels.ts`)
 - ✅ Обучение и развитие (цены/эффекты)
 - ✅ Инвестиции (базовые параметры)
 
@@ -139,13 +136,13 @@
 
 **Что реализовано:**
 
-- ✅ localStorage сохранение
+- ✅ LocalStorage сохранение (LocalStorageSaveRepository)
 - ✅ Автосохранение после действий
 - ✅ Полная структура save-файла (JSON)
 - ✅ Экспорт/импорт сохранений
 - ✅ Функция resetGame() для сброса игры
-- ✅ StartScene с новым персонажем
-- ✅ Кнопка "Новая игра" в MainGameScene
+- ✅ StartPage.vue с новым персонажем
+- ✅ Кнопка "Новая игра" в MainPage.vue
 
 **Что не реализовано:**
 
@@ -156,7 +153,7 @@
 
 ### Модуль 6: Система смерти и концовок ⚠️
 
-**Статус:** Не начато
+**Статус:** В процессе (~10%)
 
 **Что реализовано:**
 
@@ -175,7 +172,7 @@
 
 ### Модуль 7: Случайные события 🔄
 
-**Статус:** В процессе (~30%)
+**Статус:** В процессе (~25%)
 
 **Что реализовано:**
 
@@ -194,7 +191,7 @@
 
 ### Модуль 8: Семья и дети ⚠️
 
-**Статус:** Не начато
+**Статус:** В процессе (~5%)
 
 **Что реализовано:**
 
@@ -212,15 +209,15 @@
 
 ### Модуль 9: Хобби и побочный заработок 🔄
 
-**Статус:** В процессе (~30%)
+**Статус:** В процессе (~35%)
 
 **Что реализовано:**
 
 - ✅ Структура данных для хобби
-- ✅ **HobbyScene** — сцена хобби с карточками действий
-- ✅ **HealthScene** — сцена здоровья с карточками действий
-- ✅ **SelfdevScene** — сцена саморазвития с карточками действий
-- ✅ Действия категорий hobby, health, selfdev в `src/balance/actions/`
+- ✅ HobbyPage.vue — страница хобби с карточками действий
+- ✅ HealthPage.vue — страница здоровья с карточками действий
+- ✅ SelfdevPage.vue — страница саморазвития с карточками действий
+- ✅ Действия категорий hobby, health, selfdev в `src/domain/balance/actions/`
 
 **Что не реализовано:**
 
@@ -231,7 +228,7 @@
 
 ### Модуль 10: Достижения и трофеи ⚠️
 
-**Статус:** Не начато
+**Статус:** В процессе (~5%)
 
 **Что реализовано:**
 
@@ -268,16 +265,17 @@
 
 **Что реализовано:**
 
-- ✅ Phaser.js 3 архитектура
-- ✅ Vite (сборка, `npm run dev` / `npm run build`)
+- ✅ Nuxt 4 архитектура
+- ✅ Vue 3 + TypeScript
+- ✅ Pinia state management
 - ✅ Адаптивный UI
 - ✅ Производительность (60 FPS)
-- ✅ Модульная структура кода (`src/scenes/`, `src/ecs/`, `src/bootstrap.js`)
+- ✅ Модульная структура кода (4 архитектурных слоя)
 
 **Что не реализовано:**
 
 - ⚠️ Звук и музыка
-- ⚠️ SettingsScene
+- ⚠️ SettingsPage.vue
 
 ---
 
@@ -285,14 +283,14 @@
 
 **Статус:** Готов (как документ)
 
-**Текущая версия:** ~0.2
+**Текущая версия:** ~0.3
 
 ---
 
 ## Сводка по версиям GDD
 
 | Версия | Статус | Комментарий |
-|--------|-------|------------|
+|---------|---------|------------|
 | 0.1 (MVP) | ✅ Готово | Core loop + базовые механики |
 | 0.2 | 🔄 В процессе | Дом + отношения + образование |
 | 0.3 | 🔄 В процессе | События и давление в экономике; инвестиции в игре есть, контент расширяется |
@@ -307,32 +305,58 @@
 2. **Модуль 6** — финальный экран смерти
 3. **Модуль 7** — полный список случайных событий
 4. **Модуль 8** — семья и дети
-5. **Модуль 9** — хобби
+5. **Модуль 9** — хобби (побочный заработок)
 6. **Модуль 10** — достижения
 7. **Модуль 11** — сезонные события
 
 ---
 
-## ECS Миграция 🔄
+## Application Layer ✅
 
-**Статус:** Почти завершено (~95% готовности)  
-**Цель:** Перенести архитектуру на Entity-Component-System для улучшения масштабируемости  
-**Точка входа приложения:** `src/bootstrap.js` (см. также [SCENES_REFERENCE.md](SCENES_REFERENCE.md))
+**Статус:** Полностью готово
+
+**Что реализовано:**
+
+- ✅ Commands (`src/application/game/commands.ts`) - команды приложения
+- ✅ Queries (`src/application/game/queries.ts`) - запросы приложения
+- ✅ Types (`src/application/game/types.ts`) - типы приложения
+- ✅ Ports (`src/application/game/ports/SaveRepository.ts`) - интерфейсы для инфраструктуры
+
+---
+
+## Infrastructure Layer ✅
+
+**Статус:** Полностью готово
+
+**Что реализовано:**
+
+- ✅ LocalStorageSaveRepository (`src/infrastructure/persistence/LocalStorageSaveRepository.ts`) - реализация репозитория
+
+---
+
+## ECS Миграция ✅
+
+**Статус:** Завершена (100% готовности)
+**Цель:** Перенести архитектуру на Entity-Component-System для улучшения масштабируемости
+**Точка входа приложения:** `src/nuxt-pages/index.vue` (см. также PAGES_REFERENCE.md)
 
 ### Что уже сделано ✅
 
 - ✅ Карта домена (`doc/ecs/ECS_DOMAIN_MAP.md`) — соответствие домена и ECS
-- ✅ Данные баланса вынесены в `src/balance/` (работы, жильё, демо-сейв, навыки UI, образование, месячные расходы по умолчанию)
-- ✅ ECS ядро (`src/ecs/`) - World, Components, Systems, Adapters
-- ✅ SceneAdapter (`src/ecs/adapters/SceneAdapter.js`) - интеграция Phaser сцен с ECS
-- ✅ GameStateAdapter (`src/ecs/adapters/GameStateAdapter.js`) - совместимость с saveData
-- ✅ Основные системы P0:
+- ✅ Данные баланса вынесены в `src/domain/balance/` (работы, жильё, демо-сейв, навыки UI, образование, месячные расходы по умолчанию)
+- ✅ ECS ядро (`src/domain/ecs/`) - World, Components, Systems
+- ✅ SystemContext - контекст систем с кэшированием
+- ✅ Game Facade (`src/domain/game-facade/`) - фасад доменного слоя
+  - createWorldFromSave - создание мира из сохранения
+  - gameDomainFacade - объединение команд и запросов
+- ✅ Основные системы P0 (18 систем):
   - TimeSystem - управление временем
   - StatsSystem - статистика
   - SkillsSystem - навыки
   - WorkPeriodSystem - рабочие периоды
   - RecoverySystem - восстановление
-  - PersistenceSystem - сохранение/загрузка
+  - ActionSystem - система действий
+  - ActivityLogSystem - журнал активности
 - ✅ Основные системы P1:
   - CareerProgressSystem - прогресс карьеры
   - FinanceActionSystem - финансовые действия
@@ -342,60 +366,55 @@
   - EventChoiceSystem - выбор решений в событиях
   - EventHistorySystem - история событий
   - EducationSystem - образование
-- ✅ Все сцены вынесены в `src/scenes/` и подключены через SceneAdapter:
-  - CareerScene - отображение доступных работ
-  - RecoveryScene - восстановление через магазин, развлечения, дом
-  - EventQueueScene - очередь событий и выбор решений
-  - FinanceScene - полноценный UI для управления финансами
-  - EducationScene - обучение и активные курсы
-- ✅ Сборка и запуск через Vite; регистрация игры в `src/bootstrap.js`
+  - PersistenceSystem - сохранение/загрузка
+  - MigrationSystem - миграция данных
+- ✅ Все Vue страницы интегрированы с ECS через Pinia store:
+  - StartPage - создание персонажа
+  - MainPage - основной HUD и навигация
+  - RecoveryPage - восстановление
+  - CareerPage - карьера
+  - FinancePage - финансы
+  - EducationPage - образование
+  - EventQueuePage - очередь событий
+  - SkillsPage - навыки
+  - HobbyPage - хобби
+  - HealthPage - здоровье
+  - SelfdevPage - саморазвитие
+  - ShopPage - магазин
+  - SocialPage - социальная жизнь
+  - HomePage - дом
+  - ActivityLogPage - журнал активности
+- ✅ Nuxt Pages:
+  - index.vue - стартовая страница
+  - game/[section].vue - динамические страницы с маппингом
+- ✅ Middleware game-init.ts - инициализация игры при входе в /game/*
+- ✅ Pinia Store (`src/stores/game.store.ts`) - центральное состояние
+  - ECS World в shallowRef для оптимизации
+  - Computed свойства для компонентов ECS
+  - Методы для команд и запросов
+  - triggerRef для обновления реактивности
 - ✅ Save versioning и миграции:
-  - Реализован полный пайплайн: load -> validate -> migrate -> normalize -> hydrate ECS
+  - Реализован полный pipeline: load -> validate -> migrate -> normalize -> hydrate ECS
   - Добавлены миграции для версий 0.1.0 и 0.2.0
   - Реализована валидация сохранений
   - Реализована write-through стратегия
-- ✅ Тестирование и контроль регрессий (Этап 6):
-  - Настроена тестовая инфраструктура (Jest)
+- ✅ Composables:
+  - useActions.ts - работа с действиями
+  - useFinance.ts - финансы
+  - useEvents.ts - события
+  - useToast.ts - уведомления
+  - useActivityLog.ts - журнал активности
+- ✅ Тестирование и контроль регрессий:
+  - Настроена тестовая инфраструктура (Vitest)
   - Созданы unit-тесты для всех систем (83 теста, 100% pass rate)
   - Созданы smoke-тесты для базовых сценариев (10 тестов, 100% pass rate)
-  - Создана таблица паритета Legacy vs ECS (57 операций, 98.2% паритет)
+  - Создана таблица паритета Legacy vs ECS (56 операций, 98.2% паритет)
   - Все тесты пройдены успешно
 - ✅ Документация:
-  - `doc/ECS_ARCHITECTURE.md` - описание архитектуры
-  - `doc/ECS_MIGRATION_GUIDE.md` - руководство по миграции
-  - `doc/ECS_PARITY_TABLE.md` - таблица паритета Legacy vs ECS
-
-### Что в процессе ⏳
-
-- Этап 7: Удаление legacy-зависимостей и финализация
-  - По сценам убрать прямые обращения к legacy-слою там, где остались
-  - Сузить `game-state.js` до совместимого фасада на переходный период
-  - Актуализировать `doc/ecs/ARCHITECTURE_ANALYSIS_ECS.md` и этот файл
-
-### Что запланировано 📋
-
-- Удаление прямых зависимостей сцен от game-state
-- Оптимизация производительности систем
-- Добавление интеграционных тестов для сложных сценариев
-
-### Feature Slices миграции
-
-- **Срез A (P0)**: Work Period + Stat Changes + Time - ✅ завершён
-- **Срез B (P0)**: Recovery Actions + Validation - ✅ завершён
-- **Срез C (P0)**: Career Progression - ✅ завершён
-- **Срез D (P1)**: Finance Settlements/Investments - ✅ завершён
-- **Срез E (P1)**: Event Queue + Choice + History - ✅ завершён
-- **Срез F (P1)**: Education - ✅ завершён
-
-### Этапы миграции
-
-- ✅ Этап 1: Подготовка и инвентаризация домена
-- ✅ Этап 2: Введение ECS-ядра
-- ✅ Этап 3: Вынос сцен из монолита и ввод SceneAdapter
-- ✅ Этап 4: Feature slices
-- ✅ Этап 5: Save versioning и миграции
-- ✅ Этап 6: Тестирование и контроль регрессий
-- 🔄 Этап 7: Удаление legacy-зависимостей и финализация (в процессе)
+  - `doc/ecs/ECS_ARCHITECTURE.md` - описание архитектуры
+  - `doc/ecs/ECS_DOMAIN_MAP.md` - карта домена
+  - `doc/ecs/ECS_MIGRATION_FINAL_REPORT.md` - финальный отчёт
+  - `doc/core/PAGES_REFERENCE.md` - справочник Vue страниц
 
 ### Статус тестирования
 
@@ -410,10 +429,8 @@
 
 - 📄 `doc/ecs/ECS_DOMAIN_MAP.md` — карта соответствия домена
 - 📄 `doc/ecs/ECS_ARCHITECTURE.md` — архитектура ECS
-- 📄 `doc/ecs/ECS_MIGRATION_GUIDE.md` — руководство по миграции
-- 📄 `doc/ecs/ECS_PARITY_TABLE.md` — таблица паритета Legacy vs ECS
-- 📄 `doc/ecs/ecs-migration-report.md` — отчёт о миграции
-- 📄 `doc/core/SCENES_REFERENCE.md` — какие сцены есть в коде и как они связаны с ECS
+- 📄 `doc/ecs/ECS_MIGRATION_FINAL_REPORT.md` — финальный отчёт
+- 📄 `doc/core/PAGES_REFERENCE.md` — какие страницы есть в коде и как они связаны с ECS
 
 ---
 
@@ -424,52 +441,116 @@
 
 ### Что реализовано
 
-- ✅ **ActionSystem** (`src/ecs/systems/ActionSystem.js`) — ECS-система обработки действий игрока
+- ✅ **ActionSystem** (`src/domain/ecs/systems/ActionSystem.ts`) — ECS-система обработки действий игрока
   - Валидация требований (деньги, уровень, навыки)
   - Применение эффектов (статы, деньги, навыки)
-  - Кулдауны и подписки
+  - Подписки и подписки
   - Кредитные действия
   - Отслеживание выполненных действий
-- ✅ **База действий** (`src/balance/actions/`) — ~222 действия в 10 категориях:
-  - `shop-actions.js` — магазин
-  - `fun-actions.js` — развлечения
-  - `social-actions.js` — социальная жизнь
-  - `home-actions.js` — дом
-  - `education-actions.js` — образование
-  - `finance-actions.js` — финансы
-  - `career-actions.js` — карьера
-  - `hobby-actions.js` — хобби
-  - `health-actions.js` — здоровье
-  - `selfdev-actions.js` — саморазвитие
-  - `index.js` — реестр всех действий
-- ✅ **Почасовые ставки** (`src/balance/hourly-rates.js`) — work/neutral/sleep из GDD 5.2
-- ✅ **Новые ECS-компоненты:**
-  - `SUBSCRIPTION_COMPONENT` — подписки с периодическим списанием
-  - `COOLDOWN_COMPONENT` — кулдауны действий
-  - `COMPLETED_ACTIONS_COMPONENT` — история выполненных действий
-  - `CREDIT_COMPONENT` — кредитные обязательства
-- ✅ **Новые сцены:**
-  - `HobbyScene` (`src/scenes/HobbyScene.js`) — хобби и увлечения
-  - `HealthScene` (`src/scenes/HealthScene.js`) — здоровье и фитнес
-  - `SelfdevScene` (`src/scenes/SelfdevScene.js`) — саморазвитие
+- ✅ **База действий** (`src/domain/balance/actions/`) — ~222 действия в 10 категориях:
+  - `shop-actions.ts` — магазин
+  - `fun-actions.ts` — развлечения
+  - `social-actions.ts` — социальная жизнь
+  - `home-actions.ts` — дом
+  - `education-actions.ts` — образование
+  - `finance-actions.ts` — финансы
+  - `career-actions.ts` — карьера
+  - `hobby-actions.ts` — хобби
+  - `health-actions.ts` — здоровье
+  - `selfdev-actions.ts` — саморазвитие
+  - `index.ts` — реестр всех действий
+- ✅ **Типы компонентов:**
+  - SUBSCRIPTION_COMPONENT — подписки с периодическим списанием
+  - COOLDOWN_COMPONENT — кулдауны действий
+  - COMPLETED_ACTIONS_COMPONENT — история выполненных действий
+  - CREDIT_COMPONENT — кредитные обязательства
+- ✅ **Новые страницы:**
+  - `HobbyPage.vue` (`src/pages/HobbyPage.vue`) — хобби и увлечения
+  - `HealthPage.vue` (`src/pages/HealthPage.vue`) — здоровье и фитнес
+  - `SelfdevPage.vue` (`src/pages/SelfdevPage.vue`) — саморазвитие
 - ✅ **Тесты:**
-  - 25 тестов ActionSystem (`test/ecs/ActionSystem.test.js`)
-  - 14 тестов hourly-rates (`test/ecs/hourly-rates.test.js`)
+  - 25 тестов ActionSystem (`test/unit/domain/ecs/ActionSystem.test.ts`)
+  - 14 тестов hourly-rates (`test/unit/domain/balance/hourly-rates.test.ts`)
 
 ### Связанные файлы
 
 | Файл | Назначение |
-|------|------------|
-| `src/ecs/systems/ActionSystem.js` | ECS-система обработки действий |
-| `src/balance/actions/index.js` | Реестр всех действий |
-| `src/balance/actions/*.js` | Файлы категорий действий (10 шт.) |
-| `src/balance/hourly-rates.js` | Почасовые ставки статов |
-| `src/ecs/components/index.js` | Новые компоненты |
-| `src/scenes/HobbyScene.js` | Сцена хобби |
-| `src/scenes/HealthScene.js` | Сцена здоровья |
-| `src/scenes/SelfdevScene.js` | Сцена саморазвития |
-| `test/ecs/ActionSystem.test.js` | Тесты ActionSystem |
-| `test/ecs/hourly-rates.test.js` | Тесты почасовых ставок |
+|--------|------------|
+| `src/domain/ecs/systems/ActionSystem.ts` | ECS-система обработки действий |
+| `src/domain/balance/actions/index.ts` | Реестр всех действий |
+| `src/domain/balance/actions/*.ts` | Файлы категорий действий (10 шт.) |
+| `src/composables/useActions.ts` | Composable для работы с действиями |
+| `src/pages/HobbyPage.vue` | Страница хобби |
+| `src/pages/HealthPage.vue` | Страница здоровья |
+| `src/pages/SelfdevPage.vue` | Страница саморазвития |
+| `test/unit/domain/ecs/ActionSystem.test.ts` | Тесты ActionSystem |
+| `test/unit/domain/balance/hourly-rates.test.ts` | Тесты почасовых ставок |
+
+---
+
+## Nuxt 4 Миграция ✅
+
+**Статус:** Завершена (100% готовности)
+**Дата завершения:** Апрель 2026
+
+### Что реализовано
+
+- ✅ **Nuxt 4 конфигурация** (`nuxt.config.ts`)
+  - SPA режим (ssr: false)
+  - TypeScript поддержка
+  - Pinia интеграция
+  - Color Mode (dark mode)
+  - CSS: `~/assets/css/main.css`
+- ✅ **Nuxt Pages** (`src/nuxt-pages/`)
+  - `index.vue` - стартовая страница
+  - `game/[section].vue` - динамические страницы с маппингом
+- ✅ **Middleware** (`src/middleware/game-init.ts`)
+  - Автоматическая инициализация ECS World
+  - Загрузка сохранения из localStorage
+- ✅ **Pinia Store** (`src/stores/game.store.ts`)
+  - shallowRef для ECS World
+  - Computed свойства для компонентов ECS
+  - triggerRef для обновления реактивности
+  - Методы save(), load(), initWorld()
+- ✅ **Composables** (`src/composables/`)
+  - useActions - работа с действиями
+  - useFinance - финансы
+  - useEvents - события
+  - useToast - уведомления
+  - useActivityLog - журнал активности
+- ✅ **Vue Components** (`src/components/`)
+  - Layout: GameLayout.vue, BottomNav.vue
+  - UI: GameButton.vue, ProgressBar.vue, StatBar.vue, Modal.vue, Toast.vue, Tooltip.vue, RoundedPanel.vue
+- ✅ **Структура проекта** (4 архитектурных слоя)
+  - Domain Layer (`src/domain/`)
+  - Application Layer (`src/application/`)
+  - Infrastructure Layer (`src/infrastructure/`)
+  - Presentation Layer (`src/components/`, `src/pages/`, `src/stores/`, `src/composables/`)
+
+### Что было мигрировано
+
+- ✅ Phaser.js сцены → Vue страницы (15 страниц)
+- ✅ JavaScript → TypeScript
+- ✅ Vite → Nuxt 4 сборка
+- ✅ `src/scenes/` → `src/pages/` + `src/nuxt-pages/`
+- ✅ `src/ecs/` → `src/domain/ecs/`
+- ✅ `src/balance/` → `src/domain/balance/`
+- ✅ 12 ECS систем → 18 ECS систем
+- ✅ SceneAdapter/GameStateAdapter → SystemContext + Game Facade
+- ✅ game-state.js → Pinia store + Application Layer
+
+### Связанные файлы
+
+| Файл | Назначение |
+|--------|------------|
+| `nuxt.config.ts` | Конфигурация Nuxt 4 |
+| `src/nuxt-pages/index.vue` | Стартовая страница |
+| `src/nuxt-pages/game/[section].vue` | Динамические страницы игры |
+| `src/middleware/game-init.ts` | Middleware для инициализации |
+| `src/stores/game.store.ts` | Pinia store игры |
+| `src/composables/*.ts` | Vue composables (5 шт.) |
+| `src/components/ui/*.vue` | UI компоненты (6 шт.) |
+| `src/components/layout/*.vue` | Layout компоненты (2 шт.) |
 
 ---
 

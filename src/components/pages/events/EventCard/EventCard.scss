@@ -1,0 +1,7 @@
+.event-card{display:flex;flex-direction:column;gap:$space-2}
+.event-title{font-size:$font-size-lg;font-weight:$font-weight-bold;margin:0}
+.event-desc{font-size:$font-size-sm;color:var(--color-text-secondary);line-height:1.5;margin:0}
+.event-impact{background:color-mix(in srgb,var(--color-accent-soft) 72%,transparent);border-radius:var(--radius-sm);padding:$space-3}
+.impact-label{font-size:$font-size-xs;font-weight:$font-weight-semibold;color:var(--color-text-secondary);margin:0 0 $space-1}
+.impact-text{font-size:$font-size-sm;white-space:pre-line;margin:0;line-height:1.5}
+.event-day{font-size:$font-size-xs;color:var(--color-text-tertiary)}

@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { shallowRef, computed, triggerRef, ref } from 'vue'
-import { ECSWorld } from '../domain/ecs/world'
+import { GameWorld } from '../domain/engine/world'
 import { createWorldFromSave } from '../domain/game-facade'
 import { appGameCommands, appGameQueries } from '@/application/game'
-import { PLAYER_ENTITY } from '../domain/ecs/components/index'
+import { PLAYER_ENTITY } from '../domain/engine/components/index'
 import type { RecoveryCard } from '../domain/balance/types'
 import { LocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
 import type {
@@ -15,12 +15,12 @@ import type {
   HousingComponent,
   EducationComponent,
   ActivityLogEntry,
-} from '../domain/ecs/types'
+} from '../domain/engine/types'
 
 export const useGameStore = defineStore('game', () => {
   const saveRepository = new LocalStorageSaveRepository()
   // ===== State =====
-  const world = shallowRef<ECSWorld | null>(null)
+  const world = shallowRef<GameWorld | null>(null)
   const isInitialized = computed(() => world.value !== null)
   const playerName = ref('Алексей')
   const currentJobName = ref('Безработный')
@@ -114,7 +114,14 @@ export const useGameStore = defineStore('game', () => {
     return true
   }
 
-  function getWorld(): ECSWorld | null {
+  function resetGame(): void {
+    saveRepository.clear()
+    world.value = null
+    playerName.value = 'Алексей'
+    currentJobName.value = 'Безработный'
+  }
+
+  function getWorld(): GameWorld | null {
     return world.value
   }
 
@@ -279,6 +286,7 @@ export const useGameStore = defineStore('game', () => {
     refresh,
     save,
     load,
+    resetGame,
     getWorld,
     applyRecoveryAction,
     applyWorkShift,

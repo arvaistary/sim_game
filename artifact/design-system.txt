@@ -1,0 +1,289 @@
+**План создания новой дизайн-системы**  
+**Название системы:** «Nexus UI» (унифицированная дизайн-система для абстрактной админ-панели SaaS)
+
+### 1. Цели и принципы дизайн-системы
+- **Единый визуальный язык** на основе всех 10+ предоставленных скриншотов (Eduhouse, Alutem, MagicHeal, Intelly, Clarity, Lordbank, Health+, YourEducation и др.).
+- **Универсальность**: система должна одинаково хорошо работать для Education, Health, Project Management, Billing, HR/Team и любых других дашбордов.
+- **Современный премиум-стиль**: чистый, минималистичный, с лёгкими 3D-иллюстрациями и мягкими тенями.
+- **Основные принципы** (прямо из последнего скриншота):
+  - **Hierarchy** — чёткая визуальная иерархия (крупные заголовки → карточки → второстепенный контент).
+  - **Spacing** — строгая 8pt grid system (все отступы, padding, margin = 8 × n).
+- **Доступность**: контраст ≥ 4.5:1, большие кликабельные области, поддержка dark mode (будет добавлена позже).
+
+### 2. Структура интерфейса (Layout) — основа абстрактной админ-панели
+- **Левая боковая панель (Sidebar)**  
+  – Фиксированная, 280 px в развёрнутом виде (можно коллапсить до 72 px).  
+  – Логотип сверху + иконки + текст (как в Eduhouse, Intelly, Clarity).  
+  – Разделы: General, Dashboard, Projects/Tasks, Team/Members, Analytics, Settings и т.д.
+- **Верхняя панель (Header)**  
+  – Поиск по центру (как во всех примерах).  
+  – Справа: уведомления, аватар, имя пользователя, кнопка Upgrade/Pro.
+- **Основная рабочая область (Main content)**  
+  – Breadcrumbs (при необходимости).  
+  – Карточки, таблицы, графики, календари — всё в едином стиле.
+- **Мобильная адаптация**: sidebar → bottom navigation или hamburger.
+
+### 3. Цветовая палитра (Color System)
+**Primary palette** (взято из самых ярких акцентов):
+- **Primary** — #00B2FF (бирюзово-голубой, используется в Health+, Alutem, MagicHeal)
+- **Accent** — #FF6B6B (кораллово-оранжевый, Eduhouse, Lordbank)
+- **Secondary** — #7B61FF (фиолетовый, Clarity, YourEducation)
+
+**Neutral palette**:
+- Background page: #F8F7F4 (бежевый, как в Eduhouse) / #F5F7FA (светло-серый)
+- Surface / Card: #FFFFFF + мягкая тень 0 10px 30px rgba(0,0,0,0.08)
+- Text Primary: #1F2A44
+- Text Secondary: #64748B
+- Border: #E2E8F0
+
+**Semantic colors**:
+- Success: #22C55E
+- Warning: #F59E0B
+- Danger: #EF4444
+- Info: #3B82F6
+
+Dark mode будет зеркально инвертирован (будет отдельный токен-set).
+
+### 4. Типографика
+- **Основной шрифт**: Inter (или System sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI")
+- **Heading 1**: 32 px / 700 / tracking -0.02em
+- **Heading 2**: 24 px / 600
+- **Heading 3**: 20 px / 600
+- **Body**: 16 px / 400
+- **Small / Caption**: 14 px / 500
+- **Button text**: 16 px / 600
+
+Все размеры кратны 8 pt.
+
+### 5. Система отступов и Grid (8pt Grid)
+- Базовый шаг — **8 px**.
+- Padding карточек: 24 px (3×8) или 32 px (4×8).
+- Gap между элементами: 16 px или 24 px.
+- Grid system: 12-колоночная (как в большинстве современных дашбордов).
+
+### 6. Библиотека компонентов (основные)
+| Компонент          | Стиль (на основе скриншотов)                          | Примеры из изображений          |
+|--------------------|-------------------------------------------------------|---------------------------------|
+| **Card**           | Закругление 20–24 px, белый фон, мягкая тень         | Eduhouse, Clarity, Alutem      |
+| **Button Primary** | Полностью заливной, radius 12 px, height 48 px       | “Upgrade to Pro”, “Consult Now”|
+| **Button Secondary**| Обводка или ghost, radius 12 px                      | “Follow”, “Add member”         |
+| **Progress bar**   | Закруглённый, градиентный или с цветным индикатором  | Eduhouse courses               |
+| **Avatar**         | Круглый, с кольцом статуса (online)                  | Все дашборды                   |
+| **Table**          | Чистые строки, hover #F8FAFC, zebra optional         | Intelly billing                |
+| **Chart / Graph**  | Минималистичные линии/столбцы + градиент            | Alutem, Lordbank, MagicHeal    |
+| **3D Illustration**| Градиентные 3D-объекты (сердце, тело, глобус и т.д.)| MagicHeal, Alutem, Health+     |
+
+### 7. Иконки и иллюстрации
+- **Иконки**: Lucide Icons или Feather (линейные, 24 px).
+- **Иллюстрации**: 3D-стиль (как сердце в MagicHeal, тело в Alutem, глобус в Eduhouse). Все иллюстрации — в единой цветовой гамме Primary + Accent.
+- **Empty states**: красивые 3D-иллюстрации + текст.
+
+### 8. Правила и лучшие практики
+- Все радиусы: 8 px (мелкие элементы), 12 px (кнопки), 20–24 px (карточки).
+- Тени: только одна мягкая (0 10px 30px rgba(0,0,0,0.08)) + inner glow на активных элементах.
+- Hover-эффекты: лёгкий scale 1.02 + поднятие тени.
+- Анимации: 200–300 ms ease-out (Framer Motion / Tailwind transitions).
+
+### 9. Следующие шаги реализации
+1. Создать Figma-файл Design System (Tokens + Components).
+2. Вынести все цвета, радиусы, spacing в Variables (Figma Tokens).
+3. Сделать 5 основных экранов абстрактной админ-панели с использованием новой системы (Dashboard, Projects, Team, Analytics, Billing).
+4. Подготовить Documentation (Storybook / Zeroheight) с правилами.
+5. Добавить Dark mode.
+
+
+Вот **подробное описание дизайн-токенов** для новой дизайн-системы **Nexus UI** (абстрактная админ-панель SaaS).
+
+Токены структурированы по стандартной трёхслойной архитектуре 2026 года:
+
+- **Primitive tokens** — базовые сырые значения (никогда не используются напрямую в компонентах).
+- **Semantic tokens** — смысловые алиасы (то, что реально применяется в дизайне).
+- **Component tokens** — специфические значения для компонентов (ссылаются на semantic).
+
+Все размеры и отступы строго основаны на **8pt grid system** (multiples of 8 px).  
+Радиусы, тени и другие эффекты тоже привязаны к этой сетке.
+
+### 1. Color Tokens (Цвета)
+
+#### Primitive Colors (Базовые)
+**Brand / Accent**
+- `color-brand-primary-500`: #00B2FF (бирюзово-голубой — основной акцент из Health+, Alutem, MagicHeal)
+- `color-brand-accent-500`: #FF6B6B (кораллово-оранжевый — Eduhouse, Lordbank)
+- `color-brand-secondary-500`: #7B61FF (фиолетовый — Clarity, YourEducation)
+
+**Neutral**
+- `color-neutral-0`: #FFFFFF
+- `color-neutral-50`: #F8F7F4 (лёгкий бежевый фон, как в Eduhouse)
+- `color-neutral-100`: #F1F0EB
+- `color-neutral-200`: #E2E8F0
+- `color-neutral-300`: #CBD5E1
+- `color-neutral-400`: #94A3B8
+- `color-neutral-500`: #64748B
+- `color-neutral-600`: #475569
+- `color-neutral-700`: #334155
+- `color-neutral-800`: #1F2A44 (основной текст)
+- `color-neutral-900`: #0F172A
+
+**Semantic Colors**
+- `color-success-500`: #22C55E
+- `color-warning-500`: #F59E0B
+- `color-danger-500`: #EF4444
+- `color-info-500`: #3B82F6
+
+#### Semantic Tokens (рекомендуется использовать эти)
+
+**Background**
+- `color-bg-page`: #F8F7F4 (light) / #0F172A (dark)
+- `color-bg-surface`: #FFFFFF (light) / #1E2937 (dark)
+- `color-bg-card`: #FFFFFF + мягкая тень (light) / #1E2937 (dark)
+- `color-bg-sidebar`: #FFFFFF / #0F172A (с лёгким бордером)
+- `color-bg-header`: #FFFFFF (light)
+
+**Text**
+- `color-text-primary`: #1F2A44 (light) / #F1F5F9 (dark)
+- `color-text-secondary`: #64748B (light) / #94A3B8 (dark)
+- `color-text-tertiary`: #94A3B8 (light) / #64748B (dark)
+- `color-text-on-primary`: #FFFFFF
+- `color-text-on-accent`: #FFFFFF
+
+**Border / Divider**
+- `color-border`: #E2E8F0 (light) / #334155 (dark)
+- `color-border-subtle`: #F1F0EB (light)
+
+**Interactive**
+- `color-action-primary`: #00B2FF
+- `color-action-primary-hover`: #0099E0
+- `color-action-primary-active`: #0080C0
+- `color-action-secondary`: #7B61FF
+- `color-action-danger`: #EF4444
+
+**Status**
+- `color-status-success`: #22C55E
+- `color-status-warning`: #F59E0B
+- `color-status-danger`: #EF4444
+- `color-status-info`: #00B2FF
+
+### 2. Spacing & Size Tokens (8pt Grid)
+
+**Base unit**: 8 px
+
+**Spacing Scale**
+- `space-0`: 0 px
+- `space-1`: 4 px (иногда используется для очень плотных элементов)
+- `space-2`: 8 px
+- `space-3`: 12 px
+- `space-4`: 16 px
+- `space-5`: 24 px
+- `space-6`: 32 px
+- `space-7`: 40 px
+- `space-8`: 48 px
+- `space-9`: 56 px
+- `space-10`: 64 px
+- `space-12`: 96 px
+- `space-16`: 128 px
+
+**Semantic Spacing**
+- `space-component-padding`: `space-6` (32 px) — внутренний отступ карточек
+- `space-card-padding`: `space-5` или `space-6`
+- `space-section-gap`: `space-8` (48–64 px)
+- `space-element-gap`: `space-4` (16 px) — между элементами внутри карточки
+- `space-inline-gap`: `space-3` (12 px)
+
+**Container / Layout**
+- `size-sidebar`: 280 px (collapsed: 72 px)
+- `size-header-height`: 72 px
+- `size-content-max-width`: 1440 px (центрирование при широком экране)
+
+### 3. Typography Tokens
+
+**Font Family**
+- `font-family-sans`: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif
+- `font-family-mono`: "SF Mono", ui-monospace, monospace (для кодов, если нужно)
+
+**Font Weight**
+- `font-weight-regular`: 400
+- `font-weight-medium`: 500
+- `font-weight-semibold`: 600
+- `font-weight-bold`: 700
+
+**Font Size Scale** (все кратны 2 px, близко к 8pt ритму)
+- `font-size-xs`: 12 px
+- `font-size-sm`: 14 px
+- `font-size-base`: 16 px
+- `font-size-lg`: 18 px
+- `font-size-xl`: 20 px
+- `font-size-2xl`: 24 px
+- `font-size-3xl`: 28 px
+- `font-size-4xl`: 32 px
+- `font-size-5xl`: 40 px
+
+**Line Height** (multiples of 8)
+- `line-height-tight`: 1.1
+- `line-height-base`: 1.5 (24 px при 16 px шрифте)
+- `line-height-relaxed`: 1.6
+
+**Semantic Typography**
+- `typography-heading-1`: 32 px / 700 / -0.02em
+- `typography-heading-2`: 24 px / 600
+- `typography-heading-3`: 20 px / 600
+- `typography-body`: 16 px / 400
+- `typography-body-medium`: 16 px / 500
+- `typography-caption`: 14 px / 500
+- `typography-button`: 16 px / 600
+
+### 4. Radius (Закругления)
+
+- `radius-xs`: 4 px
+- `radius-sm`: 8 px
+- `radius-md`: 12 px (кнопки, мелкие элементы)
+- `radius-lg`: 16 px
+- `radius-xl`: 20 px
+- `radius-2xl`: 24 px (основной для карточек — как в Eduhouse, Clarity, Alutem)
+- `radius-full`: 9999 px (аватары, pills)
+
+### 5. Shadow / Elevation
+
+**Primitive Shadows**
+- `shadow-sm`: 0 1px 3px rgba(0, 0, 0, 0.05)
+- `shadow-md`: 0 4px 12px rgba(0, 0, 0, 0.06)
+- `shadow-lg`: 0 10px 30px rgba(0, 0, 0, 0.08) ← основной для карточек
+- `shadow-xl`: 0 20px 50px rgba(0, 0, 0, 0.10)
+
+**Semantic**
+- `shadow-card`: `shadow-lg`
+- `shadow-popover`: `shadow-xl`
+- `shadow-button-hover`: 0 4px 12px rgba(0, 178, 255, 0.25) (для primary)
+
+### 6. Component-specific Tokens (примеры)
+
+**Button**
+- `button-primary-bg`: `color-action-primary`
+- `button-primary-hover-bg`: `color-action-primary-hover`
+- `button-height`: 48 px
+- `button-radius`: `radius-md` (12 px)
+- `button-padding-x`: `space-6` (32 px)
+
+**Card**
+- `card-bg`: `color-bg-card`
+- `card-radius`: `radius-2xl` (24 px)
+- `card-padding`: `space-6` (32 px)
+- `card-shadow`: `shadow-card`
+
+**Input / Form Control**
+- `input-height`: 48 px
+- `input-radius`: `radius-md`
+- `input-border`: `color-border`
+- `input-focus-border`: `color-action-primary`
+
+**Progress Bar**
+- `progress-radius`: 9999 px (полностью закруглённый)
+- `progress-height`: 8 px
+
+### Рекомендации по использованию в Figma / Коде
+
+- В Figma используйте **Variables** с Modes: Light / Dark.
+- Названия токенов:  
+  `color/bg/page`  
+  `space/component/padding`  
+  `typography/heading/1`
+- Для кода (Tailwind / CSS): можно экспортировать через Tokens Studio или Style Dictionary.

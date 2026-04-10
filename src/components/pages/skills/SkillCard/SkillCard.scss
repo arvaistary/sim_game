@@ -1,0 +1,8 @@
+.skill-card{transition:all .2s}
+.skill-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:$space-1}
+.skill-name{font-size:$font-size-sm;font-weight:$font-weight-semibold}
+.skill-level{font-size:$font-size-sm;font-weight:$font-weight-bold;color:var(--color-brand-accent)}
+.skill-desc{font-size:$font-size-xs;color:var(--color-text-secondary);margin:$space-1 0 $space-2}
+.milestones{margin-top:$space-2;display:flex;flex-direction:column;gap:2px}
+.milestone{font-size:$font-size-xs;color:var(--color-text-tertiary);padding:2px 0}
+.milestone.achieved{opacity:1;color:var(--color-pastel-green-strong);font-weight:$font-weight-semibold}
