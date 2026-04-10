@@ -1,0 +1,98 @@
+<template>
+  <Teleport to="body">
+    <Transition name="toast">
+      <div v-if="visible" class="toast" :class="`toast--${type}`">
+        <span class="toast__icon">{{ iconMap[type] }}</span>
+        <span class="toast__message">{{ message }}</span>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<script setup lang="ts">
+import { watch, ref } from 'vue'
+
+const props = withDefaults(defineProps<{
+  message: string
+  type?: 'info' | 'success' | 'warning' | 'error'
+  duration?: number
+  visible?: boolean
+}>(), {
+  type: 'info',
+  duration: 2500,
+  visible: false,
+})
+
+const emit = defineEmits<{
+  'update:visible': [value: boolean]
+}>()
+
+const iconMap: Record<string, string> = {
+  info: 'ℹ️',
+  success: 'вњ…',
+  warning: '⚠️',
+  error: 'вќЊ',
+}
+
+watch(() => props.visible, (val) => {
+  if (val) {
+    setTimeout(() => {
+      emit('update:visible', false)
+    }, props.duration)
+  }
+})
+</script>
+
+<style scoped>
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-button);
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  box-shadow: 0 4px 16px rgba(60, 47, 47, 0.15);
+  z-index: 2000;
+  max-width: 90vw;
+}
+
+.toast--success {
+  border-color: var(--color-success);
+}
+
+.toast--error {
+  border-color: var(--color-danger);
+}
+
+.toast--warning {
+  border-color: var(--color-accent);
+}
+
+.toast__icon {
+  font-size: 16px;
+}
+
+.toast__message {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* Transition */
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+}
+</style>
+
