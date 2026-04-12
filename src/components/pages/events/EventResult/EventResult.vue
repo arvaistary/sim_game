@@ -20,8 +20,8 @@
 </template>
 
 <script setup lang="ts">
-import RoundedPanel from '@/components/ui/RoundedPanel.vue'
-import GameButton from '@/components/ui/GameButton.vue'
+import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
+import GameButton from '@/components/ui/GameButton/index.vue'
 
 defineProps<{
   resultText: string

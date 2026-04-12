@@ -25,8 +25,8 @@
 
 <script setup lang="ts">
 import type { SkillDef } from '@/domain/balance/types'
-import RoundedPanel from '@/components/ui/RoundedPanel.vue'
-import ProgressBar from '@/components/ui/ProgressBar.vue'
+import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
+import ProgressBar from '@/components/ui/ProgressBar/index.vue'
 
 defineProps<{
   skill: SkillDef

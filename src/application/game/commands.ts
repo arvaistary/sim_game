@@ -1,4 +1,4 @@
-import { gameCommands } from '@/domain/game-facade/commands'
+import { gameCommands, type ExecuteActionCommandResult } from '@/domain/game-facade/commands'
 import { GameWorld } from '@/domain/engine/world'
 
 export const appGameCommands = {
@@ -17,7 +17,7 @@ export const appGameCommands = {
   executeFinanceDecision(world: GameWorld, actionId: string): string {
     return gameCommands.applyFinanceAction(world, actionId)
   },
-  executeAction(world: GameWorld, actionId: string): string {
+  executeAction(world: GameWorld, actionId: string): ExecuteActionCommandResult {
     return gameCommands.executeAction(world, actionId)
   },
   resolveEventDecision(world: GameWorld, eventId: string, choiceId: string): string {

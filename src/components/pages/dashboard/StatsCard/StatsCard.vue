@@ -14,17 +14,26 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useGameStore } from '@/stores/game.store'
-import RoundedPanel from '@/components/ui/RoundedPanel.vue'
+import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import StatBar from '@/components/game/StatBar.vue'
 import { STAT_DEFS } from '@/domain/balance/constants/stat-defs'
 
 const store = useGameStore()
 const statDefs = STAT_DEFS
 
+const statValues = computed<Record<string, number>>(() => ({
+  hunger: store.hunger,
+  energy: store.energy,
+  stress: store.stress,
+  mood: store.mood,
+  health: store.health,
+  physical: store.physical,
+}))
+
 function getStatValue(key: string): number {
-  if (!store.stats) return 50
-  return (store.stats as any)[key] ?? 50
+  return statValues.value[key] ?? 50
 }
 </script>
 

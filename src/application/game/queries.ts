@@ -43,8 +43,8 @@ export const appGameQueries = {
       reserveFund: wallet?.reserveFund ?? 0,
       monthlyIncome: wallet?.monthlyIncome ?? 0,
       monthlyExpenses: (finance as unknown as { monthlyExpenses?: Record<string, number> } | null)?.monthlyExpenses ?? {},
-      emergencyFund: finance?.emergencyFund ?? 0,
-      deposits: finance?.deposits ?? [],
+      emergencyFund: 0,
+      deposits: [],
       portfolios: investments?.portfolios ?? [],
     }
   },

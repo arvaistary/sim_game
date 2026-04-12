@@ -52,6 +52,14 @@ export class TimeSystem {
     return timeComponent.weekHoursRemaining
   }
 
+  /** Всего игровых часов (для кулдаунов действий и т.п.). */
+  getTotalHours(): number {
+    const timeComponent = this.world?.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as RuntimeTimeComponent | null
+    if (!timeComponent) return 0
+    this.normalizeTimeComponent(timeComponent)
+    return Math.max(0, Math.floor(Number(timeComponent.totalHours) || 0))
+  }
+
   /**
    * Нормализация часовых и legacy-полей времени.
    */

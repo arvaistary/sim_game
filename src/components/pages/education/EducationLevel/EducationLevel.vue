@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import RoundedPanel from '@/components/ui/RoundedPanel.vue'
+import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { useGameStore } from '@/stores/game.store'
 
 const store = useGameStore()

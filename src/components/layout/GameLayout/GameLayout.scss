@@ -39,7 +39,7 @@
 
 .page-title {
   flex: 1;
-  font-size: $font-size-lg;
+  font-size: $font-size-2xl;
   font-weight: $font-weight-bold;
   color: var(--color-text-primary);
   text-align: center;
@@ -50,21 +50,12 @@
 }
 
 .game-layout__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   flex: 1;
   overflow-y: auto;
   padding: $space-4;
-}
-
-.game-layout__nav {
-  flex-shrink: 0;
-}
-
-.game-layout__nav--desktop {
-  padding: 0 $space-4 $space-4;
-}
-
-.game-layout__nav--mobile {
-  display: none;
 }
 
 @media (max-width: $breakpoint-lg) {
@@ -74,14 +65,6 @@
   }
 
   .game-layout__content {
-    padding: $space-3 $space-3 calc($space-10 + $space-2);
-  }
-
-  .game-layout__nav--desktop {
-    display: none;
-  }
-
-  .game-layout__nav--mobile {
-    display: block;
+    padding: $space-3;
   }
 }

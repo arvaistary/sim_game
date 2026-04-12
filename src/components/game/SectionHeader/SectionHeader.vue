@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import RoundedPanel from '@/components/ui/RoundedPanel.vue'
+import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 
 defineProps<{
   title: string

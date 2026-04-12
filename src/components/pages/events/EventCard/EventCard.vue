@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import RoundedPanel from '@/components/ui/RoundedPanel.vue'
+import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { formatStatChangesBulletListRu } from '@/domain/balance/utils/stat-changes-format'
 
 const props = defineProps<{

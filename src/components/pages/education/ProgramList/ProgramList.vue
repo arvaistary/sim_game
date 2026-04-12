@@ -26,8 +26,9 @@
 </template>
 
 <script setup lang="ts">
-import RoundedPanel from '@/components/ui/RoundedPanel.vue'
+import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { useGameStore } from '@/stores/game.store'
+import { showGameResultModal } from '@/composables/useGameModal'
 import { useToast } from '@/composables/useToast'
 import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 import type { EducationProgram } from '@/domain/balance/types'
@@ -57,7 +58,9 @@ function startProgram(program: EducationProgram): void {
   }
   const result = store.startEducationProgram(program.id)
   if (result && !result.startsWith('Мир не')) {
-    toast.showSuccess(result)
+    // Передаём базовый эффект для расчёта модификаторов
+    const baseEffect = (program as unknown as { effect?: string }).effect
+    showGameResultModal(program.title, result, { baseEffect })
   } else {
     toast.showError(result || 'Не удалось начать обучение')
   }

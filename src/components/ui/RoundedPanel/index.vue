@@ -6,6 +6,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import './style.scss'
 
 const props = withDefaults(defineProps<{
   color?: string
@@ -27,10 +28,3 @@ const panelStyle = computed(() => ({
   padding: props.padding,
 }))
 </script>
-
-<style scoped>
-.rounded-panel {
-  position: relative;
-}
-</style>
-

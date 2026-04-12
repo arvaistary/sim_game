@@ -18,10 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed } from 'vue'
 import { navigateTo } from '#imports'
 import { useGameStore } from '@/stores/game.store'
-import RoundedPanel from '@/components/ui/RoundedPanel.vue'
+import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { resolveActivityLogTitle } from '@/composables/useActivityLog/utils/activity-log-formatters'
 
 const store = useGameStore()
@@ -32,15 +32,14 @@ interface LogEntryDisplay {
   day: string | number
 }
 
-const logEntries = ref<LogEntryDisplay[]>([])
+const logEntries = computed<LogEntryDisplay[]>(() => {
+  const _w = store.world
+  if (!_w) return []
 
-function refreshActivityLog() {
   const entries = store.getActivityLogEntries(8)
-  if (!entries || entries.length === 0) {
-    logEntries.value = []
-    return
-  }
-  logEntries.value = entries.map((entry: any) => {
+  if (!entries || entries.length === 0) return []
+
+  return entries.map((entry: any) => {
     const displayTitle = resolveActivityLogTitle(entry)
     const title = displayTitle.length > 28
       ? displayTitle.substring(0, 25) + '…'
@@ -51,10 +50,6 @@ function refreshActivityLog() {
       day: entry.timestamp?.day ?? '?',
     }
   })
-}
-
-onMounted(() => {
-  refreshActivityLog()
 })
 </script>
 

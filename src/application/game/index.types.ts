@@ -3,7 +3,9 @@ export interface FinanceOverviewDto {
   reserveFund: number
   monthlyIncome: number
   monthlyExpenses: number
+  /** @deprecated No longer sourced from FinanceComponent */
   emergencyFund: number
+  /** @deprecated No longer sourced from FinanceComponent */
   deposits: number[]
 }
 

@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import ProgressBar from '@/components/ui/ProgressBar.vue'
+import ProgressBar from '@/components/ui/ProgressBar/index.vue'
 
 const props = withDefaults(defineProps<{
   label: string

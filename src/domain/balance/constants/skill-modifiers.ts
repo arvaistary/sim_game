@@ -31,7 +31,7 @@ export function createBaseSkillModifiers(): SkillModifiers {
   }
 }
 
-export function recalculateSkillModifiers(skillLevels: Record<string, number>): SkillModifiers {
+export function recalculateSkillModifiers(skillLevels: Record<string, number | { level?: number; xp?: number }>): SkillModifiers {
   const modifiers = createBaseSkillModifiers()
 
   if (!skillLevels || typeof skillLevels !== 'object') {
@@ -39,7 +39,15 @@ export function recalculateSkillModifiers(skillLevels: Record<string, number>): 
   }
 
   for (const skill of ALL_SKILLS) {
-    const level = skillLevels[skill.key] ?? 0
+    const rawValue = skillLevels[skill.key]
+    // Извлекаем уровень из объекта { level, xp } или используем число напрямую
+    const level: number =
+      typeof rawValue === 'number'
+        ? rawValue
+        : typeof rawValue === 'object' && rawValue !== null
+          ? (rawValue.level ?? 0)
+          : 0
+
     if (level <= 0 || !skill.effects) continue
 
     const lvl = level

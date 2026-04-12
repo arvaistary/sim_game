@@ -21,6 +21,26 @@ export interface StatChanges {
   [key: string]: number | undefined
 }
 
+/** Пошаговый разбор одной характеристики для UI результата действия (см. calculateStatChangesWithBreakdown). */
+export interface StatChangeBreakdownEntry {
+  stat: StatKey
+  /** База из statChanges действия (за целое действие, без умножения на часы). */
+  baseFromAction: number
+  /** Значение после умножения на (1 + modifiers[stat]), до старения */
+  valueAfterPerStatModifier: number
+  /** Множитель старения (1.0 если не применялся к отрицательной дельте) */
+  agingMultiplier: number
+  /** Было ли применено старение к отрицательной дельте */
+  agingApplied: boolean
+  /** После старения, до округления и до долга сна */
+  valueAfterAging: number
+  /** Как в движке: округление до 2 знаков перед долгом сна */
+  roundedBeforeSleepDebt: number
+  /** Только для energy/stress: поправка от долга сна (как в calculateStatChanges) */
+  sleepDebtDelta: number
+  final: number
+}
+
 export interface CareerJob {
   id: string
   name: string
@@ -33,6 +53,7 @@ export interface CareerJob {
   minProfessionalism: number
   minEducationRank: number
   minAge: number
+  description: string
 }
 
 export interface HousingLevel {
@@ -41,9 +62,10 @@ export interface HousingLevel {
   baseComfort: number
   monthlyHousingCost: number
   upgradePrice: number
+  description: string
 }
 
-export type SkillCategory = 'basic' | 'professional' | 'social' | 'creative'
+export type SkillCategory = 'basic' | 'professional' | 'social' | 'creative' | 'negative'
 
 export interface SkillEffect {
   [effectKey: string]: (level: number) => number
@@ -111,6 +133,7 @@ export interface EducationProgram {
   completionSkillChanges?: Record<string, number>
   salaryMultiplierDelta?: number
   educationLevel?: string
+  description: string
 }
 
 export interface EducationPathResult {

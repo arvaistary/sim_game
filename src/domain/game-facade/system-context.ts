@@ -25,6 +25,24 @@ function initSystem<T extends { init(world: GameWorld): void }>(system: T, world
   return system
 }
 
+function resolveActivityLogSystem(world: GameWorld): ActivityLogSystem {
+  const existing = world.getSystem(ActivityLogSystem)
+  if (existing) return existing
+  world.addSystem(new ActivityLogSystem())
+  const created = world.getSystem(ActivityLogSystem)
+  if (created) return created
+  return initSystem(new ActivityLogSystem(), world)
+}
+
+function resolveTimeSystem(world: GameWorld): TimeSystem {
+  const existing = world.getSystem(TimeSystem)
+  if (existing) return existing
+  world.addSystem(new TimeSystem())
+  const created = world.getSystem(TimeSystem)
+  if (created) return created
+  return initSystem(new TimeSystem(), world)
+}
+
 export function getSystemContext(world: GameWorld): SystemContext {
   const cached = contextCache.get(world)
   if (cached) {
@@ -35,7 +53,7 @@ export function getSystemContext(world: GameWorld): SystemContext {
     world,
     playerId: PLAYER_ENTITY,
     action: initSystem(new ActionSystem(), world),
-    activityLog: initSystem(new ActivityLogSystem(), world),
+    activityLog: resolveActivityLogSystem(world),
     careerProgress: initSystem(new CareerProgressSystem(), world),
     education: initSystem(new EducationSystem(), world),
     eventChoice: initSystem(new EventChoiceSystem(), world),
@@ -44,7 +62,7 @@ export function getSystemContext(world: GameWorld): SystemContext {
     investment: initSystem(new InvestmentSystem(), world),
     monthlySettlement: initSystem(new MonthlySettlementSystem(), world),
     recovery: initSystem(new RecoverySystem(), world),
-    time: initSystem(new TimeSystem(), world),
+    time: resolveTimeSystem(world),
     workPeriod: initSystem(new WorkPeriodSystem(), world),
   }
 

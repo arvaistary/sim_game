@@ -498,6 +498,10 @@ export class PersistenceSystem {
       currentJob.salaryPerWeek = (currentJob.salaryPerHour as number) * 40
     }
 
+    if (saveData.currentJob && typeof saveData.currentJob === 'object') {
+      saveData.currentJob = this.normalizeJobShape(saveData.currentJob as Record<string, unknown>) ?? {}
+    }
+
     return saveData
   }
 
@@ -506,6 +510,51 @@ export class PersistenceSystem {
     if (typeof job?.salaryPerDay === 'number' && (job.salaryPerDay as number) > 0) return Math.round((job.salaryPerDay as number) / 8)
     if (typeof job?.salaryPerWeek === 'number' && (job.salaryPerWeek as number) > 0) return Math.round((job.salaryPerWeek as number) / 40)
     return 0
+  }
+
+  /**
+   * Каноническая политика источника истины (Source-of-Truth Policy):
+   * 
+   * - WORK_COMPONENT ('work') — runtime-истина для данных о работе:
+   *   id, name, salaryPerHour, requiredHoursPerWeek, workedHoursCurrentWeek,
+   *   pendingSalaryWeek, schedule, employed, level, salaryPerDay, salaryPerWeek,
+   *   totalWorkedHours, daysAtWork.
+   * 
+   * - CAREER_COMPONENT ('career') — плоские поля, зеркалящие WORK_COMPONENT для UI-safe reads.
+   * 
+   * - career.currentJob — read-only compatibility snapshot для старых сейвов и переходного UI.
+   *   Не используется для runtime-логики; обновляется только при persistence/migration.
+   * 
+   * - TIME_COMPONENT — runtime-истина для времени, нормализуется через TimeSystem.normalizeTimeComponent.
+   * 
+   * - Store derived fields (gameDays, age) — должны быть computed из TIME_COMPONENT,
+   *   не реализовать независимые формулы.
+   */
+
+  /**
+   * Нормализовать данные о работе из любого legacy-формата в канонический runtime-формат.
+   * Единственная функция, отвечающая за конвертацию формата работы при загрузке сейва.
+   */
+  normalizeJobShape(currentJob: Record<string, unknown> | null | undefined): Record<string, unknown> | null {
+    if (!currentJob || typeof currentJob !== 'object') return null
+
+    const salaryPerHour = this._resolveSalaryPerHour(currentJob)
+
+    return {
+      id: currentJob.id ?? null,
+      name: currentJob.name ?? 'Безработный',
+      schedule: currentJob.schedule ?? '5/2',
+      employed: currentJob.employed ?? Boolean(currentJob.id),
+      level: currentJob.level ?? 1,
+      salaryPerHour,
+      salaryPerDay: currentJob.salaryPerDay ?? salaryPerHour * 8,
+      salaryPerWeek: currentJob.salaryPerWeek ?? salaryPerHour * 40,
+      requiredHoursPerWeek: Math.max(0, Number(currentJob.requiredHoursPerWeek) || 0),
+      workedHoursCurrentWeek: Math.max(0, Number(currentJob.workedHoursCurrentWeek) || 0),
+      pendingSalaryWeek: Math.max(0, Number(currentJob.pendingSalaryWeek) || 0),
+      totalWorkedHours: Math.max(0, Number(currentJob.totalWorkedHours) || 0),
+      daysAtWork: Math.max(0, Number(currentJob.daysAtWork) || 0),
+    }
   }
 
   /**

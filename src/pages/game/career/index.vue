@@ -3,7 +3,7 @@
     <div class="career-page">
       <CurrentJobPanel />
       <CareerTrack />
-      <WorkShiftPanel />
+      <!-- <WorkShiftPanel /> -->
     </div>
   </GameLayout>
 </template>
@@ -13,7 +13,7 @@ import { definePageMeta } from '#imports'
 import GameLayout from '@/components/layout/GameLayout/GameLayout.vue'
 import CurrentJobPanel from '@/components/pages/career/CurrentJobPanel/CurrentJobPanel.vue'
 import CareerTrack from '@/components/pages/career/CareerTrack/CareerTrack.vue'
-import WorkShiftPanel from '@/components/pages/career/WorkShiftPanel/WorkShiftPanel.vue'
+// import WorkShiftPanel from '@/components/pages/career/WorkShiftPanel/WorkShiftPanel.vue'
 
 definePageMeta({ middleware: 'game-init' })
 </script>

@@ -86,21 +86,21 @@ $color-dark-bg-sidebar: $color-neutral-900;
 $color-dark-bg-header: #1E2937;
 $color-dark-bg-elevated: #242836;
 
-// Text
-$color-dark-text-primary: #F1F5F9;
-$color-dark-text-secondary: $color-neutral-400;
-$color-dark-text-tertiary: $color-neutral-500;
+// Text - improved contrast for dark backgrounds
+$color-dark-text-primary: #F8FAFC;
+$color-dark-text-secondary: #CBD5E1;
+$color-dark-text-tertiary: #94A3B8;
 
-// Border
-$color-dark-border: $color-neutral-700;
-$color-dark-border-subtle: #1E2937;
+// Border - improved visibility on dark backgrounds
+$color-dark-border: #475569;
+$color-dark-border-subtle: #334155;
 
-// Interactive
-$color-dark-action-primary: #33C4FF;
-$color-dark-action-primary-hover: $color-brand-primary;
-$color-dark-action-primary-active: #0099E0;
-$color-dark-action-secondary: #9B85FF;
-$color-dark-action-danger: #F87171;
+// Interactive - muted for better visual balance
+$color-dark-action-primary: #26A6CC;
+$color-dark-action-primary-hover: #33C4FF;
+$color-dark-action-primary-active: #1A8CAF;
+$color-dark-action-secondary: #7B68D1;
+$color-dark-action-danger: #DC6E6E;
 
 // ===== Typography =====
 

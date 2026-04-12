@@ -42,9 +42,22 @@ const env = {
 const isInit = passthrough[0] === 'init';
 const stdio = isInit ? ['pipe', 'inherit', 'inherit'] : 'inherit';
 
+/** Project `mine` only; `mine --mode convos` uses convo_miner (different skips). */
+function isProjectMine(argv) {
+  if (argv[0] !== 'mine') return false;
+  const modeIdx = argv.indexOf('--mode');
+  if (modeIdx !== -1 && argv[modeIdx + 1] === 'convos') return false;
+  return true;
+}
+
+const palacePath = './.mempalace/palace';
+const pythonArgs = isProjectMine(passthrough)
+  ? [path.join(root, 'scripts', 'mempalace_mine.py'), '--palace', palacePath, ...passthrough]
+  : ['-m', 'mempalace.cli', '--palace', palacePath, ...passthrough];
+
 const result = spawnSync(
   python,
-  ['-m', 'mempalace.cli', '--palace', './.mempalace/palace', ...passthrough],
+  pythonArgs,
   {
     cwd: root,
     stdio,

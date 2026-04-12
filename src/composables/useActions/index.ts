@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { useGameStore } from '@/stores/game.store'
 import { getActionsByCategory, getActionById } from '@/domain/balance/actions'
+import { showGameResultModal } from '@/composables/useGameModal'
 import { useToast } from '../useToast'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { ActionCategory } from '@/domain/balance/types'
@@ -10,31 +11,29 @@ export function useActions() {
   const toast = useToast()
 
   function canExecute(actionId: string): boolean {
-    if (!store.isInitialized) return false
-
-    const action = getActionById(actionId)
-    if (!action) return false
-
-    if (action.price > 0 && store.money < action.price) return false
-
-    if (action.statChanges?.energy && action.statChanges.energy < 0) {
-      if ((store.energy ?? 0) + action.statChanges.energy < 0) return false
-    }
-
-    return true
+    return store.canExecuteAction(actionId).canExecute
   }
 
   function executeAction(actionId: string): boolean {
-    if (!canExecute(actionId)) {
-      toast.showError(`Действие недоступно: ${actionId}`)
+    const { canExecute: ok, reason } = store.canExecuteAction(actionId)
+    if (!ok) {
+      toast.showError(reason ?? `Действие недоступно: ${actionId}`)
       return false
     }
 
+    const result = store.executeAction(actionId)
     const action = getActionById(actionId)
-    if (!action) return false
-
-    store.applyRecoveryAction(action as unknown as Record<string, unknown>)
-    toast.showSuccess(`Действие выполнено: ${action.title}`)
+    const title = action?.title ?? 'Действие выполнено'
+    if (/не удалось|нельзя|не найден/i.test(result.message)) {
+      toast.showError(result.message)
+      return false
+    }
+    const body = result.message.trim() || action?.effect || 'Изменения применены.'
+    showGameResultModal(title, body, {
+      statBreakdown: result.statBreakdown,
+      hourCost: action?.hourCost,
+      price: action?.price,
+    })
     return true
   }
 

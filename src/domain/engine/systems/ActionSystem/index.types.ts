@@ -1,4 +1,4 @@
-import type { StatChanges } from '@/domain/balance/types'
+import type { StatChangeBreakdownEntry, StatChanges } from '@/domain/balance/types'
 
 export interface ActionData {
   id: string
@@ -12,6 +12,7 @@ export interface ActionData {
   actionSource?: string
   category?: string
   icon?: string | null
+  /** Текст для карточек и лога; итоговые дельты = statChanges ± модификаторы/возраст/долг сна (см. calculateStatChanges). */
   effect?: string
   statChanges?: StatChanges
   skillChanges?: Record<string, number>
@@ -47,4 +48,6 @@ export interface ExecuteResult {
   success: boolean
   summary?: string
   error?: string
+  /** Пошаговый разбор статов для UI (только при success). */
+  statBreakdown?: StatChangeBreakdownEntry[]
 }

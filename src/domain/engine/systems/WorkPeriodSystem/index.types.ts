@@ -7,3 +7,15 @@ export interface WorkEventChoice {
   salaryMultiplier?: number
   permanentSalaryMultiplier?: number
 }
+
+export interface WorkShiftSummaryParams {
+  workHours: number
+  accruedSalary: number
+  payoutSalary: number
+  pendingSalaryWeek: number
+  requiredHoursPerWeek: number
+  workedHoursCurrentWeek: number
+  statChanges: Record<string, number>
+  WorkEventChoice: WorkEventChoice | null
+  careerUpdateSummary: string
+}

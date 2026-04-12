@@ -2,6 +2,13 @@ import { getSystemContext } from '@/domain/game-facade/system-context'
 import { GAME_DOMAIN_EVENT } from '@/domain/game-facade/index.constants'
 import type { AnyRecord } from '@/domain/game-facade/index.types'
 import { GameWorld } from '@/domain/engine/world'
+import type { StatChangeBreakdownEntry } from '@/domain/balance/types'
+
+/** Результат выполнения обычного действия из каталога (для UI и стора). */
+export interface ExecuteActionCommandResult {
+  message: string
+  statBreakdown?: StatChangeBreakdownEntry[]
+}
 
 export const gameCommands = {
   applyRecoveryAction(world: GameWorld, cardData: AnyRecord): string {
@@ -32,10 +39,16 @@ export const gameCommands = {
     const ctx = getSystemContext(world)
     return ctx.investment.collectInvestment(investmentId).message
   },
-  executeAction(world: GameWorld, actionId: string): string {
+  executeAction(world: GameWorld, actionId: string): ExecuteActionCommandResult {
     const ctx = getSystemContext(world)
     const result = ctx.action.execute(actionId)
-    return result.success ? (result.summary ?? 'Действие выполнено.') : (result.error ?? 'Не удалось выполнить действие.')
+    if (!result.success) {
+      return { message: result.error ?? 'Не удалось выполнить действие.' }
+    }
+    return {
+      message: result.summary ?? 'Действие выполнено.',
+      statBreakdown: result.statBreakdown,
+    }
   },
   applyEventChoice(world: GameWorld, eventId: string, choiceId: string): string {
     const ctx = getSystemContext(world)

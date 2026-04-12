@@ -1,14 +1,27 @@
-import { DEFAULT_SAVE } from '@/domain/balance/constants/default-save'
+import { INITIAL_SAVE } from '@/domain/balance/constants/initial-save'
 import { PLAYER_ENTITY } from '@/domain/engine/components'
 import { GameWorld } from '@/domain/engine/world'
 import { ActivityLogSystem } from '@/domain/engine/systems/ActivityLogSystem'
+import { TimeSystem } from '@/domain/engine/systems/TimeSystem'
 import { gameCommands } from '@/domain/game-facade/commands'
 import { gameQueries } from '@/domain/game-facade/queries'
 import { resetSystemContext } from '@/domain/game-facade/system-context'
+export { resetSystemContext } from '@/domain/game-facade/system-context'
 import type { AnyRecord } from '@/domain/game-facade/index.types'
 
 export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
-  const data = saveData || (structuredClone(DEFAULT_SAVE) as unknown as AnyRecord)
+  /**
+   * Canonical Data Contract (Phase 0 Gate):
+   * 
+   * - Loading old save never leaves world without `work` when `currentJob.id` exists.
+   * - `career.currentJob` is read-only compatibility snapshot for old saves only.
+   * - No component requires direct `career.currentJob` to function — all reads go through
+   *   `work` component first, with `career` flat fields as fallback.
+   * - `normalizeJobShape` in PersistenceSystem is the single migration helper for job data.
+   */
+  // Partial saves merge with INITIAL_SAVE (новая игра без демо-прогресса и без стартовой работы).
+  const defaults = structuredClone(INITIAL_SAVE) as unknown as AnyRecord
+  const data: AnyRecord = saveData ? { ...defaults, ...saveData } : defaults
   const world = new GameWorld()
   resetSystemContext(world)
 
@@ -36,10 +49,68 @@ export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
   if (data.skillModifiers) world.addComponent(PLAYER_ENTITY, 'skillModifiers', data.skillModifiers as AnyRecord)
   if (data.currentJob) {
     const job = data.currentJob as AnyRecord
+    const requiredHoursPerWeek = Math.max(0, Number(job.requiredHoursPerWeek) || 0)
+    const workedHoursCurrentWeek = Math.max(0, Number(job.workedHoursCurrentWeek) || 0)
+    const pendingSalaryWeek = Math.max(0, Number(job.pendingSalaryWeek) || 0)
+    const totalWorkedHours = Math.max(0, Number(job.totalWorkedHours) || 0)
+    const daysAtWork = Math.max(0, Number(job.daysAtWork) || 0)
+
+    world.addComponent(PLAYER_ENTITY, 'work', {
+      id: job.id,
+      name: job.name,
+      schedule: job.schedule ?? '5/2',
+      employed: job.employed ?? Boolean(job.id),
+      level: job.level ?? 1,
+      salaryPerHour: job.salaryPerHour ?? 0,
+      salaryPerDay: job.salaryPerDay ?? 0,
+      salaryPerWeek: job.salaryPerWeek ?? 0,
+      requiredHoursPerWeek,
+      workedHoursCurrentWeek,
+      pendingSalaryWeek,
+      totalWorkedHours,
+      daysAtWork,
+    })
+
     world.addComponent(PLAYER_ENTITY, 'career', {
+      id: job.id,
+      name: job.name,
+      schedule: job.schedule ?? '5/2',
+      employed: job.employed ?? Boolean(job.id),
+      level: job.level ?? 1,
+      salaryPerHour: job.salaryPerHour ?? 0,
+      salaryPerDay: job.salaryPerDay ?? 0,
+      salaryPerWeek: job.salaryPerWeek ?? 0,
+      requiredHoursPerWeek,
+      workedHoursCurrentWeek,
+      pendingSalaryWeek,
+      totalWorkedHours,
+      daysAtWork,
       currentJob: job,
       jobHistory: [],
       careerLevel: job.level ?? 1,
+    })
+  } else {
+    const unemployed: AnyRecord = {
+      id: null,
+      name: 'Безработный',
+      schedule: '—',
+      employed: false,
+      level: 0,
+      salaryPerHour: 0,
+      salaryPerDay: 0,
+      salaryPerWeek: 0,
+      requiredHoursPerWeek: 0,
+      workedHoursCurrentWeek: 0,
+      pendingSalaryWeek: 0,
+      totalWorkedHours: 0,
+      daysAtWork: 0,
+    }
+    world.addComponent(PLAYER_ENTITY, 'work', unemployed)
+    world.addComponent(PLAYER_ENTITY, 'career', {
+      ...unemployed,
+      careerLevel: 0,
+      currentJob: null,
+      jobHistory: [],
     })
   }
   if (data.housing) world.addComponent(PLAYER_ENTITY, 'housing', data.housing as AnyRecord)
@@ -50,9 +121,8 @@ export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
   if (data.pendingEvents) world.addComponent(PLAYER_ENTITY, 'eventQueue', { pendingEvents: data.pendingEvents })
   if (data.investments) world.addComponent(PLAYER_ENTITY, 'investment', data.investments as AnyRecord)
 
-  const logSystem = new ActivityLogSystem()
-  logSystem.init(world)
-  world.addSystem(logSystem)
+  world.addSystem(new TimeSystem())
+  world.addSystem(new ActivityLogSystem())
 
   return world
 }

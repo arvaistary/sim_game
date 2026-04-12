@@ -14,8 +14,9 @@
 </template>
 
 <script setup lang="ts">
-import RoundedPanel from '@/components/ui/RoundedPanel.vue'
+import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { useGameStore } from '@/stores/game.store'
+import { showGameResultModal } from '@/composables/useGameModal'
 import { useToast } from '@/composables/useToast'
 import { LEGACY_FINANCE_SCENE_ACTIONS } from '@/domain/balance/constants/legacy-finance-scene-actions'
 import type { LegacyFinanceAction } from '@/domain/balance/types'
@@ -33,7 +34,9 @@ function handleAction(action: LegacyFinanceAction): void {
   }
   const result = store.applyFinanceAction(action.id)
   if (result && !result.startsWith('Мир не')) {
-    toast.showSuccess(result)
+    // Передаём базовый эффект для расчёта модификаторов
+    const baseEffect = (action as unknown as { effect?: string }).effect
+    showGameResultModal(action.title, result, { baseEffect })
   } else {
     toast.showError(result || 'Не удалось выполнить действие')
   }

@@ -7,6 +7,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import './style.scss'
 
 const props = withDefaults(defineProps<{
   value: number
@@ -32,30 +33,3 @@ const fillStyle = computed(() => ({
   backgroundColor: props.color,
 }))
 </script>
-
-<style scoped>
-.progress-bar {
-  width: 100%;
-  background-color: var(--color-bg-elevated);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-bar__fill {
-  height: 100%;
-  border-radius: var(--radius-full);
-  transition: width var(--transition-normal);
-}
-
-.progress-bar__value {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-</style>
-

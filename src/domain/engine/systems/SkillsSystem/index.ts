@@ -24,15 +24,25 @@ export class SkillsSystem {
 
   applySkillChanges(skillChanges: Record<string, number> = {}, reason = 'unknown'): SkillChangeResult {
     const playerId = PLAYER_ENTITY
-    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT) as Record<string, number> | null
+    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT) as Record<string, { level?: number; xp?: number } | number> | null
     if (!skills) return { changed: false, reason, changes: {} }
 
     const validChanges: Record<string, { from: number; to: number; delta: number }> = {}
     for (const [key, value] of Object.entries(skillChanges)) {
-      const oldValue = skills[key] ?? 0
+      const rawValue = skills[key]
+      // Извлекаем текущий уровень
+      const oldValue = typeof rawValue === 'object' && rawValue !== null 
+        ? (rawValue.level ?? 0) 
+        : (rawValue ?? 0)
+      
       const newValue = this._clamp(oldValue + value, 0, 10)
       if (newValue !== oldValue) {
-        skills[key] = newValue
+        // Сохраняем в правильной структуре
+        if (typeof rawValue === 'object' && rawValue !== null) {
+          skills[key] = { ...rawValue, level: newValue }
+        } else {
+          skills[key] = { level: newValue, xp: 0 }
+        }
         validChanges[key] = { from: oldValue, to: newValue, delta: value }
       }
     }
@@ -47,12 +57,22 @@ export class SkillsSystem {
 
   setSkillLevel(skillKey: string, level: number, reason = 'unknown'): void {
     const playerId = PLAYER_ENTITY
-    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT) as Record<string, number> | null
+    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT) as Record<string, { level?: number; xp?: number } | number> | null
     if (!skills) return
 
+    const rawValue = skills[skillKey]
+    const oldLevel = typeof rawValue === 'object' && rawValue !== null 
+      ? (rawValue.level ?? 0) 
+      : (rawValue ?? 0)
+    
     const clampedLevel = this._clamp(level, 0, 10)
-    const oldLevel = skills[skillKey] ?? 0
-    skills[skillKey] = clampedLevel
+    
+    // Сохраняем в правильной структуре
+    if (typeof rawValue === 'object' && rawValue !== null) {
+      skills[skillKey] = { ...rawValue, level: clampedLevel }
+    } else {
+      skills[skillKey] = { level: clampedLevel, xp: 0 }
+    }
 
     if (clampedLevel !== oldLevel) {
       this.recalculateModifiers()
@@ -61,7 +81,7 @@ export class SkillsSystem {
 
   recalculateModifiers(): void {
     const playerId = PLAYER_ENTITY
-    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT) as Record<string, number> | null
+    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT) as Record<string, { level?: number; xp?: number } | number> | null
     let modifiers = this.world.getComponent(playerId, SKILL_MODIFIERS_COMPONENT) as Record<string, number> | null
 
     if (!modifiers) {
@@ -69,7 +89,17 @@ export class SkillsSystem {
       this.world.addComponent(playerId, SKILL_MODIFIERS_COMPONENT, modifiers)
     }
 
-    const newModifiers = recalculateSkillModifiers(skills || {}) as unknown as Record<string, number>
+    // Преобразуем навыки в формат { key: level }
+    const skillLevels: Record<string, number> = {}
+    if (skills) {
+      for (const [key, value] of Object.entries(skills)) {
+        skillLevels[key] = typeof value === 'object' && value !== null 
+          ? (value.level ?? 0) 
+          : (value ?? 0)
+      }
+    }
+
+    const newModifiers = recalculateSkillModifiers(skillLevels) as unknown as Record<string, number>
 
     for (const key of Object.keys(newModifiers)) {
       modifiers[key] = newModifiers[key]

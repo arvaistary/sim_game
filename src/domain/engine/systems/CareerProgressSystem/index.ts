@@ -123,6 +123,7 @@ export class CareerProgressSystem {
         schedule: unlockedJob.schedule ?? (work.schedule as string) ?? '5/2',
       })
     }
+    this._syncCareerCurrentJob()
 
     return `Карьерный рост: новая должность «${unlockedJob.name}», ставка ${this._formatMoney(unlockedJob.salaryPerHour)} ₽ в час.`
   }
@@ -197,6 +198,7 @@ export class CareerProgressSystem {
         workedHoursCurrentWeek: 0,
       })
     }
+    this._syncCareerCurrentJob()
 
     if (this.world && this.world.eventBus) {
       this.world.eventBus.dispatchEvent(new CustomEvent('activity:career', {
@@ -250,6 +252,28 @@ export class CareerProgressSystem {
 
   _getFiniteNumber(value: unknown, fallback: number): number {
     return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+  }
+
+  _syncCareerCurrentJob(): void {
+    const playerId = PLAYER_ENTITY
+    const career = this.world.getComponent(playerId, CAREER_COMPONENT) as Record<string, unknown> | null
+    if (!career) return
+
+    career.currentJob = {
+      id: career.id,
+      name: career.name,
+      schedule: career.schedule ?? '5/2',
+      employed: career.employed ?? Boolean(career.id),
+      level: career.level ?? 1,
+      salaryPerHour: career.salaryPerHour ?? 0,
+      salaryPerDay: career.salaryPerDay ?? 0,
+      salaryPerWeek: career.salaryPerWeek ?? 0,
+      requiredHoursPerWeek: career.requiredHoursPerWeek ?? 0,
+      workedHoursCurrentWeek: career.workedHoursCurrentWeek ?? 0,
+      pendingSalaryWeek: career.pendingSalaryWeek ?? 0,
+      totalWorkedHours: career.totalWorkedHours ?? 0,
+      daysAtWork: career.daysAtWork ?? 0,
+    }
   }
 }
 

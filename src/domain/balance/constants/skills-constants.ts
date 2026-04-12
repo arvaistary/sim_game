@@ -5,9 +5,40 @@ export const SKILLS_TABS: SkillTab[] = [
   { id: 'professional', label: 'Профессиональные' },
   { id: 'social', label: 'Социальные' },
   { id: 'creative', label: 'Творческие' },
+  { id: 'negative', label: 'Слабости' },
 ]
 
 export const BASIC_SKILLS: SkillDef[] = [
+  {
+    key: 'resilience',
+    label: 'Жизнестойкость',
+    description: 'Способность быстро восстанавливаться после неудач',
+    category: 'basic',
+    color: 0x7ED9A0,
+    maxLevel: 10,
+    effects: {
+      negativeEventMitigation: (lvl) => 1 - (lvl * 0.03),
+      moodRecoveryMultiplier: (lvl) => 1 + (lvl * 0.04),
+    },
+    milestones: {
+      10: { description: 'Почти не ломаешься от неудач' },
+    },
+  },
+  {
+    key: 'focus',
+    label: 'Концентрация',
+    description: 'Умение глубоко погружаться в задачу',
+    category: 'basic',
+    color: 0x6D9DC5,
+    maxLevel: 10,
+    effects: {
+      workEfficiency: (lvl) => 1 + (lvl * 0.025),
+      learningSpeedMultiplier: (lvl) => 1 + (lvl * 0.035),
+    },
+    milestones: {
+      8: { description: 'Меньше отвлекаешься во время работы' },
+    },
+  },
   {
     key: 'timeManagement',
     label: 'Тайм-менеджмент',
@@ -243,6 +274,21 @@ export const BASIC_SKILLS: SkillDef[] = [
 
 export const PROFESSIONAL_SKILLS: SkillDef[] = [
   {
+    key: 'projectManagement',
+    label: 'Управление проектами',
+    description: 'Организация и контроль сложных проектов',
+    category: 'professional',
+    color: 0x6D9DC5,
+    maxLevel: 10,
+    effects: {
+      workEfficiencyMultiplier: (lvl) => 1 + (lvl * 0.04),
+      teamEventBonus: (lvl) => 1 + (lvl * 0.05),
+    },
+    milestones: {
+      10: { description: 'Можно вести крупные проекты' },
+    },
+  },
+  {
     key: 'professionalism',
     label: 'Профессионализм',
     description: 'Качественное выполнение рабочих задач',
@@ -466,6 +512,21 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
 ]
 
 export const SOCIAL_SKILLS: SkillDef[] = [
+  {
+    key: 'networking',
+    label: 'Нетворкинг',
+    description: 'Умение заводить и поддерживать полезные знакомства',
+    category: 'social',
+    color: 0xE8B4A0,
+    maxLevel: 10,
+    effects: {
+      relationshipGainMultiplier: (lvl) => 1 + (lvl * 0.05),
+      positiveEventChance: (lvl) => 0.05 + (lvl * 0.01),
+    },
+    milestones: {
+      10: { description: 'Широкий круг полезных контактов' },
+    },
+  },
   {
     key: 'charisma',
     label: 'Харизма',
@@ -755,11 +816,93 @@ export const CREATIVE_SKILLS: SkillDef[] = [
   },
 ]
 
+export const NEGATIVE_SKILLS: SkillDef[] = [
+  {
+    key: 'forgetfulness',
+    label: 'Забывчивость',
+    description: 'Частая забывчивость и рассеянность',
+    category: 'negative',
+    color: 0xD14D4D,
+    maxLevel: 10,
+    effects: {
+      learningSpeedMultiplier: (lvl) => 1 - (lvl * 0.025),
+      memoryDecaySpeed: (lvl) => 1 + (lvl * 0.04),
+      negativeEventChance: (lvl) => 0.03 + (lvl * 0.008),
+    },
+    milestones: {
+      5: { description: 'Иногда забываешь важные вещи' },
+      10: { description: 'Серьёзные проблемы с памятью' },
+    },
+  },
+  {
+    key: 'procrastination',
+    label: 'Прокрастинация',
+    description: 'Склонность откладывать дела на потом',
+    category: 'negative',
+    color: 0xD14D4D,
+    maxLevel: 10,
+    effects: {
+      workEfficiency: (lvl) => 1 - (lvl * 0.03),
+      stressGainMultiplier: (lvl) => 1 + (lvl * 0.025),
+    },
+    milestones: {
+      10: { description: 'Сильная прокрастинация, постоянный стресс' },
+    },
+  },
+  {
+    key: 'perfectionism',
+    label: 'Перфекционизм',
+    description: 'Стремление делать всё идеально',
+    category: 'negative',
+    color: 0xE8B94A,
+    maxLevel: 10,
+    effects: {
+      workEfficiency: (lvl) => 1 - (lvl * 0.02),        // тратит больше времени
+      stressGainMultiplier: (lvl) => 1 + (lvl * 0.03),
+      positiveEventChance: (lvl) => lvl >= 8 ? -0.1 : 0, // иногда мешает
+    },
+    milestones: {
+      7: { description: 'Сильно повышает стресс от работы' },
+    },
+  },
+  {
+    key: 'impulsiveness',
+    label: 'Импульсивность',
+    description: 'Склонность действовать не подумав',
+    category: 'negative',
+    color: 0xD14D4D,
+    maxLevel: 10,
+    effects: {
+      shopPriceMultiplier: (lvl) => 1 + (lvl * 0.015),   // чаще переплачиваешь
+      negativeEventChance: (lvl) => 0.04 + (lvl * 0.01),
+    },
+    milestones: {
+      10: { description: 'Частые импульсивные покупки и решения' },
+    },
+  },
+  {
+    key: 'laziness',
+    label: 'Лень',
+    description: 'Низкая мотивация к действию',
+    category: 'negative',
+    color: 0x9E9E9E,
+    maxLevel: 10,
+    effects: {
+      learningSpeedMultiplier: (lvl) => 1 - (lvl * 0.04),
+      workEfficiency: (lvl) => 1 - (lvl * 0.035),
+    },
+    milestones: {
+      10: { description: 'Очень трудно заставить себя работать' },
+    },
+  },
+]
+
 export const ALL_SKILLS: SkillDef[] = [
   ...BASIC_SKILLS,
   ...PROFESSIONAL_SKILLS,
   ...SOCIAL_SKILLS,
   ...CREATIVE_SKILLS,
+  ...NEGATIVE_SKILLS,
 ]
 
 export const SKILLS_BY_CATEGORY: Record<SkillCategory, SkillDef[]> = {
@@ -767,6 +910,7 @@ export const SKILLS_BY_CATEGORY: Record<SkillCategory, SkillDef[]> = {
   professional: PROFESSIONAL_SKILLS,
   social: SOCIAL_SKILLS,
   creative: CREATIVE_SKILLS,
+  negative: NEGATIVE_SKILLS,
 }
 
 export const SKILL_KEYS: string[] = ALL_SKILLS.map(s => s.key)

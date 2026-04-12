@@ -14,7 +14,7 @@ type HydrationStrategies = {
 type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {}, {}, { hydrated: () => void }> & T
 
 interface _GlobalComponents {
-  BottomNav: typeof import("../../src/components/global/BottomNav/BottomNav.vue")['default']
+  GameNav: typeof import("../../src/components/global/GameNav/GameNav.vue")['default']
   GameActionCard: typeof import("../../src/components/game/ActionCard/ActionCard.vue")['default']
   GameActionCardList: typeof import("../../src/components/game/ActionCardList/ActionCardList.vue")['default']
   GameEmptyState: typeof import("../../src/components/game/EmptyState/EmptyState.vue")['default']
@@ -27,10 +27,10 @@ interface _GlobalComponents {
   PagesCareerCurrentJobPanel: typeof import("../../src/components/pages/career/CurrentJobPanel/CurrentJobPanel.vue")['default']
   PagesCareerWorkShiftPanel: typeof import("../../src/components/pages/career/WorkShiftPanel/WorkShiftPanel.vue")['default']
   PagesDashboardActivityLogCard: typeof import("../../src/components/pages/dashboard/ActivityLogCard/ActivityLogCard.vue")['default']
-  PagesDashboardGameNav: typeof import("../../src/components/pages/dashboard/GameNav/GameNav.vue")['default']
   PagesDashboardHomePreview: typeof import("../../src/components/pages/dashboard/HomePreview/HomePreview.vue")['default']
   PagesDashboardProfileCard: typeof import("../../src/components/pages/dashboard/ProfileCard/ProfileCard.vue")['default']
   PagesDashboardStatsCard: typeof import("../../src/components/pages/dashboard/StatsCard/StatsCard.vue")['default']
+  PagesDashboardWorkButtonTypes: typeof import("../../src/components/pages/dashboard/WorkButton/WorkButton.types")['default']
   PagesDashboardWorkButton: typeof import("../../src/components/pages/dashboard/WorkButton/WorkButton.vue")['default']
   PagesEducationEducationLevel: typeof import("../../src/components/pages/education/EducationLevel/EducationLevel.vue")['default']
   PagesEducationProgramList: typeof import("../../src/components/pages/education/ProgramList/ProgramList.vue")['default']
@@ -42,12 +42,15 @@ interface _GlobalComponents {
   PagesFinanceFinanceActionList: typeof import("../../src/components/pages/finance/FinanceActionList/FinanceActionList.vue")['default']
   PagesSkillsSkillCard: typeof import("../../src/components/pages/skills/SkillCard/SkillCard.vue")['default']
   PagesSkillsSkillList: typeof import("../../src/components/pages/skills/SkillList/SkillList.vue")['default']
-  UiGameButton: typeof import("../../src/components/ui/GameButton.vue")['default']
-  UiModal: typeof import("../../src/components/ui/Modal.vue")['default']
-  UiProgressBar: typeof import("../../src/components/ui/ProgressBar.vue")['default']
-  UiRoundedPanel: typeof import("../../src/components/ui/RoundedPanel.vue")['default']
-  UiToast: typeof import("../../src/components/ui/Toast.vue")['default']
-  UiTooltip: typeof import("../../src/components/ui/Tooltip.vue")['default']
+  UiGameButton: typeof import("../../src/components/ui/GameButton/index.vue")['default']
+  UiGameModalHost: typeof import("../../src/components/ui/GameModalHost/GameModalHost.vue")['default']
+  UiModal: typeof import("../../src/components/ui/Modal/index.vue")['default']
+  UiProgressBar: typeof import("../../src/components/ui/ProgressBar/index.vue")['default']
+  UiRoundedPanel: typeof import("../../src/components/ui/RoundedPanel/index.vue")['default']
+  UiStatChange: typeof import("../../src/components/ui/StatChange/StatChange.vue")['default']
+  UiToastIndexConstants: typeof import("../../src/components/ui/Toast/index.constants")['default']
+  UiToast: typeof import("../../src/components/ui/Toast/index.vue")['default']
+  UiTooltip: typeof import("../../src/components/ui/Tooltip/index.vue")['default']
   NuxtWelcome: typeof import("../../node_modules/nuxt/dist/app/components/welcome.vue")['default']
   NuxtLayout: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-layout")['default']
   NuxtErrorBoundary: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']
@@ -73,7 +76,7 @@ interface _GlobalComponents {
   Html: typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Html']
   Body: typeof import("../../node_modules/nuxt/dist/head/runtime/components")['Body']
   NuxtIsland: typeof import("../../node_modules/nuxt/dist/app/components/nuxt-island")['default']
-  LazyBottomNav: LazyComponent<typeof import("../../src/components/global/BottomNav/BottomNav.vue")['default']>
+  LazyGameNav: LazyComponent<typeof import("../../src/components/global/GameNav/GameNav.vue")['default']>
   LazyGameActionCard: LazyComponent<typeof import("../../src/components/game/ActionCard/ActionCard.vue")['default']>
   LazyGameActionCardList: LazyComponent<typeof import("../../src/components/game/ActionCardList/ActionCardList.vue")['default']>
   LazyGameEmptyState: LazyComponent<typeof import("../../src/components/game/EmptyState/EmptyState.vue")['default']>
@@ -86,10 +89,10 @@ interface _GlobalComponents {
   LazyPagesCareerCurrentJobPanel: LazyComponent<typeof import("../../src/components/pages/career/CurrentJobPanel/CurrentJobPanel.vue")['default']>
   LazyPagesCareerWorkShiftPanel: LazyComponent<typeof import("../../src/components/pages/career/WorkShiftPanel/WorkShiftPanel.vue")['default']>
   LazyPagesDashboardActivityLogCard: LazyComponent<typeof import("../../src/components/pages/dashboard/ActivityLogCard/ActivityLogCard.vue")['default']>
-  LazyPagesDashboardGameNav: LazyComponent<typeof import("../../src/components/pages/dashboard/GameNav/GameNav.vue")['default']>
   LazyPagesDashboardHomePreview: LazyComponent<typeof import("../../src/components/pages/dashboard/HomePreview/HomePreview.vue")['default']>
   LazyPagesDashboardProfileCard: LazyComponent<typeof import("../../src/components/pages/dashboard/ProfileCard/ProfileCard.vue")['default']>
   LazyPagesDashboardStatsCard: LazyComponent<typeof import("../../src/components/pages/dashboard/StatsCard/StatsCard.vue")['default']>
+  LazyPagesDashboardWorkButtonTypes: LazyComponent<typeof import("../../src/components/pages/dashboard/WorkButton/WorkButton.types")['default']>
   LazyPagesDashboardWorkButton: LazyComponent<typeof import("../../src/components/pages/dashboard/WorkButton/WorkButton.vue")['default']>
   LazyPagesEducationEducationLevel: LazyComponent<typeof import("../../src/components/pages/education/EducationLevel/EducationLevel.vue")['default']>
   LazyPagesEducationProgramList: LazyComponent<typeof import("../../src/components/pages/education/ProgramList/ProgramList.vue")['default']>
@@ -101,12 +104,15 @@ interface _GlobalComponents {
   LazyPagesFinanceFinanceActionList: LazyComponent<typeof import("../../src/components/pages/finance/FinanceActionList/FinanceActionList.vue")['default']>
   LazyPagesSkillsSkillCard: LazyComponent<typeof import("../../src/components/pages/skills/SkillCard/SkillCard.vue")['default']>
   LazyPagesSkillsSkillList: LazyComponent<typeof import("../../src/components/pages/skills/SkillList/SkillList.vue")['default']>
-  LazyUiGameButton: LazyComponent<typeof import("../../src/components/ui/GameButton.vue")['default']>
-  LazyUiModal: LazyComponent<typeof import("../../src/components/ui/Modal.vue")['default']>
-  LazyUiProgressBar: LazyComponent<typeof import("../../src/components/ui/ProgressBar.vue")['default']>
-  LazyUiRoundedPanel: LazyComponent<typeof import("../../src/components/ui/RoundedPanel.vue")['default']>
-  LazyUiToast: LazyComponent<typeof import("../../src/components/ui/Toast.vue")['default']>
-  LazyUiTooltip: LazyComponent<typeof import("../../src/components/ui/Tooltip.vue")['default']>
+  LazyUiGameButton: LazyComponent<typeof import("../../src/components/ui/GameButton/index.vue")['default']>
+  LazyUiGameModalHost: LazyComponent<typeof import("../../src/components/ui/GameModalHost/GameModalHost.vue")['default']>
+  LazyUiModal: LazyComponent<typeof import("../../src/components/ui/Modal/index.vue")['default']>
+  LazyUiProgressBar: LazyComponent<typeof import("../../src/components/ui/ProgressBar/index.vue")['default']>
+  LazyUiRoundedPanel: LazyComponent<typeof import("../../src/components/ui/RoundedPanel/index.vue")['default']>
+  LazyUiStatChange: LazyComponent<typeof import("../../src/components/ui/StatChange/StatChange.vue")['default']>
+  LazyUiToastIndexConstants: LazyComponent<typeof import("../../src/components/ui/Toast/index.constants")['default']>
+  LazyUiToast: LazyComponent<typeof import("../../src/components/ui/Toast/index.vue")['default']>
+  LazyUiTooltip: LazyComponent<typeof import("../../src/components/ui/Tooltip/index.vue")['default']>
   LazyNuxtWelcome: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/welcome.vue")['default']>
   LazyNuxtLayout: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/nuxt-layout")['default']>
   LazyNuxtErrorBoundary: LazyComponent<typeof import("../../node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']>

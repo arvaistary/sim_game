@@ -1,4 +1,5 @@
 import type { StatChanges } from '@/domain/balance/types'
+import { createBaseSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
 
 export interface InitialSaveData {
   version: string
@@ -9,6 +10,7 @@ export interface InitialSaveData {
   gameWeeks: number
   gameMonths: number
   gameYears: number
+  time: Record<string, unknown>
   money: number
   totalEarnings: number
   totalSpent: number
@@ -29,6 +31,7 @@ export interface InitialSaveData {
   }
   relationships: unknown[]
   investments: unknown[]
+  skillModifiers: Record<string, number>
   finance: {
     reserveFund: number
     monthlyExpenses: Record<string, number>
@@ -38,14 +41,41 @@ export interface InitialSaveData {
   pendingEvents: unknown[]
   lifetimeStats: {
     totalWorkDays: number
+    totalWorkHours: number
     totalEvents: number
+    totalMicroEvents: number
     maxMoney: number
   }
   stats: StatChanges
 }
 
+/** Игровое время в начале новой игры (день 0); возраст задаётся в buildNewGameSavePayload. */
+export const INITIAL_TIME_TEMPLATE: Record<string, unknown> = {
+  totalHours: 0,
+  hourOfDay: 0,
+  dayOfWeek: 1,
+  gameDays: 0,
+  gameWeeks: 0,
+  gameMonths: 0,
+  gameYears: 0,
+  currentAge: 18,
+  startAge: 18,
+  weekHoursSpent: 0,
+  weekHoursRemaining: 168,
+  dayHoursSpent: 0,
+  dayHoursRemaining: 24,
+  sleepHoursToday: 0,
+  sleepDebt: 0,
+  eventState: {
+    cooldownByEventId: {},
+    lastWeeklyEventWeek: 0,
+    lastMonthlyEventMonth: 0,
+    lastYearlyEventYear: 0,
+  },
+}
+
 export const INITIAL_SAVE: InitialSaveData = {
-  version: '0.2.0',
+  version: '1.1.0',
   playerName: '',
   startAge: 18,
   currentAge: 18,
@@ -53,6 +83,7 @@ export const INITIAL_SAVE: InitialSaveData = {
   gameWeeks: 0,
   gameMonths: 0,
   gameYears: 0,
+  time: { ...INITIAL_TIME_TEMPLATE },
   money: 5000,
   totalEarnings: 0,
   totalSpent: 0,
@@ -80,6 +111,7 @@ export const INITIAL_SAVE: InitialSaveData = {
   },
   relationships: [],
   investments: [],
+  skillModifiers: createBaseSkillModifiers() as unknown as Record<string, number>,
   finance: {
     reserveFund: 0,
     monthlyExpenses: {
@@ -95,7 +127,9 @@ export const INITIAL_SAVE: InitialSaveData = {
   pendingEvents: [],
   lifetimeStats: {
     totalWorkDays: 0,
+    totalWorkHours: 0,
     totalEvents: 0,
+    totalMicroEvents: 0,
     maxMoney: 0,
   },
   stats: {

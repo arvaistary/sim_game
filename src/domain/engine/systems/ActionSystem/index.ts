@@ -1,5 +1,5 @@
 ﻿import { getActionById, getActionsByCategory, getAllActions } from '../../../balance/actions/index'
-import { calculateStatChanges } from '../../../balance/utils/hourly-rates'
+import { calculateStatChangesWithBreakdown } from '../../../balance/utils/hourly-rates'
 import {
   PLAYER_ENTITY,
   TIME_COMPONENT,
@@ -19,6 +19,7 @@ import { StatsSystem } from '../StatsSystem'
 import { SkillsSystem } from '../SkillsSystem'
 import { resolveActionLogDescription } from '../../utils/activity-log-description'
 import type { GameWorld } from '../../world'
+import { TimeSystem } from '../TimeSystem'
 import type { StatChanges } from '@/domain/balance/types'
 import type { ActionData, AvailabilityCheck, ExecuteResult } from './index.types'
 
@@ -59,14 +60,11 @@ export class ActionSystem {
 
     const timeSystem = this._getTimeSystem()
     if (timeSystem) {
-      const fn = timeSystem['getWeekHoursRemaining']
-      if (typeof fn === 'function') {
-        const weekLeft = (fn as () => number)()
-        if (action.hourCost > weekLeft) {
-          return {
-            available: false,
-            reason: `Не хватает времени в неделе (${action.hourCost} ч нужно, ${Number(weekLeft.toFixed(1))} ч осталось)`,
-          }
+      const weekLeft = timeSystem.getWeekHoursRemaining()
+      if (action.hourCost > weekLeft) {
+        return {
+          available: false,
+          reason: `Не хватает времени в неделе (${action.hourCost} ч нужно, ${Number(weekLeft.toFixed(1))} ч осталось)`,
         }
       }
     }
@@ -84,13 +82,10 @@ export class ActionSystem {
       if (cooldowns?.[actionId]) {
         const ts = this._getTimeSystem()
         if (ts) {
-          const getTotalHours = ts['getTotalHours']
-          if (typeof getTotalHours === 'function') {
-            const elapsed = (getTotalHours as () => number)() - cooldowns[actionId]
-            if (elapsed < action.cooldown.hours) {
-              const remaining = action.cooldown.hours - elapsed
-              return { available: false, reason: `Кулдаун: ${remaining.toFixed(0)}ч осталось` }
-            }
+          const elapsed = ts.getTotalHours() - cooldowns[actionId]
+          if (elapsed < action.cooldown.hours) {
+            const remaining = action.cooldown.hours - elapsed
+            return { available: false, reason: `Кулдаун: ${remaining.toFixed(0)}ч осталось` }
           }
         }
       }
@@ -165,16 +160,16 @@ export class ActionSystem {
     const sleepDebt = (time?.sleepDebt as number) ?? 0
     const modifiers = this.skillsSystem.getModifiers()
 
-    const statChanges = calculateStatChanges(
+    const { statChanges, breakdown } = calculateStatChangesWithBreakdown(
       action.actionType || 'neutral',
       action.hourCost,
       action.statChanges || {},
       modifiers as unknown as Record<string, number>,
       currentAge,
-      sleepDebt
-    ) as StatChanges
+      sleepDebt,
+    )
 
-    this.statsSystem.applyStatChanges(statChanges)
+    this.statsSystem.applyStatChanges(statChanges as StatChanges)
 
     if (action.skillChanges) {
       this.skillsSystem.applySkillChanges(action.skillChanges, 'action')
@@ -208,9 +203,9 @@ export class ActionSystem {
     }
 
     const timeSystem = this._getTimeSystem()
-    if (timeSystem && timeSystem.advanceHours) {
+    if (timeSystem) {
       const isSleep = (action.actionType || '') === 'sleep'
-      ;(timeSystem.advanceHours as (h: number, opts: Record<string, unknown>) => void)(action.hourCost, {
+      timeSystem.advanceHours(action.hourCost, {
         actionType: isSleep ? 'sleep' : 'default',
         sleepHours: isSleep ? action.hourCost : 0,
       })
@@ -219,7 +214,7 @@ export class ActionSystem {
     if (action.cooldown) {
       const cooldowns = this.world.getComponent(PLAYER_ENTITY, COOLDOWN_COMPONENT) as Record<string, number> | null
       if (cooldowns) {
-        cooldowns[actionId] = timeSystem ? (timeSystem.getTotalHours as () => number)() : 0
+        cooldowns[actionId] = timeSystem ? timeSystem.getTotalHours() : 0
       }
     }
 
@@ -278,6 +273,7 @@ export class ActionSystem {
     return {
       success: true,
       summary: normalizedDescription || action.effect,
+      statBreakdown: breakdown,
     }
   }
 
@@ -330,8 +326,9 @@ export class ActionSystem {
     }
   }
 
-  _getTimeSystem(): Record<string, unknown> | null {
-    return this.world.systems.find(s => typeof (s as Record<string, unknown>).advanceHours === 'function') as Record<string, unknown> | null || null
+  _getTimeSystem(): TimeSystem | null {
+    const found = this.world.systems.find((s): s is TimeSystem => s instanceof TimeSystem)
+    return found ?? null
   }
 
   _getFurnitureItems(): Array<Record<string, unknown>> {

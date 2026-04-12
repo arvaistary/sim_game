@@ -1,26 +1,19 @@
 <template>
   <div class="game-layout">
     <header v-if="showHeader" class="game-layout__header">
-      <button class="back-btn" @click="goBack">Назад</button>
-      <h2 class="page-title">{{ title }}</h2>
+      <h1 class="page-title">{{ title }}</h1>
       <div class="header-spacer" />
     </header>
     <main class="game-layout__content">
       <slot />
     </main>
-    <div v-if="showNav" class="game-layout__nav game-layout__nav--desktop">
-      <GameNav />
-    </div>
-    <div v-if="showNav" class="game-layout__nav game-layout__nav--mobile">
-      <BottomNav />
-    </div>
+    <GameNav v-if="showNav" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from '#imports'
-import GameNav from '@/components/pages/dashboard/GameNav/GameNav.vue'
-import BottomNav from '@/components/global/BottomNav/BottomNav.vue'
+import GameNav from '@/components/global/GameNav/GameNav.vue'
 import './GameLayout.scss'
 
 withDefaults(defineProps<{

@@ -1,7 +1,7 @@
 import type { NavItem } from '@/domain/balance/types'
 
 export const NAV_ITEMS: NavItem[] = [
-  { id: 'home', icon: 'Д', label: 'Дом' },
+  { id: 'home', icon: 'H', label: 'Недвижимость' },
   { id: 'shop', icon: 'М', label: 'Магазин' },
   { id: 'fun', icon: 'Р', label: 'Развлеч.' },
   { id: 'education', icon: 'О', label: 'Обучение' },

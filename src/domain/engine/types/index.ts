@@ -58,12 +58,28 @@ export interface Entity {
 }
 
 export interface TimeComponent {
-  day: number
-  hour: number
-  age: number
+  totalHours: number
+  hourOfDay: number
   dayOfWeek: number
-  isWeekend: boolean
   gameDays: number
+  gameWeeks: number
+  gameMonths: number
+  gameYears: number
+  currentAge: number
+  startAge: number
+  weekHoursSpent: number
+  weekHoursRemaining: number
+  dayHoursSpent: number
+  dayHoursRemaining: number
+  sleepHoursToday: number
+  sleepDebt: number
+  eventState: {
+    cooldownByEventId: Record<string, number>
+    lastWeeklyEventWeek: number
+    lastMonthlyEventMonth: number
+    lastYearlyEventYear: number
+    jobRehireBlockedUntilWeekByJobId?: Record<string, number>
+  }
 }
 
 export interface StatsComponent {
@@ -89,14 +105,19 @@ export interface SkillModifiersComponent {
 }
 
 export interface WorkComponent {
-  currentJobId: string | null
-  jobHistory: Array<{
-    jobId: string
-    startDay: number
-    endDay?: number
-  }>
-  workDaysDone: number
-  currentPeriodDays: number
+  id: string | null
+  name: string
+  schedule: string
+  employed: boolean
+  level: number
+  salaryPerHour: number
+  salaryPerDay: number
+  salaryPerWeek: number
+  requiredHoursPerWeek: number
+  workedHoursCurrentWeek: number
+  pendingSalaryWeek: number
+  totalWorkedHours: number
+  daysAtWork: number
 }
 
 export interface WalletComponent {
@@ -104,35 +125,60 @@ export interface WalletComponent {
   reserveFund: number
   monthlyExpenses: number
   monthlyIncome: number
+  totalEarnings: number
+  totalSpent: number
 }
 
 export interface CareerComponent {
-  currentJob: JobData | null
-  jobHistory: JobData[]
+  id: string | null
+  name: string
+  schedule: string
+  employed: boolean
+  level: number
+  salaryPerHour: number
+  salaryPerDay: number
+  salaryPerWeek: number
+  requiredHoursPerWeek: number
+  workedHoursCurrentWeek: number
+  pendingSalaryWeek: number
+  totalWorkedHours: number
+  daysAtWork: number
   careerLevel: number
+  currentJob: RuntimeJobSnapshot | null
+  jobHistory: unknown[]
 }
 
-export interface JobData {
-  id: string
-  title: string
-  salaryPerDay: number
+export interface RuntimeJobSnapshot {
+  id: string | null
+  name: string
   schedule: string
-  requiredEducation?: string
-  requiredSkills?: Record<string, number>
+  employed: boolean
+  level: number
+  salaryPerHour: number
+  salaryPerDay: number
+  salaryPerWeek: number
+  requiredHoursPerWeek: number
+  workedHoursCurrentWeek: number
+  pendingSalaryWeek: number
+  totalWorkedHours: number
+  daysAtWork: number
 }
+
+export type JobData = RuntimeJobSnapshot
 
 export interface EducationComponent {
+  school: string
+  institute: string
   educationLevel: string
-  institution: string | null
-  program: string | null
-  progress: number
-  isComplete: boolean
+  activeCourses: unknown[]
 }
 
 export interface HousingComponent {
-  currentLevel: number
+  level: number
+  name: string
   comfort: number
-  weeklyRecovery: number
+  furniture: unknown[]
+  lastWeeklyBonus: number | null
 }
 
 export interface FurnitureComponent {
@@ -145,8 +191,9 @@ export interface FurnitureComponent {
 }
 
 export interface FinanceComponent {
-  deposits: number[]
-  emergencyFund: number
+  reserveFund: number
+  monthlyExpenses: Record<string, number>
+  lastMonthlySettlement: number | null
 }
 
 export interface InvestmentComponent {
@@ -190,13 +237,16 @@ export interface EventHistoryEntry {
 }
 
 export interface EventHistoryComponent {
-  history: EventHistoryEntry[]
+  events: unknown[]
+  totalEvents?: number
 }
 
 export interface LifetimeStatsComponent {
-  totalDaysWorked: number
-  totalMoneyEarned: number
-  totalActionsCompleted: number
+  totalWorkDays: number
+  totalWorkHours: number
+  totalEvents: number
+  totalMicroEvents: number
+  maxMoney: number
   [key: string]: number
 }
 
@@ -235,15 +285,28 @@ export interface CreditComponent {
 }
 
 export interface ActivityLogEntry {
-  day: number
+  id: number
   type: string
+  category: string | null
   title: string
-  description?: string
-  effects?: Record<string, number>
+  description: string
+  icon: string | null
+  timestamp: {
+    day: number
+    week: number
+    month: number
+    year: number
+    hour: number
+    totalHours: number
+    age: number
+  }
+  metadata: Record<string, unknown>
+  createdAt: number
 }
 
 export interface ActivityLogComponent {
   entries: ActivityLogEntry[]
+  totalEntries: number
 }
 
 export interface ComponentDataMap {

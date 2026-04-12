@@ -45,13 +45,16 @@
       </section>
     </div>
   </Modal>
+
+  <GameModalHost />
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { navigateTo, useColorMode, useRoute } from '#imports'
 
-import Modal from '@/components/ui/Modal.vue'
+import Modal from '@/components/ui/Modal/index.vue'
+import GameModalHost from '@/components/ui/GameModalHost/GameModalHost.vue'
 import { useGameStore } from '@/stores/game.store'
 
 import type { AppMenuActionId, AppMenuActionItem } from '@/app.types'
@@ -133,12 +136,22 @@ watch(() => route.fullPath, () => {
   handleCloseMenu()
 })
 
+function flushSaveToStorage(): void {
+  if (gameStore.isInitialized) {
+    gameStore.save()
+  }
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalKeydown)
+  window.addEventListener('beforeunload', flushSaveToStorage)
+  window.addEventListener('pagehide', flushSaveToStorage)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleGlobalKeydown)
+  window.removeEventListener('beforeunload', flushSaveToStorage)
+  window.removeEventListener('pagehide', flushSaveToStorage)
 })
 </script>
 

@@ -4,8 +4,8 @@ dist
 *.log
 .roo
 .roo/
-# .cursor
-# .cursor/
+.cursor
+.cursor/
 .kilo
 .kilo/
 .venv

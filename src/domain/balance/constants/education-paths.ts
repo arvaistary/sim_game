@@ -4,7 +4,7 @@ export const EDUCATION_PATHS: EducationPath[] = [
   {
     id: 'none',
     label: 'Сразу в жизнь',
-    description: 'Пропустить образование и начать работать',
+    description: 'Без учёбы; работу ищете уже в игре',
     result: {
       educationLevel: 'Нет',
       skills: {

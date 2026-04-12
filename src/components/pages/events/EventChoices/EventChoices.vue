@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import GameButton from '@/components/ui/GameButton.vue'
+import GameButton from '@/components/ui/GameButton/index.vue'
 
 defineProps<{
   choices: Array<{ id: string; text: string }>
