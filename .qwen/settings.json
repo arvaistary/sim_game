@@ -8,7 +8,8 @@
       "Bash(taskkill *)",
       "Bash(npx *)",
       "Bash(timeout *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(npm test *)"
     ]
   },
   "$version": 3

@@ -18,6 +18,7 @@ interface _GlobalComponents {
   GameActionCard: typeof import("../../src/components/game/ActionCard/ActionCard.vue")['default']
   GameActionCardList: typeof import("../../src/components/game/ActionCardList/ActionCardList.vue")['default']
   GameEmptyState: typeof import("../../src/components/game/EmptyState/EmptyState.vue")['default']
+  GameNewbornWelcomeScreen: typeof import("../../src/components/game/NewbornWelcomeScreen/index.vue")['default']
   GameSectionHeader: typeof import("../../src/components/game/SectionHeader/SectionHeader.vue")['default']
   GameStatBar: typeof import("../../src/components/game/StatBar.vue")['default']
   LayoutGameLayout: typeof import("../../src/components/layout/GameLayout/GameLayout.vue")['default']
@@ -80,6 +81,7 @@ interface _GlobalComponents {
   LazyGameActionCard: LazyComponent<typeof import("../../src/components/game/ActionCard/ActionCard.vue")['default']>
   LazyGameActionCardList: LazyComponent<typeof import("../../src/components/game/ActionCardList/ActionCardList.vue")['default']>
   LazyGameEmptyState: LazyComponent<typeof import("../../src/components/game/EmptyState/EmptyState.vue")['default']>
+  LazyGameNewbornWelcomeScreen: LazyComponent<typeof import("../../src/components/game/NewbornWelcomeScreen/index.vue")['default']>
   LazyGameSectionHeader: LazyComponent<typeof import("../../src/components/game/SectionHeader/SectionHeader.vue")['default']>
   LazyGameStatBar: LazyComponent<typeof import("../../src/components/game/StatBar.vue")['default']>
   LazyLayoutGameLayout: LazyComponent<typeof import("../../src/components/layout/GameLayout/GameLayout.vue")['default']>

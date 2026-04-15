@@ -47,3 +47,13 @@ export const CREDIT_COMPONENT = 'credits' as const
 export const ACTIVITY_LOG_COMPONENT = 'activity_log' as const
 export const ACTIVITY_LOG_COMPONENT_CANONICAL = 'activityLog' as const
 
+export const CHILDHOOD_SKILLS_COMPONENT = 'childhood_skills' as const
+
+export const DELAYED_EFFECTS_COMPONENT = 'delayed_effects' as const
+
+export const LIFE_MEMORY_COMPONENT = 'life_memory' as const
+
+export const CHAIN_STATE_COMPONENT = 'chain_state' as const
+
+export const PERSONALITY_COMPONENT = 'personality' as const
+
