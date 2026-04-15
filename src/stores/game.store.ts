@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
-import { shallowRef, computed, triggerRef, ref } from 'vue'
+import { shallowRef, computed, triggerRef, ref, watch } from 'vue'
 import { GameWorld } from '../domain/engine/world'
 import { createWorldFromSave, resetSystemContext } from '../domain/game-facade'
 import { appGameCommands, appGameQueries } from '@/application/game'
 import { PLAYER_ENTITY } from '../domain/engine/components/index'
 import type { RecoveryCard } from '../domain/balance/types'
 import { LocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
+import { checkAgeUnlocks, resetAgeUnlocksState } from '@/composables/useAgeRestrictions/age-unlocks'
 import type {
   StatsComponent,
   TimeComponent,
@@ -125,6 +126,12 @@ export const useGameStore = defineStore('game', () => {
     if (!time.value) return 18
     return (time.value as unknown as Record<string, unknown>).currentAge as number ?? 18
   })
+
+  // Отслеживать смену возраста и показывать уведомления о разблокировке
+  watch(age, (newAge) => {
+    checkAgeUnlocks(newAge)
+  })
+
   const energy = computed(() => stats.value?.energy ?? 0)
   const hunger = computed(() => stats.value?.hunger ?? 0)
   const stress = computed(() => stats.value?.stress ?? 0)

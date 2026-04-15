@@ -1,5 +1,6 @@
 import { INITIAL_SAVE } from '@/domain/balance/constants/initial-save'
-import { PLAYER_ENTITY } from '@/domain/engine/components'
+import { CHILDHOOD_SKILLS } from '@/domain/balance/constants/childhood-skills'
+import { PLAYER_ENTITY, CHILDHOOD_SKILLS_COMPONENT, DELAYED_EFFECTS_COMPONENT, LIFE_MEMORY_COMPONENT, CHAIN_STATE_COMPONENT } from '@/domain/engine/components'
 import { GameWorld } from '@/domain/engine/world'
 import { ActivityLogSystem } from '@/domain/engine/systems/ActivityLogSystem'
 import { TimeSystem } from '@/domain/engine/systems/TimeSystem'
@@ -120,6 +121,34 @@ export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
   if (data.lifetimeStats) world.addComponent(PLAYER_ENTITY, 'lifetimeStats', data.lifetimeStats as AnyRecord)
   if (data.pendingEvents) world.addComponent(PLAYER_ENTITY, 'eventQueue', { pendingEvents: data.pendingEvents })
   if (data.investments) world.addComponent(PLAYER_ENTITY, 'investment', data.investments as AnyRecord)
+
+  // === Childhood components ===
+  // childhood_skills: caps и firstTouchAge для всех 27 детских навыков
+  const childhoodCaps: Record<string, number> = {}
+  const childhoodFirstTouchAge: Record<string, number | null> = {}
+  for (const skill of CHILDHOOD_SKILLS) {
+    childhoodCaps[skill.key] = 1.0
+    childhoodFirstTouchAge[skill.key] = null
+  }
+  world.addComponent(PLAYER_ENTITY, CHILDHOOD_SKILLS_COMPONENT, {
+    caps: childhoodCaps,
+    firstTouchAge: childhoodFirstTouchAge,
+  })
+
+  // delayed_effects: пустой список отложенных последствий
+  if (!world.getComponent(PLAYER_ENTITY, DELAYED_EFFECTS_COMPONENT)) {
+    world.addComponent(PLAYER_ENTITY, DELAYED_EFFECTS_COMPONENT, { pending: [] })
+  }
+
+  // life_memory: пустой список воспоминаний
+  if (!world.getComponent(PLAYER_ENTITY, LIFE_MEMORY_COMPONENT)) {
+    world.addComponent(PLAYER_ENTITY, LIFE_MEMORY_COMPONENT, { memories: [], childhoodScore: 0 })
+  }
+
+  // chain_state: пустое состояние цепочек
+  if (!world.getComponent(PLAYER_ENTITY, CHAIN_STATE_COMPONENT)) {
+    world.addComponent(PLAYER_ENTITY, CHAIN_STATE_COMPONENT, { chains: {} })
+  }
 
   world.addSystem(new TimeSystem())
   world.addSystem(new ActivityLogSystem())

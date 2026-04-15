@@ -70,3 +70,27 @@
   text-align: center;
   line-height: 1.1;
 }
+
+// Locked tab styles
+.nav-item--locked {
+  cursor: default;
+  opacity: 0.45;
+
+  &:hover {
+    transform: none;
+
+    .nav-dot--locked {
+      background-color: var(--color-bg-elevated);
+    }
+  }
+}
+
+.nav-dot--locked {
+  background-color: var(--color-bg-elevated);
+  font-size: 14px;
+}
+
+.nav-label--locked {
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}

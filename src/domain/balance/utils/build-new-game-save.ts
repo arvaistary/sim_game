@@ -3,7 +3,7 @@ import { INITIAL_SAVE, INITIAL_TIME_TEMPLATE } from '@/domain/balance/constants/
 
 export type NewGamePathId = 'none' | 'school' | 'institute'
 
-const AGE_MIN = 16
+const AGE_MIN = 0
 const AGE_MAX = 65
 
 function educationForPath(pathId: NewGamePathId) {
@@ -32,7 +32,8 @@ export function buildNewGameSavePayload(input: {
     throw new Error(`Unknown education path: ${input.pathId}`)
   }
 
-  const age = Math.max(AGE_MIN, Math.min(AGE_MAX, Math.floor(Number(input.startAge) || 18)))
+  const rawAge = Number(input.startAge)
+  const age = Math.max(AGE_MIN, Math.min(AGE_MAX, Number.isFinite(rawAge) ? Math.floor(rawAge) : 18))
   const base = structuredClone(INITIAL_SAVE) as unknown as Record<string, unknown>
   const skills = {
     ...(base.skills as Record<string, number>),

@@ -2,11 +2,11 @@
   <RoundedPanel class="card profile-card" padding="18px">
     <h1 class="profile-name">{{ playerName }}</h1>
     <p class="profile-job">{{ jobLabel }}</p>
-    <p class="profile-money">{{ formatMoney(money) }} ₽</p>
+    <p v-if="isMoneyVisible" class="profile-money">{{ formatMoney(money) }} ₽</p>
     <p class="profile-time">{{ timeLabel }}</p>
     <p class="profile-comfort">Комфорт: {{ Math.round(comfort) }}</p>
     <div class="profile-buttons">
-      <GameButton label="Карьера" small @click="navigateTo('/game/career')" />
+      <GameButton v-if="isCareerVisible" label="Карьера" small @click="navigateTo('/game/career')" />
       <GameButton label="Мои навыки" small @click="isSkillsModalOpen = true" />
     </div>
   </RoundedPanel>
@@ -56,8 +56,12 @@ import { ALL_SKILLS } from '@/domain/balance/constants/skills-constants'
 import { buildSkillTooltipText } from '@/domain/balance/utils/skill-tooltip-content'
 import type { SkillDef } from '@/domain/balance/types'
 import { formatMoney } from '@/utils/format'
+import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 
 const store = useGameStore()
+const { isStatVisible, isTabVisible } = useAgeRestrictions()
+const isMoneyVisible = computed(() => isStatVisible('money'))
+const isCareerVisible = computed(() => isTabVisible('career'))
 const isSkillsModalOpen = ref(false)
 
 function skillLevel(key: string): number {

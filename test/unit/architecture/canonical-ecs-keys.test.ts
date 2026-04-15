@@ -7,6 +7,7 @@ const ALLOWLIST = new Set([
   'src/domain/engine/world.ts',
   'src/domain/engine/components/index.ts',
   'src/domain/engine/types/index.ts',
+  'src/domain/engine/constants/component-keys.ts',
 ])
 
 async function collectFiles(dir: string): Promise<string[]> {

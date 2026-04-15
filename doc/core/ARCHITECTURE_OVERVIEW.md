@@ -107,7 +107,7 @@ src/domain/
 - События: eventQueue, eventHistory, activityLog
 - Игровое состояние: lifetimeStats, completedActions, cooldowns
 
-**Системы (Systems) - 18 шт.:**
+**Системы (Systems) - 21 шт.:**
 - TimeSystem - управление временем
 - StatsSystem - статистика
 - SkillsSystem - навыки
@@ -125,6 +125,12 @@ src/domain/
 - EducationSystem - образование
 - PersistenceSystem - сохранение/загрузка
 - MigrationSystem - миграция данных
+- ChainResolverSystem - резолвер цепочек событий
+- DelayedEffectSystem - отложенные эффекты
+- LifeMemorySystem - система памяти жизни
+- PersonalitySystem - система личности
+- TagsSystem - система тегов
+- SchoolSystem - система образования школы
 
 ### Game Facade
 
@@ -230,7 +236,7 @@ src/infrastructure/persistence/
 
 ## 4. Presentation Layer (Презентационный слой)
 
-**Путь:** `src/components/`, `src/pages/`, `src/composables/`, `src/stores/`, `src/nuxt-pages/`
+**Путь:** `src/components/`, `src/components/pages/`, `src/components/global/`, `src/pages/`, `src/composables/`, `src/stores/`, `src/nuxt-pages/`
 
 **Назначение:** UI, пользовательский ввод, реактивность
 
@@ -279,7 +285,9 @@ src/
 │   ├── useFinance.ts    # Финансы
 │   ├── useEvents.ts     # События
 │   ├── useToast.ts      # Уведомления
-│   └── useActivityLog.ts # Журнал активности
+│   ├── useActivityLog.ts # Журнал активности
+│   ├── useSkills.ts     # Навыки персонажа
+│   └── useTime.ts       # Система времени
 │
 ├── stores/               # Pinia stores
 │   └── game.store.ts    # Главный хранилище игры
@@ -503,5 +511,9 @@ flowchart LR
 - **[../ecs/ECS_ARCHITECTURE.md](../ecs/ECS_ARCHITECTURE.md)** - ECS архитектура доменного слоя
 
 ---
+
+---
+
+**Последнее обновление:** 15.04.2026
 
 *Документ создан для архитектуры Nuxt 4 + Vue 3 + TypeScript + Pinia*

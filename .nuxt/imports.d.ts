@@ -36,3 +36,4 @@ export { buildStatBreakdownExplanation, buildActionResultStatLines, ActionResult
 export { useGameStore } from '../src/stores/game.store';
 export { defineStore, acceptHMRUpdate, usePinia, storeToRefs } from '../node_modules/@pinia/nuxt/dist/runtime/composables';
 export { useColorMode } from '../node_modules/@nuxtjs/color-mode/dist/runtime/composables';
+export { useNuxtDevTools } from '../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools';

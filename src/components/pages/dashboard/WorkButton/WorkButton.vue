@@ -1,5 +1,5 @@
 <template>
-  <div class="action-section">
+  <div v-if="isVisible" class="action-section">
     <button class="action-button" @click="handleWorkClick">
       <span class="action-button__label">Пойти на работу</span>
       <span class="action-button__subtitle">обменять своё здоровье на деньги</span>
@@ -53,10 +53,13 @@ import GameButton from '@/components/ui/GameButton/index.vue'
 import Modal from '@/components/ui/Modal/index.vue'
 import { useGameStore } from '@/stores/game.store'
 import { useGameModal } from '@/composables/useGameModal'
+import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 import type { WorkOptions, WorkSnapshot, WorkStatDefinition, WorkStatDiff, WorkStatSnapshot } from './WorkButton.types'
 
 const store = useGameStore()
 const gameModal = useGameModal()
+const { isTabVisible } = useAgeRestrictions()
+const isVisible = computed(() => isTabVisible('career'))
 
 const STAT_DEFINITIONS: WorkStatDefinition[] = [
   { key: 'money', label: 'Деньги' },

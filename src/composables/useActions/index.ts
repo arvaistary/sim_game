@@ -3,12 +3,14 @@ import { useGameStore } from '@/stores/game.store'
 import { getActionsByCategory, getActionById } from '@/domain/balance/actions'
 import { showGameResultModal } from '@/composables/useGameModal'
 import { useToast } from '../useToast'
+import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { ActionCategory } from '@/domain/balance/types'
 
 export function useActions() {
   const store = useGameStore()
   const toast = useToast()
+  const { filterActionsByAge } = useAgeRestrictions()
 
   function canExecute(actionId: string): boolean {
     return store.canExecuteAction(actionId).canExecute
@@ -38,7 +40,8 @@ export function useActions() {
   }
 
   function getActions(category: ActionCategory): BalanceAction[] {
-    return getActionsByCategory(category)
+    const actions = getActionsByCategory(category)
+    return filterActionsByAge(actions)
   }
 
   const allCategories = computed(() => {

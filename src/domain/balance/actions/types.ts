@@ -43,5 +43,7 @@ export interface BalanceAction {
   reserveDelta?: number
   investmentReturn?: number
   investmentDurationDays?: number
+  /** Минимальная возрастная группа для доступа к действию. Если undefined — доступно всем. */
+  ageGroup?: AgeGroup
 }
 

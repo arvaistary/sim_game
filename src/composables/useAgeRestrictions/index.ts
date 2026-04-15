@@ -16,14 +16,14 @@ export interface AgeRestrictions {
 
 const AGE_RULES: Record<AgeGroup, AgeRestrictions> = {
   [AgeGroup.INFANT]: {
-    hiddenTabs: ['finance', 'career', 'home', 'car', 'social'],
+    hiddenTabs: ['finance', 'career', 'home', 'car', 'social', 'shop'],
     hiddenStats: ['money', 'salary', 'debt', 'investments'],
     label: 'Младенец',
     timeSpeed: 4,
     minAgeGroup: AgeGroup.INFANT
   },
   [AgeGroup.TODDLER]: {
-    hiddenTabs: ['finance', 'career', 'home', 'car'],
+    hiddenTabs: ['finance', 'career', 'home', 'car', 'shop'],
     hiddenStats: ['money', 'salary', 'debt', 'investments'],
     label: 'Дошкольник',
     timeSpeed: 3,
@@ -51,7 +51,7 @@ const AGE_RULES: Record<AgeGroup, AgeRestrictions> = {
     minAgeGroup: AgeGroup.TEEN
   },
   [AgeGroup.YOUNG]: {
-    hiddenTabs: [],
+    hiddenTabs: ['mortgage'],
     hiddenStats: [],
     label: 'Молодёжь',
     timeSpeed: 1.25,
@@ -64,6 +64,17 @@ const AGE_RULES: Record<AgeGroup, AgeRestrictions> = {
     timeSpeed: 1,
     minAgeGroup: AgeGroup.ADULT
   }
+}
+
+/** Возраст, с которого вкладка становится доступна */
+export const TAB_UNLOCK_AGE: Record<string, number> = {
+  social: 4,
+  shop: 4,
+  career: 8,
+  car: 16,
+  finance: 16,
+  home: 16,
+  mortgage: 19,
 }
 
 const UNLOCK_MESSAGES: Record<string, string> = {
@@ -90,8 +101,7 @@ export function useAgeRestrictions() {
     if (currentAge <= 7) return AgeGroup.TODDLER
     if (currentAge <= 12) return AgeGroup.CHILD
     if (currentAge <= 15) return AgeGroup.KID
-    if (currentAge <= 18) return AgeGroup.TEEN
-    if (currentAge <= 25) return AgeGroup.YOUNG
+    if (currentAge <= 18) return AgeGroup.YOUNG
     return AgeGroup.ADULT
   })
 
@@ -170,7 +180,6 @@ function getAgeGroup(ageValue: number): AgeGroup {
   if (ageValue <= 7) return AgeGroup.TODDLER
   if (ageValue <= 12) return AgeGroup.CHILD
   if (ageValue <= 15) return AgeGroup.KID
-  if (ageValue <= 18) return AgeGroup.TEEN
-  if (ageValue <= 25) return AgeGroup.YOUNG
+  if (ageValue <= 18) return AgeGroup.YOUNG
   return AgeGroup.ADULT
 }

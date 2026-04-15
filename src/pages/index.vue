@@ -18,44 +18,53 @@
 
         <fieldset class="start-page__fieldset">
           <legend class="start-page__legend">Старт жизни</legend>
-          <p class="start-page__hint">
-            Выберите отправную точку: без школы, со средним или с высшим (как в конфиге баланса).
-          </p>
-          <div
-            v-for="path in educationPaths"
-            :key="path.id"
-            class="start-page__radio-row"
-          >
+
+          <div class="start-page__radio-row">
             <input
-              :id="`path-${path.id}`"
-              v-model="pathId"
+              id="start-infancy"
+              v-model="startMode"
               class="start-page__radio"
               type="radio"
-              name="education-path"
-              :value="path.id"
+              name="start-mode"
+              value="infancy"
             />
-            <label class="start-page__radio-label" :for="`path-${path.id}`">
-              <span class="start-page__radio-title">{{ path.label }}</span>
-              <span class="start-page__radio-desc">{{ path.description }}</span>
+            <label class="start-page__radio-label" for="start-infancy">
+              <span class="start-page__radio-title">👶 Начать с начала (с младенчества)</span>
+              <span class="start-page__radio-desc">Пройдите весь путь с рождения — детство, школа, взросление</span>
             </label>
+          </div>
+
+          <div class="start-page__radio-row">
+            <input
+              id="start-adult"
+              v-model="startMode"
+              class="start-page__radio"
+              type="radio"
+              name="start-mode"
+              value="adult"
+            />
+            <label class="start-page__radio-label" for="start-adult">
+              <span class="start-page__radio-title">🧑 Начать с взрослой жизни</span>
+              <span class="start-page__radio-desc">Начните с высшим образованием и готовностью к карьере</span>
+            </label>
+          </div>
+
+          <div v-if="startMode === 'adult'" class="start-page__age-field">
+            <label class="start-page__label" for="player-age">Возраст персонажа</label>
+            <input
+              id="player-age"
+              v-model.number="adultAge"
+              class="start-page__input start-page__input--narrow"
+              type="number"
+              :min="adultAgeMin"
+              :max="ageMax"
+              step="1"
+            />
           </div>
         </fieldset>
 
-        <div class="start-page__field">
-          <label class="start-page__label" for="player-age">Возраст персонажа</label>
-          <input
-            id="player-age"
-            v-model.number="startAge"
-            class="start-page__input start-page__input--narrow"
-            type="number"
-            :min="ageMin"
-            :max="ageMax"
-            step="1"
-          />
-        </div>
-
         <button class="start-page__button" :disabled="!canStart" @click="startGame">
-          Начать жизнь
+          Начни жизнь
         </button>
       </div>
     </div>
@@ -65,36 +74,42 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { navigateTo } from '#imports'
-import { EDUCATION_PATHS } from '@/domain/balance/constants/education-paths'
 import {
   NEW_GAME_AGE_BOUNDS,
   buildNewGameSavePayload,
-  type NewGamePathId,
 } from '@/domain/balance/utils/build-new-game-save'
 import { useGameStore } from '@/stores/game.store'
 
+type StartMode = 'infancy' | 'adult'
+
 const store = useGameStore()
 const playerName = ref('')
-const pathId = ref<NewGamePathId>('none')
-const startAge = ref(18)
+const startMode = ref<StartMode>('infancy')
+const adultAge = ref(18)
 
-const educationPaths = EDUCATION_PATHS
-const ageMin = NEW_GAME_AGE_BOUNDS.min
 const ageMax = NEW_GAME_AGE_BOUNDS.max
+const adultAgeMin = 16
 
 const canStart = computed(() => {
   if (!playerName.value.trim()) return false
-  const a = Number(startAge.value)
-  return Number.isFinite(a) && a >= ageMin && a <= ageMax
+  if (startMode.value === 'adult') {
+    const a = Number(adultAge.value)
+    return Number.isFinite(a) && a >= adultAgeMin && a <= ageMax
+  }
+  return true
 })
 
 function startGame() {
   if (!canStart.value) return
+
+  const startAge = startMode.value === 'infancy' ? 0 : adultAge.value
+  const pathId = startMode.value === 'infancy' ? 'none' : 'institute'
+
   store.initWorld(
     buildNewGameSavePayload({
       playerName: playerName.value,
-      startAge: startAge.value,
-      pathId: pathId.value,
+      startAge,
+      pathId,
     }),
   )
   store.save()

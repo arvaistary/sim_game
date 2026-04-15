@@ -307,7 +307,7 @@
 | `TextArea` | Многострочное поле |
 | `Checkbox` | Кастомный checkbox с rounded corners |
 | `Toggle` | Переключатель on/off |
-| `DatePicker` | Календарь в стиле pill (May, 2023) |
+| `DatePicker` | Календарь в стиле pill (апрель 2026) |
 
 ### 7.5 Кнопки
 
