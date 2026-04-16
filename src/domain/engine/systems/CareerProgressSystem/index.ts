@@ -1,7 +1,6 @@
 ﻿import {
   CAREER_COMPONENT,
   WORK_COMPONENT,
-  SKILLS_COMPONENT,
   EDUCATION_COMPONENT,
   TIME_COMPONENT,
   PLAYER_ENTITY,
@@ -11,6 +10,7 @@ import { SkillsSystem } from '../SkillsSystem'
 import type { GameWorld } from '../../world'
 import type { CareerJob } from '@/domain/balance/types'
 import type { CareerTrackEntry, ChangeCareerResult } from './index.types'
+import { getEducationRank, getEducationLabelByRank, formatMoney, toFiniteNumber } from '../../utils/career-helpers'
 
 /**
  * Система управления карьерным прогрессом
@@ -33,30 +33,29 @@ export class CareerProgressSystem {
 
   getCareerTrack(): CareerTrackEntry[] {
     const playerId = PLAYER_ENTITY
-    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT) as Record<string, number> | null
     const education = this.world.getComponent(playerId, EDUCATION_COMPONENT) as Record<string, unknown> | null
     const career = this.world.getComponent(playerId, CAREER_COMPONENT) as Record<string, unknown> | null
 
-    if (!skills || !education || !career) {
+    if (!education || !career) {
       return []
     }
 
-    const professionalism = skills.professionalism ?? 0
+    const professionalism = this.skillsSystem.getSkillLevel('professionalism')
     const modifiers = this.skillsSystem.getModifiers()
-    const educationRank = this._getEducationRank(education.educationLevel as string)
+    const educationRank = getEducationRank(education.educationLevel as string)
     const currentJobId = career.id
 
     return this.careerJobs.map(job => {
-      const salaryMultiplier = this._getFiniteNumber(modifiers.salaryMultiplier, 1)
-      const baseSalaryPerHour = this._getFiniteNumber(job.salaryPerHour, Math.round(this._getFiniteNumber(job.salaryPerDay, 0) / 8))
-      const baseSalaryPerDay = this._getFiniteNumber(job.salaryPerDay, baseSalaryPerHour * 8)
+      const salaryMultiplier = toFiniteNumber(modifiers.salaryMultiplier, 1)
+      const baseSalaryPerHour = toFiniteNumber(job.salaryPerHour, Math.round(toFiniteNumber(job.salaryPerDay, 0) / 8))
+      const baseSalaryPerDay = toFiniteNumber(job.salaryPerDay, baseSalaryPerHour * 8)
 
       return {
         ...job,
         current: currentJobId === job.id,
         unlocked: professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank,
         missingProfessionalism: Math.max(0, job.minProfessionalism - professionalism),
-        educationRequiredLabel: this._getEducationLabelByRank(job.minEducationRank),
+        educationRequiredLabel: getEducationLabelByRank(job.minEducationRank),
         effectiveSalaryPerHour: Math.round(baseSalaryPerHour * salaryMultiplier),
         effectiveSalaryPerDay: Math.round(baseSalaryPerDay * salaryMultiplier),
       }
@@ -65,17 +64,16 @@ export class CareerProgressSystem {
 
   syncCareerProgress(): string {
     const playerId = PLAYER_ENTITY
-    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT) as Record<string, number> | null
     const education = this.world.getComponent(playerId, EDUCATION_COMPONENT) as Record<string, unknown> | null
     const career = this.world.getComponent(playerId, CAREER_COMPONENT) as Record<string, unknown> | null
     const work = this.world.getComponent(playerId, WORK_COMPONENT) as Record<string, unknown> | null
 
-    if (!skills || !education || !career) {
+    if (!education || !career) {
       return ''
     }
 
-    const professionalism = skills.professionalism ?? 0
-    const educationRank = this._getEducationRank(education.educationLevel as string)
+    const professionalism = this.skillsSystem.getSkillLevel('professionalism')
+    const educationRank = getEducationRank(education.educationLevel as string)
     const currentLevel = (career.level as number) ?? 1
     const oldPosition = (career.name as string) ?? 'Неизвестно'
 
@@ -92,7 +90,7 @@ export class CareerProgressSystem {
         detail: {
           category: 'promotion',
           title: '📈 Повышение!',
-          description: `${oldPosition} → ${unlockedJob.name}. Новая ставка: ${this._formatMoney(unlockedJob.salaryPerHour)} ₽/ч`,
+          description: `${oldPosition} → ${unlockedJob.name}. Новая ставка: ${formatMoney(unlockedJob.salaryPerHour)} ₽/ч`,
           icon: null,
           metadata: {
             oldPosition,
@@ -125,17 +123,16 @@ export class CareerProgressSystem {
     }
     this._syncCareerCurrentJob()
 
-    return `Карьерный рост: новая должность «${unlockedJob.name}», ставка ${this._formatMoney(unlockedJob.salaryPerHour)} ₽ в час.`
+    return `Карьерный рост: новая должность «${unlockedJob.name}», ставка ${formatMoney(unlockedJob.salaryPerHour)} ₽ в час.`
   }
 
   changeCareer(jobId: string): ChangeCareerResult {
     const playerId = PLAYER_ENTITY
     const career = this.world.getComponent(playerId, CAREER_COMPONENT) as Record<string, unknown> | null
     const work = this.world.getComponent(playerId, WORK_COMPONENT) as Record<string, unknown> | null
-    const skills = this.world.getComponent(playerId, SKILLS_COMPONENT) as Record<string, number> | null
     const education = this.world.getComponent(playerId, EDUCATION_COMPONENT) as Record<string, unknown> | null
 
-    if (!career || !skills || !education) {
+    if (!career || !education) {
       return { success: false, reason: 'Не удалось загрузить данные персонажа' }
     }
 
@@ -155,8 +152,8 @@ export class CareerProgressSystem {
       }
     }
 
-    const professionalism = skills.professionalism ?? 0
-    const educationRank = this._getEducationRank(education.educationLevel as string)
+    const professionalism = this.skillsSystem.getSkillLevel('professionalism')
+    const educationRank = getEducationRank(education.educationLevel as string)
 
     if (professionalism < job.minProfessionalism) {
       return {
@@ -168,7 +165,7 @@ export class CareerProgressSystem {
     if (educationRank < job.minEducationRank) {
       return {
         success: false,
-        reason: `Недостаточно образования. Нужно ${this._getEducationLabelByRank(job.minEducationRank)}.`
+        reason: `Недостаточно образования. Нужно ${getEducationLabelByRank(job.minEducationRank)}.`
       }
     }
 
@@ -205,7 +202,7 @@ export class CareerProgressSystem {
         detail: {
           category: isDemotion ? 'demotion' : 'promotion',
           title: isDemotion ? '📉 Понижение' : '📈 Смена должности',
-          description: `${oldPosition} → ${job.name}. Ставка: ${this._formatMoney(job.salaryPerHour)} ₽/ч`,
+          description: `${oldPosition} → ${job.name}. Ставка: ${formatMoney(job.salaryPerHour)} ₽/ч`,
           icon: null,
           metadata: {
             oldPosition,
@@ -218,7 +215,7 @@ export class CareerProgressSystem {
 
     return {
       success: true,
-      message: `Вы устроились на должность «${job.name}», ставка ${this._formatMoney(job.salaryPerHour)} ₽ в час.`
+      message: `Вы устроились на должность «${job.name}», ставка ${formatMoney(job.salaryPerHour)} ₽ в час.`
     }
   }
 
@@ -226,32 +223,6 @@ export class CareerProgressSystem {
     const playerId = PLAYER_ENTITY
     const career = this.world.getComponent(playerId, CAREER_COMPONENT) as Record<string, unknown> | null
     return career || null
-  }
-
-  _getEducationRank(level: string): number {
-    const map: Record<string, number> = {
-      'Среднее': 0,
-      'Высшее': 1,
-      'MBA': 2,
-    }
-    return map[level] ?? 0
-  }
-
-  _getEducationLabelByRank(rank: number): string {
-    const map: Record<number, string> = {
-      0: 'Среднее',
-      1: 'Высшее',
-      2: 'MBA',
-    }
-    return map[rank] ?? 'Среднее'
-  }
-
-  _formatMoney(value: number): string {
-    return new Intl.NumberFormat('ru-RU').format(value)
-  }
-
-  _getFiniteNumber(value: unknown, fallback: number): number {
-    return typeof value === 'number' && Number.isFinite(value) ? value : fallback
   }
 
   _syncCareerCurrentJob(): void {

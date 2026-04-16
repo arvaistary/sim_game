@@ -1,6 +1,6 @@
 # План: Синхронизация всех обновлённых систем
 
-## Статус: Master plan (единый источник координации)
+## Статус: В процессе обновления (2026-04-16)
 
 ## Цель
 
@@ -48,6 +48,48 @@
 2. **Порядок внедрения** может создать регрессии без общей wave-координации.
 3. **ID/shape/проверки** частично расходятся между UI и engine в actions/skills/events.
 4. **Knowledge unlock** должен быть встроен как результат обучения, а не отдельный параллельный путь.
+
+---
+
+## Выполненные фазы (2026-04-16)
+
+### Фаза 0 — Baseline
+- Baseline test results: 21 test file passed, 1 skipped | 114 tests passed, 3 skipped, 9 todo
+- Pre-flight DoD выполнен
+
+### Фаза 1 — Core contracts
+- Time: периодические callbacks подключены в system-context
+- Event: исправлена дедупликация (instanceId), все системы используют ingress API
+- Action: удалено мертвое требование requiresPet, все requirements проверяются в engine
+- Skills: SkillsSystem и StatsSystem добавлены в SystemContext, унифицирован skill shape
+- Education: ageGroup добавлен ко всем education-actions, minAge добавлен в EducationProgram
+- Tests: 114 passed, 0 failed
+
+### Фаза 2 — Wave 1 (P0 stability)
+- Stats: удалены дубли _applyStatChanges/_clamp из 5 систем
+- Persistence: v1.2.0 с валидацией и backup
+- Work/Career: shared helpers, TimeSystem через прямую ссылку
+- Finance: все через canonical системы
+- Tests: 114 passed, 0 failed
+
+### Фаза 3 — Wave 2 (P1 quality)
+- Activity History: EventHistorySystem в SystemContext, улучшенный ActivityLogSystem
+- Recovery: P0 рефакторинг, делегирование в canonical системы
+- School: интеграция через SystemContext
+- Tests: 114 passed, 0 failed
+
+### Фаза 4 — Wave 3 (P2 depth)
+- Chain/Delayed Effects: в SystemContext, new системы заменены на canonical
+- Life Memory: в SystemContext, trim/limit
+- Personality: в SystemContext, BUGFIX 'player' → PLAYER_ENTITY
+- Tags: в SystemContext
+- Tests: 114 passed, 0 failed
+
+### Фаза 5 — Product alignment
+- BUGFIX: TEEN маппинг исправлен (13-15 лет)
+- ageGroup добавлен ко всем 207 действиям
+- sleep-actions удалены из action-слоя
+- Tests: 114 passed, 0 failed
 
 ---
 

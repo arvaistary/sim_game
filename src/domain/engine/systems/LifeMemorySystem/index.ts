@@ -6,6 +6,8 @@ import {
 import type { GameWorld } from '../../world'
 import type { LifeMemoryEntry, LifeMemoryComponent } from '@/domain/balance/types/life-memory'
 
+const MAX_MEMORIES = 500
+
 let _nextMemoryId = 0
 
 /**
@@ -30,9 +32,7 @@ export class LifeMemorySystem {
     this._subscribeToDelayedEffects()
   }
 
-  update(_world: GameWorld, _deltaHours: number): void {
-    // Память — система, управляемая событиями; нет периодической логики
-  }
+
 
   /**
    * Записать воспоминание.
@@ -53,6 +53,9 @@ export class LifeMemorySystem {
     }
 
     component.memories.push(fullEntry)
+    if (component.memories.length > MAX_MEMORIES) {
+      component.memories = component.memories.slice(-MAX_MEMORIES)
+    }
     this._recalculateChildhoodScore(component)
 
     return fullEntry

@@ -1,9 +1,11 @@
 import type { BalanceAction } from './types'
+import { AgeGroup } from './types'
 
 export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_drawing',
     category: 'hobby',
+    ageGroup: AgeGroup.TODDLER,
     title: 'Рисование / живопись',
     hourCost: 3,
     price: 800,
@@ -16,6 +18,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_instrument',
     category: 'hobby',
+    ageGroup: AgeGroup.TODDLER,
     title: 'Игра на музыкальном инструменте',
     hourCost: 2.5,
     price: 0,
@@ -28,6 +31,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_writing',
     category: 'hobby',
+    ageGroup: AgeGroup.TEEN,
     title: 'Написание текста / блога / книги',
     hourCost: 3,
     price: 0,
@@ -40,6 +44,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_photography',
     category: 'hobby',
+    ageGroup: AgeGroup.CHILD,
     title: 'Фотография (прогулка с камерой)',
     hourCost: 3,
     price: 400,
@@ -52,6 +57,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_gardening_act',
     category: 'hobby',
+    ageGroup: AgeGroup.TODDLER,
     title: 'Садоводство и уход за растениями',
     hourCost: 2,
     price: 300,
@@ -65,6 +71,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_craft',
     category: 'hobby',
+    ageGroup: AgeGroup.CHILD,
     title: 'Ремесло (вязание, лепка, скрапбукинг)',
     hourCost: 4,
     price: 1200,
@@ -77,6 +84,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_dance',
     category: 'hobby',
+    ageGroup: AgeGroup.TODDLER,
     title: 'Танцы дома',
     hourCost: 2,
     price: 0,
@@ -89,6 +97,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_cooking',
     category: 'hobby',
+    ageGroup: AgeGroup.CHILD,
     title: 'Кулинарные эксперименты',
     hourCost: 2.5,
     price: 900,
@@ -101,6 +110,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_content',
     category: 'hobby',
+    ageGroup: AgeGroup.TEEN,
     title: 'Создание контента (видео, reels)',
     hourCost: 5,
     price: 0,
@@ -113,6 +123,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_collecting',
     category: 'hobby',
+    ageGroup: AgeGroup.TODDLER,
     title: 'Коллекционирование (марки, монеты, фигурки)',
     hourCost: 2,
     price: 2000,
@@ -125,6 +136,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_woodwork',
     category: 'hobby',
+    ageGroup: AgeGroup.TEEN,
     title: 'Столярное дело / работа с деревом',
     hourCost: 3,
     price: 1200,
@@ -137,6 +149,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_origami',
     category: 'hobby',
+    ageGroup: AgeGroup.TODDLER,
     title: 'Оригами и бумажное искусство',
     hourCost: 1.5,
     price: 300,
@@ -149,6 +162,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_wine',
     category: 'hobby',
+    ageGroup: AgeGroup.ADULT,
     title: 'Домашнее виноделие / пивоварение',
     hourCost: 4,
     price: 2000,
@@ -161,6 +175,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_astronomy',
     category: 'hobby',
+    ageGroup: AgeGroup.CHILD,
     title: 'Астрономия — наблюдение за звёздами',
     hourCost: 3,
     price: 500,
@@ -173,6 +188,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_blogging',
     category: 'hobby',
+    ageGroup: AgeGroup.TEEN,
     title: 'Блогерство и подкасты',
     hourCost: 4,
     price: 0,
@@ -185,6 +201,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_calligraphy',
     category: 'hobby',
+    ageGroup: AgeGroup.TEEN,
     title: 'Каллиграфия',
     hourCost: 2,
     price: 800,
@@ -197,6 +214,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_street_art',
     category: 'hobby',
+    ageGroup: AgeGroup.TEEN,
     title: 'Стрит-арт / граффити',
     hourCost: 3,
     price: 1500,
@@ -209,6 +227,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_digital_music',
     category: 'hobby',
+    ageGroup: AgeGroup.TEEN,
     title: 'Создание электронной музыки',
     hourCost: 3,
     price: 0,
@@ -223,6 +242,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_modeling',
     category: 'hobby',
+    ageGroup: AgeGroup.CHILD,
     title: 'Сборка моделей (самолёты, корабли, танки)',
     hourCost: 3.5,
     price: 950,
@@ -235,6 +255,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_fishing_hobby',
     category: 'hobby',
+    ageGroup: AgeGroup.CHILD,
     title: 'Рыбалка как хобби',
     hourCost: 5,
     price: 600,
@@ -247,6 +268,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_chess_hobby',
     category: 'hobby',
+    ageGroup: AgeGroup.CHILD,
     title: 'Шахматы и стратегические игры',
     hourCost: 2,
     price: 0,

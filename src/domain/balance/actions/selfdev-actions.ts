@@ -1,4 +1,5 @@
 import type { BalanceAction } from './types'
+import { AgeGroup } from './types'
 
 export const SELFDEV_ACTIONS: BalanceAction[] = [
   {
@@ -12,6 +13,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     actionType: 'selfdev',
     effect: 'Голод +2.2, Энергия +9.5, Стресс -6.5, Настроение +8.5, Здоровье +1.8, Физическая форма +2.5, Дисциплина +2, Организация +2',
     mood: '🌅 Правильное утро задаёт тон всему дню',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'self_evening_routine',
@@ -24,6 +26,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     actionType: 'selfdev',
     effect: 'Голод +1.8, Энергия -2.5, Стресс -13.5, Настроение +9.5, Здоровье +1.2, Физическая форма -0.3, Мудрость +1.5, Эмоциональный интеллект +2',
     mood: '🌙 Вечерний ритуал помогает подвести итоги и успокоиться',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'self_digital_detox',
@@ -36,6 +39,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     actionType: 'selfdev',
     effect: 'Голод +9.5, Энергия -11, Стресс -22, Настроение +16.5, Здоровье -0.5, Физическая форма -2.5, Терпение +2.5, Эмоциональный интеллект +1.5',
     mood: '📵 Отключение от экранов возвращает связь с собой и миром',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'self_gratitude',
@@ -48,6 +52,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     actionType: 'selfdev',
     effect: 'Голод +0.9, Энергия -1.2, Стресс -7.5, Настроение +12.5, Здоровье +0.8, Физическая форма -0.1, Оптимизм +2',
     mood: '🙏 Благодарность — простой способ видеть хорошее в жизни',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'self_personality_test',
@@ -61,6 +66,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     effect: 'Голод +2.1, Энергия -2.8, Стресс -3.5, Настроение +7.5, Здоровье +0.5, Физическая форма -0.3, Интуиция +2, Мудрость +1',
     mood: '🧠 Лучше понимать себя — первый шаг к росту',
     oneTime: true,
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'self_coaching',
@@ -87,6 +93,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     actionType: 'selfdev',
     effect: 'Голод +1.6, Энергия -2.2, Стресс -10.5, Настроение +11.5, Здоровье +0.8, Физическая форма -0.2, Мудрость +2, Эмоциональный интеллект +1.5',
     mood: '📖 Дневник помогает разобраться в мыслях и эмоциях',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'self_reading_nonfiction',
@@ -99,6 +106,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     actionType: 'selfdev',
     effect: 'Голод +3.5, Энергия -4.5, Стресс -6.5, Настроение +14, Здоровье +0.5, Физическая форма -0.6, Мудрость +3, Дисциплина +1',
     mood: '📚 Книги, которые действительно меняют мышление',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'self_meditation_practice',
@@ -111,6 +119,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     actionType: 'selfdev',
     effect: 'Голод +1.1, Энергия -1.8, Стресс -16.5, Настроение +10.5, Здоровье +1.5, Физическая форма -0.2, Эмоциональный интеллект +2.5, Терпение +1.5',
     mood: '🧘‍♂️ 10–15 минут тишины творят чудеса с разумом',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'self_goal_setting',
@@ -123,6 +132,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     actionType: 'selfdev',
     effect: 'Голод +2.8, Энергия -3.8, Стресс -5.5, Настроение +12, Здоровье +0.6, Физическая форма -0.4, Организация +3, Дисциплина +2',
     mood: '🎯 Чёткие цели — это карта твоего будущего',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'self_public_speaking',
@@ -135,5 +145,6 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     actionType: 'selfdev',
     effect: 'Голод +2.4, Энергия -4, Стресс -7.5, Настроение +9.5, Здоровье -0.2, Физическая форма -0.5, Харизма +2, Дисциплина +1.5',
     mood: '🗣️ Умение говорить публично открывает множество дверей',
+    ageGroup: AgeGroup.TEEN,
   },
 ]

@@ -12,7 +12,6 @@ export class TagsSystem {
   }
 
   update(world: GameWorld, deltaTime: number): void {
-    this.world = world
     this.cleanExpiredTags()
   }
 

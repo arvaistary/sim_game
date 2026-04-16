@@ -5,11 +5,10 @@
   HOUSING_COMPONENT,
   FINANCE_COMPONENT,
   EVENT_QUEUE_COMPONENT,
-  EVENT_HISTORY_COMPONENT,
-  TIME_COMPONENT,
   PLAYER_ENTITY,
 } from '../../components/index'
 import { SkillsSystem } from '../SkillsSystem'
+import { EventHistorySystem } from '../EventHistorySystem'
 import { summarizeStatChanges } from '../../utils/stat-change-summary'
 import type { GameWorld } from '../../world'
 import type { StatChanges } from '@/domain/balance/types'
@@ -22,12 +21,22 @@ import type { RuntimeEventChoice, RuntimeGameEvent, EventChoiceResult, ResolvedC
 export class EventChoiceSystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
+  private eventHistorySystem!: EventHistorySystem
   private choiceHandlers: Map<string, unknown> = new Map()
 
   init(world: GameWorld): void {
     this.world = world
     this.skillsSystem = new SkillsSystem()
     this.skillsSystem.init(world)
+    this.eventHistorySystem = this._resolveEventHistorySystem()
+  }
+
+  private _resolveEventHistorySystem(): EventHistorySystem {
+    const existing = this.world.getSystem(EventHistorySystem)
+    if (existing) return existing
+    const created = new EventHistorySystem()
+    this.world.addSystem(created)
+    return created
   }
 
   applyEventChoice(event: RuntimeGameEvent, choiceIndex: number): EventChoiceResult {
@@ -143,29 +152,7 @@ export class EventChoiceSystem {
   }
 
   _recordEvent(eventId: string, title: string, type = 'story', actionSource: string | null = null): void {
-    const playerId = PLAYER_ENTITY
-    const time = this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, unknown> | null
-    const eventHistory = this.world.getComponent(playerId, EVENT_HISTORY_COMPONENT) as Record<string, unknown> | null
-
-    if (!time || !eventHistory) {
-      return
-    }
-
-    if (!eventHistory.events) {
-      eventHistory.events = []
-    }
-
-    (eventHistory.events as Array<Record<string, unknown>>).push({
-      eventId,
-      day: time.gameDays,
-      week: time.gameWeeks,
-      timestampHours: (time.totalHours as number) ?? ((time.gameDays as number) ?? 0) * 24,
-      type,
-      actionSource,
-      title,
-    })
-
-    eventHistory.totalEvents = ((eventHistory.totalEvents as number) ?? 0) + 1
+    this.eventHistorySystem.recordEvent(eventId, title, type, actionSource)
   }
 
   _applyStatChanges(stats: Record<string, number>, statChanges: Record<string, number> = {}): void {
@@ -262,9 +249,8 @@ export class EventChoiceSystem {
       }
     }
 
-    const skills = this.world.getComponent(PLAYER_ENTITY, SKILLS_COMPONENT) as Record<string, number> | null || {}
     const check = choice.skillCheck
-    const skillValue = Number(skills[check.key] ?? 0)
+    const skillValue = this.skillsSystem.getSkillLevel(check.key)
     const passed = skillValue >= Number(check.threshold ?? 0)
 
     if (passed && this.world && this.world.eventBus) {

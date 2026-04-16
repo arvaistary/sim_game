@@ -1,7 +1,6 @@
 ﻿import {
   WALLET_COMPONENT,
   EDUCATION_COMPONENT,
-  STATS_COMPONENT,
   SKILLS_COMPONENT,
   CAREER_COMPONENT,
   TIME_COMPONENT,
@@ -10,6 +9,7 @@
 import { EDUCATION_PROGRAMS } from '../../../balance/constants/education-programs'
 import { SkillsSystem } from '../SkillsSystem'
 import { TimeSystem } from '../TimeSystem'
+import { StatsSystem } from '../StatsSystem'
 import type { GameWorld } from '../../world'
 import type { EducationProgram, StatChanges } from '@/domain/balance/types'
 import type { CanStartResult, StartResult, AdvanceResult, ActiveCourse } from './index.types'
@@ -22,6 +22,7 @@ export class EducationSystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
   private timeSystem!: TimeSystem
+  private statsSystem!: StatsSystem
   private educationPrograms: EducationProgram[]
 
   constructor() {
@@ -32,6 +33,8 @@ export class EducationSystem {
     this.world = world
     this.skillsSystem = new SkillsSystem()
     this.skillsSystem.init(world)
+    this.statsSystem = new StatsSystem()
+    this.statsSystem.init(world)
     this.timeSystem = this._resolveTimeSystem(world)
   }
 
@@ -50,6 +53,14 @@ export class EducationSystem {
 
     if (!wallet || !education) {
       return { ok: false, reason: 'Не удалось загрузить данные персонажа' }
+    }
+
+    // Возрастная проверка: minAge по умолчанию 13 (TEEN)
+    const minAge = program.minAge ?? 13
+    const time = this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, unknown> | null
+    const currentAge = time?.currentAge as number | undefined
+    if (typeof currentAge === 'number' && currentAge < minAge) {
+      return { ok: false, reason: `Эта программа доступна с ${minAge} лет. Сейчас вам ${currentAge}.` }
     }
 
     if (wallet.money < program.cost) {
@@ -138,7 +149,6 @@ export class EducationSystem {
   advanceEducationCourseDay(courseId: string): AdvanceResult {
     const playerId = PLAYER_ENTITY
     const education = this.world.getComponent(playerId, EDUCATION_COMPONENT) as Record<string, unknown> | null
-    const stats = this.world.getComponent(playerId, STATS_COMPONENT) as Record<string, number> | null
     const time = this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, unknown> | null
 
     if (!education || !time) {
@@ -161,15 +171,13 @@ export class EducationSystem {
     course.hoursSpent = (course.hoursSpent ?? 0) + studyHours
     const courseHoursRequired = course.hoursRequired ?? this._resolveCourseHours(program)
     const effectiveStudyHours = (course.hoursSpent ?? 0) * (modifiers.learningSpeedMultiplier ?? 1)
-    course.progress = this._clamp(effectiveStudyHours / courseHoursRequired, 0, 1)
+    course.progress = Math.max(0, Math.min(1, effectiveStudyHours / courseHoursRequired))
 
-    if (stats) {
-      this._applyStatChanges(stats, {
-        energy: -10,
-        stress: 8,
-        mood: -3,
-      })
-    }
+    this.statsSystem.applyStatChanges({
+      energy: -10,
+      stress: 8,
+      mood: -3,
+    })
 
     if (effectiveStudyHours < courseHoursRequired) {
       return {
@@ -243,7 +251,6 @@ export class EducationSystem {
 
   _applyCompletionRewards(program: EducationProgram): void {
     const playerId = PLAYER_ENTITY
-    const stats = this.world.getComponent(playerId, STATS_COMPONENT) as Record<string, number> | null
     const education = this.world.getComponent(playerId, EDUCATION_COMPONENT) as Record<string, unknown> | null
     const career = this.world.getComponent(playerId, CAREER_COMPONENT) as Record<string, unknown> | null
 
@@ -251,8 +258,8 @@ export class EducationSystem {
       this._applySkillChanges(program.completionSkillChanges)
     }
 
-    if (program.completionStatChanges && stats) {
-      this._applyStatChanges(stats, program.completionStatChanges)
+    if (program.completionStatChanges) {
+      this.statsSystem.applyStatChanges(program.completionStatChanges)
     }
 
     if (program.educationLevel && education) {
@@ -272,19 +279,8 @@ export class EducationSystem {
     return ''
   }
 
-  _applyStatChanges(stats: Record<string, number>, statChanges: StatChanges = {}): void {
-    for (const [key, value] of Object.entries(statChanges)) {
-      if (value === undefined) continue
-      stats[key] = this._clamp((stats[key] ?? 0) + value)
-    }
-  }
-
   _applySkillChanges(skillChanges: Record<string, number> = {}): void {
     this.skillsSystem.applySkillChanges(skillChanges, 'education')
-  }
-
-  _clamp(value: number, min = 0, max = 100): number {
-    return Math.max(min, Math.min(max, value))
   }
 
   _formatMoney(value: number): string {

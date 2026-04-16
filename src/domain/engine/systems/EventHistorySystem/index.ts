@@ -4,23 +4,8 @@
   PLAYER_ENTITY,
 } from '../../components/index'
 import type { GameWorld } from '../../world'
-
-interface HistoryEvent {
-  eventId: string
-  day: number
-  week: number
-  timestampHours: number
-  type: string
-  actionSource: string | null
-  title: string
-}
-
-interface EventStats {
-  total: number
-  unique: number
-  recentWeek: number
-  recentMonth: number
-}
+import type { HistoryEvent, EventStats } from './index.types'
+import { MAX_HISTORY_ENTRIES } from './index.constants'
 
 /**
  * Система истории событий
@@ -46,15 +31,26 @@ export class EventHistorySystem {
     }
 
     const events = eventHistory.events as HistoryEvent[]
+    const currentDay = time.gameDays
+
+    const isDuplicate = events.some(e => e.eventId === eventId && e.day === currentDay)
+    if (isDuplicate) {
+      return false
+    }
+
     events.push({
       eventId,
-      day: time.gameDays,
+      day: currentDay,
       week: time.gameWeeks,
-      timestampHours: time.totalHours ?? (time.gameDays ?? 0) * 24,
+      timestampHours: time.totalHours ?? currentDay * 24,
       type,
       actionSource,
       title,
     })
+
+    if (events.length > MAX_HISTORY_ENTRIES) {
+      events.splice(0, events.length - MAX_HISTORY_ENTRIES)
+    }
 
     eventHistory.totalEvents = ((eventHistory.totalEvents as number) ?? 0) + 1
 
@@ -107,30 +103,22 @@ export class EventHistorySystem {
     const eventHistory = this.world.getComponent(playerId, EVENT_HISTORY_COMPONENT) as Record<string, unknown> | null
 
     if (!eventHistory) {
-      return { total: 0, unique: 0, recentWeek: 0, recentMonth: 0 }
+      return { total: 0, byType: {}, lastEventId: null }
     }
 
     const events = (eventHistory.events || []) as HistoryEvent[]
-    const time = this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, number> | null
 
-    const uniqueEvents = new Set(events.map(e => e.eventId))
+    const byType: Record<string, number> = {}
+    events.forEach(e => {
+      byType[e.type] = (byType[e.type] ?? 0) + 1
+    })
 
-    let recentWeek = 0
-    let recentMonth = 0
-
-    if (time) {
-      const weekStart = time.gameDays - 7
-      const monthStart = time.gameDays - 30
-
-      recentWeek = events.filter(e => e.day >= weekStart).length
-      recentMonth = events.filter(e => e.day >= monthStart).length
-    }
+    const lastEventId = events.length > 0 ? events[events.length - 1].eventId : null
 
     return {
       total: events.length,
-      unique: uniqueEvents.size,
-      recentWeek,
-      recentMonth,
+      byType,
+      lastEventId,
     }
   }
 

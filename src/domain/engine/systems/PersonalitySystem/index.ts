@@ -34,11 +34,7 @@ export class PersonalitySystem {
 
     if (!personality) return
 
-    personality.axes[axis].value = this._clamp(
-      personality.axes[axis].value + delta,
-      -100,
-      100
-    )
+    personality.axes[axis].value = Math.max(-100, Math.min(100, personality.axes[axis].value + delta))
 
     this._checkTraitUnlocks(personality)
   }
@@ -92,7 +88,7 @@ export class PersonalitySystem {
 
     Object.values(personality.axes).forEach(axis => {
       axis.value += axis.drift * driftMultiplier
-      axis.value = this._clamp(axis.value, -100, 100)
+      axis.value = Math.max(-100, Math.min(100, axis.value))
 
       // Постепенное уменьшение дрейфа к нулю
       axis.drift *= 0.999
@@ -100,7 +96,7 @@ export class PersonalitySystem {
   }
 
   private _getCurrentAge(): number | null {
-    const time = this.world.getComponent('player', 'time') as Record<string, unknown> | null
+    const time = this.world.getComponent(PLAYER_ENTITY, 'time') as Record<string, unknown> | null
     if (!time) return null
     return (time.currentAge as number) ?? null
   }
@@ -152,9 +148,5 @@ export class PersonalitySystem {
 
     this.world.emitDomainEvent('personality:trait_unlocked', { trait })
     return true
-  }
-
-  private _clamp(value: number, min: number, max: number): number {
-    return Math.max(min, Math.min(max, value))
   }
 }

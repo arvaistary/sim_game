@@ -7,6 +7,7 @@ import {
 import type { GameWorld } from '../../world'
 import { SkillsSystem } from '../SkillsSystem'
 import { PersonalitySystem } from '../PersonalitySystem'
+import { StatsSystem } from '../StatsSystem'
 import type { DelayedEffectEntry, DelayedEffectsComponent } from './index.types'
 
 let _nextEffectId = 0
@@ -27,13 +28,13 @@ export class DelayedEffectSystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
   private personalitySystem!: PersonalitySystem
+  private statsSystem!: StatsSystem
 
   init(world: GameWorld): void {
     this.world = world
-    this.skillsSystem = new SkillsSystem()
-    this.skillsSystem.init(world)
-    this.personalitySystem = new PersonalitySystem()
-    this.personalitySystem.init(world)
+    this.skillsSystem = this._resolveSkillsSystem()
+    this.personalitySystem = this._resolvePersonalitySystem()
+    this.statsSystem = this._resolveStatsSystem()
     this._ensureComponent()
   }
 
@@ -109,14 +110,7 @@ export class DelayedEffectSystem {
 
     // 1. Применить изменения характеристик
     if (entry.statChanges && Object.keys(entry.statChanges).length > 0) {
-      const stats = this.world.getComponent(PLAYER_ENTITY, STATS_COMPONENT) as Record<string, number> | null
-      if (stats) {
-        for (const [key, value] of Object.entries(entry.statChanges)) {
-          if (typeof value === 'number') {
-            stats[key] = this._clamp((stats[key] ?? 0) + value)
-          }
-        }
-      }
+      this.statsSystem.applyStatChanges(entry.statChanges)
     }
 
     // 2. Применить изменения навыков
@@ -170,8 +164,30 @@ export class DelayedEffectSystem {
     return this.world.getComponent(PLAYER_ENTITY, DELAYED_EFFECTS_COMPONENT) as DelayedEffectsComponent | null
   }
 
-  private _clamp(value: number, min = 0, max = 100): number {
-    return Math.max(min, Math.min(max, value))
+  private _resolveSkillsSystem(): SkillsSystem {
+    const existing = this.world.getSystem(SkillsSystem)
+    if (existing) return existing
+    const created = new SkillsSystem()
+    this.world.addSystem(created)
+    created.init(this.world)
+    return created
+  }
+
+  private _resolvePersonalitySystem(): PersonalitySystem {
+    const existing = this.world.getSystem(PersonalitySystem)
+    if (existing) return existing
+    const created = new PersonalitySystem()
+    this.world.addSystem(created)
+    created.init(this.world)
+    return created
+  }
+
+  private _resolveStatsSystem(): StatsSystem {
+    const existing = this.world.getSystem(StatsSystem)
+    if (existing) return existing
+    const created = new StatsSystem()
+    this.world.addSystem(created)
+    return created
   }
 }
 

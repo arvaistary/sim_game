@@ -1,4 +1,5 @@
 import type { BalanceAction } from './types'
+import { AgeGroup } from './types'
 
 export type { BalanceAction }
 
@@ -13,6 +14,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -22, Энергия +4.5, Стресс -2.5, Настроение +3.5, Здоровье -1.2, Физическая форма -0.3',
     mood: '🥪 Быстрый перекус на бегу — спасает, но ненадолго',
+    ageGroup: AgeGroup.INFANT,
   },
   {
     id: 'shop_full_lunch',
@@ -24,6 +26,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -28, Энергия +7.5, Стресс -4, Настроение +8.5, Здоровье +1.2, Физическая форма -0.4',
     mood: '🍽️ Нормальный обед — возвращает силы',
+    ageGroup: AgeGroup.INFANT,
   },
   {
     id: 'shop_groceries_3days',
@@ -35,6 +38,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -18, Энергия -3, Стресс -3.5, Настроение +6, Здоровье +0.8, Физическая форма -0.5, Комфорт жилья +8',
     mood: '🛒 Запас еды на несколько дней — спокойствие в холодильнике',
+    ageGroup: AgeGroup.INFANT,
   },
   {
     id: 'shop_healthy_food',
@@ -46,6 +50,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -19, Энергия +2.5, Стресс -5, Настроение +7, Здоровье +5.5, Физическая форма +3.2',
     mood: '🥗 Овощи и фрукты — инвестиция в самочувствие',
+    ageGroup: AgeGroup.INFANT,
   },
   {
     id: 'shop_junk_food',
@@ -57,6 +62,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -24, Энергия +6, Стресс +3.5, Настроение +13.5, Здоровье -7.5, Физическая форма -1.5',
     mood: '🍔 Вредная еда — быстрый кайф и последующая расплата',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_alcohol',
@@ -68,6 +74,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -4, Энергия -6.5, Стресс -14, Настроение +16.5, Здоровье -6.8, Физическая форма -1.2',
     mood: '🍺 Алкоголь расслабляет, но организм платит цену',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'shop_household_chemicals',
@@ -79,6 +86,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.5, Энергия -2, Стресс -4, Настроение +3, Комфорт жилья +8',
     mood: '🧹 Чистящие средства — порядок в доме начинается с них',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'shop_clothes',
@@ -91,6 +99,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +3.2, Энергия -4, Стресс -5.5, Настроение +13.5, Здоровье -0.3, Физическая форма -0.6, Комфорт жилья +4',
     mood: '👕 Новая одежда — мгновенный подъём настроения',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_sports_nutrition',
@@ -102,6 +111,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.8, Энергия +8.5, Стресс -2, Настроение +4.5, Здоровье +3.5, Физическая форма +7.5',
     mood: '💪 Протеин и добавки — поддержка для тренировок',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'shop_books',
@@ -114,6 +124,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.8, Энергия -2.5, Стресс -6, Настроение +9.5, Здоровье +0.5, Физическая форма -0.3, Креативность +2',
     mood: '📚 Новые книги — пища для ума и души',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_medicine',
@@ -125,6 +136,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.2, Энергия +5.5, Стресс -3, Настроение +3.5, Здоровье +10.5, Физическая форма +0.8',
     mood: '💊 Когда нужно — лекарства и витамины выручают',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_gift_friend',
@@ -137,6 +149,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.5, Энергия -2, Стресс -4.5, Настроение +10.5, Здоровье -0.2, Физическая форма -0.3, Отношения +12',
     mood: '🎁 Приятный подарок укрепляет дружбу',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_gift_partner',
@@ -150,6 +163,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.6, Энергия -2.2, Стресс -5, Настроение +13.5, Здоровье -0.2, Физическая форма -0.3, Отношения +18',
     mood: '💝 Внимание к близкому человеку бесценно',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_big_grocery',
@@ -162,6 +176,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -25, Энергия -5.5, Стресс -6, Настроение +8.5, Здоровье +1.5, Физическая форма -0.8, Комфорт жилья +10',
     mood: '🛒 Полный холодильник — ощущение стабильности',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'shop_seeds_plants',
@@ -174,6 +189,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.4, Энергия -2, Стресс -7, Настроение +9.5, Здоровье +2.8, Физическая форма +1.5, Комфорт жилья +12',
     mood: '🌱 Новые растения оживляют пространство',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_appliance',
@@ -187,6 +203,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.1, Энергия +4.5, Стресс -5.5, Настроение +7.5, Здоровье +0.8, Физическая форма -0.4, Комфорт жилья +18',
     mood: '🔌 Новая техника сильно упрощает быт',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_cosmetics',
@@ -198,6 +215,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.5, Энергия -2, Стресс -6.5, Настроение +14.5, Здоровье +3.2, Физическая форма -0.3',
     mood: '💄 Уход за собой — это забота о своём настроении',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'shop_stationery',
@@ -211,6 +229,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.6, Энергия -2.2, Стресс -4.5, Настроение +6.5, Здоровье +0.4, Физическая форма -0.3, Организация +2.5, Комфорт жилья +5',
     mood: '📝 Красивые органайзеры помогают держать жизнь в порядке',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_games_entertainment',
@@ -222,6 +241,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.4, Энергия -3.5, Стресс -8.5, Настроение +16.5, Здоровье -0.4, Физическая форма -0.7',
     mood: '🎮 Новые игры — отличный способ отдохнуть',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_energy_drinks',
@@ -233,6 +253,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.1, Энергия +13.5, Стресс +6.5, Настроение +4.5, Здоровье -4.5, Физическая форма -0.8',
     mood: '☕ Энергетик даёт быстрый подъём, но потом откат',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_meat_fish',
@@ -244,6 +265,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -26, Энергия +3.5, Стресс -3, Настроение +5.5, Здоровье +6.5, Физическая форма +1.8',
     mood: '🥩 Хорошее мясо и рыба — основа сбалансированного питания',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_veg_set',
@@ -255,6 +277,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -21, Энергия +2.8, Стресс -5.5, Настроение +6.5, Здоровье +5.8, Физическая форма +2.5',
     mood: '🥬 Лёгкие и полезные продукты для хорошего самочувствия',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_hygiene',
@@ -267,6 +290,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +0.9, Энергия -1.2, Стресс -3.5, Настроение +5.5, Здоровье +3.5, Физическая форма +0.5, Комфорт жилья +6',
     mood: '🧼 Свежий душ и чистота — базовый комфорт',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_kids_goods',
@@ -280,6 +304,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.1, Энергия -2.8, Стресс -4.5, Настроение +9.5, Здоровье -0.2, Физическая форма -0.4, Отношения +10',
     mood: '🧸 Забота о детях всегда возвращается теплом',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'shop_hobby_goods',
@@ -292,6 +317,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.4, Энергия -3.5, Стресс -7, Настроение +13.5, Здоровье -0.3, Физическая форма -0.6, Креативность +2.5',
     mood: '🎨 Новые материалы для хобби — вдохновение гарантировано',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_seasonal_clothes',
@@ -304,6 +330,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +3, Энергия -4, Стресс -6, Настроение +14, Здоровье -0.3, Физическая форма -0.5, Комфорт жилья +5',
     mood: '🧥 Одежда по сезону — комфорт и уверенность',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_small_furniture',
@@ -315,6 +342,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +3.5, Энергия -5, Стресс -5.5, Настроение +8, Комфорт жилья +20',
     mood: '🪑 Новая полка или стул — и комната преображается',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_auto_goods',
@@ -326,6 +354,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.2, Энергия -3, Стресс -9.5, Настроение +5.5, Здоровье -0.3, Физическая форма -0.5',
     mood: '🚗 Уход за машиной приносит спокойствие',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_online_subscription',
@@ -339,6 +368,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1, Энергия -1.5, Стресс -5, Настроение +8.5, Здоровье -0.1, Физическая форма -0.2, Креативность +1',
     mood: '📱 Подписка — бесконечный доступ к контенту',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'shop_luxury_dinner',
@@ -350,6 +380,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -32, Энергия -2.5, Стресс -9.5, Настроение +19.5, Здоровье +1.5, Физическая форма -0.5',
     mood: '🍽️ Роскошный ужин дома — маленькая радость жизни',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_fitness_membership',
@@ -365,6 +396,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Абонемент открывает регулярные тренировки (Физическая форма и Здоровье растут еженедельно)',
     mood: '🏋️ Абонемент — обязательство заботиться о себе',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'shop_pet',
@@ -380,6 +412,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     effect: 'Голод +3.5, Энергия -4, Стресс -12, Настроение +18, Здоровье +2.5, Физическая форма +1.5, Комфорт жилья +10',
     mood: '🐾 Питомец приносит любовь и ответственность',
     requirements: { housingLevel: 1 }, // рекомендуется добавить требование к жилью
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_healthy_delivery',
@@ -391,6 +424,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -35, Энергия +4.5, Стресс -7, Настроение +8.5, Здоровье +6.5, Физическая форма +2.5',
     mood: '🥗 Готовая здоровая еда на неделю — экономия времени и сил',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_weekend_trip',
@@ -402,6 +436,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +3.2, Энергия -3.5, Стресс -14, Настроение +17.5, Здоровье +2.8, Физическая форма +3.5',
     mood: '✈️ Короткая поездка на выходные — отличная перезагрузка',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_music_instrument',
@@ -415,6 +450,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.1, Энергия -3, Стресс -7.5, Настроение +12.5, Здоровье -0.2, Физическая форма -0.4, Музыкальные способности +2',
     mood: '🎸 Новый инструмент — начало нового хобби',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'shop_coworking',
@@ -429,5 +465,6 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Профессионализм +2 в неделю при регулярном посещении',
     mood: '💻 Коворкинг — атмосфера и дисциплина для работы',
+    ageGroup: AgeGroup.YOUNG,
   },
 ]

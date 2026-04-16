@@ -8,6 +8,7 @@
 } from '../../components/index'
 import { SkillsSystem } from '../SkillsSystem'
 import { TimeSystem } from '../TimeSystem'
+import { StatsSystem } from '../StatsSystem'
 import { summarizeStatChanges } from '../../utils/stat-change-summary'
 import type { GameWorld } from '../../world'
 import type { LegacyFinanceAction, StatChanges } from '@/domain/balance/types'
@@ -22,13 +23,16 @@ export class FinanceActionSystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
   private timeSystem!: TimeSystem
+  private statsSystem!: StatsSystem
   private financeActions: LegacyFinanceAction[] = FINANCE_ACTIONS
 
   init(world: GameWorld): void {
     this.world = world
-    this.skillsSystem = new SkillsSystem()
+    this.skillsSystem = this._resolveSkillsSystem()
     this.skillsSystem.init(world)
     this.timeSystem = this._resolveTimeSystem(world)
+    this.statsSystem = new StatsSystem()
+    this.statsSystem.init(world)
   }
 
   private _resolveTimeSystem(world: GameWorld): TimeSystem {
@@ -36,6 +40,14 @@ export class FinanceActionSystem {
     if (existing) return existing
     const created = new TimeSystem()
     world.addSystem(created)
+    return created
+  }
+
+  private _resolveSkillsSystem(): SkillsSystem {
+    const existing = this.world.getSystem(SkillsSystem)
+    if (existing) return existing
+    const created = new SkillsSystem()
+    this.world.addSystem(created)
     return created
   }
 
@@ -182,10 +194,7 @@ export class FinanceActionSystem {
     }
 
     if (action.statChanges) {
-      const stats = this.world.getComponent(playerId, STATS_COMPONENT) as Record<string, number> | null
-      if (stats) {
-        this._applyStatChanges(stats, action.statChanges)
-      }
+      this.statsSystem.applyStatChanges(action.statChanges)
     }
 
     if (action.skillChanges) {
@@ -259,25 +268,8 @@ export class FinanceActionSystem {
     return 'active'
   }
 
-  _applyStatChanges(stats: Record<string, number>, statChanges: StatChanges = {}): void {
-    for (const [key, value] of Object.entries(statChanges)) {
-      if (value === undefined) continue
-      stats[key] = this._clamp((stats[key] ?? 0) + value)
-    }
-  }
-
-  _applySkillChanges(skills: Record<string, number>, skillChanges: Record<string, number> = {}): void {
-    for (const [key, value] of Object.entries(skillChanges)) {
-      skills[key] = this._clamp((skills[key] ?? 0) + value, 0, 10)
-    }
-  }
-
   _summarizeStatChanges(statChanges: StatChanges = {}): string {
     return summarizeStatChanges(statChanges)
-  }
-
-  _clamp(value: number, min = 0, max = 100): number {
-    return Math.max(min, Math.min(max, value))
   }
 
   _formatMoney(value: number): string {

@@ -25,7 +25,7 @@ export class SchoolSystem {
   }
 
   update(world: GameWorld, deltaHours: number): void {
-    this.timeSystem = this.world.systems.find((s): s is TimeSystem => s instanceof TimeSystem) ?? null
+    this.timeSystem = this._resolveTimeSystem()
     if (!this.timeSystem) return
 
     const time = world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown> | null
@@ -86,6 +86,10 @@ export class SchoolSystem {
 
     // Дополнительные модификаторы от черт характера будут добавлены позже
     return Math.max(0.01, Math.min(0.9, skipChance))
+  }
+
+  private _resolveTimeSystem(): TimeSystem | null {
+    return this.world.getSystem(TimeSystem) ?? null
   }
 
   private _processSchoolClasses(): void {

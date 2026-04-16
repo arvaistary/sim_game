@@ -1,4 +1,5 @@
 import type { BalanceAction } from './types'
+import { AgeGroup } from './types'
 
 export const FINANCE_ACTIONS: BalanceAction[] = [
   {
@@ -12,6 +13,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.5, Энергия -2.2, Стресс -9.5, Настроение +6.5, Здоровье +0.4, Физическая форма -0.3, Резерв + выбранная сумма',
     mood: '💰 Откладывать на «чёрный день» — это спокойствие и уверенность',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'fin_deposit',
@@ -24,6 +26,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.8, Энергия -3.5, Стресс -7.5, Настроение +7.5, Здоровье +0.5, Физическая форма -0.4, Финансовая грамотность +2.5',
     mood: '🏦 Деньги начинают работать на тебя даже пока ты спишь',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_budget',
@@ -36,6 +39,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.2, Энергия -3, Стресс -11.5, Настроение +8.5, Здоровье +0.6, Физическая форма -0.3, Финансовая грамотность +3, Организация +2',
     mood: '📊 Когда понимаешь, куда уходят деньги — появляется контроль',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'fin_stocks',
@@ -48,6 +52,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.8, Энергия -4, Стресс -4.5, Настроение +6.5, Здоровье -0.3, Физическая форма -0.5, Аналитическое мышление +2.5, Финансовая грамотность +2',
     mood: '📈 Инвестиции в акции — это риск, но и возможность роста',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_iis',
@@ -60,6 +65,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +3.2, Энергия -4.2, Стресс -8.5, Настроение +7.5, Здоровье +0.4, Физическая форма -0.5, Финансовая грамотность +4',
     mood: '📋 ИИС — один из самых выгодных способов инвестировать в России',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_pay_debt',
@@ -71,6 +77,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.8, Энергия -2.5, Стресс -16.5, Настроение +13.5, Здоровье +0.8, Физическая форма -0.3',
     mood: '🧾 Когда долг уменьшается — на душе становится намного легче',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_take_credit',
@@ -82,6 +89,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +4.2, Энергия -5.5, Стресс +8.5, Настроение -4.5, Здоровье -0.8, Физическая форма -0.9',
     mood: '📋 Кредит даёт деньги сейчас, но добавляет ответственности и стресса',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_safety_fund',
@@ -93,6 +101,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.6, Энергия -2.2, Стресс -13.5, Настроение +8.5, Здоровье +0.5, Физическая форма -0.3',
     mood: '🛡️ Финансовая подушка — это спокойный сон по ночам',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'fin_business_invest',
@@ -105,6 +114,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +5.5, Энергия -8.5, Стресс -6.5, Настроение +9.5, Здоровье -0.6, Физическая форма -1.2, Финансовая грамотность +3, Аналитическое мышление +2',
     mood: '🏢 Вложение в бизнес — это вера в идею и готовность к риску',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_advisor',
@@ -117,6 +127,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.8, Энергия -4, Стресс -9.5, Настроение +8.5, Здоровье +0.6, Физическая форма -0.4, Финансовая грамотность +5',
     mood: '👨‍💼 Профессиональный советник помогает избежать дорогих ошибок',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_crypto',
@@ -129,6 +140,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.2, Энергия -3.5, Стресс -2.5, Настроение +7.5, Здоровье -0.8, Физическая форма -0.6, Аналитическое мышление +2, Финансовая грамотность +2',
     mood: '₿ Криптовалюта и золото — высокорисковые, но потенциально доходные инструменты',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_auto_savings',
@@ -141,6 +153,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +0.9, Энергия -1.5, Стресс -6.5, Настроение +5.5, Здоровье +0.3, Физическая форма -0.2, Дисциплина +3, Финансовая грамотность +2',
     mood: '🔄 Автоматика — лучший друг дисциплины в финансах',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'fin_expense_analysis',
@@ -153,6 +166,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.8, Энергия -4, Стресс -10.5, Настроение +9.5, Здоровье +0.5, Физическая форма -0.4, Финансовая грамотность +4, Организация +3',
     mood: '📉 Когда видишь реальную картину расходов — начинаешь лучше управлять деньгами',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'fin_insurance',
@@ -165,6 +179,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     effect: 'Голод +2.5, Энергия -3.5, Стресс -12.5, Настроение +7.5, Здоровье +3.5, Физическая форма -0.4',
     mood: '🛡️ Страховка — это защита себя и близких от непредвиденных ситуаций',
     subscription: { monthlyCost: 1000 },
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_edu_invest',
@@ -177,6 +192,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.8, Энергия -2.8, Стресс -5.5, Настроение +10.5, Здоровье +1.2, Физическая форма -0.3, Финансовая грамотность +2',
     mood: '📚 Лучшая инвестиция — в себя и свои навыки',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_sell_stuff',
@@ -189,6 +205,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -7.5, Настроение +9.5, Здоровье -0.3, Физическая форма -0.7, Организация +2.5',
     mood: '🗑️ Разбор завалов и продажа ненужного — и деньги, и порядок',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'fin_rent_out',
@@ -200,6 +217,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +4.5, Энергия -6, Стресс -8.5, Настроение +8.5, Здоровье -0.4, Физическая форма -0.8',
     mood: '🏠 Когда недвижимость начинает приносить пассивный доход — это приятно',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_savings_account',
@@ -212,6 +230,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.5, Энергия -2.2, Стресс -7.5, Настроение +6.5, Здоровье +0.4, Физическая форма -0.3, Финансовая грамотность +2',
     mood: '💳 Накопительный счёт — простой и надёжный инструмент',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_pay_mortgage',
@@ -223,6 +242,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +3.2, Энергия -4.5, Стресс -15.5, Настроение +12.5, Здоровье +0.6, Физическая форма -0.5',
     mood: '🏡 Когда ипотека уменьшается — груз на плечах становится легче',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_buy_realty',
@@ -235,6 +255,7 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +8.5, Энергия -12.5, Стресс -10.5, Настроение +11.5, Здоровье -0.8, Физическая форма -1.5, Комфорт жилья +30',
     mood: '🏠 Собственная недвижимость — один из самых серьёзных шагов в жизни',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'fin_pif',
@@ -247,5 +268,6 @@ export const FINANCE_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.8, Энергия -4, Стресс -5.5, Настроение +7.5, Здоровье -0.3, Физическая форма -0.5, Финансовая грамотность +3, Аналитическое мышление +2',
     mood: '📊 ПИФ — удобный способ инвестировать без глубоких знаний рынка',
+    ageGroup: AgeGroup.ADULT,
   },
 ]

@@ -48,7 +48,7 @@ export class EventQueueSystem {
 
     const instanceId = (event.instanceId as string) || `${event.id}_${Date.now()}`
     const historyEvents = (eventHistory.events || []) as Array<Record<string, unknown>>
-    const alreadyHandled = historyEvents.some(item => item.eventId === instanceId)
+    const alreadyHandled = historyEvents.some(item => item.instanceId === instanceId)
     const queue = this._getEventQueue()
     const alreadyQueued = (queue.pendingEvents || []).some((item: unknown) => (item as Record<string, unknown>).instanceId === instanceId)
 

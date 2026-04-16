@@ -134,6 +134,8 @@ export interface EducationProgram {
   salaryMultiplierDelta?: number
   educationLevel?: string
   description: string
+  /** Минимальный возраст для записи на программу. Если undefined — доступно с TEEN (13+). */
+  minAge?: number
 }
 
 export interface EducationPathResult {

@@ -14,6 +14,8 @@ import { HOUSING_LEVELS } from '../../../balance/constants/housing-levels'
 import { summarizeStatChanges } from '../../utils/stat-change-summary'
 import { SkillsSystem } from '../SkillsSystem'
 import { TimeSystem } from '../TimeSystem'
+import { StatsSystem } from '../StatsSystem'
+import { InvestmentSystem } from '../InvestmentSystem'
 import type { GameWorld } from '../../world'
 import type { RecoveryCard } from '@/domain/balance/types'
 
@@ -24,13 +26,17 @@ export class RecoverySystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
   private timeSystem!: TimeSystem
+  private statsSystem!: StatsSystem
+  private investmentSystem!: InvestmentSystem
   private housingLevels = HOUSING_LEVELS
 
   init(world: GameWorld): void {
     this.world = world
-    this.skillsSystem = new SkillsSystem()
-    this.skillsSystem.init(world)
+    this.skillsSystem = this._resolveSkillsSystem()
     this.timeSystem = this._resolveTimeSystem(world)
+    this.statsSystem = new StatsSystem()
+    this.statsSystem.init(world)
+    this.investmentSystem = this._resolveInvestmentSystem()
   }
 
   private _resolveTimeSystem(world: GameWorld): TimeSystem {
@@ -38,6 +44,24 @@ export class RecoverySystem {
     if (existing) return existing
     const created = new TimeSystem()
     world.addSystem(created)
+    return created
+  }
+
+  private _resolveSkillsSystem(): SkillsSystem {
+    const existing = this.world.getSystem(SkillsSystem)
+    if (existing) return existing
+    const created = new SkillsSystem()
+    created.init(this.world)
+    this.world.addSystem(created)
+    return created
+  }
+
+  private _resolveInvestmentSystem(): InvestmentSystem {
+    const existing = this.world.getSystem(InvestmentSystem)
+    if (existing) return existing
+    const created = new InvestmentSystem()
+    created.init(this.world)
+    this.world.addSystem(created)
     return created
   }
 
@@ -79,7 +103,7 @@ export class RecoverySystem {
     }
 
     const stats = this.world.getComponent(playerId, STATS_COMPONENT) as Record<string, number>
-    this._applyStatChanges(stats, statChanges)
+    this.statsSystem.applyStatChanges(statChanges)
 
     if (cardData.skillChanges) {
       this._applySkillChanges(cardData.skillChanges, 'recovery')
@@ -87,7 +111,7 @@ export class RecoverySystem {
 
     if (cardData.housingComfortDelta) {
       const housing = this.world.getComponent(playerId, HOUSING_COMPONENT) as Record<string, unknown>
-      housing.comfort = this._clamp((housing.comfort as number) + cardData.housingComfortDelta)
+      housing.comfort = Math.max(0, Math.min(100, (housing.comfort as number) + cardData.housingComfortDelta))
     }
 
     if (cardData.housingUpgradeLevel) {
@@ -111,7 +135,13 @@ export class RecoverySystem {
 
     const investmentReturn = (cardData as unknown as Record<string, unknown>).investmentReturn as number | undefined
     if (investmentReturn) {
-      this._openInvestment(cardData)
+      const investmentDurationDays = (cardData as unknown as Record<string, unknown>).investmentDurationDays as number ?? 28
+      this.investmentSystem.openInvestment({
+        label: cardData.title,
+        amount: cardData.price,
+        durationDays: investmentDurationDays,
+        expectedReturn: Math.round(investmentReturn * (this.skillsSystem.getModifiers().investmentReturnMultiplier ?? 1)),
+      })
     }
 
     if (cardData.salaryMultiplierDelta) {
@@ -140,7 +170,7 @@ export class RecoverySystem {
 
   _getPassiveBonuses(): { foodRecoveryMultiplier: number; workEnergyMultiplier: number; homeMoodBonus: number } {
     const housing = this.world.getComponent(PLAYER_ENTITY, HOUSING_COMPONENT) as Record<string, unknown> | null
-    const comfortRatio = this._clamp(((housing?.comfort as number) ?? 0) / 100, 0, 1)
+    const comfortRatio = Math.max(0, Math.min(1, ((housing?.comfort as number) ?? 0) / 100))
     const housingLevel = (housing?.level as number) ?? 1
     const furniture = (this.world.getComponent(PLAYER_ENTITY, FURNITURE_COMPONENT) || []) as Array<Record<string, unknown>>
 
@@ -185,33 +215,9 @@ export class RecoverySystem {
     if (!relationships || !relationships.length) return
 
     const firstRelationship = relationships[0]
-    firstRelationship.level = this._clamp((firstRelationship.level as number) + delta)
+    firstRelationship.level = Math.max(0, Math.min(100, (firstRelationship.level as number) + delta))
     const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown>
     firstRelationship.lastContact = time.gameDays
-  }
-
-  _openInvestment(cardData: RecoveryCard): void {
-    const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown>
-    const investments = (this.world.getComponent(PLAYER_ENTITY, 'investment') || []) as Array<Record<string, unknown>>
-
-    const investmentDurationDays = (cardData as unknown as Record<string, unknown>).investmentDurationDays as number ?? 28
-    const investmentReturn = (cardData as unknown as Record<string, unknown>).investmentReturn as number ?? 0
-
-    const newInvestment: Record<string, unknown> = {
-      id: `deposit_${investments.length + 1}`,
-      type: 'deposit',
-      label: cardData.title,
-      amount: cardData.price,
-      startDate: time.gameDays,
-      durationDays: investmentDurationDays,
-      maturityDay: (time.gameDays as number) + investmentDurationDays,
-      expectedReturn: Math.round(investmentReturn * (this.skillsSystem.getModifiers().investmentReturnMultiplier ?? 1)),
-      totalEarned: 0,
-      status: 'active',
-    }
-
-    investments.push(newInvestment)
-    this.world.updateComponent(PLAYER_ENTITY, 'investment', investments as unknown as Record<string, unknown>)
   }
 
   _buildRecoverySummary(cardData: RecoveryCard, statChanges: Record<string, number>, hourCost: number): string {
@@ -228,19 +234,9 @@ export class RecoverySystem {
     return summarizeStatChanges(statChanges)
   }
 
-  _applyStatChanges(stats: Record<string, number>, statChanges: Record<string, number> = {}): void {
-    for (const [key, value] of Object.entries(statChanges)) {
-      stats[key] = this._clamp((stats[key] ?? 1) + value)
-    }
-  }
-
   _applySkillChanges(skillChanges: Record<string, number> = {}, reason = 'recovery'): void {
     if (!skillChanges || Object.keys(skillChanges).length === 0) return
     this.skillsSystem.applySkillChanges(skillChanges, reason)
-  }
-
-  _clamp(value: number, min = 0, max = 100): number {
-    return Math.max(min, Math.min(max, value))
   }
 
   _formatMoney(value: number): string {

@@ -1,4 +1,5 @@
 import type { BalanceAction } from './types'
+import { AgeGroup } from './types'
 
 export const HEALTH_ACTIONS: BalanceAction[] = [
   {
@@ -12,6 +13,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +3.5, Энергия -5.5, Стресс +2.5, Настроение +1.5, Здоровье +9.5, Физическая форма -0.8, Медицинские знания +1.5',
     mood: '🩺 Полный чек-ап — спокойствие и контроль над здоровьем',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'health_blood_test',
@@ -23,6 +25,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +2.8, Энергия -4, Стресс +1.8, Настроение +0.5, Здоровье +6.2, Физическая форма -0.5',
     mood: '🩸 Раннее выявление проблем — инвестиция в будущее',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'health_dentist',
@@ -34,6 +37,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +2.5, Энергия -3.5, Стресс +2.2, Настроение -3.5, Здоровье +7.5, Физическая форма -0.6',
     mood: '🦷 Здоровые зубы того стоят, даже если неприятно',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'health_psychologist',
@@ -46,6 +50,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +2.4, Энергия -3.2, Стресс -18, Настроение +8.5, Здоровье +1.2, Физическая форма -0.4, Эмоциональный интеллект +2.5',
     mood: '🧠 Разговор по душам — лучшее лекарство для психики',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'health_vitamins',
@@ -57,6 +62,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +0.8, Энергия +3.5, Стресс -0.5, Настроение +1.8, Здоровье +5.5, Физическая форма +0.3',
     mood: '💊 Витамины — ежедневная поддержка организма',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'health_massage_course',
@@ -68,6 +74,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +2.8, Энергия -4, Стресс -19.5, Настроение +6, Здоровье +8.5, Физическая форма +2.5',
     mood: '👐 Лечебный массаж — восстановление тела и снятие зажимов',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'health_vaccination',
@@ -79,6 +86,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +1.5, Энергия -2.2, Стресс +1.5, Настроение +0.8, Здоровье +6.8, Физическая форма -0.3',
     mood: '💉 Защита организма — лучше перестраховаться',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'health_sick_leave',
@@ -90,6 +98,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +9.5, Энергия +12, Стресс -8, Настроение +4.5, Здоровье +14.5, Физическая форма -3.5',
     mood: '🛏️ Когда болеешь — лучший выход дать организму восстановиться',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'health_morning_contrast_shower',
@@ -101,6 +110,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +1.2, Энергия +8.5, Стресс -6.5, Настроение +5.5, Здоровье +3.2, Физическая форма +1.8',
     mood: '🚿 Контрастный душ — бодрость и укрепление иммунитета',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'health_breathing_exercises',
@@ -113,6 +123,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +0.9, Энергия +2.5, Стресс -14, Настроение +7.5, Здоровье +1.8, Физическая форма -0.2, Эмоциональный интеллект +1',
     mood: '🫁 Правильное дыхание — быстрый способ снять тревогу',
+    ageGroup: AgeGroup.INFANT,
   },
   {
     id: 'health_healthy_meal_prep',
@@ -124,6 +135,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод -8.5, Энергия -2.5, Стресс -4.5, Настроение +6.5, Здоровье +5.5, Физическая форма +1.2',
     mood: '🥗 Готовим заранее — легче придерживаться правильного питания',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'health_walk_in_fresh_air',
@@ -135,6 +147,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +2.2, Энергия +6.5, Стресс -10.5, Настроение +8.5, Здоровье +3.8, Физическая форма +3.5',
     mood: '🌬️ 30–40 минут на воздухе — простое и мощное оздоровление',
+    ageGroup: AgeGroup.INFANT,
   },
   {
     id: 'health_sleep_hygiene',
@@ -146,5 +159,6 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +1.1, Энергия +4.5, Стресс -9.5, Настроение +6, Здоровье +2.8, Физическая форма +0.8',
     mood: '🌙 Правильный ритуал перед сном улучшает качество отдыха',
+    ageGroup: AgeGroup.INFANT,
   },
 ]

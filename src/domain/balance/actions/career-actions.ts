@@ -1,4 +1,5 @@
 import type { BalanceAction } from './types'
+import { AgeGroup } from './types'
 
 export const CAREER_ACTIONS: BalanceAction[] = [
   {
@@ -12,6 +13,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +9.5, Энергия -12.5, Стресс +8.5, Настроение +4.5, Здоровье -0.8, Физическая форма -1.5, Профессионализм +2',
     mood: '💼 Стандартный рабочий день — рутина, но стабильный доход',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_overtime',
@@ -23,6 +25,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +5.5, Энергия -9.5, Стресс +14.5, Настроение -6.5, Здоровье -1.5, Физическая форма -2.2',
     mood: '⏰ Сверхурочные дают больше денег, но сильно выматывают',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_job_search',
@@ -35,6 +38,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +5.2, Энергия -7.5, Стресс +6.5, Настроение +5.5, Здоровье -0.5, Физическая форма -0.8, Переговоры +1.5, Харизма +1',
     mood: '🔍 Поиск работы — это инвестиция времени в своё будущее',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_interview_prep',
@@ -47,6 +51,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -7.5, Настроение +8.5, Здоровье +0.5, Физическая форма -0.6, Переговоры +3, Профессионализм +2',
     mood: '🗣️ Хорошая подготовка к интервью сильно повышает шансы',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_freelance',
@@ -59,6 +64,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +7.5, Энергия -10.5, Стресс +5.5, Настроение +9.5, Здоровье -0.7, Физическая форма -1.2, Креативность +3, Профессионализм +2',
     mood: '💻 Фриланс — свобода графика и прямые деньги за результат',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_networking',
@@ -72,6 +78,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +4.2, Энергия -5, Стресс -6.5, Настроение +11.5, Здоровье -0.3, Физическая форма -0.6, Отношения +10, Харизма +2',
     mood: '🤝 Полезные связи часто открывают двери лучше, чем резюме',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_qualification',
@@ -84,6 +91,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +5.5, Энергия -7.5, Стресс -5.5, Настроение +8.5, Здоровье +0.8, Физическая форма -0.9, Профессионализм +4',
     mood: '📈 Повышение квалификации — прямой путь к росту внутри компании',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_career_change',
@@ -96,6 +104,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +10.5, Энергия -14.5, Стресс +9.5, Настроение +7.5, Здоровье -1.2, Физическая форма -2, Профессионализм +3, Адаптивность +3',
     mood: '🔄 Смена карьеры — смелый, но часто очень правильный шаг',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'car_ask_promotion',
@@ -108,6 +117,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +1.8, Энергия -3, Стресс +7.5, Настроение -2.5, Здоровье -0.3, Физическая форма -0.4, Переговоры +2.5, Харизма +1',
     mood: '📈 Просьба о повышении — всегда волнительно, но необходимо',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_remote',
@@ -120,6 +130,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +3.5, Энергия -4.5, Стресс -12.5, Настроение +10.5, Здоровье +1.2, Физическая форма -0.8, Комфорт жилья +8',
     mood: '🏠 Удалёнка экономит время на дорогу и повышает комфорт жизни',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_side_project',
@@ -132,6 +143,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +7.5, Энергия -10.5, Стресс -4.5, Настроение +12.5, Здоровье -0.6, Физическая форма -1.2, Специализация +3.5, Креативность +2',
     mood: '🌱 Side-project — это семя, которое может вырасти во что-то большое',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_mentor',
@@ -145,6 +157,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -6.5, Настроение +11.5, Здоровье +0.8, Физическая форма -0.6, Отношения +8, Лидерство +3, Профессионализм +2',
     mood: '👨‍🏫 Когда помогаешь другим расти — растешь и сам',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'car_conference',
@@ -158,6 +171,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +5.5, Энергия -7.5, Стресс -5.5, Настроение +13.5, Здоровье -0.4, Физическая форма -0.9, Отношения +10, Харизма +3.5, Профессионализм +2',
     mood: '🎤 Публичное выступление — мощный буст для репутации',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'car_write_article',
@@ -170,6 +184,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +6.5, Энергия -8.5, Стресс -6.5, Настроение +11.5, Здоровье -0.5, Физическая форма -1, Писательское мастерство +3, Профессионализм +3',
     mood: '🖋️ Статья от твоего имени — это личный бренд в профессиональной среде',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'car_certification',
@@ -182,6 +197,7 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +4.5, Энергия -6.5, Стресс -8.5, Настроение +9.5, Здоровье +1.2, Физическая форма -0.7, Профессионализм +4',
     mood: '📜 Сертификат — официальное подтверждение твоей экспертизы',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'car_open_business',
@@ -194,5 +210,6 @@ export const CAREER_ACTIONS: BalanceAction[] = [
     actionType: 'work',
     effect: 'Голод +11.5, Энергия -16.5, Стресс +14.5, Настроение +8.5, Здоровье -1.5, Физическая форма -2.5, Лидерство +4, Финансовая грамотность +3',
     mood: '🏢 Свой бизнес — это свобода, риск и огромная ответственность',
+    ageGroup: AgeGroup.ADULT,
   },
 ]

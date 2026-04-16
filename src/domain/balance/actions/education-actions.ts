@@ -1,4 +1,5 @@
 import type { BalanceAction } from './types'
+import { AgeGroup } from './types'
 
 export const EDUCATION_ACTIONS: BalanceAction[] = [
   {
@@ -12,6 +13,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -4.2, Стресс -5.5, Настроение +7.5, Здоровье +0.5, Физическая форма -0.4, Креативность +1.5',
     mood: '📖 Глубокое чтение учебника — отличная тренировка ума',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_online_course',
@@ -24,6 +26,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5.8, Стресс -6.5, Настроение +9.5, Здоровье -0.3, Физическая форма -0.7, Креативность +2.5',
     mood: '💻 Онлайн-курс — удобный способ прокачать навыки',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_practical_task',
@@ -36,6 +39,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +5.5, Энергия -7.5, Стресс -7, Настроение +8.5, Здоровье -0.4, Физическая форма -0.8, Профессионализм +2.5',
     mood: '🛠️ Практика — лучший способ закрепить знания',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_edu_video',
@@ -48,6 +52,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.1, Энергия -3, Стресс -4.5, Настроение +6.5, Здоровье +0.3, Физическая форма -0.3, Креативность +1.5',
     mood: '🎥 Короткое образовательное видео — быстро и полезно',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'edu_exam_prep',
@@ -60,6 +65,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +6.8, Энергия -9.5, Стресс -8.5, Настроение +7.5, Здоровье -0.6, Физическая форма -1.2, Дисциплина +3',
     mood: '📝 Интенсивная подготовка к экзамену закаляет характер',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_webinar',
@@ -72,6 +78,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +3.5, Энергия -4.8, Стресс -5.5, Настроение +8.5, Здоровье -0.3, Физическая форма -0.6, Креативность +3, Харизма +1',
     mood: '📡 Вебинар — отличный способ узнать новое и завести полезные контакты',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_foreign_lang',
@@ -84,6 +91,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -4, Стресс -5, Настроение +9, Здоровье -0.2, Физическая форма -0.4, Коммуникация +3',
     mood: '🗣️ Регулярные занятия языком открывают новые горизонты',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_write_article',
@@ -96,6 +104,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -6, Настроение +10.5, Здоровье -0.3, Физическая форма -0.6, Креативность +2.5, Маркетинг +2',
     mood: '✍️ Когда пишешь статью — лучше всего понимаешь материал',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_public_speaking',
@@ -108,6 +117,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -4.2, Стресс -7.5, Настроение +11.5, Здоровье -0.2, Физическая форма -0.5, Коммуникация +3.5, Лидерство +2',
     mood: '🗣️ Публичные выступления — один из самых быстрых способов роста',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_financial_lit',
@@ -120,6 +130,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +3.5, Энергия -4.8, Стресс -5.5, Настроение +8.5, Здоровье +0.5, Физическая форма -0.5, Финансовая грамотность +4',
     mood: '💰 Финансовая литература — инвестиция в своё будущее',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_programming',
@@ -132,6 +143,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +5.5, Энергия -8, Стресс -7.5, Настроение +9.5, Здоровье -0.5, Физическая форма -1, Техническая грамотность +4',
     mood: '💻 Программирование учит думать логично и структурировано',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_cooking_masterclass',
@@ -144,6 +156,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод -13.5, Энергия -5.5, Стресс -7.5, Настроение +15.5, Здоровье +2.8, Физическая форма -0.7, Кулинарное мастерство +4',
     mood: '🍳 Мастер-класс по готовке — вкусно и полезно одновременно',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_research',
@@ -156,6 +169,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +5.2, Энергия -7.5, Стресс -6.5, Настроение +10.5, Здоровье -0.4, Физическая форма -0.9, Аналитическое мышление +3.5',
     mood: '🔍 Глубокое исследование темы даёт настоящее понимание',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_memory_training',
@@ -168,6 +182,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +1.5, Энергия -2.5, Стресс -5, Настроение +7.5, Здоровье +0.8, Физическая форма -0.2, Память +3, Дисциплина +1.5',
     mood: '🧠 Тренировка памяти — как спорт для мозга',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'edu_psychology',
@@ -180,6 +195,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +3.5, Энергия -4.5, Стресс -8.5, Настроение +11.5, Здоровье +1.2, Физическая форма -0.5, Эмоциональный интеллект +4',
     mood: '🧠 Психология помогает лучше понимать себя и других',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_mba',
@@ -192,6 +208,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +6.8, Энергия -9.5, Стресс -8, Настроение +10.5, Здоровье -0.6, Физическая форма -1.2, Лидерство +3.5, Стратегическое планирование +3',
     mood: '📊 MBA — серьёзный шаг в развитии управленческих навыков',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'edu_negotiation_practice',
@@ -204,6 +221,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -4, Стресс -6.5, Настроение +9.5, Здоровье -0.2, Физическая форма -0.5, Переговоры +4',
     mood: '🤝 Умение договариваться — один из самых ценных навыков',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'edu_design',
@@ -216,6 +234,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5.8, Стресс -6.5, Настроение +10.5, Здоровье -0.3, Физическая форма -0.7, Креативность +3.5, Дизайн интерьера +2.5',
     mood: '🎨 Дизайн развивает вкус и креативное мышление',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_fitness_theory',
@@ -228,6 +247,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -3.5, Стресс -5, Настроение +8.5, Здоровье +2.5, Физическая форма +3.5, Физическая подготовка +2.5, Здоровый образ жизни +3',
     mood: '🏋️ Знания о тренировках помогают заниматься эффективнее',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_invest_course',
@@ -240,6 +260,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -6, Настроение +9.5, Здоровье -0.3, Физическая форма -0.6, Финансовая грамотность +5',
     mood: '📈 Инвестиции — это навык, который работает на твоё будущее',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'edu_marketing',
@@ -252,6 +273,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +5.5, Энергия -7.5, Стресс -7, Настроение +10.5, Здоровье -0.4, Физическая форма -0.9, Маркетинг +4',
     mood: '📣 Маркетинг учит понимать людей и их желания',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_photo_practice',
@@ -264,6 +286,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -6.5, Настроение +12.5, Здоровье -0.3, Физическая форма -0.7, Фотография +4, Креативность +2.5',
     mood: '📸 Практика фотографии развивает взгляд и креативность',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_diary',
@@ -276,6 +299,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +1.4, Энергия -2.2, Стресс -9.5, Настроение +10.5, Здоровье +0.8, Физическая форма -0.2, Эмоциональный интеллект +3, Мудрость +2',
     mood: '📓 Дневник помогает лучше понимать себя и свои эмоции',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_time_management',
@@ -288,6 +312,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -4, Стресс -7.5, Настроение +9.5, Здоровье +0.5, Физическая форма -0.4, Тайм-менеджмент +4',
     mood: '⏰ Хороший тайм-менеджмент — ключ к свободе и продуктивности',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_leadership_course',
@@ -300,6 +325,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.8, Энергия -6.5, Стресс -7, Настроение +10.5, Здоровье -0.4, Физическая форма -0.8, Лидерство +5',
     mood: '👑 Лидерство — навык, который можно и нужно развивать',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'edu_mindfulness',
@@ -312,6 +338,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.1, Энергия -2.8, Стресс -14.5, Настроение +12.5, Здоровье +1.8, Физическая форма -0.3, Эмоциональный интеллект +3.5, Стрессоустойчивость +3',
     mood: '🧘 Осознанность помогает жить здесь и сейчас',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_gardening',
@@ -325,6 +352,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +3.2, Энергия -4, Стресс -7.5, Настроение +10.5, Здоровье +2.5, Физическая форма +3.5, Садоводство +4, Комфорт жилья +8',
     mood: '🌱 Садоводство учит терпению и дарит ощущение жизни',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_acting',
@@ -337,6 +365,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +5.2, Энергия -7, Стресс -8.5, Настроение +14.5, Здоровье -0.5, Физическая форма -1, Актёрское мастерство +4, Харизма +3',
     mood: '🎭 Актёрское мастерство раскрывает эмоции и уверенность',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_podcasts',
@@ -349,6 +378,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -3.5, Стресс -5.5, Настроение +8.5, Здоровье +0.4, Физическая форма -0.4, Креативность +2',
     mood: '🎙️ Подкасты — удобный формат самообразования',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_resume',
@@ -361,6 +391,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -6.5, Настроение +9.5, Здоровье -0.3, Физическая форма -0.7, Профессионализм +3, Переговоры +2',
     mood: '📄 Хорошее резюме — важный инструмент в карьере',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'edu_library',
@@ -373,6 +404,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5, Стресс -6, Настроение +10.5, Здоровье +0.8, Физическая форма -0.6, Любознательность +2.5',
     mood: '📚 Библиотека — храм знаний и тишины',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_hackathon',
@@ -385,6 +417,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +10.5, Энергия -14.5, Стресс -9.5, Настроение +16.5, Здоровье -1.2, Физическая форма -2.5, Специализация +3.5, Профессионализм +3',
     mood: '🚀 Хакатон — интенсивный опыт роста и командной работы',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_history',
@@ -397,6 +430,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -3.8, Стресс -5.5, Настроение +9.5, Здоровье +1.2, Физическая форма -0.4, Мудрость +2, Любознательность +2',
     mood: '📜 История помогает лучше понимать настоящее',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_philosophy',
@@ -409,6 +443,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +3.5, Энергия -4.8, Стресс -7.5, Настроение +11.5, Здоровье +1.5, Физическая форма -0.5, Мудрость +3, Эмоциональный интеллект +2',
     mood: '🤔 Философия учит думать глубоко и жить осмысленно',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_speed_reading',
@@ -421,6 +456,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.1, Энергия -3, Стресс -4.5, Настроение +7.5, Здоровье +0.5, Физическая форма -0.3, Память +3, Любознательность +1.5',
     mood: '📖 Скорочтение позволяет поглощать больше знаний за меньшее время',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_law',
@@ -433,6 +469,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -6.5, Настроение +8.5, Здоровье -0.3, Физическая форма -0.7, Юридическая грамотность +3',
     mood: '⚖️ Знание основ права защищает и даёт уверенность',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_online_test',
@@ -445,6 +482,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +1.5, Энергия -2.5, Стресс -3.5, Настроение +6.5, Здоровье +0.5, Физическая форма -0.2, Креативность +1.5',
     mood: '📝 Тестирование помогает объективно оценить свои знания',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'edu_ecology',
@@ -457,5 +495,6 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -3.8, Стресс -5.5, Настроение +9.5, Здоровье +2.2, Физическая форма +1.5, Медицинские знания +1.5, Здоровый образ жизни +2',
     mood: '🌍 Экология учит заботиться о планете и своём здоровье',
+    ageGroup: AgeGroup.CHILD,
   },
 ]

@@ -100,7 +100,7 @@ export function useAgeRestrictions() {
     if (currentAge <= 3) return AgeGroup.INFANT
     if (currentAge <= 7) return AgeGroup.TODDLER
     if (currentAge <= 12) return AgeGroup.CHILD
-    if (currentAge <= 15) return AgeGroup.KID
+    if (currentAge <= 15) return AgeGroup.TEEN
     if (currentAge <= 18) return AgeGroup.YOUNG
     return AgeGroup.ADULT
   })
@@ -179,7 +179,7 @@ function getAgeGroup(ageValue: number): AgeGroup {
   if (ageValue <= 3) return AgeGroup.INFANT
   if (ageValue <= 7) return AgeGroup.TODDLER
   if (ageValue <= 12) return AgeGroup.CHILD
-  if (ageValue <= 15) return AgeGroup.KID
+  if (ageValue <= 15) return AgeGroup.TEEN
   if (ageValue <= 18) return AgeGroup.YOUNG
   return AgeGroup.ADULT
 }

@@ -57,3 +57,9 @@ export interface EventListenerEntry {
   eventName: string
   handler: EventListener
 }
+
+export interface LogStats {
+  total: number
+  byType: Record<string, number>
+  lastEntryType: string | null
+}

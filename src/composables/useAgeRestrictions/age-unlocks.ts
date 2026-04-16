@@ -37,7 +37,7 @@ function getAgeGroup(ageValue: number): number {
   if (ageValue <= 3) return 0  // INFANT
   if (ageValue <= 7) return 1  // TODDLER
   if (ageValue <= 12) return 2 // CHILD
-  if (ageValue <= 15) return 3 // KID
+  if (ageValue <= 15) return 4 // TEEN
   if (ageValue <= 18) return 5 // YOUNG (16-18)
   return 6 // ADULT (19+)
 }

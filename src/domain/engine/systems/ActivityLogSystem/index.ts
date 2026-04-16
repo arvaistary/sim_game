@@ -48,6 +48,13 @@ export class ActivityLogSystem {
 
     const timestamp = this._getCurrentTimestamp()
 
+    const lastEntry = log.entries[log.entries.length - 1]
+    if (lastEntry) {
+      if (lastEntry.type === entryData.type && lastEntry.title === (entryData.title || '') && lastEntry.timestamp.hour === timestamp.hour) {
+        return null
+      }
+    }
+
     const entry: LogEntry = {
       id: log.totalEntries,
       type: entryData.type,
@@ -133,6 +140,22 @@ export class ActivityLogSystem {
     return log.entries
       .filter(e => e.type === type)
       .slice(-limit)
+  }
+
+  getLogStats() {
+    const log = this._getLog()
+    if (!log) return { total: 0, byType: {} }
+
+    const byType: Record<string, number> = {}
+    for (const entry of log.entries || []) {
+      byType[entry.type] = (byType[entry.type] || 0) + 1
+    }
+
+    return {
+      total: log.entries?.length || 0,
+      byType,
+      lastEntryType: log.entries?.[log.entries.length - 1]?.type || null
+    }
   }
 
   clearOldEntries(maxAge: number): number {

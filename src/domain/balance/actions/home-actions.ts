@@ -1,4 +1,5 @@
 import type { BalanceAction } from './types'
+import { AgeGroup } from './types'
 
 export const HOME_ACTIONS: BalanceAction[] = [
   {
@@ -14,6 +15,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.8, Энергия +22, Стресс -8, Настроение +9, Здоровье +8.5, Физическая форма +1.2, Комфорт жилья +12',
     mood: '🛏️ Качественный сон начинается с хорошей кровати',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'home_fridge',
@@ -28,6 +30,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод -14, Энергия +3.5, Стресс -2.5, Настроение +4.5, Здоровье +1.5, Физическая форма -0.3, Комфорт жилья +14',
     mood: '🧊 Свежие продукты всегда под рукой — это меняет жизнь',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'home_decor',
@@ -42,6 +45,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.2, Энергия -1.5, Стресс -6.5, Настроение +12.5, Здоровье +0.5, Физическая форма -0.2, Комфорт жилья +10',
     mood: '💡 Правильный свет и детали создают настоящий уют',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'home_move_studio',
@@ -53,6 +57,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Переезд в студию — начало самостоятельной жизни',
     mood: '🏠 Своя студия — первый шаг к независимости',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'home_move_1k',
@@ -64,6 +69,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Переезд в однокомнатную квартиру',
     mood: '🏢 Просторная однушка — уже настоящий дом',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'home_move_2k',
@@ -75,6 +81,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Переезд в двухкомнатную квартиру',
     mood: '🏡 Двушка — место для жизни и гостей',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'home_move_house',
@@ -86,6 +93,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Переезд в собственный дом',
     mood: '🏘️ Собственный дом — мечта многих стала реальностью',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'home_minor_repair',
@@ -98,6 +106,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +4.2, Энергия -5, Стресс -4, Настроение +6, Здоровье +0.8, Физическая форма +2.5, Комфорт жилья +12, Рукоделие +2',
     mood: '🔧 Починил сам — и сразу чувствуешь гордость',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'home_workspace',
@@ -111,6 +120,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.5, Энергия -3, Стресс -5, Настроение +8, Комфорт жилья +10, Профессионализм +2',
     mood: '💻 Хорошее рабочее место сильно повышает продуктивность',
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'home_cook_dinner',
@@ -123,6 +133,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод -13.5, Энергия -4.5, Стресс -7, Настроение +14.5, Здоровье +2.8, Физическая форма -0.6, Кулинарное мастерство +2.5',
     mood: '🍳 Вкусный домашний ужин — это забота о себе',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'home_cleaning',
@@ -135,6 +146,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.5, Энергия -2, Стресс -12, Настроение +7.5, Здоровье +0.5, Физическая форма -0.3, Комфорт жилья +18',
     mood: '✨ Когда приходит клининг — в доме сразу становится легче дышать',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'home_balcony',
@@ -149,6 +161,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +4.5, Энергия -5.5, Стресс -8.5, Настроение +16.5, Здоровье +1.5, Физическая форма +2.8, Комфорт жилья +15, Садоводство +2',
     mood: '🌿 Балкон превратился в маленький личный оазис',
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'home_smart_home',
@@ -163,6 +176,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +3.2, Энергия -3.5, Стресс -6, Настроение +10, Комфорт жилья +20, Техническая грамотность +2',
     mood: '🤖 Умный дом — это когда технологии работают на твой комфорт',
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'home_laundry',
@@ -175,6 +189,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.8, Энергия -3.5, Стресс -5.5, Настроение +5, Комфорт жилья +9, Организация +2',
     mood: '👕 Чистое бельё и порядок в шкафу — приятное чувство',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'home_plant',
@@ -188,6 +203,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.3, Энергия -1.8, Стресс -5.5, Настроение +8.5, Здоровье +1.2, Физическая форма +0.5, Комфорт жилья +6, Садоводство +1.5',
     mood: '🌱 Одно растение способно оживить всю комнату',
+    ageGroup: AgeGroup.TODDLER,
   },
 
   // ───── ДОПОЛНИТЕЛЬНЫЕ ЖИЗНЕННЫЕ ДЕЙСТВИЯ ДЛЯ ДОМА ─────
@@ -202,6 +218,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.8, Энергия -3, Стресс -14, Настроение +17.5, Здоровье +1.8, Физическая форма -0.4, Комфорт жилья +8',
     mood: '🕯️ Когда дома тепло и уютно — мир снаружи отступает',
+    ageGroup: AgeGroup.TODDLER,
   },
   {
     id: 'home_furniture_assembly',
@@ -215,6 +232,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +5.5, Энергия -7.5, Стресс -6, Настроение +12.5, Здоровье +0.5, Физическая форма +3.5, Комфорт жилья +14, Рукоделие +3',
     mood: '🛠️ Собрал своими руками — теперь это по-настоящему твоё',
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'home_home_cinema',
@@ -227,5 +245,6 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +4.2, Энергия -4.8, Стресс -9.5, Настроение +18, Здоровье -0.3, Физическая форма -0.8, Комфорт жилья +7',
     mood: '📺 Большой экран дома — совсем другой уровень просмотра',
+    ageGroup: AgeGroup.TODDLER,
   },
 ]

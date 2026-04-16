@@ -11,7 +11,7 @@ import type { ValidationResult, MigrationFn } from './index.types'
 export class PersistenceSystem {
   private world!: GameWorld
 
-  readonly currentVersion = '1.1.0'
+  readonly currentVersion = '1.2.0'
   readonly currentSaveVersion = 2
   readonly saveKey = 'game-life-save'
 
@@ -45,6 +45,7 @@ export class PersistenceSystem {
       const validation = this._validateSave(parsed)
       if (!validation.isValid) {
         console.warn('Валидация сохранения не прошла:', validation.errors)
+        window.localStorage.setItem('game-life-save-backup', stored)
       }
 
       // Миграция
@@ -54,6 +55,7 @@ export class PersistenceSystem {
       return this._mergeAndMigrate(migrated) as unknown as SaveData
     } catch (error) {
       console.warn('Не удалось прочитать сохранение, использую демо-данные.', error)
+      window.localStorage.setItem('game-life-save-backup', stored)
       return this._createDefaultSave()
     }
   }

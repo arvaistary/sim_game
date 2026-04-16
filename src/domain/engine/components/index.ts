@@ -57,3 +57,7 @@ export const CHAIN_STATE_COMPONENT = 'chain_state' as const
 
 export const PERSONALITY_COMPONENT = 'personality' as const
 
+export const SCHOOL_COMPONENT = 'school' as const
+
+export const TAGS_COMPONENT = 'tags' as const
+

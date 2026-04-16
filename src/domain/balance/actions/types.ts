@@ -6,12 +6,12 @@ import type { ActionCategory, StatChanges } from '@/domain/balance/types'
  */
 export enum AgeGroup {
   INFANT = 0,   // 0-3 года
-  TODDLER = 1,  // 1-3 года
-  CHILD = 2,    // 4-7 лет
-  KID = 3,      // 8-12 лет
+  TODDLER = 1,  // 4-7 лет
+  CHILD = 2,    // 8-12 лет
+  KID = 3,      // НЕ ИСПОЛЬЗУЕТСЯ в маппинге
   TEEN = 4,     // 13-15 лет
   YOUNG = 5,    // 16-18 лет
-  ADULT = 6,    // 18+ лет
+  ADULT = 6,    // 19+ лет
 }
 
 export interface BalanceAction {

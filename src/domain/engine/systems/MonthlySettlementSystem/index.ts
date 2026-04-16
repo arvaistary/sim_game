@@ -13,6 +13,7 @@ import {
 } from '../../../balance/constants/game-events'
 import { SkillsSystem } from '../SkillsSystem'
 import { EventQueueSystem } from '../EventQueueSystem'
+import { StatsSystem } from '../StatsSystem'
 import type { GameWorld } from '../../world'
 import type { StatChanges } from '@/domain/balance/types'
 import type { SettlementResult, SettlementData } from './index.types'
@@ -25,6 +26,7 @@ export class MonthlySettlementSystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
   private eventQueueSystem!: EventQueueSystem
+  private statsSystem!: StatsSystem
   private monthlyExpensesDefault: Record<string, number>
 
   constructor() {
@@ -33,10 +35,26 @@ export class MonthlySettlementSystem {
 
   init(world: GameWorld): void {
     this.world = world
-    this.skillsSystem = new SkillsSystem()
-    this.skillsSystem.init(world)
-    this.eventQueueSystem = new EventQueueSystem()
-    this.eventQueueSystem.init(world)
+    this.skillsSystem = this._resolveSkillsSystem()
+    this.eventQueueSystem = this._resolveEventQueueSystem()
+    this.statsSystem = new StatsSystem()
+    this.statsSystem.init(world)
+  }
+
+  private _resolveSkillsSystem(): SkillsSystem {
+    const existing = this.world.getSystem(SkillsSystem)
+    if (existing) return existing
+    const created = new SkillsSystem()
+    this.world.addSystem(created)
+    return created
+  }
+
+  private _resolveEventQueueSystem(): EventQueueSystem {
+    const existing = this.world.getSystem(EventQueueSystem)
+    if (existing) return existing
+    const created = new EventQueueSystem()
+    this.world.addSystem(created)
+    return created
   }
 
   applyMonthlySettlement(monthNumber: number): SettlementResult {
@@ -69,17 +87,14 @@ export class MonthlySettlementSystem {
     wallet.totalSpent += monthlyTotal - shortage
 
     if (shortage > 0) {
-      if (stats) {
-        this._applyStatChanges(stats, {
-          stress: Math.min(18, 8 + Math.round(shortage / 10000)),
-          mood: -Math.min(16, 6 + Math.round(shortage / 12000)),
-          health: -Math.min(10, 3 + Math.round(shortage / 18000)),
-        })
-      }
-
+      this.statsSystem.applyStatChanges({
+        stress: Math.min(18, 8 + Math.round(shortage / 10000)),
+        mood: -Math.min(16, 6 + Math.round(shortage / 12000)),
+        health: -Math.min(10, 3 + Math.round(shortage / 18000)),
+      })
       this._queuePendingEvent(cloneQueuedEventTemplate(EVENT_FINANCE_CASH_GAP) as unknown as Record<string, unknown>)
-    } else if (reservePaid > 0 && stats) {
-      this._applyStatChanges(stats, {
+    } else if (reservePaid > 0) {
+      this.statsSystem.applyStatChanges({
         stress: -3,
         mood: 2,
       })
@@ -130,16 +145,6 @@ export class MonthlySettlementSystem {
 
   _queuePendingEvent(event: Record<string, unknown>): void {
     this.eventQueueSystem.queuePendingEvent(event)
-  }
-  _applyStatChanges(stats: Record<string, number>, statChanges: StatChanges = {}): void {
-    for (const [key, value] of Object.entries(statChanges)) {
-      if (value === undefined) continue
-      stats[key] = this._clamp((stats[key] ?? 0) + value)
-    }
-  }
-
-  _clamp(value: number, min = 0, max = 100): number {
-    return Math.max(min, Math.min(max, value))
   }
 
   _formatMoney(value: number): string {
