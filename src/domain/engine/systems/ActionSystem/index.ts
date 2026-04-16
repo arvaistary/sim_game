@@ -1,4 +1,5 @@
-﻿import { getActionById, getActionsByCategory, getAllActions } from '../../../balance/actions/index'
+﻿import { telemetryInc } from '../../utils/telemetry'
+import { getActionById, getActionsByCategory, getAllActions } from '../../../balance/actions/index'
 import { calculateStatChangesWithBreakdown } from '../../../balance/utils/hourly-rates'
 import {
   PLAYER_ENTITY,
@@ -48,12 +49,16 @@ export class ActionSystem {
 
   canExecute(actionId: string): AvailabilityCheck {
     const action = getActionById(actionId) as ActionData | null
-    if (!action) return { available: false, reason: 'Действие не найдено' }
+    if (!action) {
+      telemetryInc('action_fail:not_found')
+      return { available: false, reason: 'Действие не найдено' }
+    }
 
     if (action.price > 0) {
       const wallet = this.world.getComponent(PLAYER_ENTITY, WALLET_COMPONENT) as Record<string, number> | null
       const money = wallet?.money ?? 0
       if (money < action.price) {
+        telemetryInc('action_fail:no_money')
         return { available: false, reason: `Не хватает денег (${action.price}₽)` }
       }
     }
@@ -62,6 +67,7 @@ export class ActionSystem {
     if (timeSystem) {
       const weekLeft = timeSystem.getWeekHoursRemaining()
       if (action.hourCost > weekLeft) {
+        telemetryInc('action_fail:no_time')
         return {
           available: false,
           reason: `Не хватает времени в неделе (${action.hourCost} ч нужно, ${Number(weekLeft.toFixed(1))} ч осталось)`,
@@ -73,6 +79,7 @@ export class ActionSystem {
       const completedActions = this.world.getComponent(PLAYER_ENTITY, COMPLETED_ACTIONS_COMPONENT) as Record<string, unknown> | null
       const items = (completedActions?.items as string[]) || []
       if (items.includes(actionId)) {
+        telemetryInc('action_fail:already_done')
         return { available: false, reason: 'Уже выполнено' }
       }
     }
@@ -85,6 +92,7 @@ export class ActionSystem {
           const elapsed = ts.getTotalHours() - cooldowns[actionId]
           if (elapsed < action.cooldown.hours) {
             const remaining = action.cooldown.hours - elapsed
+            telemetryInc('action_fail:cooldown')
             return { available: false, reason: `Кулдаун: ${remaining.toFixed(0)}ч осталось` }
           }
         }
@@ -98,14 +106,15 @@ export class ActionSystem {
         const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown> | null
         const currentAge = (time?.currentAge as number) ?? 0
         if (currentAge < req.minAge) {
+          telemetryInc('action_fail:min_age')
           return { available: false, reason: `Нужен возраст ${req.minAge}+` }
         }
       }
 
       if (req.minSkills) {
-        const skills = this.world.getComponent(PLAYER_ENTITY, SKILLS_COMPONENT) as Record<string, number> | null
         for (const [skillKey, minValue] of Object.entries(req.minSkills)) {
-          if ((skills?.[skillKey] ?? 0) < minValue) {
+          if (!this.skillsSystem.hasSkillLevel(skillKey, minValue)) {
+            telemetryInc('action_fail:min_skill')
             return { available: false, reason: `Нужен навык ${skillKey} ≥ ${minValue}` }
           }
         }
@@ -114,6 +123,7 @@ export class ActionSystem {
       if (req.housingLevel) {
         const housing = this.world.getComponent(PLAYER_ENTITY, HOUSING_COMPONENT) as Record<string, unknown> | null
         if (((housing?.level as number) ?? 0) < req.housingLevel) {
+          telemetryInc('action_fail:housing_level')
           return { available: false, reason: `Нужен уровень жилья ≥ ${req.housingLevel}` }
         }
       }
@@ -121,6 +131,7 @@ export class ActionSystem {
       if (req.requiresItem) {
         const items = this._getFurnitureItems()
         if (!items.some(item => item.id === req.requiresItem)) {
+          telemetryInc('action_fail:requires_item')
           return { available: false, reason: `Нужен предмет: ${req.requiresItem}` }
         }
       }
@@ -131,6 +142,7 @@ export class ActionSystem {
           ? relationships.length > 0 && ((relationships[0]?.level as number) ?? 0) > 0
           : ((relationships as Record<string, unknown> | null)?.level as number) > 0
         if (!hasRelationship) {
+          telemetryInc('action_fail:requires_relationship')
           return { available: false, reason: 'Нужны отношения' }
         }
       }

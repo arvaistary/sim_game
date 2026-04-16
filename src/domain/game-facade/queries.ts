@@ -22,6 +22,10 @@ export const gameQueries = {
     const ctx = getSystemContext(world)
     return ctx.financeAction.getFinanceOverview()
   },
+  getFinanceActions(world: GameWorld) {
+    const ctx = getSystemContext(world)
+    return ctx.financeAction.getFinanceActions()
+  },
   getInvestments(world: GameWorld) {
     const ctx = getSystemContext(world)
     return ctx.investment.getAllInvestments()

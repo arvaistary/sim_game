@@ -264,6 +264,11 @@ export const useGameStore = defineStore('game', () => {
     return appGameQueries.getFinanceOverview(world.value)
   }
 
+  function getFinanceActions() {
+    if (!world.value) return []
+    return appGameQueries.getFinanceActions(world.value)
+  }
+
   function getFinanceSnapshot() {
     if (!world.value) return null
     return appGameQueries.getFinanceSnapshot(world.value, PLAYER_ENTITY)
@@ -387,6 +392,7 @@ export const useGameStore = defineStore('game', () => {
     startEducationProgram,
     advanceEducation,
     getFinanceOverview,
+    getFinanceActions,
     getFinanceSnapshot,
     applyFinanceAction,
     getInvestments,

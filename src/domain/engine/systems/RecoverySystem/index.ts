@@ -13,6 +13,7 @@
 import { HOUSING_LEVELS } from '../../../balance/constants/housing-levels'
 import { summarizeStatChanges } from '../../utils/stat-change-summary'
 import { SkillsSystem } from '../SkillsSystem'
+import { TimeSystem } from '../TimeSystem'
 import type { GameWorld } from '../../world'
 import type { RecoveryCard } from '@/domain/balance/types'
 
@@ -22,12 +23,22 @@ import type { RecoveryCard } from '@/domain/balance/types'
 export class RecoverySystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
+  private timeSystem!: TimeSystem
   private housingLevels = HOUSING_LEVELS
 
   init(world: GameWorld): void {
     this.world = world
     this.skillsSystem = new SkillsSystem()
     this.skillsSystem.init(world)
+    this.timeSystem = this._resolveTimeSystem(world)
+  }
+
+  private _resolveTimeSystem(world: GameWorld): TimeSystem {
+    const existing = world.getSystem(TimeSystem)
+    if (existing) return existing
+    const created = new TimeSystem()
+    world.addSystem(created)
+    return created
   }
 
   recover(playerId: string, tab: { cards?: RecoveryCard[] }, cardId?: string): string {
@@ -117,19 +128,12 @@ export class RecoverySystem {
       education.institute = 'completed'
     }
 
-    const time = this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, unknown>
     const hourCost = this._resolveHourCost(cardData)
     const actionType = this._resolveActionType(cardData)
-    const systems = this.world.systems as Array<Record<string, unknown>>
-    const timeSystem = systems.find((system) => typeof system.advanceHours === 'function') as Record<string, unknown> | undefined
-    if (timeSystem) {
-      ;(timeSystem.advanceHours as (h: number, opts: Record<string, unknown>) => void)(hourCost, {
-        actionType,
-        sleepHours: actionType === 'sleep' ? hourCost : 0,
-      })
-    } else {
-      time.totalHours = ((time.totalHours as number) ?? ((time.gameDays as number) ?? 0) * 24) + hourCost
-    }
+    this.timeSystem.advanceHours(hourCost, {
+      actionType,
+      sleepHours: actionType === 'sleep' ? hourCost : 0,
+    })
 
     return this._buildRecoverySummary(cardData, statChanges, hourCost)
   }

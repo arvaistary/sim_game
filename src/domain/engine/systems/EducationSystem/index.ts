@@ -9,6 +9,7 @@
 } from '../../components/index'
 import { EDUCATION_PROGRAMS } from '../../../balance/constants/education-programs'
 import { SkillsSystem } from '../SkillsSystem'
+import { TimeSystem } from '../TimeSystem'
 import type { GameWorld } from '../../world'
 import type { EducationProgram, StatChanges } from '@/domain/balance/types'
 import type { CanStartResult, StartResult, AdvanceResult, ActiveCourse } from './index.types'
@@ -20,6 +21,7 @@ import type { CanStartResult, StartResult, AdvanceResult, ActiveCourse } from '.
 export class EducationSystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
+  private timeSystem!: TimeSystem
   private educationPrograms: EducationProgram[]
 
   constructor() {
@@ -30,6 +32,15 @@ export class EducationSystem {
     this.world = world
     this.skillsSystem = new SkillsSystem()
     this.skillsSystem.init(world)
+    this.timeSystem = this._resolveTimeSystem(world)
+  }
+
+  private _resolveTimeSystem(world: GameWorld): TimeSystem {
+    const existing = world.getSystem(TimeSystem)
+    if (existing) return existing
+    const created = new TimeSystem()
+    world.addSystem(created)
+    return created
   }
 
   canStartEducationProgram(program: EducationProgram): CanStartResult {
@@ -144,12 +155,7 @@ export class EducationSystem {
     }
 
     const studyHours = 4
-    const timeSystem = this.world.systems.find((system) => typeof (system as Record<string, unknown>).advanceHours === 'function')
-    if (timeSystem) {
-      ;((timeSystem as Record<string, unknown>).advanceHours as (h: number, opts: Record<string, unknown>) => void)(studyHours, { actionType: 'education' })
-    } else {
-      time.totalHours = ((time.totalHours as number) ?? ((time.gameDays as number) ?? 0) * 24) + studyHours
-    }
+    this.timeSystem.advanceHours(studyHours, { actionType: 'education' })
 
     course.daysSpent += 1
     course.hoursSpent = (course.hoursSpent ?? 0) + studyHours

@@ -14,27 +14,34 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { useGameStore } from '@/stores/game.store'
 import { showGameResultModal } from '@/composables/useGameModal'
 import { useToast } from '@/composables/useToast'
-import { LEGACY_FINANCE_SCENE_ACTIONS } from '@/domain/balance/constants/legacy-finance-scene-actions'
 import type { LegacyFinanceAction } from '@/domain/balance/types'
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
 const toast = useToast()
 
-const financeActions = LEGACY_FINANCE_SCENE_ACTIONS
+/** Единый source-of-truth: данные из FinanceActionSystem engine */
+const financeActions = computed(() => {
+  const actions = store.getFinanceActions() as Array<LegacyFinanceAction & { available?: boolean; reason?: string }>
+  return actions.length > 0 ? actions : []
+})
 
-function handleAction(action: LegacyFinanceAction): void {
+function handleAction(action: LegacyFinanceAction & { available?: boolean; reason?: string }): void {
   if (!store.isInitialized) {
     toast.showError('Мир не инициализирован')
     return
   }
+  if (action.available === false) {
+    toast.showError(action.reason || 'Действие недоступно')
+    return
+  }
   const result = store.applyFinanceAction(action.id)
   if (result && !result.startsWith('Мир не')) {
-    // Передаём базовый эффект для расчёта модификаторов
     const baseEffect = (action as unknown as { effect?: string }).effect
     showGameResultModal(action.title, result, { baseEffect })
   } else {

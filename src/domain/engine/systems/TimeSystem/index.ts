@@ -1,4 +1,5 @@
-﻿import {
+﻿import { telemetryInc } from '../../utils/telemetry'
+import {
   PLAYER_ENTITY,
   TIME_COMPONENT,
   EVENT_QUEUE_COMPONENT,
@@ -7,6 +8,7 @@
   STATS_COMPONENT,
   WALLET_COMPONENT,
 } from '../../components/index'
+import { EventQueueSystem } from '../EventQueueSystem'
 import { MICRO_EVENT_BY_ACTION, buildMicroQueuedEvent } from '../../../balance/constants/game-events'
 import type { GameWorld } from '../../world'
 import type { RuntimeTimeComponent, AdvanceOptions, AdvanceResult, PeriodicCallback } from './index.types'
@@ -137,7 +139,11 @@ export class TimeSystem {
 
     const safeHours = Math.max(0, Number(hours) || 0)
     if (safeHours <= 0) {
+      telemetryInc('time_advance_anomaly:zero_or_negative')
       return { weekly: [], monthly: [], yearly: [], age: [] }
+    }
+    if (safeHours > 168) {
+      telemetryInc('time_advance_anomaly:over_168h')
     }
 
     const previousWeek = timeComponent.gameWeeks
@@ -281,12 +287,11 @@ export class TimeSystem {
   maybeTriggerMicroEvent(actionType = 'default', options: AdvanceOptions = {}): unknown {
     const playerId = PLAYER_ENTITY
     const time = this.world.getComponent(playerId, TIME_COMPONENT) as RuntimeTimeComponent | null
-    const queue = this.world.getComponent(playerId, EVENT_QUEUE_COMPONENT) as Record<string, unknown> | null
     const stats = this.world.getComponent(playerId, STATS_COMPONENT) as Record<string, number> | null
     const skills = (this.world.getComponent(playerId, SKILLS_COMPONENT) || {}) as Record<string, number>
     const skillModifiers = (this.world.getComponent(playerId, SKILL_MODIFIERS_COMPONENT) || {}) as Record<string, number>
     const wallet = (this.world.getComponent(playerId, WALLET_COMPONENT) || {}) as Record<string, number>
-    if (!time || !queue) return null
+    if (!time) return null
 
     const microEvents = MICRO_EVENT_BY_ACTION as unknown as Record<string, { id: string; baseChance: number; title: string; description: string }>
     const def = microEvents[actionType] || MICRO_EVENT_BY_ACTION.default
@@ -314,15 +319,24 @@ export class TimeSystem {
       return null
     }
 
-    const microEvent = this._buildMicroEvent(def, actionType)
-    const pendingEvents = (queue.pendingEvents || []) as Record<string, unknown>[]
-    const alreadyQueued = pendingEvents.some((item) => item.instanceId === (microEvent as Record<string, unknown>).instanceId)
-    if (!alreadyQueued) {
-      if (!Array.isArray(queue.pendingEvents)) queue.pendingEvents = []
-      ;(queue.pendingEvents as unknown[]).push(microEvent)
+    const microEvent = this._buildMicroEvent(def, actionType) as Record<string, unknown>
+
+    // Единая точка enqueue через EventQueueSystem
+    const eventQueueSystem = this._resolveEventQueueSystem()
+    const queued = eventQueueSystem.queuePendingEvent(microEvent)
+    if (queued) {
       time.eventState.cooldownByEventId[cooldownKey] = time.totalHours
     }
     return microEvent
+  }
+
+  private _resolveEventQueueSystem(): EventQueueSystem {
+    const existing = this.world.getSystem(EventQueueSystem)
+    if (existing) return existing
+    const created = new EventQueueSystem()
+    created.init(this.world)
+    this.world.addSystem(created)
+    return created
   }
 
   _buildMicroEvent(def: { id: string; title: string; description: string; baseChance: number }, actionType: string): unknown {

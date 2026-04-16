@@ -1,4 +1,5 @@
-﻿import {
+﻿import { telemetryInc } from '../../utils/telemetry'
+import {
   EVENT_QUEUE_COMPONENT,
   EVENT_HISTORY_COMPONENT,
   PLAYER_ENTITY,
@@ -52,6 +53,7 @@ export class EventQueueSystem {
     const alreadyQueued = (queue.pendingEvents || []).some((item: unknown) => (item as Record<string, unknown>).instanceId === instanceId)
 
     if (alreadyHandled || alreadyQueued) {
+      telemetryInc('event_dedup_hit')
       return false
     }
 

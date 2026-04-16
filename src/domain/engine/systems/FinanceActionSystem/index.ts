@@ -7,6 +7,7 @@
   PLAYER_ENTITY,
 } from '../../components/index'
 import { SkillsSystem } from '../SkillsSystem'
+import { TimeSystem } from '../TimeSystem'
 import { summarizeStatChanges } from '../../utils/stat-change-summary'
 import type { GameWorld } from '../../world'
 import type { LegacyFinanceAction, StatChanges } from '@/domain/balance/types'
@@ -20,12 +21,22 @@ import { FINANCE_ACTIONS } from './index.constants'
 export class FinanceActionSystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
+  private timeSystem!: TimeSystem
   private financeActions: LegacyFinanceAction[] = FINANCE_ACTIONS
 
   init(world: GameWorld): void {
     this.world = world
     this.skillsSystem = new SkillsSystem()
     this.skillsSystem.init(world)
+    this.timeSystem = this._resolveTimeSystem(world)
+  }
+
+  private _resolveTimeSystem(world: GameWorld): TimeSystem {
+    const existing = world.getSystem(TimeSystem)
+    if (existing) return existing
+    const created = new TimeSystem()
+    world.addSystem(created)
+    return created
   }
 
   getFinanceOverview(): FinanceOverview | null {
@@ -146,22 +157,28 @@ export class FinanceActionSystem {
         message: `Недостаточно времени в неделе. Нужно ${hourCost} ч., осталось ${(timePrecheck as Record<string, unknown>).weekHoursRemaining} ч.`,
       }
     }
+    // Специфичная обработка по action.id
     if (action.id === 'reserve_transfer') {
       wallet.money -= action.amount
       finance.reserveFund = Math.max(0, ((finance.reserveFund as number) ?? 0) + (action.reserveDelta ?? 0))
-    }
-
-    if (action.id === 'open_deposit') {
+    } else if (action.id === 'open_deposit') {
       wallet.money -= action.amount
       this._openInvestment(action)
-    }
-
-    if (action.id === 'budget_review') {
+    } else if (action.id === 'budget_review') {
       const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
       Object.entries(action.monthlyExpenseDelta ?? {}).forEach(([key, value]) => {
         const currentValue = monthlyExpenses[key] ?? 0
         monthlyExpenses[key] = Math.max(0, currentValue + value)
       })
+    } else if (action.id === 'pay_off_small_debt') {
+      wallet.money -= action.amount
+    } else if (action.id === 'sell_unnecessary_items') {
+      // Продажа вещей — небольшой случайный доход
+      const saleIncome = Math.round(2000 + Math.random() * 3000)
+      wallet.money += saleIncome
+    } else if (action.amount > 0) {
+      // Generic: списание денег для неизвестных действий с amount > 0
+      wallet.money -= action.amount
     }
 
     if (action.statChanges) {
@@ -175,16 +192,8 @@ export class FinanceActionSystem {
       this.skillsSystem.applySkillChanges(action.skillChanges, `finance:${action.id}`)
     }
 
-    const time = this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, unknown> | null
-    if (time) {
-      const timeSystem = this.world.systems.find((system) => typeof (system as Record<string, unknown>).advanceHours === 'function')
-      const cost = this._resolveHourCost(action)
-      if (timeSystem) {
-        ;((timeSystem as Record<string, unknown>).advanceHours as (h: number, opts: Record<string, unknown>) => void)(cost, { actionType: 'finance_action' })
-      } else {
-        time.totalHours = ((time.totalHours as number) ?? ((time.gameDays as number) ?? 0) * 24) + cost
-      }
-    }
+    const cost = this._resolveHourCost(action)
+    this.timeSystem.advanceHours(cost, { actionType: 'finance_action' })
 
     if (this.world && this.world.eventBus) {
       const financeCategory = action.id === 'reserve_transfer' ? 'expense'
@@ -277,9 +286,8 @@ export class FinanceActionSystem {
 
   _normalizePlayerTime(): Record<string, unknown> | null {
     const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT)
-    const timeSystem = this.world.systems?.find((s) => typeof (s as Record<string, unknown>).normalizeTimeComponent === 'function')
-    if (time && timeSystem) {
-      ;((timeSystem as Record<string, unknown>).normalizeTimeComponent as (t: Record<string, unknown>) => void)(time)
+    if (time) {
+      this.timeSystem.normalizeTimeComponent(time as unknown as Parameters<typeof this.timeSystem.normalizeTimeComponent>[0])
     }
     return time
   }

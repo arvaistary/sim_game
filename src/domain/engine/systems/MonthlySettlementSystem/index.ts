@@ -2,8 +2,6 @@
   WALLET_COMPONENT,
   FINANCE_COMPONENT,
   STATS_COMPONENT,
-  EVENT_QUEUE_COMPONENT,
-  EVENT_HISTORY_COMPONENT,
   TIME_COMPONENT,
   PLAYER_ENTITY,
 } from '../../components/index'
@@ -14,6 +12,7 @@ import {
   cloneQueuedEventTemplate,
 } from '../../../balance/constants/game-events'
 import { SkillsSystem } from '../SkillsSystem'
+import { EventQueueSystem } from '../EventQueueSystem'
 import type { GameWorld } from '../../world'
 import type { StatChanges } from '@/domain/balance/types'
 import type { SettlementResult, SettlementData } from './index.types'
@@ -25,6 +24,7 @@ import type { SettlementResult, SettlementData } from './index.types'
 export class MonthlySettlementSystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
+  private eventQueueSystem!: EventQueueSystem
   private monthlyExpensesDefault: Record<string, number>
 
   constructor() {
@@ -35,6 +35,8 @@ export class MonthlySettlementSystem {
     this.world = world
     this.skillsSystem = new SkillsSystem()
     this.skillsSystem.init(world)
+    this.eventQueueSystem = new EventQueueSystem()
+    this.eventQueueSystem.init(world)
   }
 
   applyMonthlySettlement(monthNumber: number): SettlementResult {
@@ -126,28 +128,9 @@ export class MonthlySettlementSystem {
     return { success: true, message }
   }
 
-  _queuePendingEvent(event: Record<string, unknown>): void {    const playerId = PLAYER_ENTITY
-    const eventQueue = this.world.getComponent(playerId, EVENT_QUEUE_COMPONENT) as Record<string, unknown> | null
-    const eventHistory = this.world.getComponent(playerId, EVENT_HISTORY_COMPONENT) as Record<string, unknown> | null
-
-    if (!eventQueue || !eventHistory) {
-      return
-    }
-
-    const instanceId = `${event.id}_${Date.now()}`
-    const alreadyHandled = ((eventHistory.events as Array<Record<string, unknown>>) || []).some(item => item.eventId === instanceId)
-    const alreadyQueued = ((eventQueue.pendingEvents as Array<Record<string, unknown>>) || []).some(item => item.instanceId === instanceId)
-
-    if (alreadyHandled || alreadyQueued) {
-      return
-    }
-
-    if (!eventQueue.pendingEvents) {
-      eventQueue.pendingEvents = []
-    }
-    (eventQueue.pendingEvents as Array<Record<string, unknown>>).push({ ...event, instanceId })
+  _queuePendingEvent(event: Record<string, unknown>): void {
+    this.eventQueueSystem.queuePendingEvent(event)
   }
-
   _applyStatChanges(stats: Record<string, number>, statChanges: StatChanges = {}): void {
     for (const [key, value] of Object.entries(statChanges)) {
       if (value === undefined) continue

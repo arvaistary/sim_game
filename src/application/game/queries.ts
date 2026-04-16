@@ -15,6 +15,9 @@ export const appGameQueries = {
   getFinanceOverview(world: GameWorld) {
     return gameQueries.getFinanceOverview(world)
   },
+  getFinanceActions(world: GameWorld) {
+    return gameQueries.getFinanceActions(world)
+  },
   getInvestments(world: GameWorld) {
     return gameQueries.getInvestments(world)
   },
