@@ -3,6 +3,7 @@
     <SectionHeader title="Хобби" subtitle="Творческие занятия для души и развития навыков" />
     <ActionCardList
       :actions="actions"
+      :empty-text="actionsEmptyHint"
       :is-disabled="(a: any) => !canExecute(a.id)"
       @execute="executeAction"
     />
@@ -18,6 +19,6 @@ import { useActions } from '@/composables/useActions'
 
 definePageMeta({ middleware: 'game-init' })
 
-const { getActionsByCategory, canExecute, executeAction } = useActions()
+const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 const actions = getActionsByCategory('hobby')
 </script>

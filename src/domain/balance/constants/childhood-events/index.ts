@@ -1,4 +1,4 @@
-import { INFANT_EVENTS } from './infant-events'
+﻿import { INFANT_EVENTS } from './infant-events'
 import { PRESCHOOL_EVENTS } from './preschool-events'
 import { SCHOOL_EVENTS } from './school-events'
 import { TEEN_EVENTS } from './teen-events'
@@ -23,8 +23,8 @@ export const ALL_CHILDHOOD_EVENTS: ChildhoodEventDef[] = [
  */
 export const CHILDHOOD_EVENTS_BY_AGE_GROUP: Partial<Record<AgeGroup, ChildhoodEventDef[]>> = {
   [AgeGroup.INFANT]: INFANT_EVENTS,
-  [AgeGroup.CHILD]: PRESCHOOL_EVENTS,
-  [AgeGroup.KID]: SCHOOL_EVENTS,
+  [AgeGroup.TODDLER]: PRESCHOOL_EVENTS,  // 4-7 лет
+  [AgeGroup.CHILD]: SCHOOL_EVENTS,  // 8-12 лет
   [AgeGroup.TEEN]: TEEN_EVENTS,
   [AgeGroup.YOUNG]: YOUNG_EVENTS,
 }

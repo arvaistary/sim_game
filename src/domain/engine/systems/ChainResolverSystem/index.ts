@@ -7,21 +7,8 @@ import type { GameWorld } from '../../world'
 import { ALL_CHILDHOOD_EVENTS, getChildhoodEventsByChain } from '@/domain/balance/constants/childhood-events'
 import type { ChildhoodEventDef } from '@/domain/balance/types/childhood-event'
 import { AgeGroup } from '@/domain/balance/actions/types'
+import { AGE_GROUP_RANGES } from './index.constants'
 import type { ChainStateComponent, ChainProgress, ChainStepRecord } from './index.types'
-
-/**
- * Диапазоны возрастов для каждой возрастной группы.
- * Используется для определения подходит ли событие по возрасту.
- */
-const AGE_GROUP_RANGES: Record<number, { min: number; max: number }> = {
-  [AgeGroup.INFANT]:  { min: 0, max: 3 },
-  [AgeGroup.TODDLER]: { min: 1, max: 3 },
-  [AgeGroup.CHILD]:   { min: 4, max: 7 },
-  [AgeGroup.KID]:     { min: 8, max: 12 },
-  [AgeGroup.TEEN]:    { min: 13, max: 15 },
-  [AgeGroup.YOUNG]:   { min: 16, max: 18 },
-  [AgeGroup.ADULT]:   { min: 18, max: 100 },
-}
 
 /**
  * Система разрешения цепочек последствий

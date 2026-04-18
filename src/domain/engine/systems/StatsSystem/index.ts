@@ -1,5 +1,6 @@
 ﻿import { STATS_COMPONENT, PLAYER_ENTITY } from '../../components/index'
 import { summarizeStatChanges } from '../../utils/stat-change-summary'
+import { telemetryInc } from '../../utils/telemetry'
 import type { GameWorld } from '../../world'
 import type { StatChanges, StatDef } from '@/domain/balance/types'
 import { STAT_DEFS } from '@/domain/balance/constants/stat-defs'
@@ -28,6 +29,8 @@ export class StatsSystem {
     for (const [key, value] of Object.entries(statChanges)) {
       if (value === undefined) continue
       stats[key] = this._clamp((stats[key] ?? 0) + value)
+      // Telemetry: отслеживаем изменения статов
+      telemetryInc(`stat_change:${key}`, value)
     }
   }
 

@@ -1,10 +1,19 @@
-import { PLAYER_ENTITY, PERSONALITY_COMPONENT } from '../../components'
+import { PLAYER_ENTITY, PERSONALITY_COMPONENT, TIME_COMPONENT } from '../../components'
 import type { GameWorld } from '../../world'
 import { PERSONALITY_TRAITS } from '@/domain/balance/constants/personality-traits'
-import type { PersonalityComponent, PersonalityAxis } from '@/domain/balance/types/personality'
+import { PersonalityAxis, type PersonalityComponent, type PersonalityTrait } from '@/domain/balance/types/personality'
+import { StatsSystem } from '../StatsSystem'
+import { telemetryInc } from '../../utils/telemetry'
+
+const PERSONALITY_AXIS_MIN = -100
+const PERSONALITY_AXIS_MAX = 100
 
 /**
- * Система управления чертами характера и их постепенным смещением
+ * Система управления чертами характера и их постепенным смещением.
+ *
+ * `getCombinedModifiers()` — сумма `modifiers` по всем разблокированным чертам (ключи —
+ * множители и бонусы из баланса, например `learningSpeedMultiplier`, `salaryMultiplier`).
+ * Неразблокированные черты не учитываются. Пустой объект, если компонента личности нет.
  */
 export class PersonalitySystem {
   private world!: GameWorld
@@ -15,10 +24,7 @@ export class PersonalitySystem {
   }
 
   update(world: GameWorld, deltaHours: number): void {
-    const personality = world.getTypedComponent<PersonalityComponent>(
-      PLAYER_ENTITY,
-      PERSONALITY_COMPONENT
-    )
+    const personality = world.getTypedComponent(PLAYER_ENTITY, PERSONALITY_COMPONENT)
 
     if (!personality) return
 
@@ -27,23 +33,21 @@ export class PersonalitySystem {
   }
 
   modifyAxis(axis: PersonalityAxis, delta: number): void {
-    const personality = this.world.getTypedComponent<PersonalityComponent>(
-      PLAYER_ENTITY,
-      PERSONALITY_COMPONENT
-    )
+    const personality = this.world.getTypedComponent(PLAYER_ENTITY, PERSONALITY_COMPONENT)
 
     if (!personality) return
 
-    personality.axes[axis].value = Math.max(-100, Math.min(100, personality.axes[axis].value + delta))
+    const before = personality.axes[axis].value
+    personality.axes[axis].value = this._clampAxisValue(personality.axes[axis].value + delta)
+    if (personality.axes[axis].value !== before) {
+      telemetryInc(`personality_axis_change:${axis}`)
+    }
 
     this._checkTraitUnlocks(personality)
   }
 
   getCombinedModifiers(): Record<string, number> {
-    const personality = this.world.getTypedComponent<PersonalityComponent>(
-      PLAYER_ENTITY,
-      PERSONALITY_COMPONENT
-    )
+    const personality = this.world.getTypedComponent(PLAYER_ENTITY, PERSONALITY_COMPONENT)
 
     if (!personality) return {}
 
@@ -53,11 +57,51 @@ export class PersonalitySystem {
       .filter(t => t.unlocked)
       .forEach(trait => {
         Object.entries(trait.modifiers).forEach(([key, value]) => {
+          if (value === undefined) return
           modifiers[key] = (modifiers[key] || 0) + value
         })
       })
 
     return modifiers
+  }
+
+  getAxisValue(axis: PersonalityAxis): number {
+    const personality = this.world.getTypedComponent(PLAYER_ENTITY, PERSONALITY_COMPONENT)
+    if (!personality) return 0
+    return personality.axes[axis].value
+  }
+
+  getAllAxes(): Record<PersonalityAxis, number> {
+    const personality = this.world.getTypedComponent(PLAYER_ENTITY, PERSONALITY_COMPONENT)
+    if (!personality) {
+      return {
+        [PersonalityAxis.OPENNESS]: 0,
+        [PersonalityAxis.CONSCIENTIOUSNESS]: 0,
+        [PersonalityAxis.EXTRAVERSION]: 0,
+        [PersonalityAxis.AGREEABLENESS]: 0,
+        [PersonalityAxis.NEUROTICISM]: 0,
+      }
+    }
+    return {
+      [PersonalityAxis.OPENNESS]: personality.axes.openness.value,
+      [PersonalityAxis.CONSCIENTIOUSNESS]: personality.axes.conscientiousness.value,
+      [PersonalityAxis.EXTRAVERSION]: personality.axes.extraversion.value,
+      [PersonalityAxis.AGREEABLENESS]: personality.axes.agreeableness.value,
+      [PersonalityAxis.NEUROTICISM]: personality.axes.neuroticism.value,
+    }
+  }
+
+  getUnlockedTraits(): PersonalityTrait[] {
+    const personality = this.world.getTypedComponent(PLAYER_ENTITY, PERSONALITY_COMPONENT)
+    if (!personality) return []
+    return personality.traits.filter(t => t.unlocked)
+  }
+
+  hasTrait(traitId: string): boolean {
+    const personality = this.world.getTypedComponent(PLAYER_ENTITY, PERSONALITY_COMPONENT)
+    if (!personality) return false
+    const trait = personality.traits.find(t => t.id === traitId)
+    return Boolean(trait?.unlocked)
   }
 
   private _ensurePersonalityComponent(): void {
@@ -81,38 +125,36 @@ export class PersonalitySystem {
   }
 
   private _applyAxisDrift(personality: PersonalityComponent, deltaHours: number): void {
-    // В детстве (до 18 лет) дрейф осей усилен — личность формируется быстрее
+    if (deltaHours <= 0) return
+
     const currentAge = this._getCurrentAge()
     const childhoodMultiplier = currentAge !== null && currentAge < 18 ? 2.0 : 1.0
     const driftMultiplier = deltaHours * personality.driftSpeed * childhoodMultiplier
 
     Object.values(personality.axes).forEach(axis => {
       axis.value += axis.drift * driftMultiplier
-      axis.value = Math.max(-100, Math.min(100, axis.value))
-
-      // Постепенное уменьшение дрейфа к нулю
+      axis.value = this._clampAxisValue(axis.value)
       axis.drift *= 0.999
     })
+
+    telemetryInc('personality_drift_applied')
   }
 
   private _getCurrentAge(): number | null {
-    const time = this.world.getComponent(PLAYER_ENTITY, 'time') as Record<string, unknown> | null
+    const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown> | null
     if (!time) return null
     return (time.currentAge as number) ?? null
   }
 
   private _checkTraitUnlocks(personality: PersonalityComponent): void {
-    const time = this.world.getComponent(PLAYER_ENTITY, 'time') as Record<string, unknown> | null
+    const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown> | null
     const currentHour = (time?.totalHours as number) || 0
     const currentAge = (time?.currentAge as number) ?? 0
 
     personality.traits.forEach(trait => {
       if (trait.unlocked) return
 
-      // Проверка возрастного окна формирования
-      const formAgeStart = (trait as unknown as { formAgeStart?: number }).formAgeStart ?? 0
-      const formAgeEnd = (trait as unknown as { formAgeEnd?: number }).formAgeEnd ?? 100
-      if (currentAge < formAgeStart || currentAge > formAgeEnd) return
+      if (currentAge < trait.formAgeStart || currentAge > trait.formAgeEnd) return
 
       const axisValue = personality.axes[trait.axis].value
       const thresholdReached = trait.threshold > 0
@@ -122,8 +164,7 @@ export class PersonalitySystem {
       if (thresholdReached) {
         trait.unlocked = true
         trait.unlockedAt = currentHour
-
-        this.world.emitDomainEvent('personality:trait_unlocked', { trait })
+        this._onTraitUnlocked(trait)
       }
     })
   }
@@ -133,20 +174,51 @@ export class PersonalitySystem {
    * Используется для детских событий которые формируют личность.
    */
   acquireTrait(traitId: string): boolean {
-    const personality = this.world.getComponent(PLAYER_ENTITY, PERSONALITY_COMPONENT) as Record<string, unknown> | null
+    const personality = this.world.getTypedComponent(PLAYER_ENTITY, PERSONALITY_COMPONENT)
     if (!personality) return false
 
-    const traits = personality.traits as Array<Record<string, unknown>>
-    const trait = traits.find(t => t.id === traitId)
+    const trait = personality.traits.find(t => t.id === traitId)
     if (!trait || trait.unlocked) return false
 
-    const time = this.world.getComponent(PLAYER_ENTITY, 'time') as Record<string, unknown> | null
+    const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown> | null
     const currentHour = (time?.totalHours as number) || 0
 
     trait.unlocked = true
     trait.unlockedAt = currentHour
 
-    this.world.emitDomainEvent('personality:trait_unlocked', { trait })
+    this._onTraitUnlocked(trait)
     return true
+  }
+
+  private _onTraitUnlocked(trait: PersonalityTrait): void {
+    telemetryInc(`personality_trait_unlocked:${trait.id}`)
+    this.world.emitDomainEvent('personality:trait_unlocked', { trait })
+    this._emitTraitActivity(trait)
+  }
+
+  private _emitTraitActivity(trait: PersonalityTrait): void {
+    const bus = this.world?.eventBus
+    if (!bus) return
+
+    bus.dispatchEvent(new CustomEvent('activity:event', {
+      detail: {
+        category: 'personality',
+        title: trait.name,
+        description: trait.description || trait.acquireCondition,
+        icon: null,
+        metadata: {
+          traitId: trait.id,
+          axis: trait.axis,
+        },
+      },
+    }))
+  }
+
+  private _clampAxisValue(value: number): number {
+    const stats = this.world.getSystem(StatsSystem)
+    if (stats) {
+      return stats._clamp(value, PERSONALITY_AXIS_MIN, PERSONALITY_AXIS_MAX)
+    }
+    return Math.max(PERSONALITY_AXIS_MIN, Math.min(PERSONALITY_AXIS_MAX, value))
   }
 }

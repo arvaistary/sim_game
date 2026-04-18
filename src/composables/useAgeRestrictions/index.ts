@@ -1,90 +1,18 @@
-import type { BalanceAction } from '@/domain/balance/actions/types'
+﻿import type { BalanceAction } from '@/domain/balance/actions/types'
 import { computed } from 'vue'
 import { useGameStore } from '@/stores/game.store'
 import { useToast } from '@/composables/useToast'
-import { AgeGroup } from '@/domain/balance/actions/types'
+import {
+  AgeGroup,
+  AGE_RULES,
+  TAB_UNLOCK_AGE,
+  UNLOCK_MESSAGES,
+  getAgeGroup,
+} from './age-constants'
+import type { AgeRestrictions } from './age-constants'
 
-export { AgeGroup }
-
-export interface AgeRestrictions {
-  hiddenTabs: string[]
-  hiddenStats: string[]
-  label: string
-  timeSpeed: number
-  minAgeGroup: AgeGroup
-}
-
-const AGE_RULES: Record<AgeGroup, AgeRestrictions> = {
-  [AgeGroup.INFANT]: {
-    hiddenTabs: ['finance', 'career', 'home', 'car', 'social', 'shop'],
-    hiddenStats: ['money', 'salary', 'debt', 'investments'],
-    label: 'Младенец',
-    timeSpeed: 4,
-    minAgeGroup: AgeGroup.INFANT
-  },
-  [AgeGroup.TODDLER]: {
-    hiddenTabs: ['finance', 'career', 'home', 'car', 'shop'],
-    hiddenStats: ['money', 'salary', 'debt', 'investments'],
-    label: 'Дошкольник',
-    timeSpeed: 3,
-    minAgeGroup: AgeGroup.TODDLER
-  },
-  [AgeGroup.CHILD]: {
-    hiddenTabs: ['finance', 'home', 'car'],
-    hiddenStats: ['money', 'salary', 'debt'],
-    label: 'Младший школьник',
-    timeSpeed: 2,
-    minAgeGroup: AgeGroup.CHILD
-  },
-  [AgeGroup.KID]: {
-    hiddenTabs: ['finance', 'home', 'car'],
-    hiddenStats: ['money', 'salary', 'debt'],
-    label: 'Школьник',
-    timeSpeed: 1.75,
-    minAgeGroup: AgeGroup.KID
-  },
-  [AgeGroup.TEEN]: {
-    hiddenTabs: ['home', 'mortgage'],
-    hiddenStats: ['debt', 'investments'],
-    label: 'Подросток',
-    timeSpeed: 1.5,
-    minAgeGroup: AgeGroup.TEEN
-  },
-  [AgeGroup.YOUNG]: {
-    hiddenTabs: ['mortgage'],
-    hiddenStats: [],
-    label: 'Молодёжь',
-    timeSpeed: 1.25,
-    minAgeGroup: AgeGroup.YOUNG
-  },
-  [AgeGroup.ADULT]: {
-    hiddenTabs: [],
-    hiddenStats: [],
-    label: 'Взрослый',
-    timeSpeed: 1,
-    minAgeGroup: AgeGroup.ADULT
-  }
-}
-
-/** Возраст, с которого вкладка становится доступна */
-export const TAB_UNLOCK_AGE: Record<string, number> = {
-  social: 4,
-  shop: 4,
-  career: 8,
-  car: 16,
-  finance: 16,
-  home: 16,
-  mortgage: 19,
-}
-
-const UNLOCK_MESSAGES: Record<string, string> = {
-  finance: '🎉 Теперь вам доступны Финансы! Вы можете управлять своими деньгами, открывать счета и делать инвестиции.',
-  career: '💼 Теперь вам доступна Работа! Вы можете искать вакансии и устраиваться на работу.',
-  home: '🏠 Теперь вам доступна Недвижимость! Вы можете покупать и арендовать жильё.',
-  car: '🚗 Теперь вам доступна Машина! Вы можете покупать и обслуживать автомобиль.',
-  social: '❤️ Теперь вам доступны Отношения! Вы можете строить отношения с другими персонажами.',
-  mortgage: '🏦 Теперь вам доступна Ипотека! Вы можете брать кредиты на покупку недвижимости.'
-}
+export { AgeGroup, TAB_UNLOCK_AGE }
+export type { AgeRestrictions }
 
 let lastKnownAge: number = 0
 let unlockedTabsCache: Set<string> = new Set()
@@ -96,13 +24,7 @@ export function useAgeRestrictions() {
   const age = computed(() => store.age)
 
   const ageGroup = computed<AgeGroup>(() => {
-    const currentAge = age.value
-    if (currentAge <= 3) return AgeGroup.INFANT
-    if (currentAge <= 7) return AgeGroup.TODDLER
-    if (currentAge <= 12) return AgeGroup.CHILD
-    if (currentAge <= 15) return AgeGroup.TEEN
-    if (currentAge <= 18) return AgeGroup.YOUNG
-    return AgeGroup.ADULT
+    return getAgeGroup(age.value)
   })
 
   const restrictions = computed<AgeRestrictions>(() => AGE_RULES[ageGroup.value])
@@ -173,13 +95,4 @@ export function useAgeRestrictions() {
     checkUnlocks,
     availableTabs
   }
-}
-
-function getAgeGroup(ageValue: number): AgeGroup {
-  if (ageValue <= 3) return AgeGroup.INFANT
-  if (ageValue <= 7) return AgeGroup.TODDLER
-  if (ageValue <= 12) return AgeGroup.CHILD
-  if (ageValue <= 15) return AgeGroup.TEEN
-  if (ageValue <= 18) return AgeGroup.YOUNG
-  return AgeGroup.ADULT
 }

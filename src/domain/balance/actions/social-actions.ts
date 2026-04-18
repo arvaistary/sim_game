@@ -1,4 +1,4 @@
-import type { BalanceAction } from './types'
+﻿import type { BalanceAction } from './types'
 import { AgeGroup } from './types'
 
 export const SOCIAL_ACTIONS: BalanceAction[] = [
@@ -211,7 +211,7 @@ export const SOCIAL_ACTIONS: BalanceAction[] = [
     relationshipDelta: 11,
     skillChanges: { charisma: 2 },
     actionType: 'social',
-    ageGroup: AgeGroup.TEEN,
+    ageGroup: AgeGroup.YOUNG,
     effect: 'Голод +3.5, Энергия -4.5, Стресс -5.5, Настроение +10.5, Здоровье -0.3, Физическая форма -0.6, Отношения +11, Харизма +2',
     mood: '💼 Полезные знакомства могут открыть новые возможности',
   },
@@ -319,7 +319,7 @@ export const SOCIAL_ACTIONS: BalanceAction[] = [
     statChanges: { hunger: 4.2, energy: -5.5, stress: -6.5, mood: 12.5, health: -0.4, physical: -0.8 },
     relationshipDelta: 9,
     actionType: 'social',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.ADULT,
     effect: 'Голод +4.2, Энергия -5.5, Стресс -6.5, Настроение +12.5, Здоровье -0.4, Физическая форма -0.8, Отношения +9',
     mood: '🎲 Свидание вслепую — всегда лотерея эмоций',
   },

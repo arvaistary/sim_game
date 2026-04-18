@@ -4,8 +4,9 @@ import {
   PLAYER_ENTITY,
 } from '../../components/index'
 import type { GameWorld } from '../../world'
-import type { LogTimestamp, LogEntry, LogComponent, GetEntriesOptions, GetEntriesResult, GetEntriesWindowOptions, GetEntriesWindowResult, EventListenerEntry } from './index.types'
+import type { LogTimestamp, LogEntry, LogComponent, GetEntriesOptions, GetEntriesResult, GetEntriesWindowOptions, GetEntriesWindowResult, EventListenerEntry, LogStats } from './index.types'
 import { LOG_ENTRY_TYPES, MAX_ENTRIES } from './index.constants'
+import { telemetryInc } from '../../utils/telemetry'
 
 export type { LogEntry, GetEntriesResult, GetEntriesWindowResult }
 export { LOG_ENTRY_TYPES }
@@ -31,7 +32,9 @@ export class ActivityLogSystem {
     const log = this._getLog()
     if (!log?.entries?.length) return
     if (log.entries.length > MAX_ENTRIES) {
+      const trimmed = log.entries.length - MAX_ENTRIES
       log.entries = log.entries.slice(-MAX_ENTRIES)
+      telemetryInc('activity_log_trimmed', trimmed)
     }
   }
 
@@ -69,8 +72,12 @@ export class ActivityLogSystem {
 
     log.entries.push(entry)
 
+    telemetryInc(`activity_log_entry:${entryData.type}`)
+    telemetryInc('activity_log_total')
+
     if (log.entries.length > MAX_ENTRIES) {
       log.entries.shift()
+      telemetryInc('activity_log_trimmed')
     }
 
     log.totalEntries++
@@ -142,9 +149,9 @@ export class ActivityLogSystem {
       .slice(-limit)
   }
 
-  getLogStats() {
+  getLogStats(): LogStats {
     const log = this._getLog()
-    if (!log) return { total: 0, byType: {} }
+    if (!log) return { total: 0, byType: {}, lastEntryType: null }
 
     const byType: Record<string, number> = {}
     for (const entry of log.entries || []) {
@@ -152,7 +159,7 @@ export class ActivityLogSystem {
     }
 
     return {
-      total: log.entries?.length || 0,
+      total: log.totalEntries || 0,
       byType,
       lastEntryType: log.entries?.[log.entries.length - 1]?.type || null
     }
@@ -253,4 +260,3 @@ export class ActivityLogSystem {
     this._listeners = []
   }
 }
-

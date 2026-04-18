@@ -1,6 +1,8 @@
 # Wave 1 — P0 Core Stability Plan
 
-## Статус: Draft
+## Статус: Сверено с `0-execution-master-roadmap-plan.md` (Фаза 2 — Wave 1), 2026-04
+
+Агрегирующий документ; фактическая реализация отражена в дорожной карте и дочерних планах (`stats-*`, `persistence-*`, `work-career-*`, `finance-economy-*`). Детализация ниже сохраняется как справочная.
 
 ## Цель
 

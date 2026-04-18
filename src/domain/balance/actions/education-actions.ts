@@ -221,7 +221,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +2.8, Энергия -4, Стресс -6.5, Настроение +9.5, Здоровье -0.2, Физическая форма -0.5, Переговоры +4',
     mood: '🤝 Умение договариваться — один из самых ценных навыков',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_design',
@@ -260,7 +260,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -6, Настроение +9.5, Здоровье -0.3, Физическая форма -0.6, Финансовая грамотность +5',
     mood: '📈 Инвестиции — это навык, который работает на твоё будущее',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_marketing',
@@ -325,7 +325,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.8, Энергия -6.5, Стресс -7, Настроение +10.5, Здоровье -0.4, Физическая форма -0.8, Лидерство +5',
     mood: '👑 Лидерство — навык, который можно и нужно развивать',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_mindfulness',
@@ -391,7 +391,7 @@ export const EDUCATION_ACTIONS: BalanceAction[] = [
     actionType: 'education',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -6.5, Настроение +9.5, Здоровье -0.3, Физическая форма -0.7, Профессионализм +3, Переговоры +2',
     mood: '📄 Хорошее резюме — важный инструмент в карьере',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'edu_library',

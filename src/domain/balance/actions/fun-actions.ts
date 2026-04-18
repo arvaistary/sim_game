@@ -1,4 +1,4 @@
-import type { BalanceAction } from './types'
+﻿import type { BalanceAction } from './types'
 import { AgeGroup } from './types'
 
 export const FUN_ACTIONS: BalanceAction[] = [
@@ -106,7 +106,7 @@ export const FUN_ACTIONS: BalanceAction[] = [
     title: 'Посещение концерта',
     hourCost: 4,
     price: 2800,
-    ageGroup: AgeGroup.TODDLER,
+    ageGroup: AgeGroup.CHILD,
     statChanges: { hunger: 4.5, energy: -7.5, stress: -12, mood: 27, health: -0.5, physical: -1 },
     actionType: 'recovery',
     effect: 'Голод +4.5, Энергия -7.5, Стресс -12, Настроение +27, Здоровье -0.5, Физическая форма -1',
@@ -118,7 +118,7 @@ export const FUN_ACTIONS: BalanceAction[] = [
     title: 'Рыбалка',
     hourCost: 5,
     price: 450,
-    ageGroup: AgeGroup.TODDLER,
+    ageGroup: AgeGroup.CHILD,
     statChanges: { hunger: 6.5, energy: -9, stress: -14, mood: 21, health: -0.6, physical: -1.2 },
     actionType: 'recovery',
     effect: 'Голод +6.5, Энергия -9, Стресс -14, Настроение +21, Здоровье -0.6, Физическая форма -1.2',
@@ -269,7 +269,7 @@ export const FUN_ACTIONS: BalanceAction[] = [
     title: 'Настольные игры с друзьями',
     hourCost: 3,
     price: 600,
-    ageGroup: AgeGroup.TODDLER,
+    ageGroup: AgeGroup.CHILD,
     statChanges: { hunger: 3.8, energy: -4.5, stress: 1.2, mood: 20, health: -0.3, physical: -0.6 },
     relationshipDelta: 9,
     actionType: 'recovery',
@@ -295,7 +295,7 @@ export const FUN_ACTIONS: BalanceAction[] = [
     title: 'Поход в музей',
     hourCost: 4,
     price: 1200,
-    ageGroup: AgeGroup.TODDLER,
+    ageGroup: AgeGroup.CHILD,
     statChanges: { hunger: 4.8, energy: -6, stress: 1.8, mood: 16.5, health: -0.4, physical: -0.8 },
     skillChanges: { basicCreativity: 3 },
     actionType: 'recovery',
@@ -332,7 +332,7 @@ export const FUN_ACTIONS: BalanceAction[] = [
     title: 'Посещение театра',
     hourCost: 4,
     price: 3200,
-    ageGroup: AgeGroup.TODDLER,
+    ageGroup: AgeGroup.CHILD,
     statChanges: { hunger: 4.5, energy: -6.5, stress: 1.5, mood: 24, health: -0.4, physical: -0.8 },
     skillChanges: { basicCreativity: 2.5 },
     actionType: 'recovery',
@@ -408,7 +408,7 @@ export const FUN_ACTIONS: BalanceAction[] = [
     title: 'Шопинг-терапия',
     hourCost: 3,
     price: 3000,
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.ADULT,
     statChanges: { hunger: 3.5, energy: -5, stress: -8, mood: 18.5, health: -0.3, physical: -0.7 },
     actionType: 'recovery',
     effect: 'Голод +3.5, Энергия -5, Стресс -8, Настроение +18.5, Здоровье -0.3, Физическая форма -0.7',
@@ -497,7 +497,7 @@ export const FUN_ACTIONS: BalanceAction[] = [
     title: 'Звонок друзьям или семье',
     hourCost: 1,
     price: 0,
-    ageGroup: AgeGroup.TODDLER,
+    ageGroup: AgeGroup.CHILD,
     statChanges: { hunger: 1.4, energy: 2, stress: -15.5, mood: 20.5, health: 0.3, physical: -0.2 },
     relationshipDelta: 13,
     actionType: 'recovery',

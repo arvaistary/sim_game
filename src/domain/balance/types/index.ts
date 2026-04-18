@@ -2,6 +2,8 @@
  * Типы данных баланса и конфигурации игры
  */
 
+import type { AgeGroup } from '../actions/types'
+
 export type StatKey = 'hunger' | 'energy' | 'stress' | 'mood' | 'health' | 'physical'
 
 export interface StatDef {
@@ -119,6 +121,36 @@ export interface SkillModifiers {
   autoRecoveryWeekly: number
 }
 
+/** Временный тег персонажа (ECS `tags`): стаки, срок по totalHours, суммируемые skill modifiers. */
+export interface CharacterTag {
+  id: string
+  stackable: boolean
+  maxStacks?: number
+  stacks?: number
+  expiresAt?: number
+  modifiers?: Partial<SkillModifiers>
+}
+
+/**
+ * Шаг образовательной программы
+ */
+export interface ProgramStep {
+  /** Уникальный идентификатор шага */
+  id: string
+  /** Название шага */
+  title: string
+  /** Требуемые часы для завершения шага */
+  hoursRequired: number
+  /** Прогресс шага (0..1) */
+  progressPercent: number
+  /** Опциональная награда за milestone */
+  milestoneReward?: {
+    statChanges?: Record<string, number>
+    skillChanges?: Record<string, number>
+    message?: string
+  }
+}
+
 export interface EducationProgram {
   id: string
   title: string
@@ -134,8 +166,12 @@ export interface EducationProgram {
   salaryMultiplierDelta?: number
   educationLevel?: string
   description: string
-  /** Минимальный возраст для записи на программу. Если undefined — доступно с TEEN (13+). */
-  minAge?: number
+  /** Минимальная возрастная группа для доступа к программе. Если undefined — доступно с TEEN (13+). */
+  minAgeGroup?: AgeGroup
+  /** Текстовое объяснение возрастного ограничения */
+  ageReason?: string
+  /** Опциональное определение шагов программы. Если не указано, шаги генерируются автоматически. */
+  steps?: ProgramStep[]
 }
 
 export interface EducationPathResult {

@@ -14,6 +14,7 @@ import {
 import { SkillsSystem } from '../SkillsSystem'
 import { EventQueueSystem } from '../EventQueueSystem'
 import { StatsSystem } from '../StatsSystem'
+import { ActionSystem } from '../ActionSystem'
 import type { GameWorld } from '../../world'
 import type { StatChanges } from '@/domain/balance/types'
 import type { SettlementResult, SettlementData } from './index.types'
@@ -27,6 +28,7 @@ export class MonthlySettlementSystem {
   private skillsSystem!: SkillsSystem
   private eventQueueSystem!: EventQueueSystem
   private statsSystem!: StatsSystem
+  private actionSystem!: ActionSystem
   private monthlyExpensesDefault: Record<string, number>
 
   constructor() {
@@ -37,8 +39,8 @@ export class MonthlySettlementSystem {
     this.world = world
     this.skillsSystem = this._resolveSkillsSystem()
     this.eventQueueSystem = this._resolveEventQueueSystem()
-    this.statsSystem = new StatsSystem()
-    this.statsSystem.init(world)
+    this.actionSystem = this._resolveActionSystem()
+    this.statsSystem = this._resolveStatsSystem()
   }
 
   private _resolveSkillsSystem(): SkillsSystem {
@@ -53,6 +55,22 @@ export class MonthlySettlementSystem {
     const existing = this.world.getSystem(EventQueueSystem)
     if (existing) return existing
     const created = new EventQueueSystem()
+    this.world.addSystem(created)
+    return created
+  }
+
+  private _resolveActionSystem(): ActionSystem {
+    const existing = this.world.getSystem(ActionSystem)
+    if (existing) return existing
+    const created = new ActionSystem()
+    this.world.addSystem(created)
+    return created
+  }
+
+  private _resolveStatsSystem(): StatsSystem {
+    const existing = this.world.getSystem(StatsSystem)
+    if (existing) return existing
+    const created = new StatsSystem()
     this.world.addSystem(created)
     return created
   }
@@ -111,6 +129,9 @@ export class MonthlySettlementSystem {
     }
     finance.lastMonthlySettlement = lastSettlement
 
+    // Обработка подписок на действия (ежемесячные эффекты и списания)
+    this.actionSystem.processSubscriptions()
+
     if (((finance.reserveFund as number) ?? 0) < monthlyTotal * 0.35) {
       this._queuePendingEvent(cloneQueuedEventTemplate(EVENT_FINANCE_RESERVE_WARNING) as unknown as Record<string, unknown>)
     }
@@ -151,4 +172,5 @@ export class MonthlySettlementSystem {
     return new Intl.NumberFormat('ru-RU').format(value)
   }
 }
+
 

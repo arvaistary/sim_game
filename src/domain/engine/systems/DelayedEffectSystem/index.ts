@@ -8,9 +8,6 @@ import type { GameWorld } from '../../world'
 import { SkillsSystem } from '../SkillsSystem'
 import { PersonalitySystem } from '../PersonalitySystem'
 import { StatsSystem } from '../StatsSystem'
-import type { DelayedEffectEntry, DelayedEffectsComponent } from './index.types'
-
-let _nextEffectId = 0
 
 /**
  * Система отложенных последствий
@@ -29,6 +26,7 @@ export class DelayedEffectSystem {
   private skillsSystem!: SkillsSystem
   private personalitySystem!: PersonalitySystem
   private statsSystem!: StatsSystem
+  private nextEffectId = 0
 
   init(world: GameWorld): void {
     this.world = world
@@ -65,7 +63,7 @@ export class DelayedEffectSystem {
 
     const fullEntry: DelayedEffectEntry = {
       ...entry,
-      id: `de_${++_nextEffectId}_${Date.now()}`,
+      id: `de_${++this.nextEffectId}_${Date.now()}`,
       triggered: false,
     }
 
@@ -98,6 +96,21 @@ export class DelayedEffectSystem {
     const component = this._getComponent()
     if (!component) return []
     return [...component.pending]
+  }
+
+  /**
+   * Отменить запланированный эффект по ID.
+   * Returns true если эффект был найден и удалён.
+   */
+  cancelEffect(effectId: string): boolean {
+    const component = this._getComponent()
+    if (!component) return false
+
+    const index = component.pending.findIndex(e => e.id === effectId && !e.triggered)
+    if (index === -1) return false
+
+    component.pending.splice(index, 1)
+    return true
   }
 
   // ─── Приватные методы ─────────────────────────────────────────────

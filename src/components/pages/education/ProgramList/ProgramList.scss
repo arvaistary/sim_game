@@ -25,6 +25,17 @@
   cursor: not-allowed
 }
 
+.program-card.age-locked {
+  opacity: .45;
+  cursor: not-allowed;
+  border: 1px dashed var(--color-text-secondary)
+}
+
+.program-card.age-locked:hover {
+  transform: none;
+  box-shadow: none
+}
+
 .program-header {
   display: flex;
   justify-content: space-between;
@@ -69,4 +80,16 @@
   font-size: $font-size-xs;
   color: var(--color-brand-accent);
   font-weight: $font-weight-medium
+}
+
+.age-tag {
+  background: var(--color-pastel-yellow, #fef3cd);
+  color: var(--color-text-secondary)
+}
+
+.program-lock-reason {
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+  margin-top: $space-1;
+  font-style: italic
 }

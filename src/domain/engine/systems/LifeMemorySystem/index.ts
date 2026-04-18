@@ -4,11 +4,10 @@ import {
   TIME_COMPONENT,
 } from '../../components'
 import type { GameWorld } from '../../world'
-import type { LifeMemoryEntry, LifeMemoryComponent } from '@/domain/balance/types/life-memory'
+import type { LifeMemoryEntry, LifeMemoryComponent, MemoryStats } from '@/domain/balance/types/life-memory'
+import { telemetryInc } from '../../utils/telemetry'
 
 const MAX_MEMORIES = 500
-
-let _nextMemoryId = 0
 
 /**
  * Система памяти персонажа
@@ -32,8 +31,6 @@ export class LifeMemorySystem {
     this._subscribeToDelayedEffects()
   }
 
-
-
   /**
    * Записать воспоминание.
    * Автоматически заполняет gameDay из TIME_COMPONENT.
@@ -54,9 +51,14 @@ export class LifeMemorySystem {
 
     component.memories.push(fullEntry)
     if (component.memories.length > MAX_MEMORIES) {
+      const trimmed = component.memories.length - MAX_MEMORIES
       component.memories = component.memories.slice(-MAX_MEMORIES)
+      telemetryInc('life_memory_trimmed', trimmed)
     }
     this._recalculateChildhoodScore(component)
+
+    telemetryInc('life_memory_recorded')
+    this._emitMemoryActivity(fullEntry)
 
     return fullEntry
   }
@@ -142,10 +144,91 @@ export class LifeMemorySystem {
     const memory = component.memories.find(m => m.id === memoryId)
     if (!memory) return false
     memory.active = false
+    telemetryInc('life_memory_deactivated')
     return true
   }
 
+  /**
+   * Агрегаты по всем воспоминаниям: количество, активные, по тегам и возрастным диапазонам.
+   */
+  getMemoryStats(): MemoryStats {
+    const component = this._getComponent()
+    if (!component) {
+      return {
+        total: 0,
+        active: 0,
+        byTag: {},
+        byAgeRange: { child: 0, adolescent: 0, adult: 0 },
+      }
+    }
+
+    const byTag: Record<string, number> = {}
+    const byAgeRange = { child: 0, adolescent: 0, adult: 0 }
+    let active = 0
+
+    for (const m of component.memories) {
+      if (m.active) active += 1
+      for (const t of m.tags) {
+        byTag[t] = (byTag[t] ?? 0) + 1
+      }
+      if (m.age < 13) byAgeRange.child += 1
+      else if (m.age < 18) byAgeRange.adolescent += 1
+      else byAgeRange.adult += 1
+    }
+
+    return {
+      total: component.memories.length,
+      active,
+      byTag,
+      byAgeRange,
+    }
+  }
+
+  /**
+   * Топ воспоминаний по значимости (эмоциональный вес) или по возрасту на момент события (новее — выше).
+   */
+  getTopMemories(count: number, by: 'emotionalWeight' | 'age' = 'emotionalWeight'): LifeMemoryEntry[] {
+    const component = this._getComponent()
+    if (!component || count <= 0) return []
+
+    const sorted = [...component.memories].sort((a, b) => {
+      if (by === 'age') {
+        if (b.age !== a.age) return b.age - a.age
+        return b.gameDay - a.gameDay
+      }
+      if (b.emotionalWeight !== a.emotionalWeight) {
+        return b.emotionalWeight - a.emotionalWeight
+      }
+      return b.gameDay - a.gameDay
+    })
+
+    return sorted.slice(0, count)
+  }
+
   // ─── Приватные методы ─────────────────────────────────────────────
+
+  private _emitMemoryActivity(entry: LifeMemoryEntry): void {
+    const bus = this.world?.eventBus
+    if (!bus) return
+
+    bus.dispatchEvent(new CustomEvent('activity:event', {
+      detail: {
+        category: 'life_memory',
+        title: `Memory — ${entry.summary}`,
+        description: entry.summary,
+        icon: null,
+        metadata: {
+          memoryId: entry.id,
+          age: entry.age,
+          gameDay: entry.gameDay,
+          emotionalWeight: entry.emotionalWeight,
+          tags: entry.tags,
+          sourceEventId: entry.sourceEventId ?? null,
+          active: entry.active,
+        },
+      },
+    }))
+  }
 
   /**
    * Подписаться на доменное событие delayed_effect:triggered.
@@ -186,11 +269,13 @@ export class LifeMemorySystem {
 
     if (childhoodMemories.length === 0) {
       component.childhoodScore = 0
+      telemetryInc('life_memory_childhood_score')
       return
     }
 
     const sum = childhoodMemories.reduce((acc, m) => acc + m.emotionalWeight, 0)
     component.childhoodScore = Math.round(sum / childhoodMemories.length)
+    telemetryInc('life_memory_childhood_score')
   }
 
   /**

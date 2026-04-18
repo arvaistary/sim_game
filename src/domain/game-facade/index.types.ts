@@ -19,6 +19,8 @@ import type { StatsSystem } from '@/domain/engine/systems/StatsSystem'
 import type { TagsSystem } from '@/domain/engine/systems/TagsSystem'
 import type { TimeSystem } from '@/domain/engine/systems/TimeSystem'
 import type { WorkPeriodSystem } from '@/domain/engine/systems/WorkPeriodSystem'
+import type { MigrationSystem } from '@/domain/engine/systems/MigrationSystem'
+import type { PersistenceSystem } from '@/domain/engine/systems/PersistenceSystem'
 import type { GameWorld } from '@/domain/engine/world'
 
 export type AnyRecord = Record<string, unknown>
@@ -47,4 +49,6 @@ export interface SystemContext {
   tags: TagsSystem
   time: TimeSystem
   workPeriod: WorkPeriodSystem
+  migration: MigrationSystem
+  persistence: PersistenceSystem
 }

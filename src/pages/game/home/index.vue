@@ -3,6 +3,7 @@
     <SectionHeader title="Дом" subtitle="Действия для обустройства дома и комфорта" />
     <ActionCardList
       :actions="actions"
+      :empty-text="actionsEmptyHint"
       :is-disabled="isDisabled"
       button-label="Применить"
       :show-price-when-zero="true"
@@ -22,7 +23,7 @@ import type { BalanceAction } from '@/domain/balance/actions'
 
 definePageMeta({ middleware: 'game-init' })
 
-const { getActionsByCategory, canExecute, executeAction } = useActions()
+const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 
 const actions = getActionsByCategory('home' as any)
 

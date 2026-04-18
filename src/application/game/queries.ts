@@ -12,6 +12,9 @@ export const appGameQueries = {
   canStartEducationProgram(world: GameWorld, programId: string): boolean {
     return gameQueries.canStartEducationProgram(world, programId)
   },
+  canStartEducationProgramWithReason(world: GameWorld, programId: string): { ok: boolean; reason?: string } {
+    return gameQueries.canStartEducationProgramWithReason(world, programId)
+  },
   getFinanceOverview(world: GameWorld) {
     return gameQueries.getFinanceOverview(world)
   },

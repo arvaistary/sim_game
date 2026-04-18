@@ -16,13 +16,8 @@ export interface PersonalityAxisState {
   lastUpdateAt: number
 }
 
-export interface PersonalityTrait {
-  id: string
-  name: string
-  description: string
-  axis: PersonalityAxis
-  threshold: number
-  modifiers: Record<string, number>
+/** Экземпляр черты на сущности игрока (определение из баланса + runtime-поля). */
+export type PersonalityTrait = PersonalityTraitDef & {
   unlocked: boolean
   unlockedAt?: number
 }

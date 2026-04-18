@@ -1,4 +1,4 @@
-# План-карта выполнения всех планов
+﻿# План-карта выполнения всех планов
 
 ## Статус: Master execution roadmap (единая очередь работ)
 
@@ -86,7 +86,7 @@
       4. `finance-economy-system-refresh-plan.md`
    - **Выполнено (2026-04-16):**
      - **Stats:** удалены дубли `_applyStatChanges`/`_clamp` из 5 систем, все через canonical StatsSystem
-     - **Persistence:** обновлена версия до 1.2.0, добавлена валидация и backup при corruption
+     - **Persistence:** `MigrationSystem` — единая точка миграций; `PersistenceSystem` делегирует, registry-based `syncFromWorld`, усиленная `validateSave`, backup при corruption; `game.store` + `system-context` подключают миграции для ECS и плоского save (см. `persistence-migration-refresh-plan.md`)
      - **Work/Career:** созданы shared helpers, удалены дубли, TimeSystem через прямую ссылку
      - **Finance:** удалены new SkillsSystem/EventQueueSystem, все через canonical
      - **Тесты:** 114 passed, 0 failed
@@ -121,20 +121,20 @@
    - Проверка, что age-gating консистентен с actions/education/school/personality.
    - **Выполнено (2026-04-16):**
      - BUGFIX: исправлен критический баг маппинга TEEN (13-15 лет теперь корректно возвращается)
-     - Добавлен ageGroup во все 207 действий в 9 файлах (fun, health, selfdev, hobby, home, career, shop, social, finance)
+     - Добавлен `ageGroup` всем player-facing действиям: **244** в **10** файлах (fun, health, selfdev, hobby, home, career, shop, social, finance, **education**) плюс **71** в `child-actions.ts`; в `fun-actions.ts` после удаления сна остаётся 42 действия
      - Удалены sleep-actions (fun_sleep_8h, fun_short_sleep) из action-слоя
      - Удалены requiresRelationship из семейных социальных действий
      - Исправлены импорты AgeGroup во всех файлах
      - Тесты: 114 passed, 0 failed
 
 7. **Фаза 6 — Final sync and rollout** ✅ Завершено (2026-04-16)
-    - Финальная консолидация в `system-sync-plan.md`.
-    - Подтверждение master DoD и rollout-gates.
+    - Финальная консолидация в `system-sync-plan.md` (контракты + сводка фаз 0–5; отдельно — расширенный DoD и Wave C как бэклог).
+    - Подтверждение master DoD **roadmap** (6 фаз, Gate A–E) и rollout-gates на дату среза.
     - **Выполнено (2026-04-16):**
-      - system-sync-plan.md обновлён с фактическим состоянием всех 6 фаз
-      - Master DoD выполнен: все 6 фаз завершены, все Gate критерии пройдены
-      - Rollout readiness подтверждён: тесты стабильны (114 passed, 0 failed)
-      - Итоговый прогресс: 6 из 6 фаз завершено (100%)
+      - `system-sync-plan.md` обновлён с фактическим состоянием фаз 0–5 и пояснением к Фазе 6
+      - По roadmap: все 6 фаз и Gate A–E отмечены выполненными
+      - Зафиксирован тестовый baseline среза: **114 passed, 0 failed** — перед релизом перезапускать `npm test` на актуальной ветке
+      - Итоговый прогресс по карте: 6 из 6 фаз (100%)
 
 ---
 
@@ -232,10 +232,10 @@ flowchart TD
 ### Gate E (финальный) ✅ Пройден
 
 - `system-sync-plan.md` обновлён фактическим состоянием.
-- Master DoD выполнен.
-- Rollout readiness подтверждён.
+- **DoD план-карты** (6 фаз + gates) выполнен на дату среза; **расширенный DoD** `system-sync-plan.md` (Wave C, E2E unlock) см. отдельный чеклист там.
+- Rollout readiness подтверждён по отчёту среза; на другой ветке — перепроверка `npm test` / CI.
 - **Execution details:**
-  - Product alignment завершен: age-gating консистентен, все 207 действий имеют ageGroup
+  - Product alignment завершен: age-gating консистентен, все целевые действия каталога имеют `ageGroup` (см. фактические числа в Фазе 5)
   - BUGFIX: TEEN маппинг исправлен, sleep-actions удалены из action-слоя
   - Tests: 114 passed, 0 failed
 
@@ -255,12 +255,12 @@ flowchart TD
 
 ### Ключевые результаты
 
-- Все 6 фаз завершены: **100%**
-- Все Gate критерии пройдены: 5/5 gates ✅
-- Master DoD выполнен полностью ✅
-- Rollout readiness подтверждён ✅
-- Тестовая стабильность: 114 passed, 0 failed
-- Продукт готов к развертыванию ✅
+- Все 6 фаз roadmap завершены: **100%**
+- Все Gate критерии (A–E) пройдены: 5/5 gates ✅
+- **DoD этой план-карты** (6 фаз + gates) выполнен на дату среза; расширенный DoD в `system-sync-plan.md` (Wave C, E2E unlock) может оставаться бэклогом — см. чеклист там
+- Rollout readiness по отчёту среза подтверждён ✅
+- Тестовый baseline среза 2026-04-16: **114 passed, 0 failed** — на другой ветке перезапускать `npm test`
+- Готовность к развёртыванию оценивать по актуальным тестам и CI, не только по этой цифре
 
 ---
 
@@ -322,3 +322,4 @@ flowchart TD
 - [x] Добавлена оценка времязатрат по фазам и критическому пути.
 - [x] Указан финальный цикл синхронизации через `system-sync-plan.md`.
 - [x] Карта годится как рабочий порядок для команды.
+

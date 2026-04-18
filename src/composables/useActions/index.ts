@@ -10,7 +10,13 @@ import type { ActionCategory } from '@/domain/balance/types'
 export function useActions() {
   const store = useGameStore()
   const toast = useToast()
-  const { filterActionsByAge } = useAgeRestrictions()
+  const { filterActionsByAge, ageGroupLabel } = useAgeRestrictions()
+
+  /** Подсказка при пустом списке после age-gating и прочих фильтров */
+  const actionsEmptyHint = computed(
+    () =>
+      `Для этапа «${ageGroupLabel.value}» сейчас нет доступных действий в этом разделе. Часть активностей откроется в следующих возрастных группах.`,
+  )
 
   function canExecute(actionId: string): boolean {
     return store.canExecuteAction(actionId).canExecute
@@ -56,6 +62,7 @@ export function useActions() {
     executeAction,
     getActionsByCategory: getActions,
     allCategories,
+    actionsEmptyHint,
   }
 }
 

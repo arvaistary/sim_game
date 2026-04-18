@@ -3,6 +3,8 @@
  * Старт новой игры: initial-save.js → legacy DEFAULT_SAVE в game-state.js
  */
 
+import type { CharacterTag } from '../types'
+
 export interface SaveData {
   version: string
   playerName: string
@@ -29,6 +31,8 @@ export interface SaveData {
   pendingEvents: unknown[]
   lifetimeStats: LifetimeStatsData
   stats: StatsData
+  /** ECS-компонент тегов (временные модификаторы); опционально в старых сейвах. */
+  tags?: { items: CharacterTag[] }
 }
 
 export interface TimeData {

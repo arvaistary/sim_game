@@ -17,20 +17,11 @@
 <script setup lang="ts">
 import ActionCard from '@/components/game/ActionCard/ActionCard.vue'
 import EmptyState from '@/components/game/EmptyState/EmptyState.vue'
-
-interface ActionItem {
-  id: string
-  title: string
-  price: number
-  effect: string
-  mood?: string
-  hourCost?: number
-  [key: string]: unknown
-}
+import type { BalanceAction } from '@/domain/balance/actions/types'
 
 withDefaults(defineProps<{
-  actions: ActionItem[]
-  isDisabled: (action: ActionItem) => boolean
+  actions: BalanceAction[]
+  isDisabled: (action: BalanceAction) => boolean
   buttonLabel?: string
   showPriceWhenZero?: boolean
   useFormatEffect?: boolean

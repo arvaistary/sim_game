@@ -1,4 +1,4 @@
-import type { BalanceAction } from './types'
+﻿import type { BalanceAction } from './types'
 import { AgeGroup } from './types'
 
 export type { BalanceAction }
@@ -38,7 +38,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -18, Энергия -3, Стресс -3.5, Настроение +6, Здоровье +0.8, Физическая форма -0.5, Комфорт жилья +8',
     mood: '🛒 Запас еды на несколько дней — спокойствие в холодильнике',
-    ageGroup: AgeGroup.INFANT,
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_healthy_food',
@@ -50,7 +50,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -19, Энергия +2.5, Стресс -5, Настроение +7, Здоровье +5.5, Физическая форма +3.2',
     mood: '🥗 Овощи и фрукты — инвестиция в самочувствие',
-    ageGroup: AgeGroup.INFANT,
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'shop_junk_food',
@@ -86,7 +86,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1.5, Энергия -2, Стресс -4, Настроение +3, Комфорт жилья +8',
     mood: '🧹 Чистящие средства — порядок в доме начинается с них',
-    ageGroup: AgeGroup.CHILD,
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_clothes',
@@ -111,7 +111,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.8, Энергия +8.5, Стресс -2, Настроение +4.5, Здоровье +3.5, Физическая форма +7.5',
     mood: '💪 Протеин и добавки — поддержка для тренировок',
-    ageGroup: AgeGroup.TEEN,
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_books',
@@ -176,7 +176,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -25, Энергия -5.5, Стресс -6, Настроение +8.5, Здоровье +1.5, Физическая форма -0.8, Комфорт жилья +10',
     mood: '🛒 Полный холодильник — ощущение стабильности',
-    ageGroup: AgeGroup.CHILD,
+    ageGroup: AgeGroup.YOUNG,
   },
   {
     id: 'shop_seeds_plants',
@@ -203,7 +203,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.1, Энергия +4.5, Стресс -5.5, Настроение +7.5, Здоровье +0.8, Физическая форма -0.4, Комфорт жилья +18',
     mood: '🔌 Новая техника сильно упрощает быт',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'shop_cosmetics',
@@ -354,7 +354,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +2.2, Энергия -3, Стресс -9.5, Настроение +5.5, Здоровье -0.3, Физическая форма -0.5',
     mood: '🚗 Уход за машиной приносит спокойствие',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'shop_online_subscription',
@@ -368,7 +368,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод +1, Энергия -1.5, Стресс -5, Настроение +8.5, Здоровье -0.1, Физическая форма -0.2, Креативность +1',
     mood: '📱 Подписка — бесконечный доступ к контенту',
-    ageGroup: AgeGroup.CHILD,
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'shop_luxury_dinner',
@@ -380,7 +380,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     actionType: 'shopping',
     effect: 'Голод -32, Энергия -2.5, Стресс -9.5, Настроение +19.5, Здоровье +1.5, Физическая форма -0.5',
     mood: '🍽️ Роскошный ужин дома — маленькая радость жизни',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'shop_fitness_membership',
@@ -412,7 +412,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     effect: 'Голод +3.5, Энергия -4, Стресс -12, Настроение +18, Здоровье +2.5, Физическая форма +1.5, Комфорт жилья +10',
     mood: '🐾 Питомец приносит любовь и ответственность',
     requirements: { housingLevel: 1 }, // рекомендуется добавить требование к жилью
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'shop_healthy_delivery',

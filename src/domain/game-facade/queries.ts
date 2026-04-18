@@ -18,6 +18,13 @@ export const gameQueries = {
     if (!program) return false
     return ctx.education.canStartEducationProgram(program).ok
   },
+  canStartEducationProgramWithReason(world: GameWorld, programId: string): { ok: boolean; reason?: string } {
+    const ctx = getSystemContext(world)
+    const programs = ctx.education.getEducationPrograms()
+    const program = programs.find(p => p.id === programId)
+    if (!program) return { ok: false, reason: 'Программа не найдена' }
+    return ctx.education.canStartEducationProgram(program)
+  },
   getFinanceOverview(world: GameWorld) {
     const ctx = getSystemContext(world)
     return ctx.financeAction.getFinanceOverview()

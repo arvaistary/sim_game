@@ -1,4 +1,5 @@
 import type { EducationProgram } from '@/domain/balance/types'
+import { AgeGroup } from '@/domain/balance/actions/types'
 
 export const EDUCATION_PROGRAMS: EducationProgram[] = [
   {
@@ -14,7 +15,8 @@ export const EDUCATION_PROGRAMS: EducationProgram[] = [
     completionStatChanges: { stress: -6, mood: 4 },
     completionSkillChanges: { timeManagement: 2, discipline: 1 },
     description: 'Короткая, но очень практичная книга, которая помогает перестать тратить время впустую.',
-    minAge: 13,
+    minAgeGroup: AgeGroup.TEEN,
+    ageReason: 'Осознанный навык самоорганизации, книга про self-management',
   },
   {
     id: 'online_productivity_course',
@@ -29,7 +31,8 @@ export const EDUCATION_PROGRAMS: EducationProgram[] = [
     completionStatChanges: { mood: 10, stress: -7, energy: 5 },
     completionSkillChanges: { professionalism: 2, timeManagement: 2, discipline: 1 },
     description: 'Практический курс с видео, заданиями и чек-листами. Даёт ощутимый прирост организованности.',
-    minAge: 13,
+    minAgeGroup: AgeGroup.YOUNG,
+    ageReason: 'Уже заметно adult-coded продукт, системный подход к продуктивности',
   },
   {
     id: 'institute_retraining',
@@ -46,7 +49,8 @@ export const EDUCATION_PROGRAMS: EducationProgram[] = [
     salaryMultiplierDelta: 0.08,
     educationLevel: 'Высшее',
     description: 'Полноценная переподготовка с дипломом. Долгий, но надёжный путь к более высокой должности и зарплате.',
-    minAge: 18,
+    minAgeGroup: AgeGroup.ADULT,
+    ageReason: 'Формальное карьерное обучение, даёт образование: Высшее, повышает зарплату',
   },
 
   // ───── Новые осознанные образовательные программы ─────
@@ -63,7 +67,8 @@ export const EDUCATION_PROGRAMS: EducationProgram[] = [
     completionStatChanges: { mood: 9, stress: -6 },
     completionSkillChanges: { communication: 3, charisma: 1 },
     description: 'Интенсивный курс с носителем языка. Значительно улучшает навык общения.',
-    minAge: 13,
+    minAgeGroup: AgeGroup.TEEN,
+    ageReason: 'Реалистично с подросткового возраста, языковые интенсивы распространены',
   },
   {
     id: 'public_speaking_course',
@@ -78,7 +83,8 @@ export const EDUCATION_PROGRAMS: EducationProgram[] = [
     completionStatChanges: { stress: -8, mood: 11 },
     completionSkillChanges: { charisma: 3, communication: 2 },
     description: 'Практический курс с выступлениями, разбором и обратной связью.',
-    minAge: 13,
+    minAgeGroup: AgeGroup.TEEN,
+    ageReason: 'Подходит подросткам и взрослым',
   },
   {
     id: 'financial_literacy_intensive',
@@ -93,6 +99,7 @@ export const EDUCATION_PROGRAMS: EducationProgram[] = [
     completionStatChanges: { stress: -10, mood: 7 },
     completionSkillChanges: { financialLiteracy: 4, analyticalThinking: 2 },
     description: 'Практический курс, после которого вы перестаёте бояться денег и начинаете ими управлять.',
-    minAge: 13,
+    minAgeGroup: AgeGroup.YOUNG,
+    ageReason: 'Уже ближе к личным финансам взрослого уровня, инвестиционный фокус',
   },
 ]

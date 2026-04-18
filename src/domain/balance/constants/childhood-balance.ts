@@ -1,4 +1,4 @@
-import { AgeGroup } from '@/domain/balance/actions/types'
+﻿import { AgeGroup } from '@/domain/balance/actions/types'
 
 // ─── Таблица получения навыка за действие по возрасту ───────────────
 
@@ -38,12 +38,12 @@ export const EVENT_PROBABILITY = {
  */
 export const AGE_GROUP_RANGES: Record<number, { min: number; max: number }> = {
   [AgeGroup.INFANT]:  { min: 0, max: 3 },
-  [AgeGroup.TODDLER]: { min: 1, max: 3 },
-  [AgeGroup.CHILD]:   { min: 4, max: 7 },
-  [AgeGroup.KID]:     { min: 8, max: 12 },
+  [AgeGroup.TODDLER]: { min: 4, max: 7 },
+  [AgeGroup.CHILD]:   { min: 8, max: 12 },
+  [AgeGroup.KID]:     { min: 8, max: 12 },  // legacy
   [AgeGroup.TEEN]:    { min: 13, max: 15 },
   [AgeGroup.YOUNG]:   { min: 16, max: 18 },
-  [AgeGroup.ADULT]:   { min: 18, max: 100 },
+  [AgeGroup.ADULT]:   { min: 19, max: 100 },
 }
 
 // ─── Множитель опыта для детских навыков ────────────────────────────

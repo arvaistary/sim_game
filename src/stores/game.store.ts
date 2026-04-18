@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { shallowRef, computed, triggerRef, ref, watch } from 'vue'
 import { GameWorld } from '../domain/engine/world'
 import { createWorldFromSave, resetSystemContext } from '../domain/game-facade'
+import { MigrationSystem } from '../domain/engine/systems/MigrationSystem'
+import { PersistenceSystem } from '../domain/engine/systems/PersistenceSystem'
 import { appGameCommands, appGameQueries } from '@/application/game'
 import { PLAYER_ENTITY } from '../domain/engine/components/index'
 import type { RecoveryCard } from '../domain/balance/types'
@@ -18,6 +20,11 @@ import type {
   ActivityLogEntry,
 } from '../domain/engine/types'
 import type { ExecuteActionCommandResult } from '@/domain/game-facade/commands'
+import { ActionSystem } from '../domain/engine/systems/ActionSystem'
+
+function isEngineWorldSnapshot(data: Record<string, unknown>): boolean {
+  return Array.isArray(data.entities)
+}
 
 export const useGameStore = defineStore('game', () => {
   const saveRepository = new LocalStorageSaveRepository()
@@ -115,7 +122,6 @@ export const useGameStore = defineStore('game', () => {
 
   const money = computed(() => {
     const val = wallet.value?.money ?? 0
-    console.log('[store.money] bump triggered, value =', val)
     return val
   })
   const gameDays = computed(() => {
@@ -165,25 +171,45 @@ export const useGameStore = defineStore('game', () => {
   function bumpWorldVersion() {
     worldVersion.value++
     triggerRef(world)
+    
+    // Обновляем кэш доступности действий
+    if (world.value) {
+      const actionSystem = world.value.getSystem(ActionSystem) as ActionSystem | undefined
+      if (actionSystem && typeof actionSystem.updateWorldVersion === 'function') {
+        actionSystem.updateWorldVersion(worldVersion.value)
+      }
+    }
   }
 
   function save() {
     if (!world.value) return
+    const migration = new MigrationSystem()
+    migration.init(world.value)
     const snapshot = world.value.toJSON() as Record<string, unknown>
     snapshot.playerName = playerName.value
-    saveRepository.save(snapshot)
+    ;(snapshot as Record<string, unknown>).saveMigrationVersion = migration.getCurrentVersion()
+    const stamped = migration.migrateEngineSnapshot(snapshot as Record<string, unknown>) as Record<string, unknown>
+    saveRepository.save(stamped)
   }
 
   function load(): boolean {
     const data = saveRepository.load()
     if (!data || !world.value) return false
-    const savedName = data.playerName
+    const savedName = data.playerName as string | undefined
 
-    // Сбрасываем кэш систем перед загрузкой, чтобы старые системы
-    // (с подписками на eventBus) были заменены новыми.
-    resetSystemContext(world.value)
+    const migration = new MigrationSystem()
+    migration.init(world.value)
 
-    world.value.fromJSON(data as Parameters<GameWorld['fromJSON']>[0])
+    if (isEngineWorldSnapshot(data)) {
+      resetSystemContext(world.value)
+      const prepared = migration.migrateEngineSnapshot(data as Record<string, unknown>) as Parameters<GameWorld['fromJSON']>[0]
+      world.value.fromJSON(prepared)
+    } else {
+      const persistence = new PersistenceSystem(migration)
+      const hydrated = persistence.hydrateFromRecord(data as Record<string, unknown>, JSON.stringify(data))
+      resetSystemContext(world.value)
+      world.value = createWorldFromSave(hydrated as unknown as Record<string, unknown>)
+    }
 
     // Заменяем eventBus, чтобы обработчики удалённых систем
     // больше не получали события (предотвращает дубликаты в журнале).
@@ -239,6 +265,11 @@ export const useGameStore = defineStore('game', () => {
   function canStartEducationProgram(programId: string): boolean {
     if (!world.value) return false
     return appGameQueries.canStartEducationProgram(world.value, programId)
+  }
+
+  function canStartEducationProgramWithReason(programId: string): { ok: boolean; reason?: string } {
+    if (!world.value) return { ok: false, reason: 'Мир не инициализирован' }
+    return appGameQueries.canStartEducationProgramWithReason(world.value, programId)
   }
 
   function startEducationProgram(programId: string): string {
@@ -389,6 +420,7 @@ export const useGameStore = defineStore('game', () => {
     getCareerTrack,
     getActivityLogEntries,
     canStartEducationProgram,
+    canStartEducationProgramWithReason,
     startEducationProgram,
     advanceEducation,
     getFinanceOverview,

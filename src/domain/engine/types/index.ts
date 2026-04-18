@@ -2,6 +2,9 @@
  * TypeScript типы для ECS-архитектуры
  */
 
+import type { CharacterTag } from '@/domain/balance/types'
+import type { PersonalityComponent } from '@/domain/balance/types/personality'
+
 export type LegacyComponentKey =
   | 'time'
   | 'stats'
@@ -25,6 +28,9 @@ export type LegacyComponentKey =
   | 'completedActions'
   | 'credits'
   | 'activity_log'
+  | 'school'
+  | 'personality'
+  | 'tags'
 
 export type CanonicalComponentKey =
   | 'time'
@@ -49,6 +55,9 @@ export type CanonicalComponentKey =
   | 'completedActions'
   | 'credits'
   | 'activityLog'
+  | 'school'
+  | 'personality'
+  | 'tags'
 
 export type ComponentKey = LegacyComponentKey | CanonicalComponentKey
 
@@ -79,6 +88,10 @@ export interface TimeComponent {
     lastMonthlyEventMonth: number
     lastYearlyEventYear: number
     jobRehireBlockedUntilWeekByJobId?: Record<string, number>
+    // Period dedup keys для предотвращения дублирования period-driven событий
+    processedWeeklyEvents: Set<string> // format: "templateId:year:week"
+    processedMonthlyEvents: Set<string> // format: "templateId:year:month"
+    processedYearlyEvents: Set<string> // format: "templateId:year"
   }
 }
 
@@ -173,6 +186,16 @@ export interface EducationComponent {
   activeCourses: unknown[]
 }
 
+export interface SchoolComponent {
+  enrolled: boolean
+  grade: number
+  attendance: number
+  grades: Record<number, number>
+  skippedDays: number
+  lastAttendedDay: number
+  enrolledAt: number
+}
+
 export interface HousingComponent {
   level: number
   name: string
@@ -210,19 +233,84 @@ export interface InvestmentPortfolio {
 
 export interface EventQueueItem {
   id: string
+  instanceId: string
   type: string
   title: string
   description: string
   choices?: EventChoice[]
   data?: Record<string, unknown>
   day: number
+  week?: number
+  month?: number
+  year?: number
 }
 
 export interface EventChoice {
   id: string
   text: string
-  effects: Record<string, number>
+  effects?: Record<string, number>
+  outcome?: string
+  skillCheck?: {
+    key: string
+    threshold: number
+    successStatChanges?: Record<string, number>
+    failStatChanges?: Record<string, number>
+    successMoneyDelta?: number
+    failMoneyDelta?: number
+  }
 }
+
+/**
+ * Приоритеты событий для очереди
+ */
+export type EventPriority = 'critical' | 'high' | 'normal' | 'low'
+
+/**
+ * Источник события
+ */
+export type EventSource =
+  | 'time_micro'
+  | 'monthly_finance'
+  | 'work_period'
+  | 'manual'
+  | 'chain_resolver'
+  | 'delayed_effect'
+  | 'other'
+
+/**
+ * Снимок времени для детерминированного instanceId
+ */
+export interface TimeSnapshot {
+  totalHours: number
+  day: number
+  week: number
+  month: number
+  year: number
+}
+
+/**
+ * DTO для входа события в систему (EventIngress API)
+ */
+export interface EventIngressDTO {
+  source: EventSource
+  templateId: string
+  priority?: EventPriority
+  instanceId?: string // Если не указан, будет сгенерирован детерминированно
+  timeSnapshot: TimeSnapshot
+  title: string
+  description: string
+  type: string
+  choices?: EventChoice[]
+  meta?: Record<string, unknown>
+}
+
+/**
+ * Результат добавления события в очередь
+ */
+export type EventIngressResult =
+  | { status: 'accepted'; instanceId: string }
+  | { status: 'rejected_duplicate'; instanceId: string; reason: string }
+  | { status: 'rejected_invalid_payload'; reason: string }
 
 export interface EventQueueComponent {
   queue: EventQueueItem[]
@@ -230,15 +318,22 @@ export interface EventQueueComponent {
 }
 
 export interface EventHistoryEntry {
-  eventId: string
+  instanceId: string
+  templateId: string
   day: number
+  week?: number
+  month?: number
+  year?: number
   choiceId?: string
+  choiceText?: string
   effects?: Record<string, number>
+  resolvedAt?: number // timestamp
 }
 
 export interface EventHistoryComponent {
-  events: unknown[]
+  events: EventHistoryEntry[]
   totalEvents?: number
+  seenInstanceIds?: Set<string> // Bounded index for O(1) dedup
 }
 
 export interface LifetimeStatsComponent {
@@ -309,6 +404,10 @@ export interface ActivityLogComponent {
   totalEntries: number
 }
 
+export interface TagsComponent {
+  items: CharacterTag[]
+}
+
 export interface ComponentDataMap {
   time: TimeComponent
   stats: StatsComponent
@@ -336,6 +435,9 @@ export interface ComponentDataMap {
   credits: CreditComponent
   activity_log: ActivityLogComponent
   activityLog: ActivityLogComponent
+  school: SchoolComponent
+  personality: PersonalityComponent
+  tags: TagsComponent
 }
 
 export interface GameSystem {

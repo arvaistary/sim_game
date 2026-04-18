@@ -11,6 +11,8 @@ import type { GameWorld } from '../../world'
 import type { CareerJob } from '@/domain/balance/types'
 import type { CareerTrackEntry, ChangeCareerResult } from './index.types'
 import { getEducationRank, getEducationLabelByRank, formatMoney, toFiniteNumber } from '../../utils/career-helpers'
+import type { SystemContext } from '@/domain/game-facade/index.types'
+import { telemetryInc } from '../../utils/telemetry'
 
 /**
  * Система управления карьерным прогрессом
@@ -27,8 +29,11 @@ export class CareerProgressSystem {
 
   init(world: GameWorld): void {
     this.world = world
-    this.skillsSystem = new SkillsSystem()
-    this.skillsSystem.init(world)
+  }
+
+  /** Вызывается из getSystemContext после сборки контекста */
+  wireFromContext(ctx: SystemContext): void {
+    this.skillsSystem = ctx.skills
   }
 
   getCareerTrack(): CareerTrackEntry[] {
@@ -85,6 +90,8 @@ export class CareerProgressSystem {
       return ''
     }
 
+    telemetryInc('career_promotion')
+
     if (this.world && this.world.eventBus) {
       this.world.eventBus.dispatchEvent(new CustomEvent('activity:career', {
         detail: {
@@ -121,7 +128,7 @@ export class CareerProgressSystem {
         schedule: unlockedJob.schedule ?? (work.schedule as string) ?? '5/2',
       })
     }
-    this._syncCareerCurrentJob()
+    this.syncCurrentJob()
 
     return `Карьерный рост: новая должность «${unlockedJob.name}», ставка ${formatMoney(unlockedJob.salaryPerHour)} ₽ в час.`
   }
@@ -195,7 +202,12 @@ export class CareerProgressSystem {
         workedHoursCurrentWeek: 0,
       })
     }
-    this._syncCareerCurrentJob()
+    this.syncCurrentJob()
+
+    telemetryInc('career_change')
+    if (isDemotion) {
+      telemetryInc('career_demotion')
+    }
 
     if (this.world && this.world.eventBus) {
       this.world.eventBus.dispatchEvent(new CustomEvent('activity:career', {
@@ -225,7 +237,8 @@ export class CareerProgressSystem {
     return career || null
   }
 
-  _syncCareerCurrentJob(): void {
+  /** Единственный владелец синхронизации currentJob в career-компоненте */
+  syncCurrentJob(): void {
     const playerId = PLAYER_ENTITY
     const career = this.world.getComponent(playerId, CAREER_COMPONENT) as Record<string, unknown> | null
     if (!career) return
@@ -247,4 +260,5 @@ export class CareerProgressSystem {
     }
   }
 }
+
 

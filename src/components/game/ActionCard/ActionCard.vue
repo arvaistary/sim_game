@@ -27,19 +27,10 @@ import { computed } from 'vue'
 import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import GameButton from '@/components/ui/GameButton/index.vue'
 import { formatMoney, formatEffect } from '@/utils/format'
-
-interface ActionItem {
-  id: string
-  title: string
-  price: number
-  effect: string
-  mood?: string
-  hourCost?: number
-  [key: string]: unknown
-}
+import type { BalanceAction } from '@/domain/balance/actions/types'
 
 const props = withDefaults(defineProps<{
-  action: ActionItem
+  action: BalanceAction
   disabled?: boolean
   buttonLabel?: string
   showPriceWhenZero?: boolean

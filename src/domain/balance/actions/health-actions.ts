@@ -1,4 +1,4 @@
-import type { BalanceAction } from './types'
+﻿import type { BalanceAction } from './types'
 import { AgeGroup } from './types'
 
 export const HEALTH_ACTIONS: BalanceAction[] = [
@@ -62,7 +62,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +0.8, Энергия +3.5, Стресс -0.5, Настроение +1.8, Здоровье +5.5, Физическая форма +0.3',
     mood: '💊 Витамины — ежедневная поддержка организма',
-    ageGroup: AgeGroup.TODDLER,
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'health_massage_course',
@@ -110,7 +110,7 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     actionType: 'health',
     effect: 'Голод +1.2, Энергия +8.5, Стресс -6.5, Настроение +5.5, Здоровье +3.2, Физическая форма +1.8',
     mood: '🚿 Контрастный душ — бодрость и укрепление иммунитета',
-    ageGroup: AgeGroup.TODDLER,
+    ageGroup: AgeGroup.CHILD,
   },
   {
     id: 'health_breathing_exercises',

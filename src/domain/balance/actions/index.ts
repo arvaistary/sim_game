@@ -10,6 +10,8 @@ import { CAREER_ACTIONS } from './career-actions'
 import { HOBBY_ACTIONS } from './hobby-actions'
 import { HEALTH_ACTIONS } from './health-actions'
 import { SELFDEV_ACTIONS } from './selfdev-actions'
+import { CHILD_ACTIONS_REGISTERED } from './child-actions-registered'
+import { validateAction } from './action-schema'
 
 export { type BalanceAction } from './types'
 export { SHOP_ACTIONS } from './shop-actions'
@@ -22,6 +24,7 @@ export { CAREER_ACTIONS } from './career-actions'
 export { HOBBY_ACTIONS } from './hobby-actions'
 export { HEALTH_ACTIONS } from './health-actions'
 export { SELFDEV_ACTIONS } from './selfdev-actions'
+export { CHILD_ACTIONS_REGISTERED } from './child-actions-registered'
 export { ACTION_CATEGORIES } from './constants'
 
 const ALL_ACTIONS_MAP = new Map<string, BalanceAction>()
@@ -30,6 +33,9 @@ function registerActions(actions: BalanceAction[]): void {
   for (const action of actions) {
     if (ALL_ACTIONS_MAP.has(action.id)) {
       console.warn(`[Actions] Duplicate action id: ${action.id}`)
+    }
+    if (!validateAction(action)) {
+      console.warn(`[Actions] Invalid action schema: ${action.id}`)
     }
     ALL_ACTIONS_MAP.set(action.id, action)
   }
@@ -45,6 +51,7 @@ registerActions(CAREER_ACTIONS)
 registerActions(HOBBY_ACTIONS)
 registerActions(HEALTH_ACTIONS)
 registerActions(SELFDEV_ACTIONS)
+registerActions(CHILD_ACTIONS_REGISTERED)
 
 export function getActionById(id: string): BalanceAction | null {
   return ALL_ACTIONS_MAP.get(id) ?? null

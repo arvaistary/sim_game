@@ -1,5 +1,6 @@
 ﻿import { telemetryInc } from '../../utils/telemetry'
 import { getActionById, getActionsByCategory, getAllActions } from '../../../balance/actions/index'
+import { AgeGroup } from '../../../balance/actions/types'
 import { calculateStatChangesWithBreakdown } from '../../../balance/utils/hourly-rates'
 import {
   PLAYER_ENTITY,
@@ -18,11 +19,14 @@ import {
 } from '../../components/index'
 import { StatsSystem } from '../StatsSystem'
 import { SkillsSystem } from '../SkillsSystem'
+import { EventQueueSystem } from '../EventQueueSystem'
+import { AntiGrindSystem } from '../AntiGrindSystem'
 import { resolveActionLogDescription } from '../../utils/activity-log-description'
 import type { GameWorld } from '../../world'
 import { TimeSystem } from '../TimeSystem'
 import type { StatChanges } from '@/domain/balance/types'
-import type { ActionData, AvailabilityCheck, ExecuteResult } from './index.types'
+import type { ActionData, AvailabilityCheck, ExecuteResult, ActionDenyReason } from './index.types'
+import { getGlobalActionAvailabilityCache, type ActionAvailabilityCache } from './ActionAvailabilityCache'
 
 /**
  * Система выполнения действий игрока
@@ -33,14 +37,19 @@ export class ActionSystem {
   private world!: GameWorld
   private statsSystem!: StatsSystem
   private skillsSystem!: SkillsSystem
+  private eventQueueSystem!: EventQueueSystem
+  private antiGrindSystem!: AntiGrindSystem
+  private availabilityCache: ActionAvailabilityCache
 
   init(world: GameWorld): void {
     this.world = world
+    this.availabilityCache = getGlobalActionAvailabilityCache()
 
-    this.statsSystem = new StatsSystem()
-    this.statsSystem.init(world)
-    this.skillsSystem = new SkillsSystem()
-    this.skillsSystem.init(world)
+    this.statsSystem = this._resolveStatsSystem()
+    this.skillsSystem = this._resolveSkillsSystem()
+    this.eventQueueSystem = this._resolveEventQueueSystem()
+    this.antiGrindSystem = this._resolveAntiGrindSystem()
+    this.eventQueueSystem = this._resolveEventQueueSystem()
 
     this._ensureComponent(SUBSCRIPTION_COMPONENT, { items: [] })
     this._ensureComponent(COOLDOWN_COMPONENT, {})
@@ -48,10 +57,62 @@ export class ActionSystem {
   }
 
   canExecute(actionId: string): AvailabilityCheck {
+    // Проверяем кэш
+    const cached = this.availabilityCache.get(actionId)
+    if (cached) {
+      return { available: cached.available, reason: cached.reason }
+    }
+
+    // Вычисляем доступность
+    const result = this._computeAvailability(actionId)
+    
+    // Сохраняем в кэш
+    this.availabilityCache.set(actionId, {
+      available: result.available,
+      reason: result.reason,
+    })
+    
+    return result
+  }
+
+  /**
+   * Вычисляет доступность действия без использования кэша
+   */
+  private _deny(code: ActionDenyReason, reason: string): AvailabilityCheck {
+    return { available: false, reason, reasonCode: code }
+  }
+
+  private _computeAvailability(actionId: string): AvailabilityCheck {
     const action = getActionById(actionId) as ActionData | null
     if (!action) {
       telemetryInc('action_fail:not_found')
-      return { available: false, reason: 'Действие не найдено' }
+      return this._deny('not_found', 'Действие не найдено')
+    }
+
+    if (action.ageGroup !== undefined) {
+      const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown> | null
+      const currentAge = (time?.currentAge as number) ?? 0
+      const minAgeForGroup = this._getMinAgeForAgeGroup(action.ageGroup)
+      if (currentAge < minAgeForGroup) {
+        telemetryInc('action_fail:age_group')
+        return this._deny('age_group', `Доступно с ${minAgeForGroup} лет`)
+      }
+    }
+
+    const stats = this.world.getComponent(PLAYER_ENTITY, STATS_COMPONENT) as Record<string, number> | null
+    const energy = stats?.energy ?? 100
+    const hunger = stats?.hunger ?? 0
+    
+    const isSleepAction = (action.actionType || '') === 'sleep'
+    if (!isSleepAction && energy < 10) {
+      telemetryInc('action_fail:no_energy')
+      return this._deny('low_energy', 'Слишком мало энергии. Отдохните или поспите.')
+    }
+    
+    const isFoodAction = (action.category || '') === 'shop' && action.title?.toLowerCase().includes('еда')
+    if (!isFoodAction && hunger > 80) {
+      telemetryInc('action_fail:too_hungry')
+      return this._deny('high_hunger', 'Слишком голодны. Сначала поешьте.')
     }
 
     if (action.price > 0) {
@@ -59,7 +120,7 @@ export class ActionSystem {
       const money = wallet?.money ?? 0
       if (money < action.price) {
         telemetryInc('action_fail:no_money')
-        return { available: false, reason: `Не хватает денег (${action.price}₽)` }
+        return this._deny('no_money', `Не хватает денег (${action.price}₽)`)
       }
     }
 
@@ -68,10 +129,7 @@ export class ActionSystem {
       const weekLeft = timeSystem.getWeekHoursRemaining()
       if (action.hourCost > weekLeft) {
         telemetryInc('action_fail:no_time')
-        return {
-          available: false,
-          reason: `Не хватает времени в неделе (${action.hourCost} ч нужно, ${Number(weekLeft.toFixed(1))} ч осталось)`,
-        }
+        return this._deny('no_time', `Не хватает времени в неделе (${action.hourCost} ч нужно, ${Number(weekLeft.toFixed(1))} ч осталось)`)
       }
     }
 
@@ -80,7 +138,7 @@ export class ActionSystem {
       const items = (completedActions?.items as string[]) || []
       if (items.includes(actionId)) {
         telemetryInc('action_fail:already_done')
-        return { available: false, reason: 'Уже выполнено' }
+        return this._deny('one_time_used', 'Уже выполнено')
       }
     }
 
@@ -93,7 +151,7 @@ export class ActionSystem {
           if (elapsed < action.cooldown.hours) {
             const remaining = action.cooldown.hours - elapsed
             telemetryInc('action_fail:cooldown')
-            return { available: false, reason: `Кулдаун: ${remaining.toFixed(0)}ч осталось` }
+            return this._deny('cooldown', `Кулдаун: ${remaining.toFixed(0)}ч осталось`)
           }
         }
       }
@@ -107,7 +165,7 @@ export class ActionSystem {
         const currentAge = (time?.currentAge as number) ?? 0
         if (currentAge < req.minAge) {
           telemetryInc('action_fail:min_age')
-          return { available: false, reason: `Нужен возраст ${req.minAge}+` }
+          return this._deny('min_age', `Нужен возраст ${req.minAge}+`)
         }
       }
 
@@ -115,7 +173,7 @@ export class ActionSystem {
         for (const [skillKey, minValue] of Object.entries(req.minSkills)) {
           if (!this.skillsSystem.hasSkillLevel(skillKey, minValue)) {
             telemetryInc('action_fail:min_skill')
-            return { available: false, reason: `Нужен навык ${skillKey} ≥ ${minValue}` }
+            return this._deny('min_skills', `Нужен навык ${skillKey} ≥ ${minValue}`)
           }
         }
       }
@@ -124,7 +182,7 @@ export class ActionSystem {
         const housing = this.world.getComponent(PLAYER_ENTITY, HOUSING_COMPONENT) as Record<string, unknown> | null
         if (((housing?.level as number) ?? 0) < req.housingLevel) {
           telemetryInc('action_fail:housing_level')
-          return { available: false, reason: `Нужен уровень жилья ≥ ${req.housingLevel}` }
+          return this._deny('housing_level', `Нужен уровень жилья ≥ ${req.housingLevel}`)
         }
       }
 
@@ -132,7 +190,7 @@ export class ActionSystem {
         const items = this._getFurnitureItems()
         if (!items.some(item => item.id === req.requiresItem)) {
           telemetryInc('action_fail:requires_item')
-          return { available: false, reason: `Нужен предмет: ${req.requiresItem}` }
+          return this._deny('requires_item', `Нужен предмет: ${req.requiresItem}`)
         }
       }
 
@@ -143,7 +201,7 @@ export class ActionSystem {
           : ((relationships as Record<string, unknown> | null)?.level as number) > 0
         if (!hasRelationship) {
           telemetryInc('action_fail:requires_relationship')
-          return { available: false, reason: 'Нужны отношения' }
+          return this._deny('requires_relationship', 'Нужны отношения')
         }
       }
     }
@@ -181,7 +239,14 @@ export class ActionSystem {
       sleepDebt,
     )
 
-    this.statsSystem.applyStatChanges(statChanges as StatChanges)
+    // Применяем diminishing returns (anti-grind)
+    const effectMultiplier = this.antiGrindSystem.getEffectMultiplier(actionId, action.category || 'general')
+    const adjustedStatChanges: StatChanges = {}
+    for (const [key, value] of Object.entries(statChanges)) {
+      adjustedStatChanges[key as keyof StatChanges] = value * effectMultiplier
+    }
+
+    this.statsSystem.applyStatChanges(adjustedStatChanges)
 
     if (action.skillChanges) {
       this.skillsSystem.applySkillChanges(action.skillChanges, 'action')
@@ -270,23 +335,57 @@ export class ActionSystem {
     }
     const normalizedDescription = resolveActionLogDescription(actionEntryDraft as { description?: string; metadata?: { statChanges?: Record<string, number>; moneyDelta?: number; hoursSpent?: number } })
 
-    if (this.world && this.world.eventBus) {
-      this.world.eventBus.dispatchEvent(new CustomEvent('activity:action', {
-        detail: {
-          category: action.category || action.actionSource || 'general',
-          title: `📝 ${action.title || action.label || action.name || action.id}`,
-          description: normalizedDescription || action.effect || '',
-          icon: action.icon || null,
-          metadata: { actionId: action.id, ...actionEntryDraft.metadata },
+    // Публикуем событие через EventIngress API
+    const timeComp = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown> | null
+    if (timeComp) {
+      this.eventQueueSystem.enqueueEvent({
+        source: 'other',
+        templateId: `action_${action.id}`,
+        title: `📝 ${action.title || action.label || action.name || action.id}`,
+        description: normalizedDescription || action.effect || '',
+        type: 'info',
+        priority: 'normal',
+        timeSnapshot: {
+          totalHours: (timeComp.totalHours as number) ?? 0,
+          day: (timeComp.gameDays as number) ?? 0,
+          week: (timeComp.gameWeeks as number) ?? 0,
+          month: (timeComp.gameMonths as number) ?? 0,
+          year: (timeComp.gameYears as number) ?? 0,
         },
-      }))
+        meta: {
+          actionId: action.id,
+          category: action.category || action.actionSource || 'general',
+          ...actionEntryDraft.metadata
+        },
+      })
     }
 
+    // Регистрируем действие в anti-grind системе
+    this.antiGrindSystem.recordAction(actionId, action.category || 'general')
+
+    // Инвалидируем кэш после успешного выполнения действия
+    this.availabilityCache.invalidateAction(actionId)
+    
     return {
       success: true,
       summary: normalizedDescription || action.effect,
       statBreakdown: breakdown,
     }
+  }
+
+  /**
+   * Обновить версию мира в кэше доступности действий
+   * Вызывать при изменении состояния мира (bumpWorldVersion)
+   */
+  updateWorldVersion(worldVersion: number): void {
+    this.availabilityCache.updateWorldVersion(worldVersion)
+  }
+
+  /**
+   * Получить статистику кэша доступности действий
+   */
+  getAvailabilityCacheStats() {
+    return this.availabilityCache.getStats()
   }
 
   getAvailableActions(categoryId?: string): Array<ActionData & { availability: AvailabilityCheck }> {
@@ -343,6 +442,38 @@ export class ActionSystem {
     return found ?? null
   }
 
+  private _resolveEventQueueSystem(): EventQueueSystem {
+    const existing = this.world.getSystem(EventQueueSystem)
+    if (existing) return existing
+    const created = new EventQueueSystem()
+    this.world.addSystem(created)
+    return created
+  }
+
+  private _resolveAntiGrindSystem(): AntiGrindSystem {
+    const existing = this.world.getSystem(AntiGrindSystem)
+    if (existing) return existing
+    const created = new AntiGrindSystem()
+    this.world.addSystem(created)
+    return created
+  }
+
+  private _resolveStatsSystem(): StatsSystem {
+    const existing = this.world.getSystem(StatsSystem)
+    if (existing) return existing
+    const created = new StatsSystem()
+    this.world.addSystem(created)
+    return created
+  }
+
+  private _resolveSkillsSystem(): SkillsSystem {
+    const existing = this.world.getSystem(SkillsSystem)
+    if (existing) return existing
+    const created = new SkillsSystem()
+    this.world.addSystem(created)
+    return created
+  }
+
   _getFurnitureItems(): Array<Record<string, unknown>> {
     const data = this.world.getComponent(PLAYER_ENTITY, FURNITURE_COMPONENT) as Record<string, unknown> | Array<Record<string, unknown>> | null
     if (!data) return []
@@ -362,8 +493,23 @@ export class ActionSystem {
     this.world.components.get(FURNITURE_COMPONENT)!.set(PLAYER_ENTITY, items as unknown as Record<string, unknown>)
   }
 
+  _getMinAgeForAgeGroup(ageGroup: AgeGroup): number {
+    // Маппинг AgeGroup на минимальный возраст
+    const ageMap: Record<AgeGroup, number> = {
+      [AgeGroup.INFANT]: 0,   // 0-3 года
+      [AgeGroup.TODDLER]: 4,  // 4-7 лет
+      [AgeGroup.CHILD]: 8,    // 8-12 лет
+      [AgeGroup.KID]: 13,     // НЕ ИСПОЛЬЗУЕТСЯ, но для совместимости
+      [AgeGroup.TEEN]: 13,    // 13-15 лет
+      [AgeGroup.YOUNG]: 16,   // 16-18 лет
+      [AgeGroup.ADULT]: 19,   // 19+ лет
+    }
+    return ageMap[ageGroup] ?? 0
+  }
+
   _clamp(value: number, min = 0, max = 100): number {
     return Math.max(min, Math.min(max, value))
   }
 }
+
 

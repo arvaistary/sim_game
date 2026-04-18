@@ -1,4 +1,5 @@
 import type { StatChangeBreakdownEntry, StatChanges } from '@/domain/balance/types'
+import type { AgeGroup } from '@/domain/balance/actions/types'
 
 export interface ActionData {
   id: string
@@ -37,11 +38,29 @@ export interface ActionData {
     } | null
   }
   grantsItem?: string
+  /** Минимальная возрастная группа для доступа к действию. Если undefined — доступно всем. */
+  ageGroup?: AgeGroup
 }
+
+export type ActionDenyReason =
+  | 'not_found'
+  | 'age_group'
+  | 'low_energy'
+  | 'high_hunger'
+  | 'no_money'
+  | 'no_time'
+  | 'one_time_used'
+  | 'cooldown'
+  | 'min_age'
+  | 'min_skills'
+  | 'housing_level'
+  | 'requires_item'
+  | 'requires_relationship'
 
 export interface AvailabilityCheck {
   available: boolean
   reason?: string
+  reasonCode?: ActionDenyReason
 }
 
 export interface ExecuteResult {

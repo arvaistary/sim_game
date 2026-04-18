@@ -1,36 +1,290 @@
 ﻿import { DEFAULT_SAVE } from '../../../balance/constants/default-save'
-import { PLAYER_ENTITY } from '../../components/index'
+import type { CharacterTag } from '../../../balance/types'
+import { PLAYER_ENTITY, TAGS_COMPONENT } from '../../components/index'
 import type { GameWorld } from '../../world'
 import type { SaveData } from '../../../balance/constants/default-save'
-import type { ValidationResult, MigrationFn } from './index.types'
+import type { ValidationResult, ComponentMapper } from './index.types'
+import { MigrationSystem } from '../MigrationSystem/index'
+import { normalizeJobShape, resolveSalaryPerHour } from './save-job-normalize'
+
+function mergeById<T extends Record<string, unknown>>(baseArr: T[], parsed: unknown[], idKey: string): T[] {
+  const map = new Map<string, T>()
+  for (const item of baseArr) {
+    const id = String(item[idKey])
+    map.set(id, { ...item })
+  }
+  for (const raw of parsed) {
+    if (!raw || typeof raw !== 'object') continue
+    const item = raw as T
+    const id = String(item[idKey])
+    if (!id || id === 'undefined') continue
+    const prev = map.get(id) ?? ({} as T)
+    map.set(id, { ...prev, ...item })
+  }
+  return [...map.values()]
+}
+
+function mergePrimitiveArrays<T>(base: T[], parsed: unknown): T[] {
+  if (!Array.isArray(parsed)) return [...base]
+  if (parsed.length === 0) return [...base]
+  const seen = new Set<string>()
+  const out: T[] = []
+  for (const x of base) {
+    const k = JSON.stringify(x)
+    if (!seen.has(k)) {
+      seen.add(k)
+      out.push(x)
+    }
+  }
+  for (const x of parsed as T[]) {
+    const k = JSON.stringify(x)
+    if (!seen.has(k)) {
+      seen.add(k)
+      out.push(x)
+    }
+  }
+  return out
+}
 
 /**
- * Система сохранения и загрузки игры
- * Обеспечивает версионирование и миграцию сохранений
+ * Система сохранения и загрузки игры.
+ * Миграции и версия — только через MigrationSystem.
  */
 export class PersistenceSystem {
   private world!: GameWorld
+  private readonly migrationSystem: MigrationSystem
+  private readonly componentRegistry = new Map<string, ComponentMapper>()
+  private mappersRegistered = false
 
-  readonly currentVersion = '1.2.0'
-  readonly currentSaveVersion = 2
   readonly saveKey = 'game-life-save'
 
-  private migrations: Record<string, MigrationFn>
+  constructor(migrationSystem?: MigrationSystem) {
+    this.migrationSystem = migrationSystem ?? new MigrationSystem()
+  }
 
-  constructor() {
-    this.migrations = {
-      '0.1.0': this._migrateFrom_0_1_0.bind(this),
-      '0.2.0': this._migrateFrom_0_2_0.bind(this),
-    }
+  getMigrationSystem(): MigrationSystem {
+    return this.migrationSystem
+  }
+
+  registerComponentMapper(component: string, mapper: ComponentMapper): void {
+    this.componentRegistry.set(component, mapper)
   }
 
   init(world: GameWorld): void {
     this.world = world
+    this.migrationSystem.init(world)
+    this._ensureDefaultMappersRegistered()
   }
 
-  /**
-   * Загрузить сохранение из localStorage
-   */
+  private _ensureDefaultMappersRegistered(): void {
+    if (this.mappersRegistered) return
+    this.mappersRegistered = true
+
+    this.registerComponentMapper('time', {
+      component: 'time',
+      syncFromWorld: (world, playerId, saveData) => {
+        const time = world.getComponent(playerId, 'time') as Record<string, unknown> | null
+        if (!time) return
+        saveData.gameDays = time.gameDays
+        saveData.gameWeeks = time.gameWeeks
+        saveData.gameMonths = time.gameMonths
+        saveData.gameYears = time.gameYears
+        saveData.currentAge = time.currentAge
+        saveData.startAge = time.startAge
+        saveData.time = {
+          totalHours: time.totalHours,
+          gameDays: time.gameDays,
+          gameWeeks: time.gameWeeks,
+          gameMonths: time.gameMonths,
+          gameYears: time.gameYears,
+          hourOfDay: time.hourOfDay,
+          dayOfWeek: time.dayOfWeek,
+          weekHoursSpent: time.weekHoursSpent,
+          weekHoursRemaining: time.weekHoursRemaining,
+          dayHoursSpent: time.dayHoursSpent,
+          dayHoursRemaining: time.dayHoursRemaining,
+          sleepHoursToday: time.sleepHoursToday,
+          sleepDebt: time.sleepDebt,
+        }
+        saveData.eventState = {
+          ...((saveData.eventState as Record<string, unknown>) ?? {}),
+          ...((time.eventState as Record<string, unknown>) ?? {}),
+        }
+      },
+    })
+
+    this.registerComponentMapper('stats', {
+      component: 'stats',
+      syncFromWorld: (world, playerId, saveData) => {
+        const stats = world.getComponent(playerId, 'stats') as Record<string, unknown> | null
+        if (stats) saveData.stats = { ...stats }
+      },
+    })
+
+    this.registerComponentMapper('skills', {
+      component: 'skills',
+      syncFromWorld: (world, playerId, saveData) => {
+        const skills = world.getComponent(playerId, 'skills') as Record<string, unknown> | null
+        if (skills) saveData.skills = { ...skills }
+      },
+    })
+
+    this.registerComponentMapper('skillModifiers', {
+      component: 'skillModifiers',
+      syncFromWorld: (world, playerId, saveData) => {
+        const skillModifiers = world.getComponent(playerId, 'skillModifiers') as Record<string, unknown> | null
+        if (skillModifiers) saveData.skillModifiers = { ...skillModifiers }
+      },
+    })
+
+    this.registerComponentMapper('work', {
+      component: 'work',
+      syncFromWorld: (world, playerId, saveData) => {
+        const work = world.getComponent(playerId, 'work') as Record<string, unknown> | null
+        if (work) {
+          saveData.currentJob = {
+            id: work.id,
+            name: work.name,
+            schedule: work.schedule ?? '5/2',
+            employed: work.employed ?? Boolean(work.id),
+            level: work.level,
+            daysAtWork: work.daysAtWork,
+            salaryPerHour: work.salaryPerHour,
+            salaryPerDay: work.salaryPerDay,
+            salaryPerWeek: work.salaryPerWeek,
+            requiredHoursPerWeek: work.requiredHoursPerWeek,
+            workedHoursCurrentWeek: work.workedHoursCurrentWeek,
+            totalWorkedHours: work.totalWorkedHours,
+          }
+        }
+      },
+    })
+
+    this.registerComponentMapper('wallet', {
+      component: 'wallet',
+      syncFromWorld: (world, playerId, saveData) => {
+        const wallet = world.getComponent(playerId, 'wallet') as Record<string, unknown> | null
+        if (wallet) {
+          saveData.money = wallet.money
+          saveData.totalEarnings = wallet.totalEarnings
+          saveData.totalSpent = wallet.totalSpent
+        }
+      },
+    })
+
+    this.registerComponentMapper('education', {
+      component: 'education',
+      syncFromWorld: (world, playerId, saveData) => {
+        const education = world.getComponent(playerId, 'education') as Record<string, unknown> | null
+        if (education) {
+          saveData.education = {
+            school: education.school,
+            institute: education.institute,
+            educationLevel: education.educationLevel,
+            activeCourses: education.activeCourses || [],
+          }
+        }
+      },
+    })
+
+    this.registerComponentMapper('housing', {
+      component: 'housing',
+      syncFromWorld: (world, playerId, saveData) => {
+        const housing = world.getComponent(playerId, 'housing') as Record<string, unknown> | null
+        if (housing) {
+          saveData.housing = {
+            level: housing.level,
+            name: housing.name,
+            comfort: housing.comfort,
+            furniture: housing.furniture || [],
+            lastWeeklyBonus: housing.lastWeeklyBonus,
+          }
+        }
+      },
+    })
+
+    this.registerComponentMapper('finance', {
+      component: 'finance',
+      syncFromWorld: (world, playerId, saveData) => {
+        const finance = world.getComponent(playerId, 'finance') as Record<string, unknown> | null
+        if (finance) {
+          saveData.finance = {
+            reserveFund: finance.reserveFund,
+            monthlyExpenses: finance.monthlyExpenses,
+            lastMonthlySettlement: finance.lastMonthlySettlement,
+          }
+        }
+      },
+    })
+
+    this.registerComponentMapper('lifetimeStats', {
+      component: 'lifetimeStats',
+      syncFromWorld: (world, playerId, saveData) => {
+        const lifetimeStats = world.getComponent(playerId, 'lifetimeStats') as Record<string, unknown> | null
+        if (lifetimeStats) {
+          saveData.lifetimeStats = {
+            totalWorkDays: lifetimeStats.totalWorkDays,
+            totalWorkHours: lifetimeStats.totalWorkHours,
+            totalEvents: lifetimeStats.totalEvents,
+            totalMicroEvents: lifetimeStats.totalMicroEvents,
+            maxMoney: lifetimeStats.maxMoney,
+          }
+        }
+      },
+    })
+
+    this.registerComponentMapper('relationships', {
+      component: 'relationships',
+      syncFromWorld: (world, playerId, saveData) => {
+        const relationships = world.getComponent(playerId, 'relationships')
+        if (relationships) saveData.relationships = relationships
+      },
+    })
+
+    this.registerComponentMapper('eventHistory', {
+      component: 'eventHistory',
+      syncFromWorld: (world, playerId, saveData) => {
+        const eventHistory = world.getComponent(playerId, 'eventHistory') as Record<string, unknown> | null
+        if (eventHistory) {
+          saveData.eventHistory = (eventHistory.events || []) as unknown[]
+          if (!saveData.lifetimeStats) saveData.lifetimeStats = {}
+          ;(saveData.lifetimeStats as Record<string, unknown>).totalEvents = eventHistory.totalEvents
+          ;(saveData.lifetimeStats as Record<string, unknown>).totalMicroEvents = (
+            (eventHistory.events || []) as unknown[]
+          ).filter((item: unknown) => (item as Record<string, unknown>).type === 'micro').length
+        }
+      },
+    })
+
+    this.registerComponentMapper('eventQueue', {
+      component: 'eventQueue',
+      syncFromWorld: (world, playerId, saveData) => {
+        const eventQueue = world.getComponent(playerId, 'eventQueue') as Record<string, unknown> | null
+        if (eventQueue) {
+          saveData.pendingEvents = eventQueue.pendingEvents || []
+        }
+      },
+    })
+
+    this.registerComponentMapper('investment', {
+      component: 'investment',
+      syncFromWorld: (world, playerId, saveData) => {
+        const investments = world.getComponent(playerId, 'investment')
+        if (investments) saveData.investments = investments
+      },
+    })
+
+    this.registerComponentMapper(TAGS_COMPONENT, {
+      component: TAGS_COMPONENT,
+      syncFromWorld: (world, playerId, saveData) => {
+        const tags = world.getComponent(playerId, TAGS_COMPONENT) as { items?: unknown[] } | null
+        if (tags && Array.isArray(tags.items)) {
+          saveData.tags = { items: [...tags.items] as CharacterTag[] }
+        }
+      },
+    })
+  }
+
   loadSave(): SaveData {
     const stored = window.localStorage.getItem(this.saveKey)
 
@@ -40,19 +294,7 @@ export class PersistenceSystem {
 
     try {
       const parsed = JSON.parse(stored) as Record<string, unknown>
-
-      // Валидация
-      const validation = this._validateSave(parsed)
-      if (!validation.isValid) {
-        console.warn('Валидация сохранения не прошла:', validation.errors)
-        window.localStorage.setItem('game-life-save-backup', stored)
-      }
-
-      // Миграция
-      const migrated = this._applyMigrations(parsed)
-
-      // Объединение с дефолтными данными
-      return this._mergeAndMigrate(migrated) as unknown as SaveData
+      return this.hydrateFromRecord(parsed, stored)
     } catch (error) {
       console.warn('Не удалось прочитать сохранение, использую демо-данные.', error)
       window.localStorage.setItem('game-life-save-backup', stored)
@@ -61,47 +303,74 @@ export class PersistenceSystem {
   }
 
   /**
-   * Сохранить игру в localStorage
+   * Загрузка из уже распарсенного JSON (например, из SaveRepository).
+   * @param rawJson исходная строка для backup при corruption
    */
-  saveGame(saveData: Record<string, unknown>): void {
-    // Применяем версии
-    if (!saveData.version) {
-      saveData.version = this.currentVersion
-    }
-    if (typeof saveData.saveVersion !== 'number') {
-      saveData.saveVersion = this.currentSaveVersion
+  hydrateFromRecord(parsed: Record<string, unknown>, rawJson?: string): SaveData {
+    const validation = this._validateSave(parsed)
+    if (!validation.isValid) {
+      console.warn('Валидация сохранения не прошла:', validation.errors)
+      if (rawJson) {
+        window.localStorage.setItem('game-life-save-backup', rawJson)
+      }
     }
 
-    // Синхронизируем из ECS если передан world
+    const migrated = this.migrationSystem.applyMigrations({ ...parsed })
+    const finalized = this._finalizeSaveShape(migrated)
+    return this._mergeAndMigrate(finalized) as unknown as SaveData
+  }
+
+  saveGame(saveData: Record<string, unknown>): void {
+    if (!saveData.version) {
+      saveData.version = this.migrationSystem.getCurrentVersion()
+    }
+    if (typeof saveData.saveVersion !== 'number') {
+      saveData.saveVersion = this.migrationSystem.getSaveVersionNumber()
+    }
+
     if (this.world) {
-      this._syncFromWorld(saveData)
+      this.syncFromWorld(saveData)
     }
 
     saveData.saveTime = Date.now()
     window.localStorage.setItem(this.saveKey, JSON.stringify(saveData))
   }
 
-  /**
-   * Создать сохранение по умолчанию
-   */
   _createDefaultSave(): SaveData {
     return structuredClone(DEFAULT_SAVE)
   }
 
-  /**
-   * Объединить и мигрировать загруженное сохранение
-   */
   _mergeAndMigrate(parsed: Record<string, unknown>): Record<string, unknown> {
     const base = structuredClone(DEFAULT_SAVE) as unknown as Record<string, unknown>
     const baseCurrentJob = (base.currentJob ?? {}) as Record<string, unknown>
     const parsedHasJob = parsed.currentJob && ((parsed.currentJob as Record<string, unknown>).id)
     const parsedCurrentJob = parsedHasJob ? (parsed.currentJob as Record<string, unknown>) : {}
 
+    const baseRelationships = (base.relationships ?? []) as Array<Record<string, unknown>>
+    const parsedRelationships = parsed.relationships
+    const mergedRelationships = Array.isArray(parsedRelationships)
+      ? mergeById(baseRelationships, parsedRelationships, 'id')
+      : baseRelationships
+
+    const baseInvestments = (base.investments ?? []) as unknown[]
+    const parsedInvestments = parsed.investments
+    const mergedInvestments = Array.isArray(parsedInvestments)
+      ? mergePrimitiveArrays(baseInvestments as never[], parsedInvestments)
+      : [...baseInvestments]
+
+    const baseFurniture = (((base.housing as Record<string, unknown>)?.furniture ?? []) as unknown[])
+    const parsedHousing = (parsed.housing ?? {}) as Record<string, unknown>
+    const mergedFurniture = mergePrimitiveArrays(baseFurniture, parsedHousing.furniture ?? [])
+
+    const baseCourses = (((base.education as Record<string, unknown>)?.activeCourses ?? []) as unknown[])
+    const parsedEducation = (parsed.education ?? {}) as Record<string, unknown>
+    const mergedCourses = mergePrimitiveArrays(baseCourses, parsedEducation.activeCourses ?? [])
+
     return {
       ...base,
       ...parsed,
       version: parsed.version || '0.1.0',
-      saveVersion: typeof parsed.saveVersion === 'number' ? parsed.saveVersion : this.currentSaveVersion,
+      saveVersion: typeof parsed.saveVersion === 'number' ? parsed.saveVersion : this.migrationSystem.getSaveVersionNumber(),
       stats: {
         ...(base.stats as Record<string, unknown>),
         ...((parsed.stats ?? {}) as Record<string, unknown>),
@@ -110,15 +379,15 @@ export class PersistenceSystem {
         ? {
             ...baseCurrentJob,
             ...parsedCurrentJob,
-            salaryPerHour: parsedCurrentJob.salaryPerHour ?? this._resolveSalaryPerHour(parsedCurrentJob),
-            salaryPerDay: parsedCurrentJob.salaryPerDay ?? this._resolveSalaryPerHour(parsedCurrentJob) * 8,
-            salaryPerWeek: parsedCurrentJob.salaryPerWeek ?? this._resolveSalaryPerHour(parsedCurrentJob) * 40,
+            salaryPerHour: parsedCurrentJob.salaryPerHour ?? resolveSalaryPerHour(parsedCurrentJob),
+            salaryPerDay: parsedCurrentJob.salaryPerDay ?? resolveSalaryPerHour(parsedCurrentJob) * 8,
+            salaryPerWeek: parsedCurrentJob.salaryPerWeek ?? resolveSalaryPerHour(parsedCurrentJob) * 40,
           }
         : null,
       housing: {
         ...(base.housing as Record<string, unknown>),
         ...((parsed.housing ?? {}) as Record<string, unknown>),
-        furniture: ((parsed.housing as Record<string, unknown>)?.furniture ?? (base.housing as Record<string, unknown>).furniture),
+        furniture: mergedFurniture,
       },
       skills: {
         ...(base.skills as Record<string, unknown>),
@@ -131,7 +400,7 @@ export class PersistenceSystem {
       education: {
         ...(base.education as Record<string, unknown>),
         ...((parsed.education ?? {}) as Record<string, unknown>),
-        activeCourses: ((parsed.education as Record<string, unknown>)?.activeCourses ?? (base.education as Record<string, unknown>).activeCourses),
+        activeCourses: mergedCourses,
       },
       finance: {
         ...(base.finance as Record<string, unknown>),
@@ -141,10 +410,14 @@ export class PersistenceSystem {
           ...(((parsed.finance as Record<string, unknown>)?.monthlyExpenses ?? {}) as Record<string, unknown>),
         },
       },
-      relationships: parsed.relationships ?? base.relationships,
-      investments: parsed.investments ?? base.investments,
-      eventHistory: parsed.eventHistory ?? base.eventHistory,
-      pendingEvents: parsed.pendingEvents ?? base.pendingEvents,
+      relationships: mergedRelationships,
+      investments: mergedInvestments,
+      eventHistory: Array.isArray(parsed.eventHistory)
+        ? mergePrimitiveArrays((base.eventHistory ?? []) as never[], parsed.eventHistory)
+        : base.eventHistory,
+      pendingEvents: Array.isArray(parsed.pendingEvents)
+        ? mergePrimitiveArrays((base.pendingEvents ?? []) as never[], parsed.pendingEvents)
+        : base.pendingEvents,
       time: {
         ...((base.time ?? {}) as Record<string, unknown>),
         ...((parsed.time ?? {}) as Record<string, unknown>),
@@ -157,326 +430,37 @@ export class PersistenceSystem {
         ...(base.lifetimeStats as Record<string, unknown>),
         ...((parsed.lifetimeStats ?? {}) as Record<string, unknown>),
       },
+      tags: ((): { items: CharacterTag[] } => {
+        const p = parsed.tags
+        if (p && typeof p === 'object' && Array.isArray((p as Record<string, unknown>).items)) {
+          return { items: [...((p as { items: CharacterTag[] }).items)] }
+        }
+        return { items: [] }
+      })(),
     }
   }
 
-  /**
-   * Синхронизировать данные из ECS мира в saveData
-   */
+  /** Публичный API: ECS → плоский save */
+  syncFromWorld(saveData: Record<string, unknown>): void {
+    this._syncFromWorld(saveData)
+  }
+
   _syncFromWorld(saveData: Record<string, unknown>): void {
     const playerId = PLAYER_ENTITY
-
-    // Time
-    const time = this.world.getComponent(playerId, 'time') as Record<string, unknown> | null
-    if (time) {
-      saveData.gameDays = time.gameDays
-      saveData.gameWeeks = time.gameWeeks
-      saveData.gameMonths = time.gameMonths
-      saveData.gameYears = time.gameYears
-      saveData.currentAge = time.currentAge
-      saveData.startAge = time.startAge
-      saveData.time = {
-        totalHours: time.totalHours,
-        gameDays: time.gameDays,
-        gameWeeks: time.gameWeeks,
-        gameMonths: time.gameMonths,
-        gameYears: time.gameYears,
-        hourOfDay: time.hourOfDay,
-        dayOfWeek: time.dayOfWeek,
-        weekHoursSpent: time.weekHoursSpent,
-        weekHoursRemaining: time.weekHoursRemaining,
-        dayHoursSpent: time.dayHoursSpent,
-        dayHoursRemaining: time.dayHoursRemaining,
-        sleepHoursToday: time.sleepHoursToday,
-        sleepDebt: time.sleepDebt,
-      }
-      saveData.eventState = {
-        ...(saveData.eventState as Record<string, unknown> ?? {}),
-        ...(time.eventState as Record<string, unknown> ?? {}),
-      }
-    }
-
-    // Stats
-    const stats = this.world.getComponent(playerId, 'stats') as Record<string, unknown> | null
-    if (stats) {
-      saveData.stats = { ...stats }
-    }
-
-    // Skills
-    const skills = this.world.getComponent(playerId, 'skills') as Record<string, unknown> | null
-    if (skills) {
-      saveData.skills = { ...skills }
-    }
-
-    const skillModifiers = this.world.getComponent(playerId, 'skillModifiers') as Record<string, unknown> | null
-    if (skillModifiers) {
-      saveData.skillModifiers = { ...skillModifiers }
-    }
-
-    // Work
-    const work = this.world.getComponent(playerId, 'work') as Record<string, unknown> | null
-    if (work) {
-      saveData.currentJob = {
-        id: work.id,
-        name: work.name,
-        schedule: work.schedule ?? '5/2',
-        employed: work.employed ?? Boolean(work.id),
-        level: work.level,
-        daysAtWork: work.daysAtWork,
-        salaryPerHour: work.salaryPerHour,
-        salaryPerDay: work.salaryPerDay,
-        salaryPerWeek: work.salaryPerWeek,
-        requiredHoursPerWeek: work.requiredHoursPerWeek,
-        workedHoursCurrentWeek: work.workedHoursCurrentWeek,
-        totalWorkedHours: work.totalWorkedHours,
-      }
-    }
-
-    // Wallet
-    const wallet = this.world.getComponent(playerId, 'wallet') as Record<string, unknown> | null
-    if (wallet) {
-      saveData.money = wallet.money
-      saveData.totalEarnings = wallet.totalEarnings
-      saveData.totalSpent = wallet.totalSpent
-    }
-
-    // Education
-    const education = this.world.getComponent(playerId, 'education') as Record<string, unknown> | null
-    if (education) {
-      saveData.education = {
-        school: education.school,
-        institute: education.institute,
-        educationLevel: education.educationLevel,
-        activeCourses: education.activeCourses || [],
-      }
-    }
-
-    // Housing
-    const housing = this.world.getComponent(playerId, 'housing') as Record<string, unknown> | null
-    if (housing) {
-      saveData.housing = {
-        level: housing.level,
-        name: housing.name,
-        comfort: housing.comfort,
-        furniture: housing.furniture || [],
-        lastWeeklyBonus: housing.lastWeeklyBonus,
-      }
-    }
-
-    // Finance
-    const finance = this.world.getComponent(playerId, 'finance') as Record<string, unknown> | null
-    if (finance) {
-      saveData.finance = {
-        reserveFund: finance.reserveFund,
-        monthlyExpenses: finance.monthlyExpenses,
-        lastMonthlySettlement: finance.lastMonthlySettlement,
-      }
-    }
-
-    // Lifetime Stats
-    const lifetimeStats = this.world.getComponent(playerId, 'lifetimeStats') as Record<string, unknown> | null
-    if (lifetimeStats) {
-      saveData.lifetimeStats = {
-        totalWorkDays: lifetimeStats.totalWorkDays,
-        totalWorkHours: lifetimeStats.totalWorkHours,
-        totalEvents: lifetimeStats.totalEvents,
-        totalMicroEvents: lifetimeStats.totalMicroEvents,
-        maxMoney: lifetimeStats.maxMoney,
-      }
-    }
-
-    // Relationships
-    const relationships = this.world.getComponent(playerId, 'relationships')
-    if (relationships) {
-      saveData.relationships = relationships
-    }
-
-    // Event History
-    const eventHistory = this.world.getComponent(playerId, 'eventHistory') as Record<string, unknown> | null
-    if (eventHistory) {
-      saveData.eventHistory = (eventHistory.events || []) as unknown[]
-      if (!saveData.lifetimeStats) saveData.lifetimeStats = {}
-      ;(saveData.lifetimeStats as Record<string, unknown>).totalEvents = eventHistory.totalEvents
-      ;(saveData.lifetimeStats as Record<string, unknown>).totalMicroEvents = ((eventHistory.events || []) as unknown[]).filter((item: unknown) => (item as Record<string, unknown>).type === 'micro').length
-    }
-
-    // Event Queue
-    const eventQueue = this.world.getComponent(playerId, 'eventQueue') as Record<string, unknown> | null
-    if (eventQueue) {
-      saveData.pendingEvents = eventQueue.pendingEvents || []
-    }
-
-    // Investments
-    const investments = this.world.getComponent(playerId, 'investment')
-    if (investments) {
-      saveData.investments = investments
+    for (const mapper of this.componentRegistry.values()) {
+      mapper.syncFromWorld(this.world, playerId, saveData)
     }
   }
 
-  /**
-   * Миграция с версии 0.1.0
-   */
-  _migrateFrom_0_1_0(saveData: Record<string, unknown>): Record<string, unknown> {
-    if (!saveData.version) {
-      saveData.version = '0.2.0'
-    }
-
-    if (typeof saveData.saveVersion !== 'number') {
-      saveData.saveVersion = 1
-    }
-
-    const finance = (saveData.finance ?? {}) as Record<string, unknown>
-    if (typeof finance.reserveFund !== 'number') {
-      finance.reserveFund = 0
-    }
-
-    if (!finance.monthlyExpenses) {
-      finance.monthlyExpenses = {
-        housing: 16000,
-        food: 9000,
-        transport: 4500,
-        leisure: 6500,
-        education: 2500,
-      }
-    }
-    saveData.finance = finance
-
-    if (!saveData.investments) {
-      saveData.investments = []
-    }
-
-    if (!saveData.eventHistory) {
-      saveData.eventHistory = []
-    }
-
-    if (!saveData.pendingEvents) {
-      saveData.pendingEvents = []
-    }
-
-    if (!saveData.lifetimeStats) {
-      saveData.lifetimeStats = {
-        totalWorkDays: 0,
-        totalEvents: 0,
-        maxMoney: saveData.money || 0,
-      }
-    }
-
-    return saveData
-  }
-
-  /**
-   * Миграция с версии 0.2.0
-   */
-  _migrateFrom_0_2_0(saveData: Record<string, unknown>): Record<string, unknown> {
-    const education = (saveData.education ?? {}) as Record<string, unknown>
-    if (!Array.isArray(education.activeCourses)) {
-      education.activeCourses = []
-    }
-    saveData.education = education
-
-    const finance = (saveData.finance ?? {}) as Record<string, unknown>
-    if (!finance.lastMonthlySettlement) {
-      finance.lastMonthlySettlement = null
-    }
-    saveData.finance = finance
-
-    const housing = (saveData.housing ?? {}) as Record<string, unknown>
-    if (!housing.comfort) {
-      const housingLevels = [
-        { level: 1, name: 'Общежитие', comfort: 30 },
-        { level: 2, name: 'Студия', comfort: 50 },
-        { level: 3, name: '1-комнатная', comfort: 70 },
-        { level: 4, name: '2-комнатная', comfort: 90 },
-      ]
-      const housingMatch = housingLevels.find(h => h.level === housing.level) || housingLevels[0]
-      housing.comfort = housingMatch.comfort
-    }
-    saveData.housing = housing
-
-    saveData.version = '0.2.0'
-
-    return saveData
-  }
-
-  /**
-   * Проверить и применить миграции
-   */
-  applyMigrations(saveData: Record<string, unknown>): Record<string, unknown> {
-    const version = (saveData.version || '0.1.0') as string
-
-    for (const [migrationVersion, migrateFn] of Object.entries(this.migrations)) {
-      if (version < migrationVersion) {
-        migrateFn(saveData)
-        saveData.version = migrationVersion
-      }
-    }
-
-    return saveData
-  }
-
-  /**
-   * Валидация сохранения
-   */
   _validateSave(saveData: Record<string, unknown>): ValidationResult {
-    const errors: string[] = []
-    const warnings: string[] = []
-
-    if (!saveData.version) {
-      warnings.push('Отсутствует версия сохранения')
-    }
-
-    if (typeof saveData.money !== 'number' || (saveData.money as number) < 0) {
-      errors.push('Некорректное значение денег')
-    }
-
-    if (typeof saveData.gameDays !== 'number' || (saveData.gameDays as number) < 0) {
-      errors.push('Некорректное значение дней')
-    }
-
-    const time = saveData.time as Record<string, unknown> | undefined
-    const totalHours = Number(time?.totalHours)
-    if (!Number.isNaN(totalHours) && totalHours < 0) {
-      errors.push('Некорректное значение totalHours')
-    }
-
-    if (!saveData.stats || typeof saveData.stats !== 'object') {
-      warnings.push('Отсутствуют статы')
-    }
-
-    if (!saveData.housing || typeof saveData.housing !== 'object') {
-      warnings.push('Отсутствуют данные о жилье')
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    }
+    return this.migrationSystem.validateSave(saveData)
   }
 
-  /**
-   * Применить миграции к сохранению
-   */
-  _applyMigrations(saveData: Record<string, unknown>): Record<string, unknown> {
-    const version = (saveData.version || '0.1.0') as string
-
-    for (const [migrationVersion, migrateFn] of Object.entries(this.migrations)) {
-      if (version < migrationVersion) {
-        try {
-          console.log(`Applying migration from ${version} to ${migrationVersion}`)
-          saveData = migrateFn(saveData)
-          saveData.version = migrationVersion
-        } catch (error) {
-          console.error(`Migration failed: ${(error as Error).message}`, error)
-        }
-      }
+  private _finalizeSaveShape(saveData: Record<string, unknown>): Record<string, unknown> {
+    if (saveData.version !== this.migrationSystem.getCurrentVersion()) {
+      saveData.version = this.migrationSystem.getCurrentVersion()
     }
 
-    if (saveData.version !== this.currentVersion) {
-      saveData.version = this.currentVersion
-    }
-
-    // Hour-model compatibility defaults
     if (!saveData.time || typeof saveData.time !== 'object') {
       const totalHours = Math.max(0, Number(saveData.gameDays ?? 0) * 24)
       saveData.time = { totalHours }
@@ -491,7 +475,7 @@ export class PersistenceSystem {
     const currentJob = (saveData.currentJob ?? {}) as Record<string, unknown>
     if (!saveData.currentJob) saveData.currentJob = {}
     if (typeof currentJob.salaryPerHour !== 'number') {
-      currentJob.salaryPerHour = this._resolveSalaryPerHour(currentJob)
+      currentJob.salaryPerHour = resolveSalaryPerHour(currentJob)
     }
     if (typeof currentJob.salaryPerDay !== 'number') {
       currentJob.salaryPerDay = (currentJob.salaryPerHour as number) * 8
@@ -501,76 +485,27 @@ export class PersistenceSystem {
     }
 
     if (saveData.currentJob && typeof saveData.currentJob === 'object') {
-      saveData.currentJob = this.normalizeJobShape(saveData.currentJob as Record<string, unknown>) ?? {}
+      saveData.currentJob = normalizeJobShape(saveData.currentJob as Record<string, unknown>) ?? {}
     }
 
     return saveData
   }
 
-  _resolveSalaryPerHour(job: Record<string, unknown> = {}): number {
-    if (typeof job?.salaryPerHour === 'number' && (job.salaryPerHour as number) > 0) return job.salaryPerHour as number
-    if (typeof job?.salaryPerDay === 'number' && (job.salaryPerDay as number) > 0) return Math.round((job.salaryPerDay as number) / 8)
-    if (typeof job?.salaryPerWeek === 'number' && (job.salaryPerWeek as number) > 0) return Math.round((job.salaryPerWeek as number) / 40)
-    return 0
-  }
-
-  /**
-   * Каноническая политика источника истины (Source-of-Truth Policy):
-   * 
-   * - WORK_COMPONENT ('work') — runtime-истина для данных о работе:
-   *   id, name, salaryPerHour, requiredHoursPerWeek, workedHoursCurrentWeek,
-   *   pendingSalaryWeek, schedule, employed, level, salaryPerDay, salaryPerWeek,
-   *   totalWorkedHours, daysAtWork.
-   * 
-   * - CAREER_COMPONENT ('career') — плоские поля, зеркалящие WORK_COMPONENT для UI-safe reads.
-   * 
-   * - career.currentJob — read-only compatibility snapshot для старых сейвов и переходного UI.
-   *   Не используется для runtime-логики; обновляется только при persistence/migration.
-   * 
-   * - TIME_COMPONENT — runtime-истина для времени, нормализуется через TimeSystem.normalizeTimeComponent.
-   * 
-   * - Store derived fields (gameDays, age) — должны быть computed из TIME_COMPONENT,
-   *   не реализовать независимые формулы.
-   */
-
-  /**
-   * Нормализовать данные о работе из любого legacy-формата в канонический runtime-формат.
-   * Единственная функция, отвечающая за конвертацию формата работы при загрузке сейва.
-   */
   normalizeJobShape(currentJob: Record<string, unknown> | null | undefined): Record<string, unknown> | null {
-    if (!currentJob || typeof currentJob !== 'object') return null
-
-    const salaryPerHour = this._resolveSalaryPerHour(currentJob)
-
-    return {
-      id: currentJob.id ?? null,
-      name: currentJob.name ?? 'Безработный',
-      schedule: currentJob.schedule ?? '5/2',
-      employed: currentJob.employed ?? Boolean(currentJob.id),
-      level: currentJob.level ?? 1,
-      salaryPerHour,
-      salaryPerDay: currentJob.salaryPerDay ?? salaryPerHour * 8,
-      salaryPerWeek: currentJob.salaryPerWeek ?? salaryPerHour * 40,
-      requiredHoursPerWeek: Math.max(0, Number(currentJob.requiredHoursPerWeek) || 0),
-      workedHoursCurrentWeek: Math.max(0, Number(currentJob.workedHoursCurrentWeek) || 0),
-      pendingSalaryWeek: Math.max(0, Number(currentJob.pendingSalaryWeek) || 0),
-      totalWorkedHours: Math.max(0, Number(currentJob.totalWorkedHours) || 0),
-      daysAtWork: Math.max(0, Number(currentJob.daysAtWork) || 0),
-    }
+    return normalizeJobShape(currentJob)
   }
 
-  /**
-   * Удалить сохранение
-   */
+  _resolveSalaryPerHour(job: Record<string, unknown> = {}): number {
+    return resolveSalaryPerHour(job)
+  }
+
   clearSave(): void {
     window.localStorage.removeItem(this.saveKey)
   }
 
-  /**
-   * Проверить наличие сохранения
-   */
   hasSave(): boolean {
     return Boolean(window.localStorage.getItem(this.saveKey))
   }
 }
 
+export type { ValidationResult, ComponentMapper, MigrationFn } from './index.types'

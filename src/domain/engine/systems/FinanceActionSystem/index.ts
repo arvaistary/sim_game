@@ -1,38 +1,57 @@
-﻿import {
+import {
   CAREER_COMPONENT,
   TIME_COMPONENT,
   WALLET_COMPONENT,
   FINANCE_COMPONENT,
   STATS_COMPONENT,
+  HOUSING_COMPONENT,
+  SUBSCRIPTION_COMPONENT,
   PLAYER_ENTITY,
 } from '../../components/index'
 import { SkillsSystem } from '../SkillsSystem'
 import { TimeSystem } from '../TimeSystem'
 import { StatsSystem } from '../StatsSystem'
 import { summarizeStatChanges } from '../../utils/stat-change-summary'
+import { getActionsByCategory } from '../../../balance/actions'
+import type { BalanceAction } from '../../../balance/actions'
+import { AgeGroup } from '../../../balance/actions/types'
+import { getAgeGroup } from '../../../../composables/useAgeRestrictions/age-constants'
 import type { GameWorld } from '../../world'
-import type { LegacyFinanceAction, StatChanges } from '@/domain/balance/types'
+import type { StatChanges } from '@/domain/balance/types'
 import type { FinanceOverview, FinanceActionResult, FinanceActionWithAvailability } from './index.types'
-import { FINANCE_ACTIONS } from './index.constants'
 
-/**
- * Система финансовых действий
- * Обрабатывает управление резервом, депозитами и бюджетом
- */
+const INVESTMENT_ACTIONS = new Set([
+  'fin_deposit',
+  'fin_stocks',
+  'fin_iis',
+  'fin_business_invest',
+  'fin_crypto',
+  'fin_savings_account',
+  'fin_pif',
+  'fin_edu_invest',
+])
+
+const RESERVE_ACTIONS: Record<string, number> = {
+  fin_reserve: 10000,
+  fin_safety_fund: 10000,
+}
+
 export class FinanceActionSystem {
   private world!: GameWorld
   private skillsSystem!: SkillsSystem
   private timeSystem!: TimeSystem
   private statsSystem!: StatsSystem
-  private financeActions: LegacyFinanceAction[] = FINANCE_ACTIONS
 
   init(world: GameWorld): void {
     this.world = world
     this.skillsSystem = this._resolveSkillsSystem()
     this.skillsSystem.init(world)
     this.timeSystem = this._resolveTimeSystem(world)
-    this.statsSystem = new StatsSystem()
-    this.statsSystem.init(world)
+    this.statsSystem = this._resolveStatsSystem()
+  }
+
+  private _getFinanceActions() {
+    return getActionsByCategory('finance')
   }
 
   private _resolveTimeSystem(world: GameWorld): TimeSystem {
@@ -49,6 +68,44 @@ export class FinanceActionSystem {
     const created = new SkillsSystem()
     this.world.addSystem(created)
     return created
+  }
+
+  private _resolveStatsSystem(): StatsSystem {
+    const existing = this.world.getSystem(StatsSystem)
+    if (existing) return existing
+    const created = new StatsSystem()
+    created.init(this.world)
+    return created
+  }
+
+  private _getPlayerAge(): number {
+    const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown> | null
+    const age = (time?.currentAge as number)
+    if (age == null || age <= 0) return 25
+    return age
+  }
+
+  private _checkAge(action: BalanceAction): { ok: boolean; reason?: string } {
+    if (action.ageGroup === undefined) return { ok: true }
+    const currentAge = this._getPlayerAge()
+    const currentAgeGroup = getAgeGroup(currentAge)
+    if (currentAgeGroup < action.ageGroup) {
+      const minAge = this._getMinAgeForAgeGroup(action.ageGroup)
+      return { ok: false, reason: `Доступно с ${minAge} лет.` }
+    }
+    return { ok: true }
+  }
+
+  private _getMinAgeForAgeGroup(group: AgeGroup): number {
+    const map: Record<number, number> = {
+      [AgeGroup.INFANT]: 0,
+      [AgeGroup.TODDLER]: 4,
+      [AgeGroup.CHILD]: 8,
+      [AgeGroup.TEEN]: 13,
+      [AgeGroup.YOUNG]: 16,
+      [AgeGroup.ADULT]: 19,
+    }
+    return map[group] ?? 0
   }
 
   getFinanceOverview(): FinanceOverview | null {
@@ -125,28 +182,45 @@ export class FinanceActionSystem {
       return []
     }
     const time = this._normalizePlayerTime()
+    const financeActions = this._getFinanceActions()
 
-    return this.financeActions.map((action) => {
+    return financeActions.map((action) => {
       const cost = this._resolveHourCost(action)
       const weekBlocked =
         time && typeof (time as Record<string, unknown>).weekHoursRemaining === 'number' && cost > ((time as Record<string, unknown>).weekHoursRemaining as number)
+      const ageCheck = this._checkAge(action)
+      const available = overview.liquidMoney >= action.price && !weekBlocked && ageCheck.ok
+      let reason = ''
+      if (!ageCheck.ok) {
+        reason = ageCheck.reason || ''
+      } else if (overview.liquidMoney < action.price) {
+        reason = `Нужно ${this._formatMoney(action.price)} ₽ свободных денег.`
+      } else if (weekBlocked) {
+        reason = `Недостаточно времени в неделе. Нужно ${cost} ч., осталось ${(time as Record<string, unknown>).weekHoursRemaining} ч.`
+      }
       return {
         ...action,
-        available: overview.liquidMoney >= action.amount && !weekBlocked,
-        reason:
-          overview.liquidMoney < action.amount
-            ? `Нужно ${this._formatMoney(action.amount)} ₽ свободных денег.`
-            : weekBlocked
-              ? `Недостаточно времени в неделе. Нужно ${cost} ч., осталось ${(time as Record<string, unknown>).weekHoursRemaining} ч.`
-              : '',
+        subtitle: action.mood || '',
+        amount: action.price,
+        dayCost: Math.ceil(action.hourCost / 2),
+        accentKey: 'blue',
+        description: action.effect,
+        available,
+        reason,
       }
     })
   }
 
   applyFinanceAction(actionId: string): FinanceActionResult {
-    const action = this.financeActions.find(item => item.id === actionId)
+    const financeActions = this._getFinanceActions()
+    const action = financeActions.find(item => item.id === actionId)
     if (!action) {
       return { success: false, message: 'Финансовое действие не найдено.' }
+    }
+
+    const ageCheck = this._checkAge(action)
+    if (!ageCheck.ok) {
+      return { success: false, message: ageCheck.reason || 'Недостаточно возраста.' }
     }
 
     const playerId = PLAYER_ENTITY
@@ -157,8 +231,8 @@ export class FinanceActionSystem {
       return { success: false, message: 'Не удалось загрузить финансовые данные.' }
     }
 
-    if (wallet.money < action.amount) {
-      return { success: false, message: `Недостаточно свободных денег. Нужно ${this._formatMoney(action.amount)} ₽.` }
+    if (wallet.money < action.price) {
+      return { success: false, message: `Недостаточно свободных денег. Нужно ${this._formatMoney(action.price)} ₽.` }
     }
 
     const timePrecheck = this._normalizePlayerTime()
@@ -169,29 +243,8 @@ export class FinanceActionSystem {
         message: `Недостаточно времени в неделе. Нужно ${hourCost} ч., осталось ${(timePrecheck as Record<string, unknown>).weekHoursRemaining} ч.`,
       }
     }
-    // Специфичная обработка по action.id
-    if (action.id === 'reserve_transfer') {
-      wallet.money -= action.amount
-      finance.reserveFund = Math.max(0, ((finance.reserveFund as number) ?? 0) + (action.reserveDelta ?? 0))
-    } else if (action.id === 'open_deposit') {
-      wallet.money -= action.amount
-      this._openInvestment(action)
-    } else if (action.id === 'budget_review') {
-      const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
-      Object.entries(action.monthlyExpenseDelta ?? {}).forEach(([key, value]) => {
-        const currentValue = monthlyExpenses[key] ?? 0
-        monthlyExpenses[key] = Math.max(0, currentValue + value)
-      })
-    } else if (action.id === 'pay_off_small_debt') {
-      wallet.money -= action.amount
-    } else if (action.id === 'sell_unnecessary_items') {
-      // Продажа вещей — небольшой случайный доход
-      const saleIncome = Math.round(2000 + Math.random() * 3000)
-      wallet.money += saleIncome
-    } else if (action.amount > 0) {
-      // Generic: списание денег для неизвестных действий с amount > 0
-      wallet.money -= action.amount
-    }
+
+    this._applyFinanceEffect(action, wallet, finance)
 
     if (action.statChanges) {
       this.statsSystem.applyStatChanges(action.statChanges)
@@ -205,17 +258,17 @@ export class FinanceActionSystem {
     this.timeSystem.advanceHours(cost, { actionType: 'finance_action' })
 
     if (this.world && this.world.eventBus) {
-      const financeCategory = action.id === 'reserve_transfer' ? 'expense'
-        : action.id === 'open_deposit' ? 'purchase'
+      const financeCategory = action.id === 'fin_reserve' || action.id === 'fin_safety_fund' ? 'expense'
+        : INVESTMENT_ACTIONS.has(action.id) ? 'purchase'
         : 'expense'
       this.world.eventBus.dispatchEvent(new CustomEvent('activity:finance', {
         detail: {
           category: financeCategory,
           title: `💰 ${action.title}`,
-          description: action.description || action.title,
+          description: action.effect || action.title,
           icon: null,
           metadata: {
-            amount: action.amount,
+            amount: action.price,
             item: action.id,
             balance: wallet.money,
           },
@@ -225,14 +278,145 @@ export class FinanceActionSystem {
 
     const message = [
       `${action.title} выполнено.`,
-      action.description,
+      action.effect,
       this._summarizeStatChanges(action.statChanges),
     ].filter(Boolean).join('\n')
 
     return { success: true, message }
   }
 
-  _openInvestment(action: LegacyFinanceAction): void {
+  private _applyFinanceEffect(
+    action: BalanceAction,
+    wallet: Record<string, number>,
+    finance: Record<string, unknown>,
+  ): void {
+    const playerId = PLAYER_ENTITY
+
+    if (RESERVE_ACTIONS[action.id] || action.reserveDelta) {
+      wallet.money -= action.price
+      const delta = action.reserveDelta ?? RESERVE_ACTIONS[action.id] ?? 0
+      finance.reserveFund = Math.max(0, ((finance.reserveFund as number) ?? 0) + delta)
+      return
+    }
+
+    if (INVESTMENT_ACTIONS.has(action.id)) {
+      wallet.money -= action.price
+      this._openInvestment(action)
+      return
+    }
+
+    if (action.id === 'fin_budget' || action.monthlyExpenseDelta) {
+      wallet.money -= action.price
+      const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
+      if (action.monthlyExpenseDelta) {
+        Object.entries(action.monthlyExpenseDelta).forEach(([key, value]) => {
+          const currentValue = monthlyExpenses[key] ?? 0
+          monthlyExpenses[key] = Math.max(0, currentValue + (value as number))
+        })
+      }
+      return
+    }
+
+    if (action.id === 'fin_pay_debt') {
+      wallet.money -= action.price
+      return
+    }
+
+    if (action.id === 'fin_sell_stuff') {
+      const saleIncome = Math.round(2000 + Math.random() * 3000)
+      wallet.money += saleIncome
+      return
+    }
+
+    if (action.id === 'fin_take_credit') {
+      const creditAmount = 100000 + Math.round(Math.random() * 150000)
+      wallet.money += creditAmount
+      const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
+      monthlyExpenses.credit_payment = (monthlyExpenses.credit_payment ?? 0) + Math.round(creditAmount / 36)
+      return
+    }
+
+    if (action.id === 'fin_insurance') {
+      wallet.money -= action.price
+      if (action.subscription) {
+        const subs = this.world.getComponent(playerId, SUBSCRIPTION_COMPONENT) as Record<string, unknown> | null
+        if (subs) {
+          const active = (subs.active as Array<Record<string, unknown>>) ?? []
+          active.push({
+            id: action.id,
+            name: action.title,
+            costPerMonth: action.subscription.monthlyCost,
+            startDay: (this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, unknown>)?.gameDays ?? 0,
+          })
+          subs.active = active
+        }
+      }
+      return
+    }
+
+    if (action.id === 'fin_rent_out') {
+      const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
+      monthlyExpenses.rental_income = (monthlyExpenses.rental_income ?? 0) - 15000
+      return
+    }
+
+    if (action.id === 'fin_pay_mortgage') {
+      const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
+      if (monthlyExpenses.credit_payment && monthlyExpenses.credit_payment > 0) {
+        monthlyExpenses.credit_payment = Math.max(0, monthlyExpenses.credit_payment - 5000)
+      }
+      return
+    }
+
+    if (action.id === 'fin_buy_realty') {
+      wallet.money -= action.price
+      if (action.housingComfortDelta) {
+        const housing = this.world.getComponent(playerId, HOUSING_COMPONENT) as Record<string, unknown> | null
+        if (housing) {
+          housing.comfort = ((housing.comfort as number) ?? 0) + action.housingComfortDelta
+        }
+      }
+      return
+    }
+
+    if (action.id === 'fin_auto_savings') {
+      if (action.subscription) {
+        const subs = this.world.getComponent(playerId, SUBSCRIPTION_COMPONENT) as Record<string, unknown> | null
+        if (subs) {
+          const active = (subs.active as Array<Record<string, unknown>>) ?? []
+          active.push({
+            id: action.id,
+            name: action.title,
+            costPerMonth: action.subscription.monthlyCost,
+            startDay: (this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, unknown>)?.gameDays ?? 0,
+          })
+          subs.active = active
+        }
+      }
+      return
+    }
+
+    if (action.id === 'fin_expense_analysis') {
+      const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
+      const savings = Math.round(
+        (monthlyExpenses.leisure ?? 0) * 0.08
+        + (monthlyExpenses.food ?? 0) * 0.05
+        + (monthlyExpenses.transport ?? 0) * 0.03,
+      )
+      if (savings > 0) {
+        monthlyExpenses.leisure = Math.max(0, (monthlyExpenses.leisure ?? 0) - Math.round(savings * 0.5))
+        monthlyExpenses.food = Math.max(0, (monthlyExpenses.food ?? 0) - Math.round(savings * 0.3))
+        monthlyExpenses.transport = Math.max(0, (monthlyExpenses.transport ?? 0) - Math.round(savings * 0.2))
+      }
+      return
+    }
+
+    if (action.price > 0) {
+      wallet.money -= action.price
+    }
+  }
+
+  _openInvestment(action: BalanceAction): void {
     const playerId = PLAYER_ENTITY
     const time = this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, unknown> | null
     const rawInvestments = this.world.getComponent(playerId, 'investment')
@@ -242,11 +426,11 @@ export class FinanceActionSystem {
       id: `deposit_${investments.length + 1}`,
       type: 'deposit',
       label: action.title,
-      amount: action.amount,
+      amount: action.price,
       startDate: time?.gameDays,
-      durationDays: action.durationDays ?? 28,
-      maturityDay: (time?.gameDays as number) + (action.durationDays ?? 28),
-      expectedReturn: Math.round((action.expectedReturn ?? 0) * (this.skillsSystem.getModifiers().investmentReturnMultiplier ?? 1)),
+      durationDays: action.investmentDurationDays ?? 28,
+      maturityDay: (time?.gameDays as number) + (action.investmentDurationDays ?? 28),
+      expectedReturn: Math.round((action.investmentReturn ?? 0) * (this.skillsSystem.getModifiers().investmentReturnMultiplier ?? 1)),
       totalEarned: 0,
       status: 'active',
     }
@@ -297,4 +481,3 @@ export class FinanceActionSystem {
     return 0
   }
 }
-

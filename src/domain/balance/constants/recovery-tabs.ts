@@ -69,19 +69,6 @@ export const RECOVERY_TABS: ExtendedRecoveryTab[] = [
     ],
   },
   {
-    id: 'education',
-    label: 'Обучение',
-    icon: 'О',
-    accentKey: 'accent',
-    title: 'Развитие навыков',
-    subtitle: 'Книги, курсы и образование открывают новые работы и повышают доход.',
-    cards: [
-      { title: 'Книга по тайм-менеджменту', price: 900, dayCost: 1, hourCost: 2, effect: 'Навык +1 • Стресс -5', mood: 'Дешёвый и быстрый рост', statChanges: { stress: -3 }, skillChanges: { timeManagement: 1 } },
-      { title: 'Онлайн-курс', price: 6500, dayCost: 4, hourCost: 16, effect: 'Профессионализм +1 • Коммуникация +1 • Настроение +8', mood: 'Средний темп с хорошей отдачей', statChanges: { mood: 5, energy: -15, stress: 6 }, skillChanges: { professionalism: 1, communication: 1 } },
-      { title: 'Институт / переподготовка', price: 120000, dayCost: 7, hourCost: 40, effect: 'Профессионализм +2 • ЗП за день +5% • Новая образовательная ступень', mood: 'Долгий маршрут к сильной работе', statChanges: { energy: -22, stress: 12 }, skillChanges: { professionalism: 2 }, salaryMultiplierDelta: 0.05, educationLevel: 'Высшее' },
-    ],
-  },
-  {
     id: 'social',
     label: 'Соц. жизнь',
     icon: 'С',

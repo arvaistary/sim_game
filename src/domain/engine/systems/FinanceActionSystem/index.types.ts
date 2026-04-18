@@ -1,4 +1,4 @@
-import type { LegacyFinanceAction } from '@/domain/balance/types'
+import type { BalanceAction } from '@/domain/balance/actions'
 
 export interface FinanceOverview {
   liquidMoney: number
@@ -18,7 +18,13 @@ export interface FinanceActionResult {
   message: string
 }
 
-export interface FinanceActionWithAvailability extends LegacyFinanceAction {
+export interface FinanceActionWithAvailability extends BalanceAction {
   available: boolean
   reason: string
+  // Дополнительные поля для UI совместимости
+  subtitle?: string
+  amount?: number
+  dayCost?: number
+  accentKey?: string
+  description?: string
 }

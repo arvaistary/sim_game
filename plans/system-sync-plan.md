@@ -1,6 +1,10 @@
 # План: Синхронизация всех обновлённых систем
 
-## Статус: В процессе обновления (2026-04-16)
+## Статус: Сведён с master roadmap (фазы 0–6), 2026-04-16
+
+Документ описывает **межсистемные контракты** и **фактически пройденные фазы** из `plans/0-execution-master-roadmap-plan.md`. Блоки Wave A/B/C и расширенный **Definition of Done (master)** ниже — целевой scope; часть пунктов DoD остаётся бэклогом (например полный E2E «education → knowledge unlock»).
+
+**Тестовый baseline:** в тексте зафиксирован срез **2026-04-16** (114 passed / 0 failed). Перед rollout всегда перезапускайте `npm test` — числа в старых отчётах не гарантируют состояние текущей ветки.
 
 ## Цель
 
@@ -34,20 +38,22 @@
 
 ---
 
-## Текущее состояние проекта (срез)
+## Историческая постановка (до прохождения фаз 0–6)
 
-### Что уже запланировано хорошо
+Ниже — исходная мотивация документа. По состоянию на завершение roadmap **основные P0/P1 рассинхроны** между time/events/actions/skills/education закрыты в коде (`system-context`, ingress, canonical системы); оставшиеся задачи см. Wave C и чеклист DoD.
 
-- Есть отдельные детализированные планы по `time`, `events`, `education`, `actions`, `skills`.
-- Зафиксирован курс на единые контракты (`advanceHours`, `EventIngress`, `canExecuteWithReason`, skill shape guard).
-- Добавлена реалистичная модель обучения (needs, anti-grind, step-based programs).
+### Что уже было запланировано
 
-### Что сейчас нужно синхронизировать
+- Отдельные планы по `time`, `events`, `education`, `actions`, `skills`.
+- Курс на единые контракты (`advanceHours`, `EventIngress`, `canExecuteWithReason`, skill shape guard).
+- Реалистичная модель обучения (needs, anti-grind, step-based programs).
 
-1. **Контракты пересекаются**, но пока описаны в разных документах.
-2. **Порядок внедрения** может создать регрессии без общей wave-координации.
-3. **ID/shape/проверки** частично расходятся между UI и engine в actions/skills/events.
-4. **Knowledge unlock** должен быть встроен как результат обучения, а не отдельный параллельный путь.
+### Что изначально требовало синхронизации (в т.ч. закрыто фазами 1–5)
+
+1. Контракты в разных документах → **сведены** в этом файле и в коде контекста систем.
+2. Порядок внедрения → **выполнен** по `0-execution-master-roadmap-plan.md`.
+3. ID/shape/проверки UI vs engine → **снято критичное** по отчётам фаз; регрессии ловить тестами на ветке.
+4. **Knowledge unlock** как результат обучения → частично; полный E2E — см. DoD и Wave C.
 
 ---
 
@@ -87,9 +93,16 @@
 
 ### Фаза 5 — Product alignment
 - BUGFIX: TEEN маппинг исправлен (13-15 лет)
-- ageGroup добавлен ко всем 207 действиям
+- `ageGroup` у всех player-facing действий: **244** в **10** файлах (включая education) + **71** в `child-actions.ts`; после удаления сна в fun — **42** fun-действия
 - sleep-actions удалены из action-слоя
-- Tests: 114 passed, 0 failed
+- Регресс данных каталога: `npm run audit:action-age-groups` (`scripts/audit-action-age-groups.mjs`)
+- UX: подсказка при пустом списке карточек действий и пустом списке финансовых операций
+- Tests: 114 passed, 0 failed *(срез 2026-04-16)*
+
+### Фаза 6 — Final sync and rollout (master roadmap)
+- Единая **план-карта** (`0-execution-master-roadmap-plan.md`): все 6 фаз и Gate A–E отмечены выполненными на дату 2026-04-16.
+- **Этот файл** (`system-sync-plan.md`) выступает справочником по контрактам и сводкой фаз 0–5; при расхождении приоритет у фактического кода и актуального `npm test` на ветке.
+- Rollout readiness по документам: gates пройдены в том виде, как зафиксировано в roadmap; повторная верификация CI/тестов — перед релизом.
 
 ---
 
@@ -254,12 +267,15 @@
 
 ## Definition of Done (master)
 
-- [ ] Все дочерние планы синхронизированы по общим контрактам этого документа.
-- [ ] Wave A/B/C пройдены с подтвержденными Go/No-Go критериями.
-- [ ] Нет критичных рассинхронов между UI и engine в действиях/навыках/событиях.
-- [ ] Реализм-контур (needs, anti-grind, step learning, unlock logic) включен и стабилен.
-- [ ] "Education -> Knowledge -> Skill/Action unlock" проходит end-to-end.
-- [ ] Save/load и telemetry подтверждают корректность после rollout.
+*Ниже — **полный** целевой DoD этого документа. Он шире, чем закрытие фаз 0–6 в `0-execution-master-roadmap-plan.md`: roadmap фиксирует выполненную волну интеграции; пункты без галочки могут оставаться продуктовым бэклогом.*
+
+- [x] Критический контур систем собран в `getSystemContext` / `SystemContext`: Time, EventQueue, Action, Skills, Stats, Education, Finance, Persistence, Migration, Work/Career/School/Recovery, Chain/Delayed, LifeMemory, Personality, Tags, EventHistory/Choice, MonthlySettlement, Investment, ActivityLog и др. *(см. `src/domain/game-facade/system-context.ts`)*
+- [ ] Все дочерние планы дословно синхронизированы по каждому подпункту этого документа.
+- [ ] Wave A/B/C из этого файла формально пройдены с отдельными Go/No-Go отчётами *(частично перекрыто фазами 1–4 roadmap)*.
+- [x] Нет задокументированных P0 рассинхронов по контрактам time/event/action/skills после фаз roadmap *(регрессии — через актуальные тесты на ветке)*.
+- [ ] Реализм-контур и unlock-логика полностью стабильны по всем сценариям Wave C.
+- [ ] «Education → Knowledge → Skill/Action unlock» проходит end-to-end в автотестах и ручных сценариях.
+- [ ] Save/load, миграции событий и telemetry подтверждены без деградации на целевой ветке *(перепроверять `npm test`)*.
 
 ---
 

@@ -1,4 +1,4 @@
-﻿import {
+import {
   WALLET_COMPONENT,
   STATS_COMPONENT,
   SKILLS_COMPONENT,
@@ -8,11 +8,14 @@
   PLAYER_ENTITY,
 } from '../../components/index'
 import { SkillsSystem } from '../SkillsSystem'
+import { ChainResolverSystem } from '../ChainResolverSystem'
+import { DelayedEffectSystem } from '../DelayedEffectSystem'
 import { EventHistorySystem } from '../EventHistorySystem'
 import { summarizeStatChanges } from '../../utils/stat-change-summary'
 import type { GameWorld } from '../../world'
 import type { StatChanges } from '@/domain/balance/types'
 import type { RuntimeEventChoice, RuntimeGameEvent, EventChoiceResult, ResolvedChoice } from './index.types'
+import type { SystemContext } from '@/domain/game-facade/index.types'
 
 /**
  * Система обработки выборов событий
@@ -20,21 +23,40 @@ import type { RuntimeEventChoice, RuntimeGameEvent, EventChoiceResult, ResolvedC
  */
 export class EventChoiceSystem {
   private world!: GameWorld
+  private ctx: SystemContext | null = null
   private skillsSystem!: SkillsSystem
+  private chainResolver!: ChainResolverSystem | null
+  private delayedEffect!: DelayedEffectSystem | null
   private eventHistorySystem!: EventHistorySystem
   private choiceHandlers: Map<string, unknown> = new Map()
 
+  /** Вызывается из getSystemContext после сборки контекста */
+  wireFromContext(ctx: SystemContext): void {
+    this.ctx = ctx
+    this.chainResolver = ctx.chainResolver ?? null
+    this.delayedEffect = ctx.delayedEffect ?? null
+  }
+
   init(world: GameWorld): void {
     this.world = world
-    this.skillsSystem = new SkillsSystem()
-    this.skillsSystem.init(world)
+    this.skillsSystem = this._resolveSkillsSystem()
     this.eventHistorySystem = this._resolveEventHistorySystem()
   }
 
   private _resolveEventHistorySystem(): EventHistorySystem {
+    if (this.ctx?.eventHistory) return this.ctx.eventHistory
     const existing = this.world.getSystem(EventHistorySystem)
     if (existing) return existing
     const created = new EventHistorySystem()
+    this.world.addSystem(created)
+    return created
+  }
+
+  private _resolveSkillsSystem(): SkillsSystem {
+    if (this.ctx?.skills) return this.ctx.skills
+    const existing = this.world.getSystem(SkillsSystem)
+    if (existing) return existing
+    const created = new SkillsSystem()
     this.world.addSystem(created)
     return created
   }
@@ -118,14 +140,41 @@ export class EventChoiceSystem {
       }))
     }
 
-    this._recordEvent(event.id, event.title ?? '', event.type ?? 'story', event.actionSource ?? null)
+    this._recordEvent(
+      event.instanceId as string,
+      event.id,
+      event.title ?? '',
+      event.type ?? 'story',
+      event.actionSource ?? null,
+      choice.id || `choice_${choiceIndex}`,
+      choice.text,
+      mergedStatChanges,
+    )
+
+    if (event.chainTag && this.chainResolver) {
+      this.chainResolver.markChainEventProcessed(event.chainTag, event.id, choiceIndex)
+    }
+
+    if (choice.delayedEffect && this.delayedEffect) {
+      this.delayedEffect.scheduleEffect({
+        ...choice.delayedEffect,
+        sourceEventId: event.id,
+      })
+    }
 
     const eventQueue = this.world.getComponent(playerId, EVENT_QUEUE_COMPONENT) as Record<string, unknown> | null
     if (eventQueue && eventQueue.pendingEvents) {
       const index = (eventQueue.pendingEvents as Array<Record<string, unknown>>).findIndex(
-        (e) => e.instanceId === event.instanceId || e.id === event.id,
+        (e) => e.instanceId === event.instanceId,
       )
-      if (index > -1) {
+      if (index === -1) {
+        const fallbackIndex = (eventQueue.pendingEvents as Array<Record<string, unknown>>).findIndex(
+          (e) => e.id === event.id,
+        )
+        if (fallbackIndex > -1) {
+          (eventQueue.pendingEvents as Array<Record<string, unknown>>).splice(fallbackIndex, 1)
+        }
+      } else {
         (eventQueue.pendingEvents as Array<Record<string, unknown>>).splice(index, 1)
       }
     }
@@ -151,8 +200,26 @@ export class EventChoiceSystem {
     return merged
   }
 
-  _recordEvent(eventId: string, title: string, type = 'story', actionSource: string | null = null): void {
-    this.eventHistorySystem.recordEvent(eventId, title, type, actionSource)
+  _recordEvent(
+    instanceId: string,
+    templateId: string,
+    title: string,
+    type = 'story',
+    actionSource: string | null = null,
+    choiceId?: string,
+    choiceText?: string,
+    effects?: Record<string, number>,
+  ): void {
+    this.eventHistorySystem.recordEvent(
+      instanceId,
+      templateId,
+      title,
+      type,
+      actionSource,
+      choiceId,
+      choiceText,
+      effects,
+    )
   }
 
   _applyStatChanges(stats: Record<string, number>, statChanges: Record<string, number> = {}): void {
@@ -280,4 +347,5 @@ export class EventChoiceSystem {
     }
   }
 }
+
 

@@ -1,5 +1,6 @@
 import type { SkillModifiers, SkillEffect } from '@/domain/balance/types'
 import { ALL_SKILLS } from './skills-constants'
+import { generateModifiersFromSkillDefs } from './skill-effects-generator'
 
 export function createBaseSkillModifiers(): SkillModifiers {
   return {
@@ -38,234 +39,57 @@ export function recalculateSkillModifiers(skillLevels: Record<string, number | {
     return modifiers
   }
 
-  for (const skill of ALL_SKILLS) {
-    const rawValue = skillLevels[skill.key]
-    // Извлекаем уровень из объекта { level, xp } или используем число напрямую
-    const level: number =
-      typeof rawValue === 'number'
-        ? rawValue
-        : typeof rawValue === 'object' && rawValue !== null
-          ? (rawValue.level ?? 0)
-          : 0
+  // Извлекаем уровни навыков в плоский формат
+  const flatSkillLevels: Record<string, number> = {}
+  for (const [key, value] of Object.entries(skillLevels)) {
+    flatSkillLevels[key] = typeof value === 'number' ? value : (value?.level ?? 0)
+  }
 
-    if (level <= 0 || !skill.effects) continue
-
-    const lvl = level
-
-    if (skill.key === 'timeManagement') {
-      modifiers.energyDrainMultiplier *= (1 - lvl * 0.025)
-      modifiers.stressGainMultiplier *= (1 - lvl * 0.02)
-      modifiers.workEfficiencyMultiplier *= (1 + lvl * 0.015)
-      modifiers.learningSpeedMultiplier *= (1 + lvl * 0.03)
-    }
-
-    if (skill.key === 'communication') {
-      modifiers.positiveEventChanceBonus += lvl * 0.012
-      modifiers.relationshipGainMultiplier *= (1 + lvl * 0.04)
-      modifiers.salaryMultiplier *= (1 + lvl * 0.015)
-    }
-
-    if (skill.key === 'financialLiteracy') {
-      modifiers.shopPriceMultiplier *= (1 - lvl * 0.018)
-      modifiers.investmentReturnMultiplier *= (1 + lvl * 0.035)
-      modifiers.passiveIncomeBonus += lvl * 50
-    }
-
-    if (skill.key === 'healthyLifestyle') {
-      modifiers.hungerDrainMultiplier *= (1 - lvl * 0.022)
-      modifiers.healthDecayMultiplier *= (1 - lvl * 0.03)
-      modifiers.foodRecoveryMultiplier *= (1 + lvl * 0.025)
-    }
-
-    if (skill.key === 'adaptability') {
-      modifiers.negativeEventPenaltyReduction += lvl * 0.04
-    }
-
-    if (skill.key === 'discipline') {
-      modifiers.learningSpeedMultiplier *= (1 + lvl * 0.025)
-    }
-
-    if (skill.key === 'physicalFitness') {
-      modifiers.maxEnergyBonus += lvl * 4
-      modifiers.energyDrainMultiplier *= (1 - lvl * 0.01)
-    }
-
-    if (skill.key === 'emotionalIntelligence') {
-      modifiers.moodRecoveryMultiplier *= (1 + lvl * 0.045)
-      modifiers.negativeEventPenaltyReduction += lvl * 0.025
-    }
-
-    if (skill.key === 'organization') {
-      modifiers.homeComfortMultiplier *= (1 + lvl * 0.025)
-      modifiers.dailyExpenseMultiplier *= (1 - lvl * 0.015)
-    }
-
-    if (skill.key === 'basicCreativity') {
-      modifiers.hobbyIncomeMultiplier *= (1 + lvl * 0.04)
-      modifiers.positiveEventChanceBonus += lvl * 0.01
-    }
-
-    if (skill.key === 'stressResistance') {
-      modifiers.stressGainMultiplier *= (1 - lvl * 0.035)
-    }
-
-    if (skill.key === 'selfControl') {
-      modifiers.negativeEventPenaltyReduction += lvl * 0.02
-    }
-
-    if (skill.key === 'curiosity') {
-      modifiers.learningSpeedMultiplier *= (1 + lvl * 0.03)
-    }
-
-    if (skill.key === 'empathy') {
-      modifiers.relationshipGainMultiplier *= (1 + lvl * 0.05)
-    }
-
-    if (skill.key === 'memory') {
-      modifiers.learningSpeedMultiplier *= (1 + lvl * 0.02)
-    }
-
-    if (skill.key === 'professionalism') {
-      modifiers.salaryMultiplier *= (1 + lvl * 0.04)
-      modifiers.workEfficiencyMultiplier *= (1 + lvl * 0.02)
-    }
-
-    if (skill.key === 'leadership') {
-      modifiers.salaryMultiplier *= (1 + lvl * 0.02)
-      modifiers.promotionChanceBonus += lvl * 0.035
-    }
-
-    if (skill.key === 'negotiations') {
-      modifiers.salaryMultiplier *= (1 + lvl * 0.025)
-      modifiers.shopPriceMultiplier *= (1 - lvl * 0.008)
-    }
-
-    if (skill.key === 'analyticalThinking') {
-      modifiers.investmentReturnMultiplier *= (1 + lvl * 0.04)
-    }
-
-    if (skill.key === 'specialization') {
-      modifiers.salaryMultiplier *= (1 + lvl * 0.07)
-    }
-
-    if (skill.key === 'stressResistancePro') {
-      modifiers.stressGainMultiplier *= (1 - lvl * 0.035)
-    }
-
-    if (skill.key === 'technicalLiteracy') {
-      modifiers.learningSpeedMultiplier *= (1 + lvl * 0.06)
-      modifiers.homeComfortMultiplier *= (1 + lvl * 0.04)
-    }
-
-    if (skill.key === 'cooking') {
-      modifiers.foodRecoveryMultiplier *= (1 + lvl * 0.07)
-      modifiers.dailyExpenseMultiplier *= (1 - lvl * 0.02)
-    }
-
-    if (skill.key === 'marketing') {
-      modifiers.hobbyIncomeMultiplier *= (1 + lvl * 0.09)
-      modifiers.passiveIncomeBonus += lvl * 120
-    }
-
-    if (skill.key === 'financialAnalysis') {
-      modifiers.investmentReturnMultiplier *= (1 + lvl * 0.05)
-    }
-
-    if (skill.key === 'sales') {
-      modifiers.shopPriceMultiplier *= (1 - lvl * 0.01)
-      modifiers.workEfficiencyMultiplier *= (1 + lvl * 0.01)
-    }
-
-    if (skill.key === 'strategicPlanning') {
-      modifiers.workEfficiencyMultiplier *= (1 + lvl * 0.03)
-    }
-
-    if (skill.key === 'medicalKnowledge') {
-      modifiers.healthRecoveryMultiplier *= (1 + lvl * 0.08)
-      modifiers.agingSpeedMultiplier *= (1 - lvl * 0.04)
-    }
-
-    if (skill.key === 'charisma') {
-      modifiers.relationshipGainMultiplier *= (1 + lvl * 0.06)
-    }
-
-    if (skill.key === 'humor') {
-      modifiers.moodRecoveryMultiplier *= (1 + lvl * 0.05)
-      modifiers.positiveEventChanceBonus += lvl * 0.02
-    }
-
-    if (skill.key === 'patience') {
-      modifiers.stressGainMultiplier *= (1 - lvl * 0.02)
-    }
-
-    if (skill.key === 'optimism') {
-      modifiers.allRecoveryMultiplier *= (1 + lvl * 0.025)
-      modifiers.moodRecoveryMultiplier *= (1 + lvl * 0.03)
-    }
-
-    if (skill.key === 'flexibleThinking') {
-      modifiers.agingSpeedMultiplier *= (1 - lvl * 0.02)
-    }
-
-    if (skill.key === 'selfDisciplineExtended') {
-      modifiers.autoRecoveryWeekly += lvl >= 10 ? 5 : Math.round(lvl * 0.5)
-      modifiers.workEfficiencyMultiplier *= (1 + lvl * 0.01)
-    }
-
-    if (skill.key === 'intuition') {
-      modifiers.positiveEventChanceBonus += lvl * 0.03
-      modifiers.eventChoiceHintBonus += lvl * 0.03
-    }
-
-    if (skill.key === 'wisdom') {
-      modifiers.agingSpeedMultiplier *= (1 - lvl * 0.03)
-    }
-
-    if (skill.key === 'artisticMastery') {
-      modifiers.hobbyIncomeMultiplier *= (1 + lvl * 0.08)
-    }
-
-    if (skill.key === 'musicalAbility') {
-      modifiers.moodRecoveryMultiplier *= (1 + lvl * 0.07)
-    }
-
-    if (skill.key === 'writing') {
-      modifiers.hobbyIncomeMultiplier *= (1 + lvl * 0.06)
-      if (lvl >= 10) {
-        modifiers.passiveIncomeBonus += lvl * 100
-      }
-    }
-
-    if (skill.key === 'photography') {
-      modifiers.relationshipGainMultiplier *= (1 + lvl * 0.03)
-    }
-
-    if (skill.key === 'gardening') {
-      modifiers.homeComfortMultiplier *= (1 + lvl * 0.04)
-    }
-
-    if (skill.key === 'handiness') {
-      modifiers.dailyExpenseMultiplier *= (1 - lvl * 0.02)
-    }
-
-    if (skill.key === 'dance') {
-      modifiers.energyDrainMultiplier *= (1 - lvl * 0.02)
-    }
-
-    if (skill.key === 'acting') {
-      modifiers.positiveEventChanceBonus += lvl * 0.02
-    }
-
-    if (skill.key === 'interiorDesign') {
-      modifiers.homeComfortMultiplier *= (1 + lvl * 0.06)
-    }
-
-    if (skill.key === 'culinaryArt') {
-      modifiers.foodRecoveryMultiplier *= (1 + lvl * 0.1)
+  // Генерируем модификаторы из определений навыков
+  const generatedModifiers = generateModifiersFromSkillDefs(flatSkillLevels)
+  
+  // Комбинируем с базовыми модификаторами
+  for (const [key, value] of Object.entries(generatedModifiers)) {
+    const modifierKey = key as keyof SkillModifiers
+    if (isMultiplicativeModifier(modifierKey)) {
+      modifiers[modifierKey] = (modifiers[modifierKey] as number) * (value as number)
+    } else {
+      modifiers[modifierKey] = (modifiers[modifierKey] as number) + (value as number)
     }
   }
 
+  // Дополнительные ручные модификаторы (для обратной совместимости)
+  // Можно пос��епенно мигрир��вать их в definitions
+
   return clampSkillModifiers(modifiers)
+}
+
+/**
+ * Проверить, является ли модификатор мультипликативным
+ */
+export function isMultiplicativeModifier(modifierKey: keyof SkillModifiers): boolean {
+  const multiplicativeModifiers: (keyof SkillModifiers)[] = [
+    'hungerDrainMultiplier',
+    'energyDrainMultiplier',
+    'stressGainMultiplier',
+    'moodRecoveryMultiplier',
+    'healthDecayMultiplier',
+    'salaryMultiplier',
+    'workEfficiencyMultiplier',
+    'shopPriceMultiplier',
+    'investmentReturnMultiplier',
+    'learningSpeedMultiplier',
+    'homeComfortMultiplier',
+    'dailyExpenseMultiplier',
+    'relationshipGainMultiplier',
+    'hobbyIncomeMultiplier',
+    'agingSpeedMultiplier',
+    'foodRecoveryMultiplier',
+    'allRecoveryMultiplier',
+    'healthRecoveryMultiplier',
+  ]
+  
+  return multiplicativeModifiers.includes(modifierKey)
 }
 
 export function clampSkillModifiers(modifiers: SkillModifiers): SkillModifiers {

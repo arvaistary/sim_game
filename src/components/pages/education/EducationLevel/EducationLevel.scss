@@ -2,3 +2,141 @@
 .edu-level{display:flex;flex-direction:column;gap:$space-1}
 .edu-label{font-size:$font-size-base;font-weight:$font-weight-bold}
 .edu-active{font-size:$font-size-sm;color:var(--color-pastel-green-strong)}
+
+.course-progress{
+  margin-top:$space-2;
+  display:flex;
+  flex-direction:column;
+  gap:$space-1
+}
+.step-info{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:$font-size-sm
+}
+.step-label{
+  font-weight:$font-weight-medium;
+  color:var(--color-text-primary)
+}
+.step-counter{
+  font-size:$font-size-xs;
+  color:var(--color-text-secondary)
+}
+.progress-bar{
+  width:100%;
+  height:8px;
+  background-color:var(--color-bg-tertiary);
+  border-radius:4px;
+  overflow:hidden
+}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--color-pastel-green),var(--color-pastel-green-strong));
+  border-radius:4px;
+  transition:width 0.3s ease
+}
+.progress-fill.efficiency-high{
+  background:linear-gradient(90deg,#4ade80,#22c55e)
+}
+.progress-fill.efficiency-medium{
+  background:linear-gradient(90deg,#fbbf24,#f59e0b)
+}
+.progress-fill.efficiency-low{
+  background:linear-gradient(90deg,#fb923c,#f97316)
+}
+.progress-fill.efficiency-very-low{
+  background:linear-gradient(90deg,#f87171,#ef4444)
+}
+.progress-details{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:$font-size-xs;
+  color:var(--color-text-secondary)
+}
+.progress-text{
+  font-weight:$font-weight-medium
+}
+.step-progress-text{
+  color:var(--color-pastel-green-strong)
+}
+.milestone-reward{
+  margin-top:$space-1;
+  padding:$space-1;
+  background-color:var(--color-bg-secondary);
+  border-radius:4px;
+  border-left:3px solid var(--color-pastel-green-strong);
+  display:flex;
+  flex-direction:column;
+  gap:$space-1
+}
+.milestone-icon{
+  font-size:$font-size-sm
+}
+.milestone-text{
+  font-size:$font-size-xs;
+  font-weight:$font-weight-medium;
+  color:var(--color-text-primary)
+}
+.milestone-stats,
+.milestone-skills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:$space-1
+}
+.stat-change,
+.skill-change{
+  font-size:$font-size-xs;
+  padding:2px 6px;
+  background-color:var(--color-bg-tertiary);
+  border-radius:3px;
+  color:var(--color-text-secondary)
+}
+.stat-change:has(+ .stat-change),
+.skill-change:has(+ .skill-change){
+  margin-right:0
+}
+.milestone-message{
+  font-size:$font-size-xs;
+  color:var(--color-text-secondary);
+  margin:0;
+  font-style:italic
+}
+.time-hint{
+  margin-top:$space-1;
+  padding:$space-1;
+  background-color:rgba(251,191,36,0.1);
+  border-radius:4px;
+  display:flex;
+  align-items:center;
+  gap:$space-1
+}
+.time-icon{
+  font-size:$font-size-sm
+}
+.time-text{
+  font-size:$font-size-xs;
+  color:var(--color-text-secondary)
+}
+.cognitive-load-hint{
+  margin-top:$space-1;
+  padding:$space-1;
+  background-color:rgba(147,51,234,0.1);
+  border-radius:4px;
+  display:flex;
+  flex-direction:column;
+  gap:$space-1
+}
+.cognitive-icon{
+  font-size:$font-size-sm
+}
+.cognitive-text{
+  font-size:$font-size-xs;
+  font-weight:$font-weight-medium;
+  color:var(--color-text-primary)
+}
+.cognitive-description{
+  font-size:$font-size-xs;
+  color:var(--color-text-secondary)
+}

@@ -1,4 +1,4 @@
-import { PLAYER_ENTITY } from '@/domain/engine/components'
+﻿import { PLAYER_ENTITY } from '@/domain/engine/components'
 import { ActionSystem } from '@/domain/engine/systems/ActionSystem'
 import { ActivityLogSystem } from '@/domain/engine/systems/ActivityLogSystem'
 import { CareerProgressSystem } from '@/domain/engine/systems/CareerProgressSystem'
@@ -20,6 +20,8 @@ import { StatsSystem } from '@/domain/engine/systems/StatsSystem'
 import { TagsSystem } from '@/domain/engine/systems/TagsSystem'
 import { TimeSystem } from '@/domain/engine/systems/TimeSystem'
 import { WorkPeriodSystem } from '@/domain/engine/systems/WorkPeriodSystem'
+import { MigrationSystem } from '@/domain/engine/systems/MigrationSystem'
+import { PersistenceSystem } from '@/domain/engine/systems/PersistenceSystem'
 import { GameWorld } from '@/domain/engine/world'
 import type { SystemContext } from '@/domain/game-facade/index.types'
 
@@ -28,6 +30,9 @@ export { GAME_DOMAIN_EVENT } from '@/domain/game-facade/index.constants'
 export type { SystemContext, AnyRecord } from '@/domain/game-facade/index.types'
 
 const contextCache = new WeakMap<GameWorld, SystemContext>()
+
+/** Предотвращает повторную регистрацию school-хуков на одном TimeSystem при пересборке контекста */
+const schoolTimeLifecycleHooks = new WeakSet<GameWorld>()
 
 function initSystem<T extends { init(world: GameWorld): void }>(system: T, world: GameWorld): T {
   system.init(world)
@@ -52,14 +57,63 @@ function resolveTimeSystem(world: GameWorld): TimeSystem {
   return initSystem(new TimeSystem(), world)
 }
 
+function resolveSkillsSystem(world: GameWorld): SkillsSystem {
+  const existing = world.getSystem(SkillsSystem)
+  if (existing) return existing
+  world.addSystem(new SkillsSystem())
+  const created = world.getSystem(SkillsSystem)
+  if (created) return created
+  return initSystem(new SkillsSystem(), world)
+}
+
+function resolveStatsSystem(world: GameWorld): StatsSystem {
+  const existing = world.getSystem(StatsSystem)
+  if (existing) return existing
+  world.addSystem(new StatsSystem())
+  const created = world.getSystem(StatsSystem)
+  if (created) return created
+  return initSystem(new StatsSystem(), world)
+}
+
+function resolveEventQueueSystem(world: GameWorld): EventQueueSystem {
+  const existing = world.getSystem(EventQueueSystem)
+  if (existing) return existing
+  world.addSystem(new EventQueueSystem())
+  const created = world.getSystem(EventQueueSystem)
+  if (created) return created
+  return initSystem(new EventQueueSystem(), world)
+}
+
+function resolveTagsSystem(world: GameWorld): TagsSystem {
+  const existing = world.getSystem(TagsSystem)
+  if (existing) return existing
+  world.addSystem(new TagsSystem())
+  const created = world.getSystem(TagsSystem)
+  if (created) return created
+  return initSystem(new TagsSystem(), world)
+}
+
+function resolvePersonalitySystem(world: GameWorld): PersonalitySystem {
+  const existing = world.getSystem(PersonalitySystem)
+  if (existing) return existing
+  world.addSystem(new PersonalitySystem())
+  return world.getSystem(PersonalitySystem)!
+}
+
 export function getSystemContext(world: GameWorld): SystemContext {
   const cached = contextCache.get(world)
   if (cached) {
     return cached
   }
 
-  const skills = initSystem(new SkillsSystem(), world)
-  const stats = initSystem(new StatsSystem(), world)
+  const skills = resolveSkillsSystem(world)
+  const stats = resolveStatsSystem(world)
+  const time = resolveTimeSystem(world)
+  const eventQueue = resolveEventQueueSystem(world)
+  const personality = resolvePersonalitySystem(world)
+
+  const migration = initSystem(new MigrationSystem(), world)
+  const persistence = initSystem(new PersistenceSystem(migration), world)
 
   const context: SystemContext = {
     world,
@@ -72,23 +126,57 @@ export function getSystemContext(world: GameWorld): SystemContext {
     education: initSystem(new EducationSystem(), world),
     eventChoice: initSystem(new EventChoiceSystem(), world),
     eventHistory: initSystem(new EventHistorySystem(), world),
-    eventQueue: initSystem(new EventQueueSystem(), world),
+    eventQueue,
     financeAction: initSystem(new FinanceActionSystem(), world),
     investment: initSystem(new InvestmentSystem(), world),
     lifeMemory: initSystem(new LifeMemorySystem(), world),
     monthlySettlement: initSystem(new MonthlySettlementSystem(), world),
-    personality: initSystem(new PersonalitySystem(), world),
+    personality,
     recovery: initSystem(new RecoverySystem(), world),
     school: initSystem(new SchoolSystem(), world),
     skills,
     stats,
-    tags: initSystem(new TagsSystem(), world),
-    time: resolveTimeSystem(world),
+    tags: resolveTagsSystem(world),
+    time,
     workPeriod: initSystem(new WorkPeriodSystem(), world),
+    migration,
+    persistence,
   }
 
+  context.careerProgress.wireFromContext(context)
+  context.workPeriod.wireFromContext(context)
+  context.school.wireFromContext(context)
+  context.eventChoice.wireFromContext(context)
+
+  /**
+   * Wiring period hooks для event producers
+   *
+   * Порядок lifecycle:
+   * 1. advanceHours() в TimeSystem
+   * 2. Period hooks (onWeeklyEvent, onMonthlyEvent, onYearlyEvent)
+   * 3. Event producers enqueue события через EventIngress API
+   * 4. Event resolve/log через EventChoiceSystem
+   *
+   * Period dedup гарантирует, что события не дублируются на границах периодов
+   */
   context.time.onMonthlyEvent((monthNumber) => context.monthlySettlement.applyMonthlySettlement(monthNumber))
   context.time.onWeeklyEvent((weekNumber) => context.workPeriod.handleWeekRollover(weekNumber))
+  context.time.onYearlyEvent((yearNumber) => {
+    contextCache.delete(world)
+  })
+  context.time.onAgeEvent((_previousAge, _currentAge) => {
+    contextCache.delete(world)
+  })
+
+  if (!schoolTimeLifecycleHooks.has(world)) {
+    schoolTimeLifecycleHooks.add(world)
+    context.time.onGameDayOpened((gameDay) => {
+      getSystemContext(world).school.processGameDay(gameDay)
+    })
+    context.time.onAgeEvent((previousAge, currentAge) => {
+      getSystemContext(world).school.onPlayerAgeChanged(previousAge, currentAge)
+    })
+  }
 
   contextCache.set(world, context)
   return context

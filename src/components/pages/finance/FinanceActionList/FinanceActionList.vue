@@ -1,7 +1,7 @@
 <template>
   <RoundedPanel>
     <h3 class="section-title">Действия</h3>
-    <div class="action-list">
+    <div v-if="financeActions.length > 0" class="action-list">
       <div v-for="action in financeActions" :key="action.id" class="action-card" @click="handleAction(action)">
         <div class="action-header">
           <span class="action-title">{{ action.title }}</span>
@@ -10,6 +10,7 @@
         <p class="action-desc">{{ action.description }}</p>
       </div>
     </div>
+    <p v-else class="finance-empty">{{ financeEmptyHint }}</p>
   </RoundedPanel>
 </template>
 
@@ -19,11 +20,18 @@ import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { useGameStore } from '@/stores/game.store'
 import { showGameResultModal } from '@/composables/useGameModal'
 import { useToast } from '@/composables/useToast'
+import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 import type { LegacyFinanceAction } from '@/domain/balance/types'
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
 const toast = useToast()
+const { ageGroupLabel } = useAgeRestrictions()
+
+const financeEmptyHint = computed(
+  () =>
+    `Для этапа «${ageGroupLabel.value}» нет доступных финансовых операций. Раздел откроется с возраста, когда вкладка «Финансы» станет активной.`,
+)
 
 /** Единый source-of-truth: данные из FinanceActionSystem engine */
 const financeActions = computed(() => {

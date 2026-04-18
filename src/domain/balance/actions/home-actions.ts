@@ -30,7 +30,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод -14, Энергия +3.5, Стресс -2.5, Настроение +4.5, Здоровье +1.5, Физическая форма -0.3, Комфорт жилья +14',
     mood: '🧊 Свежие продукты всегда под рукой — это меняет жизнь',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'home_decor',
@@ -106,7 +106,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +4.2, Энергия -5, Стресс -4, Настроение +6, Здоровье +0.8, Физическая форма +2.5, Комфорт жилья +12, Рукоделие +2',
     mood: '🔧 Починил сам — и сразу чувствуешь гордость',
-    ageGroup: AgeGroup.CHILD,
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'home_workspace',
@@ -146,7 +146,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +1.5, Энергия -2, Стресс -12, Настроение +7.5, Здоровье +0.5, Физическая форма -0.3, Комфорт жилья +18',
     mood: '✨ Когда приходит клининг — в доме сразу становится легче дышать',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'home_balcony',
@@ -161,7 +161,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +4.5, Энергия -5.5, Стресс -8.5, Настроение +16.5, Здоровье +1.5, Физическая форма +2.8, Комфорт жилья +15, Садоводство +2',
     mood: '🌿 Балкон превратился в маленький личный оазис',
-    ageGroup: AgeGroup.YOUNG,
+    ageGroup: AgeGroup.ADULT,
   },
   {
     id: 'home_smart_home',
@@ -232,7 +232,7 @@ export const HOME_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +5.5, Энергия -7.5, Стресс -6, Настроение +12.5, Здоровье +0.5, Физическая форма +3.5, Комфорт жилья +14, Рукоделие +3',
     mood: '🛠️ Собрал своими руками — теперь это по-настоящему твоё',
-    ageGroup: AgeGroup.CHILD,
+    ageGroup: AgeGroup.TEEN,
   },
   {
     id: 'home_home_cinema',

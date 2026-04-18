@@ -42,6 +42,7 @@ export const RELATIONSHIPS_COMPONENT = 'relationships' as const
 export const SUBSCRIPTION_COMPONENT = 'subscriptions' as const
 export const COOLDOWN_COMPONENT = 'cooldowns' as const
 export const COMPLETED_ACTIONS_COMPONENT = 'completedActions' as const
+export const ACTION_HISTORY_COMPONENT = 'actionHistory' as const
 export const CREDIT_COMPONENT = 'credits' as const
 
 export const ACTIVITY_LOG_COMPONENT = 'activity_log' as const
@@ -58,6 +59,8 @@ export const CHAIN_STATE_COMPONENT = 'chain_state' as const
 export const PERSONALITY_COMPONENT = 'personality' as const
 
 export const SCHOOL_COMPONENT = 'school' as const
+
+export const COGNITIVE_LOAD_COMPONENT = 'cognitive_load' as const
 
 export const TAGS_COMPONENT = 'tags' as const
 

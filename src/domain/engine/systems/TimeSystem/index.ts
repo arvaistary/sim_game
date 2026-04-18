@@ -9,10 +9,15 @@ import {
   WALLET_COMPONENT,
 } from '../../components/index'
 import { EventQueueSystem } from '../EventQueueSystem'
+import { SkillsSystem } from '../SkillsSystem'
+import { TagsSystem } from '../TagsSystem'
 import { MICRO_EVENT_BY_ACTION, buildMicroQueuedEvent } from '../../../balance/constants/game-events'
 import type { GameWorld } from '../../world'
 import type { RuntimeTimeComponent, AdvanceOptions, AdvanceResult, PeriodicCallback } from './index.types'
 import { HOURS_IN_DAY, HOURS_IN_WEEK, WEEKS_IN_MONTH, MONTHS_IN_YEAR, DAYS_IN_AGE_YEAR } from './index.constants'
+import { getGlobalTimeDiagnostics, type TimeDiagnostics } from './TimeDiagnostics'
+import { getGlobalStrictPeriodProcessing, type PeriodCallbackWithMetadata } from './StrictPeriodProcessing'
+import { getGlobalDeterministicReplay } from './DeterministicReplay'
 
 /**
  * Система управления временем
@@ -20,14 +25,23 @@ import { HOURS_IN_DAY, HOURS_IN_WEEK, WEEKS_IN_MONTH, MONTHS_IN_YEAR, DAYS_IN_AG
  */
 export class TimeSystem {
   private world!: GameWorld
+  private skillsSystem!: SkillsSystem
+  private diagnostics: TimeDiagnostics
+  private strictProcessing: ReturnType<typeof getGlobalStrictPeriodProcessing>
+  private replay: ReturnType<typeof getGlobalDeterministicReplay>
 
-  private weeklyEventCallbacks: PeriodicCallback[] = []
-  private monthlyEventCallbacks: PeriodicCallback[] = []
-  private yearlyEventCallbacks: PeriodicCallback[] = []
-  private ageEventCallbacks: PeriodicCallback[] = []
+  private weeklyEventCallbacks: PeriodCallbackWithMetadata[] = []
+  private monthlyEventCallbacks: PeriodCallbackWithMetadata[] = []
+  private yearlyEventCallbacks: PeriodCallbackWithMetadata[] = []
+  private ageEventCallbacks: PeriodCallbackWithMetadata[] = []
+  private gameDayOpenedCallbacks: PeriodCallbackWithMetadata[] = []
 
   init(world: GameWorld): void {
     this.world = world
+    this.skillsSystem = this._resolveSkillsSystem()
+    this.diagnostics = getGlobalTimeDiagnostics()
+    this.strictProcessing = getGlobalStrictPeriodProcessing()
+    this.replay = getGlobalDeterministicReplay()
     const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as RuntimeTimeComponent | null
     if (time) {
       this.normalizeTimeComponent(time)
@@ -131,15 +145,21 @@ export class TimeSystem {
    * Основной API: продвинуть время на часы.
    */
   advanceHours(hours = 1, options: AdvanceOptions = {}): AdvanceResult {
+    const startTime = this.diagnostics.recordAdvanceHoursStart(hours)
+    
     const playerId = PLAYER_ENTITY
     const timeComponent = this.world.getComponent(playerId, TIME_COMPONENT) as RuntimeTimeComponent | null
-    if (!timeComponent) return { weekly: [], monthly: [], yearly: [], age: [] }
+    if (!timeComponent) {
+      this.diagnostics.recordAdvanceHoursEnd(startTime, hours)
+      return { weekly: [], monthly: [], yearly: [], age: [] }
+    }
 
     this.normalizeTimeComponent(timeComponent)
 
     const safeHours = Math.max(0, Number(hours) || 0)
     if (safeHours <= 0) {
       telemetryInc('time_advance_anomaly:zero_or_negative')
+      this.diagnostics.recordAdvanceHoursEnd(startTime, hours)
       return { weekly: [], monthly: [], yearly: [], age: [] }
     }
     if (safeHours > 168) {
@@ -151,9 +171,25 @@ export class TimeSystem {
     const previousYearIndex = this._calendarYearIndex0FromMonth(previousMonth)
     const previousAge = timeComponent.currentAge
     const previousDay = timeComponent.gameDays
+    const totalHoursBefore = timeComponent.totalHours
 
     timeComponent.totalHours += safeHours
     this.normalizeTimeComponent(timeComponent)
+
+    const tagsSystem = this.world.getSystem(TagsSystem)
+    tagsSystem?.cleanExpiredTags()
+
+    // Логируем команду для deterministic replay
+    this.replay.recordCommand({
+      actionId: options.actionType,
+      hourCost: safeHours,
+      totalHoursBefore,
+      totalHoursAfter: timeComponent.totalHours,
+      metadata: {
+        sleepHours: options.sleepHours,
+        riskMultiplier: options.riskMultiplier,
+      },
+    })
 
     const sleepHours = Math.max(0, Number(options.sleepHours) || 0)
     const dayAdvanced = timeComponent.gameDays - previousDay
@@ -162,6 +198,10 @@ export class TimeSystem {
         timeComponent.sleepDebt = (timeComponent.sleepDebt ?? 0) + (7 - (timeComponent.sleepHoursToday ?? 0))
       }
       timeComponent.sleepHoursToday = 0
+
+      for (let gameDay = previousDay + 1; gameDay <= timeComponent.gameDays; gameDay += 1) {
+        this._triggerGameDayOpenedCallbacks(gameDay)
+      }
     }
     if (sleepHours > 0) {
       timeComponent.sleepHoursToday = Math.min(24, (timeComponent.sleepHoursToday ?? 0) + sleepHours)
@@ -173,6 +213,8 @@ export class TimeSystem {
     const events: AdvanceResult = { weekly: [], monthly: [], yearly: [], age: [] }
 
     if (timeComponent.gameWeeks > previousWeek) {
+      const weeksTriggered = timeComponent.gameWeeks - previousWeek
+      this.diagnostics.recordPeriodicCallback('weekly', weeksTriggered)
       for (let week = previousWeek + 1; week <= timeComponent.gameWeeks; week += 1) {
         events.weekly.push(week)
         this._triggerWeeklyEvents(week)
@@ -180,6 +222,8 @@ export class TimeSystem {
     }
 
     if (timeComponent.gameMonths > previousMonth) {
+      const monthsTriggered = timeComponent.gameMonths - previousMonth
+      this.diagnostics.recordPeriodicCallback('monthly', monthsTriggered)
       for (let month = previousMonth + 1; month <= timeComponent.gameMonths; month += 1) {
         events.monthly.push(month)
         this._triggerMonthlyEvents(month)
@@ -208,6 +252,8 @@ export class TimeSystem {
 
     const currentYearIndex = this._calendarYearIndex0FromMonth(timeComponent.gameMonths)
     if (currentYearIndex > previousYearIndex) {
+      const yearsTriggered = currentYearIndex - previousYearIndex
+      this.diagnostics.recordPeriodicCallback('yearly', yearsTriggered)
       for (let yi = previousYearIndex + 1; yi <= currentYearIndex; yi += 1) {
         const displayYear = yi + 1
         events.yearly.push(displayYear)
@@ -233,6 +279,8 @@ export class TimeSystem {
     }
 
     if (timeComponent.currentAge > previousAge) {
+      const agesTriggered = timeComponent.currentAge - previousAge
+      this.diagnostics.recordPeriodicCallback('age', agesTriggered)
       this._triggerAgeEvents(previousAge, timeComponent.currentAge)
     }
 
@@ -241,46 +289,105 @@ export class TimeSystem {
       this.maybeTriggerMicroEvent(actionType, options)
     }
 
+    this.diagnostics.recordAdvanceHoursEnd(startTime, hours)
     return events
   }
 
-  onWeeklyEvent(callback: PeriodicCallback): void {
-    this.weeklyEventCallbacks.push(callback)
+  onWeeklyEvent(callback: PeriodicCallback, name?: string): void {
+    this.weeklyEventCallbacks.push({
+      callback,
+      name: name || `weekly_callback_${this.weeklyEventCallbacks.length}`,
+    })
   }
 
-  onMonthlyEvent(callback: PeriodicCallback): void {
-    this.monthlyEventCallbacks.push(callback)
+  onMonthlyEvent(callback: PeriodicCallback, name?: string): void {
+    this.monthlyEventCallbacks.push({
+      callback,
+      name: name || `monthly_callback_${this.monthlyEventCallbacks.length}`,
+    })
   }
 
-  onYearlyEvent(callback: PeriodicCallback): void {
-    this.yearlyEventCallbacks.push(callback)
+  onYearlyEvent(callback: PeriodicCallback, name?: string): void {
+    this.yearlyEventCallbacks.push({
+      callback,
+      name: name || `yearly_callback_${this.yearlyEventCallbacks.length}`,
+    })
   }
 
-  onAgeEvent(callback: PeriodicCallback): void {
-    this.ageEventCallbacks.push(callback)
+  onAgeEvent(callback: PeriodicCallback, name?: string): void {
+    this.ageEventCallbacks.push({
+      callback,
+      name: name || `age_callback_${this.ageEventCallbacks.length}`,
+    })
+  }
+
+  /**
+   * Каждый новый игровой день (индекс gameDays) после смены суток в advanceHours.
+   */
+  onGameDayOpened(callback: (gameDay: number) => void, name?: string): void {
+    this.gameDayOpenedCallbacks.push({
+      callback: callback as (...args: number[]) => void,
+      name: name || `game_day_callback_${this.gameDayOpenedCallbacks.length}`,
+    })
   }
 
   _triggerWeeklyEvents(weekNumber: number): void {
-    for (const callback of this.weeklyEventCallbacks) {
-      callback(weekNumber)
+    const result = this.strictProcessing.executeCallbacks(
+      this.weeklyEventCallbacks,
+      'weekly',
+      weekNumber
+    )
+    
+    if (!result.success) {
+      console.error('[TimeSystem] Weekly callbacks failed:', result.errors)
     }
   }
 
   _triggerMonthlyEvents(monthNumber: number): void {
-    for (const callback of this.monthlyEventCallbacks) {
-      callback(monthNumber)
+    const result = this.strictProcessing.executeCallbacks(
+      this.monthlyEventCallbacks,
+      'monthly',
+      monthNumber
+    )
+    
+    if (!result.success) {
+      console.error('[TimeSystem] Monthly callbacks failed:', result.errors)
     }
   }
 
   _triggerYearlyEvents(yearNumber: number): void {
-    for (const callback of this.yearlyEventCallbacks) {
-      callback(yearNumber)
+    const result = this.strictProcessing.executeCallbacks(
+      this.yearlyEventCallbacks,
+      'yearly',
+      yearNumber
+    )
+    
+    if (!result.success) {
+      console.error('[TimeSystem] Yearly callbacks failed:', result.errors)
+    }
+  }
+
+  _triggerGameDayOpenedCallbacks(gameDay: number): void {
+    for (const cb of this.gameDayOpenedCallbacks) {
+      ;(cb.callback as (d: number) => void)(gameDay)
     }
   }
 
   _triggerAgeEvents(previousAge: number, currentAge: number): void {
-    for (const callback of this.ageEventCallbacks) {
-      callback(previousAge, currentAge)
+    // Для age callbacks передаём оба параметра через первый аргумент
+    const adaptedCallbacks = this.ageEventCallbacks.map(cb => ({
+      callback: () => cb.callback(previousAge, currentAge),
+      name: cb.name,
+    }))
+    
+    const result = this.strictProcessing.executeCallbacks(
+      adaptedCallbacks,
+      'age',
+      currentAge
+    )
+    
+    if (!result.success) {
+      console.error('[TimeSystem] Age callbacks failed:', result.errors)
     }
   }
 
@@ -288,7 +395,6 @@ export class TimeSystem {
     const playerId = PLAYER_ENTITY
     const time = this.world.getComponent(playerId, TIME_COMPONENT) as RuntimeTimeComponent | null
     const stats = this.world.getComponent(playerId, STATS_COMPONENT) as Record<string, number> | null
-    const skills = (this.world.getComponent(playerId, SKILLS_COMPONENT) || {}) as Record<string, number>
     const skillModifiers = (this.world.getComponent(playerId, SKILL_MODIFIERS_COMPONENT) || {}) as Record<string, number>
     const wallet = (this.world.getComponent(playerId, WALLET_COMPONENT) || {}) as Record<string, number>
     if (!time) return null
@@ -301,8 +407,8 @@ export class TimeSystem {
     const explicitRisk = Number(options.riskMultiplier ?? 1) || 1
 
     const skillSafety =
-      ((skills.physicalFitness ?? 0) * 0.02) +
-      ((skills.athletics ?? 0) * 0.02) +
+      (this.skillsSystem.getSkillLevel('physicalFitness') * 0.02) +
+      (this.skillsSystem.getSkillLevel('athletics') * 0.02) +
       (skillModifiers.negativeEventPenaltyReduction ?? 0)
 
     const positiveBonus = skillModifiers.positiveEventChanceBonus ?? 0
@@ -330,7 +436,15 @@ export class TimeSystem {
     return microEvent
   }
 
-  private _resolveEventQueueSystem(): EventQueueSystem {
+  
+  private _resolveSkillsSystem(): SkillsSystem {
+    const existing = this.world.getSystem(SkillsSystem)
+    if (existing) return existing
+    const created = new SkillsSystem()
+    created.init(this.world)
+    return created
+  }
+private _resolveEventQueueSystem(): EventQueueSystem {
     const existing = this.world.getSystem(EventQueueSystem)
     if (existing) return existing
     const created = new EventQueueSystem()
@@ -348,4 +462,5 @@ export class TimeSystem {
     return Math.max(0, Math.min(1, Number(value) || 0))
   }
 }
+
 

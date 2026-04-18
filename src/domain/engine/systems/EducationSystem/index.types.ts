@@ -1,3 +1,5 @@
+import type { ProgramStep } from '@/domain/balance/types'
+
 export interface CanStartResult {
   ok: boolean
   reason?: string
@@ -23,4 +25,8 @@ export interface ActiveCourse {
   hoursRequired: number
   hoursSpent: number
   costPaid: number
+  /** Текущий шаг программы */
+  currentStepIndex: number
+  /** Список шагов программы */
+  steps: ProgramStep[]
 }

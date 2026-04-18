@@ -4,42 +4,45 @@
   WORK_COMPONENT,
   WALLET_COMPONENT,
   CAREER_COMPONENT,
-  SKILLS_COMPONENT,
-  EDUCATION_COMPONENT,
   PLAYER_ENTITY,
 } from '../../components/index'
-import { CAREER_JOBS } from '../../../balance/constants/career-jobs'
 import { createWeeklyJobDismissalQueuedEvent } from '../../../balance/constants/game-events'
-import { SkillsSystem } from '../SkillsSystem'
-import { StatsSystem } from '../StatsSystem'
-import { TimeSystem } from '../TimeSystem'
 import type { RuntimeTimeComponent } from '../TimeSystem/index.types'
-import { summarizeStatChanges } from '../../utils/stat-change-summary'
 import type { GameWorld } from '../../world'
-import type { StatChanges } from '@/domain/balance/types'
 import type { WorkEventChoice, WorkShiftSummaryParams } from './index.types'
 import { BASE_STAT_CHANGES_PER_HOUR } from './index.constants'
-import { resolveSalaryPerHour, formatMoney, getEducationRank, toFiniteNumber } from '../../utils/career-helpers'
+import { resolveSalaryPerHour, formatMoney, toFiniteNumber } from '../../utils/career-helpers'
+import type { SystemContext } from '@/domain/game-facade/index.types'
+import { telemetryInc } from '../../utils/telemetry'
 
 /**
  * Система обработки рабочих периодов
  */
 export class WorkPeriodSystem {
   private world!: GameWorld
-  private skillsSystem!: SkillsSystem
-  private statsSystem!: StatsSystem
+  private ctx: SystemContext | null = null
 
   private baseStatChangesPerHour = BASE_STAT_CHANGES_PER_HOUR
 
   init(world: GameWorld): void {
     this.world = world
-    this.skillsSystem = new SkillsSystem()
-    this.skillsSystem.init(world)
-    this.statsSystem = new StatsSystem()
-    this.statsSystem.init(world)
+  }
+
+  /** Вызывается из getSystemContext после сборки контекста */
+  wireFromContext(ctx: SystemContext): void {
+    this.ctx = ctx
+  }
+
+  private _requireCtx(): SystemContext {
+    if (!this.ctx) {
+      throw new Error('WorkPeriodSystem: SystemContext not wired — use getSystemContext(world)')
+    }
+    return this.ctx
   }
 
   handleWeekRollover(newWeekNumber: number): void {
+    telemetryInc('work_week_rollover')
+    this._requireCtx()
     const playerId = PLAYER_ENTITY
     const timeComponent = this.world.getComponent(playerId, TIME_COMPONENT) as Record<string, unknown> | null
     const work = this.world.getComponent(playerId, WORK_COMPONENT) as Record<string, unknown> | null
@@ -108,6 +111,7 @@ export class WorkPeriodSystem {
     required: number
     timeComponent: Record<string, unknown>
   }): void {
+    const ctx = this._requireCtx()
     const { jobId, jobName, newWeekNumber, worked, required, timeComponent } = params
     const playerId = PLAYER_ENTITY
     const work = this.world.getComponent(playerId, WORK_COMPONENT) as Record<string, unknown>
@@ -146,22 +150,19 @@ export class WorkPeriodSystem {
         totalWorkedHours: (career.totalWorkedHours as number) ?? preservedTotal,
       })
     }
-    this._syncCareerCurrentJob()
+    ctx.careerProgress.syncCurrentJob()
 
-    // Queue dismissal event
-    const systems = this.world.systems as Array<Record<string, unknown>>
-    const eventQueue = systems.find(s => typeof s.queuePendingEvent === 'function') as { queuePendingEvent: (event: unknown) => void } | undefined
-    if (eventQueue) {
-      eventQueue.queuePendingEvent(
-        createWeeklyJobDismissalQueuedEvent({
-          jobName,
-          worked,
-          required,
-          newWeekNumber,
-          jobId,
-        }),
-      )
-    }
+    telemetryInc('work_dismissal_underwork')
+
+    ctx.eventQueue.queuePendingEvent(
+      createWeeklyJobDismissalQueuedEvent({
+        jobName,
+        worked,
+        required,
+        newWeekNumber,
+        jobId,
+      }),
+    )
 
     if (this.world?.eventBus) {
       this.world.eventBus.dispatchEvent(new CustomEvent('activity:career', {
@@ -177,6 +178,7 @@ export class WorkPeriodSystem {
   }
 
   applyWorkShift(workHours = 8, WorkEventChoice: WorkEventChoice | null = null): string {
+    const ctx = this._requireCtx()
     const playerId = PLAYER_ENTITY
 
     const workComponent = this._ensureWorkComponentFromCareer(playerId)
@@ -193,8 +195,7 @@ export class WorkPeriodSystem {
       return ''
     }
 
-    const timeSystem = this._resolveTimeSystem()
-    timeSystem.normalizeTimeComponent(timeComponent as unknown as RuntimeTimeComponent)
+    ctx.time.normalizeTimeComponent(timeComponent as unknown as RuntimeTimeComponent)
 
     const jobRequired = Math.max(0, Number(workComponent.requiredHoursPerWeek) || 0)
     const jobWorked = Math.max(0, Number(workComponent.workedHoursCurrentWeek) || 0)
@@ -212,7 +213,7 @@ export class WorkPeriodSystem {
       return ['Смена не проведена.', `В текущей неделе осталось ${weekLeft} ч. свободного времени.`].join('\n')
     }
 
-    const modifiers = this.skillsSystem.getModifiers()
+    const modifiers = ctx.skills.getModifiers()
     const baseSalaryPerHour = resolveSalaryPerHour(workComponent)
     const salaryMultiplier = toFiniteNumber(modifiers.salaryMultiplier, 1)
     const workEfficiencyMultiplier = toFiniteNumber(modifiers.workEfficiencyMultiplier, 1)
@@ -228,7 +229,7 @@ export class WorkPeriodSystem {
     totalBaseStatChanges.stress = Math.round(totalBaseStatChanges.stress * toFiniteNumber(modifiers.stressGainMultiplier, 1))
 
     const eventStatChanges = WorkEventChoice?.statChanges ?? {}
-    const combinedStatChanges = this._mergeStatChanges(totalBaseStatChanges, eventStatChanges as Record<string, number>)
+    const combinedStatChanges = ctx.stats.mergeStatChanges(totalBaseStatChanges, eventStatChanges as Record<string, number>)
 
     const eventSalaryBonus = Math.round(effectiveSalaryPerHour * workHours * toFiniteNumber(WorkEventChoice?.salaryMultiplier, 0))
     const accruedSalary = totalSalary + eventSalaryBonus
@@ -258,7 +259,7 @@ export class WorkPeriodSystem {
     if (careerComponent) {
       careerComponent.workedHoursCurrentWeek = workComponent.workedHoursCurrentWeek
       careerComponent.pendingSalaryWeek = pendingSalaryWeek
-      this._syncCareerCurrentJob()
+      ctx.careerProgress.syncCurrentJob()
     }
 
     const lifetimeStats = this.world.getComponent(playerId, 'lifetimeStats') as Record<string, number> | null
@@ -267,7 +268,7 @@ export class WorkPeriodSystem {
       lifetimeStats.totalWorkHours = (lifetimeStats.totalWorkHours ?? 0) + workHours
     }
 
-    this.statsSystem.applyStatChanges(combinedStatChanges)
+    ctx.stats.applyStatChanges(combinedStatChanges)
 
     if (WorkEventChoice?.permanentSalaryMultiplier) {
       workComponent.salaryPerHour = Math.round(baseSalaryPerHour * (1 + WorkEventChoice.permanentSalaryMultiplier))
@@ -277,10 +278,18 @@ export class WorkPeriodSystem {
 
     // Канонический путь: время продвигается ТОЛЬКО через TimeSystem.advanceHours.
     // Fallback-мутация totalHours удалена — см. Data Sync Remediation Plan Phase 2.
-    timeSystem.advanceHours(workHours, { actionType: 'work_shift' })
+    ctx.time.advanceHours(workHours, { actionType: 'work_shift' })
+
+    telemetryInc('work_shift')
+    if (accruedSalary > 0) {
+      telemetryInc('work_pending_salary', accruedSalary)
+    }
+    if (payoutSalary > 0) {
+      telemetryInc('work_salary_payout', payoutSalary)
+    }
 
     if (this.world && this.world.eventBus) {
-      const statSummary = this._summarizeStatChanges(combinedStatChanges)
+      const statSummary = ctx.stats.summarizeStatChanges(combinedStatChanges)
       const weeklyProgress = requiredHoursPerWeek > 0
         ? `${Math.min(workedHoursCurrentWeek, requiredHoursPerWeek)}/${requiredHoursPerWeek} ч`
         : `${workedHoursCurrentWeek} ч`
@@ -315,6 +324,8 @@ export class WorkPeriodSystem {
       }))
     }
 
+    const careerUpdateSummary = ctx.careerProgress.syncCareerProgress()
+
     return this._buildWorkPeriodSummary({
       workHours,
       accruedSalary,
@@ -324,6 +335,7 @@ export class WorkPeriodSystem {
       workedHoursCurrentWeek,
       statChanges: combinedStatChanges,
       WorkEventChoice,
+      careerUpdateSummary,
     })
   }
 
@@ -333,6 +345,7 @@ export class WorkPeriodSystem {
   }
 
   _buildWorkPeriodSummary(params: WorkShiftSummaryParams): string {
+    const ctx = this._requireCtx()
     const {
       workHours,
       accruedSalary,
@@ -342,6 +355,7 @@ export class WorkPeriodSystem {
       workedHoursCurrentWeek,
       statChanges,
       WorkEventChoice,
+      careerUpdateSummary,
     } = params
 
     const lines = [
@@ -355,28 +369,18 @@ export class WorkPeriodSystem {
       pendingSalaryWeek > 0
         ? `Накоплено к выплате: ${formatMoney(pendingSalaryWeek)} ₽.`
         : '',
-      this._summarizeStatChanges(statChanges),
+      ctx.stats.summarizeStatChanges(statChanges),
     ]
 
     if (WorkEventChoice) {
       lines.push(`Событие: ${WorkEventChoice.label} — ${WorkEventChoice.outcome}`)
     }
 
+    if (careerUpdateSummary) {
+      lines.push(careerUpdateSummary)
+    }
+
     return lines.filter(Boolean).join('\n')
-  }
-
-  _mergeStatChanges(...chunks: (Record<string, number> | null | undefined)[]): Record<string, number> {
-    return chunks.reduce<Record<string, number>>((accumulator, chunk) => {
-      Object.entries(chunk ?? {}).forEach(([key, value]) => {
-        if (!Number.isFinite(value)) return
-        accumulator[key] = (accumulator[key] ?? 0) + value
-      })
-      return accumulator
-    }, {})
-  }
-
-  _summarizeStatChanges(statChanges: Record<string, number> = {}): string {
-    return summarizeStatChanges(statChanges)
   }
 
   _resolveDailyWorkHours(workComponent: Record<string, unknown>): number {
@@ -450,35 +454,4 @@ export class WorkPeriodSystem {
 
     return this.world.getComponent(playerId, WORK_COMPONENT) as Record<string, unknown> | null
   }
-
-  _syncCareerCurrentJob(): void {
-    const playerId = PLAYER_ENTITY
-    const career = this.world.getComponent(playerId, CAREER_COMPONENT) as Record<string, unknown> | null
-    if (!career) return
-
-    career.currentJob = {
-      id: career.id,
-      name: career.name,
-      schedule: career.schedule ?? '5/2',
-      employed: career.employed ?? Boolean(career.id),
-      level: career.level ?? 1,
-      salaryPerHour: career.salaryPerHour ?? 0,
-      salaryPerDay: career.salaryPerDay ?? 0,
-      salaryPerWeek: career.salaryPerWeek ?? 0,
-      requiredHoursPerWeek: career.requiredHoursPerWeek ?? 0,
-      workedHoursCurrentWeek: career.workedHoursCurrentWeek ?? 0,
-      pendingSalaryWeek: career.pendingSalaryWeek ?? 0,
-      totalWorkedHours: career.totalWorkedHours ?? 0,
-      daysAtWork: career.daysAtWork ?? 0,
-    }
-  }
-
-  private _resolveTimeSystem(): TimeSystem {
-    const existing = this.world.getSystem(TimeSystem)
-    if (existing) return existing
-    const created = new TimeSystem()
-    this.world.addSystem(created)
-    return created
-  }
 }
-

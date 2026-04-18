@@ -1,13 +1,20 @@
 import { INITIAL_SAVE } from '@/domain/balance/constants/initial-save'
 import { CHILDHOOD_SKILLS } from '@/domain/balance/constants/childhood-skills'
-import { PLAYER_ENTITY, CHILDHOOD_SKILLS_COMPONENT, DELAYED_EFFECTS_COMPONENT, LIFE_MEMORY_COMPONENT, CHAIN_STATE_COMPONENT } from '@/domain/engine/components'
+import {
+  PLAYER_ENTITY,
+  CHILDHOOD_SKILLS_COMPONENT,
+  DELAYED_EFFECTS_COMPONENT,
+  LIFE_MEMORY_COMPONENT,
+  CHAIN_STATE_COMPONENT,
+  TAGS_COMPONENT,
+} from '@/domain/engine/components'
 import { GameWorld } from '@/domain/engine/world'
 import { ActivityLogSystem } from '@/domain/engine/systems/ActivityLogSystem'
 import { TimeSystem } from '@/domain/engine/systems/TimeSystem'
 import { gameCommands } from '@/domain/game-facade/commands'
 import { gameQueries } from '@/domain/game-facade/queries'
-import { resetSystemContext } from '@/domain/game-facade/system-context'
-export { resetSystemContext } from '@/domain/game-facade/system-context'
+import { resetSystemContext, getSystemContext } from '@/domain/game-facade/system-context'
+export { resetSystemContext, getSystemContext } from '@/domain/game-facade/system-context'
 import type { AnyRecord } from '@/domain/game-facade/index.types'
 
 export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
@@ -48,6 +55,11 @@ export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
   }
 
   if (data.skillModifiers) world.addComponent(PLAYER_ENTITY, 'skillModifiers', data.skillModifiers as AnyRecord)
+  if (data.tags && typeof data.tags === 'object') {
+    const rawTags = data.tags as AnyRecord
+    const items: unknown[] = Array.isArray(rawTags.items) ? rawTags.items : []
+    world.addComponent(PLAYER_ENTITY, TAGS_COMPONENT, { items })
+  }
   if (data.currentJob) {
     const job = data.currentJob as AnyRecord
     const requiredHoursPerWeek = Math.max(0, Number(job.requiredHoursPerWeek) || 0)
@@ -117,7 +129,7 @@ export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
   if (data.housing) world.addComponent(PLAYER_ENTITY, 'housing', data.housing as AnyRecord)
   if (data.education) world.addComponent(PLAYER_ENTITY, 'education', data.education as AnyRecord)
   if (data.finance) world.addComponent(PLAYER_ENTITY, 'finance', data.finance as AnyRecord)
-  world.addComponent(PLAYER_ENTITY, 'eventHistory', { history: (data.eventHistory as unknown[]) ?? [] })
+  world.addComponent(PLAYER_ENTITY, 'eventHistory', { events: (data.eventHistory as unknown[]) ?? [] })
   if (data.lifetimeStats) world.addComponent(PLAYER_ENTITY, 'lifetimeStats', data.lifetimeStats as AnyRecord)
   if (data.pendingEvents) world.addComponent(PLAYER_ENTITY, 'eventQueue', { pendingEvents: data.pendingEvents })
   if (data.investments) world.addComponent(PLAYER_ENTITY, 'investment', data.investments as AnyRecord)

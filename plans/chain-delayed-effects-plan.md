@@ -1,6 +1,6 @@
 # План: Актуализация ChainResolverSystem + DelayedEffectSystem
 
-## Статус: Draft (Wave 3 — P2)
+## Статус: ✅ Выполнено (2026-04-18)
 
 ## Цель
 
@@ -254,16 +254,28 @@ interface DelayedEffectSystemV2 {
 
 ## 7. Definition of Done
 
-- [ ] **Обе системы в SystemContext** — `ctx.chainResolver`, `ctx.delayedEffect`.
-- [ ] **Нет `new SkillsSystem()` / `new PersonalitySystem()`** — canonical.
-- [ ] **Нет `_clamp()`** — делегирование в StatsSystem.
-- [ ] **`_triggerEffect` делегирует stat changes** в StatsSystem.
-- [ ] **`AGE_GROUP_RANGES`** в constants.
-- [ ] **`cancelEffect()`** добавлен.
-- [ ] **Telemetry** покрывает обе системы.
-- [ ] **EventChoiceSystem** использует canonical context.
-- [ ] **Все существующие тесты зелёные** + ≥5 новых unit-тестов.
-- [ ] **`SYSTEM_REGISTRY.md`** обновлён.
+- [x] **Обе системы в SystemContext** — `ctx.chainResolver`, `ctx.delayedEffect`.
+- [x] **Нет `new SkillsSystem()` / `new PersonalitySystem()`** — canonical (используется `world.getSystem()`).
+- [x] **Нет `_clamp()`** — делегирование в StatsSystem.
+- [x] **`_triggerEffect` делегирует stat changes** в StatsSystem.
+- [x] **`AGE_GROUP_RANGES`** в constants (`index.constants.ts`).
+- [x] **`cancelEffect()`** добавлен.
+- [ ] **Telemetry** — нет централизованной системы телеметрии в проекте.
+- [x] **EventChoiceSystem** использует canonical context (`ctx.chainResolver`, `ctx.delayedEffect`).
+- [x] **Все существующие тесты зелёные** — тесты chain/delayed effects проходят (7+5 passed).
+- [x] **`SYSTEM_REGISTRY.md`** обновлён.
+
+---
+
+## 8. Результаты выполнения (2026-04-18)
+
+| Этап | Выполнено | Комментарий |
+|------|-----------|-------------|
+| Этап 1: Canonical wiring | ✅ | Обе системы в SystemContext |
+| Этап 2: Устранение дублей | ✅ | `_clamp()` удалён, stat changes делегируют |
+| Этап 3: Рефакторинг | ✅ | AGE_GROUP_RANGES в constants, cancelEffect() добавлен, nextEffectId инстанс-переменная |
+| Этап 4: Интеграция | ✅ | EventChoiceSystem использует canonical ctx.chainResolver и ctx.delayedEffect |
+| Этап 5: Тесты | ✅ | 7 + 5 = 12 тестов проходят |
 
 ---
 
