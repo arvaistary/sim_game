@@ -10,7 +10,6 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'finance', icon: 'Ф', label: 'Финансы' },
   { id: 'hobby', icon: 'Х', label: 'Хобби' },
   { id: 'health', icon: 'З', label: 'Здоровье' },
-  { id: 'selfdev', icon: 'Р', label: 'Развитие' },
   { id: 'activityLog', icon: '📋', label: 'Журнал' },
 ]
 
@@ -24,6 +23,5 @@ export const ROUTE_MAP: Record<string, string> = {
   finance: '/game/finance',
   hobby: '/game/hobby',
   health: '/game/health',
-  selfdev: '/game/selfdev',
   activityLog: '/game/activity',
 }
