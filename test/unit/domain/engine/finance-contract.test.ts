@@ -20,9 +20,10 @@ describe('Finance catalog contract', () => {
       const { world, finance } = createSystem()
       const wallet = world.getComponent('player', 'wallet') as Record<string, number>
       const time = world.getComponent('player', 'time') as Record<string, number>
-      wallet.money = 200000
+      wallet.money = 1000000 // Increased for realty purchases
       time.totalHours = 0
       time.weekHoursRemaining = 168
+      time.currentAge = 19 // Set age to 19 for age-restricted actions
 
       const result = finance.applyFinanceAction(action.id)
       expect(result.success, `Action "${action.id}" should resolve (got: ${result.message})`).toBe(true)
@@ -58,7 +59,9 @@ describe('Finance catalog contract', () => {
     const { world, finance } = createSystem()
     // Даём игроку достаточно денег
     const wallet = world.getComponent('player', 'wallet') as Record<string, number>
+    const time = world.getComponent('player', 'time') as Record<string, number>
     wallet.money = 50000
+    time.currentAge = 19 // Set age to 19 for age-restricted actions
     const moneyBefore = wallet.money
 
     const result = finance.applyFinanceAction('fin_pay_debt')

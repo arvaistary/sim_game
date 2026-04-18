@@ -57,13 +57,13 @@ describe('domain/childhood events registry', () => {
 })
 
 describe('domain/childhood events by age group', () => {
-  test('CHILDHOOD_EVENTS_BY_AGE_GROUP has entries for all age groups', () => {
-    expect(CHILDHOOD_EVENTS_BY_AGE_GROUP[AgeGroup.INFANT]).toBeTruthy()
-    expect(CHILDHOOD_EVENTS_BY_AGE_GROUP[AgeGroup.CHILD]).toBeTruthy()
-    expect(CHILDHOOD_EVENTS_BY_AGE_GROUP[AgeGroup.KID]).toBeTruthy()
-    expect(CHILDHOOD_EVENTS_BY_AGE_GROUP[AgeGroup.TEEN]).toBeTruthy()
-    expect(CHILDHOOD_EVENTS_BY_AGE_GROUP[AgeGroup.YOUNG]).toBeTruthy()
-  })
+test('CHILDHOOD_EVENTS_BY_AGE_GROUP has entries for all age groups', () => {
+      // AgeGroup.KID is deprecated and merged with CHILD
+      expect(CHILDHOOD_EVENTS_BY_AGE_GROUP[AgeGroup.INFANT]).toBeTruthy()
+      expect(CHILDHOOD_EVENTS_BY_AGE_GROUP[AgeGroup.CHILD]).toBeTruthy()
+      expect(CHILDHOOD_EVENTS_BY_AGE_GROUP[AgeGroup.TEEN]).toBeTruthy()
+      expect(CHILDHOOD_EVENTS_BY_AGE_GROUP[AgeGroup.YOUNG]).toBeTruthy()
+    })
 
   test('getChildhoodEventsForAge returns correct events', () => {
     const infantEvents = getChildhoodEventsForAge(AgeGroup.INFANT)

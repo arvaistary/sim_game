@@ -26,6 +26,9 @@ export default defineConfig({
     // Globals
     globals: true,
 
+    // Setup files
+    setupFiles: ['test/setup/localStorage.mock.ts'],
+
     // Timeout
     testTimeout: 30000,
   },

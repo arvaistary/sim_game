@@ -64,9 +64,14 @@ export const LEGACY_SKILL_PROGRESSION_CONFIG: SkillProgressionConfig = {
 /**
  * Получить активную конфигурацию
  */
+let currentConfig = DEFAULT_SKILL_PROGRESSION_CONFIG
+
 export function getSkillProgressionConfig(): SkillProgressionConfig {
-  // В будущем можно добавить feature flags или сохранённые настройки
-  return DEFAULT_SKILL_PROGRESSION_CONFIG
+  return currentConfig
+}
+
+export function setSkillProgressionConfig(config: SkillProgressionConfig): void {
+  currentConfig = config
 }
 
 /**

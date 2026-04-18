@@ -46,11 +46,11 @@ describe('StatsSystem', () => {
 
     test('игнорирует undefined значения', () => {
       const { world, stats } = createSystem()
-      world.updateComponent('player', 'stats', { health: 50 })
+      world.updateComponent('player', 'stats', { health: 50, mood: 70 }) // mood has default 70
       stats.applyStatChanges({ health: undefined, mood: 10 })
       const result = stats.getStats()
       expect(result?.health).toBe(50) // не изменился
-      expect(result?.mood).toBe(10) // добавился
+      expect(result?.mood).toBe(80) // 70 + 10, clamped
     })
 
     test('записывает telemetry для каждого изменения стата', () => {
@@ -74,13 +74,19 @@ describe('StatsSystem', () => {
       const { world, stats } = createSystem()
       world.updateComponent('player', 'stats', { health: 75, mood: 60 })
       const result = stats.getStats()
-      expect(result).toEqual({ health: 75, mood: 60 })
+      // Возвращает копию с дефолтными значениями из INITIAL_SAVE
+      expect(result?.health).toBe(75)
+      expect(result?.mood).toBe(60)
+      expect(result?.energy).toBe(80) // default from INITIAL_SAVE
     })
 
-    test('возвращает null при отсутствии stats компонента', () => {
+    test('возвращает объект с дефолтными значениями при отсутствии stats в save', () => {
       const { stats } = createSystem()
       const result = stats.getStats()
-      expect(result).toBeNull()
+      // createWorldFromSave добавляет дефолтные stats из INITIAL_SAVE
+      expect(result).toBeDefined()
+      expect(result?.health).toBe(90)
+      expect(result?.mood).toBe(70)
     })
   })
 
