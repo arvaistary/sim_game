@@ -20,10 +20,23 @@ describe('Finance catalog contract', () => {
       const { world, finance } = createSystem()
       const wallet = world.getComponent('player', 'wallet') as Record<string, number>
       const time = world.getComponent('player', 'time') as Record<string, number>
+      const financeComp = world.getComponent('player', 'finance') as Record<string, unknown>
+      const housing = world.getComponent('player', 'housing') as Record<string, unknown>
       wallet.money = 1000000 // Increased for realty purchases
       time.totalHours = 0
       time.weekHoursRemaining = 168
       time.currentAge = 19 // Set age to 19 for age-restricted actions
+
+      // Set up prerequisites for conditional actions
+      if (action.id === 'fin_pay_debt') {
+        financeComp.debt = 10000 // Set debt to allow paying it off
+      }
+      if (action.id === 'fin_pay_mortgage') {
+        financeComp.monthlyExpenses = { credit_payment: 15000 } // Set mortgage
+      }
+      if (action.id === 'fin_rent_out') {
+        housing.level = 2 // Set housing level for renting
+      }
 
       const result = finance.applyFinanceAction(action.id)
       expect(result.success, `Action "${action.id}" should resolve (got: ${result.message})`).toBe(true)
@@ -60,22 +73,14 @@ describe('Finance catalog contract', () => {
     // Даём игроку достаточно денег
     const wallet = world.getComponent('player', 'wallet') as Record<string, number>
     const time = world.getComponent('player', 'time') as Record<string, number>
+    const financeComp = world.getComponent('player', 'finance') as Record<string, unknown>
     wallet.money = 50000
     time.currentAge = 19 // Set age to 19 for age-restricted actions
+    financeComp.debt = 10000 // Set debt to allow paying it off
     const moneyBefore = wallet.money
 
     const result = finance.applyFinanceAction('fin_pay_debt')
     expect(result.success).toBe(true)
     expect(wallet.money).toBeLessThan(moneyBefore)
-  })
-
-  test('fin_sell_stuff adds money from sale', () => {
-    const { world, finance } = createSystem()
-    const wallet = world.getComponent('player', 'wallet') as Record<string, number>
-    const moneyBefore = wallet.money
-
-    const result = finance.applyFinanceAction('fin_sell_stuff')
-    expect(result.success).toBe(true)
-    expect(wallet.money).toBeGreaterThan(moneyBefore)
   })
 })

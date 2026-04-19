@@ -67,6 +67,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     mood: '🧠 Лучше понимать себя — первый шаг к росту',
     oneTime: true,
     ageGroup: AgeGroup.TEEN,
+    requirements: { requiresItem: 'study_laptop' },
   },
   {
     id: 'self_coaching',
@@ -108,6 +109,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     effect: 'Голод +3.5, Энергия -4.5, Стресс -6.5, Настроение +14, Здоровье +0.5, Физическая форма -0.6, Мудрость +3, Дисциплина +1',
     mood: '📚 Книги, которые действительно меняют мышление',
     ageGroup: AgeGroup.CHILD,
+    requirements: { requiresItem: 'book_general' },
   },
   {
     id: 'self_meditation_practice',
@@ -147,5 +149,6 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     effect: 'Голод +2.4, Энергия -4, Стресс -7.5, Настроение +9.5, Здоровье -0.2, Физическая форма -0.5, Харизма +2, Дисциплина +1.5',
     mood: '🗣️ Умение говорить публично открывает множество дверей',
     ageGroup: AgeGroup.TEEN,
+    requirements: { requiresItem: 'study_laptop' },
   },
 ]

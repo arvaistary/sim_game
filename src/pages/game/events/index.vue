@@ -25,11 +25,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, definePageMeta } from '#imports'
-import GameLayout from '@/components/layout/GameLayout/GameLayout.vue'
-import EmptyState from '@/components/game/EmptyState/EmptyState.vue'
-import EventCard from '@/components/pages/events/EventCard/EventCard.vue'
-import EventChoices from '@/components/pages/events/EventChoices/EventChoices.vue'
-import EventResult from '@/components/pages/events/EventResult/EventResult.vue'
 import { useEvents } from '@/composables/useEvents'
 import { useToast } from '@/composables/useToast'
 

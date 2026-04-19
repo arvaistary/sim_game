@@ -33,9 +33,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { navigateTo } from '#imports'
-import Modal from '@/components/ui/Modal/index.vue'
-import GameButton from '@/components/ui/GameButton/index.vue'
-import StatChange from '@/components/ui/StatChange/StatChange.vue'
 import { useGameModal } from '@/composables/useGameModal'
 import type { GameModalButton } from '@/composables/useGameModal'
 import { STAT_LABELS_RU, METRIC_LABELS } from '@/constants/metric-labels'

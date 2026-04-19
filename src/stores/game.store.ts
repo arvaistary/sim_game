@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { shallowRef, computed, triggerRef, ref, watch } from 'vue'
 import { GameWorld } from '../domain/engine/world'
-import { createWorldFromSave, resetSystemContext } from '../domain/game-facade'
+import { createWorldFromSave, resetSystemContext, getSystemContext } from '../domain/game-facade'
 import { MigrationSystem } from '../domain/engine/systems/MigrationSystem'
 import { PersistenceSystem } from '../domain/engine/systems/PersistenceSystem'
 import { appGameCommands, appGameQueries } from '@/application/game'
@@ -17,6 +17,7 @@ import type {
   CareerComponent,
   HousingComponent,
   EducationComponent,
+  FinanceComponent,
   ActivityLogEntry,
 } from '../domain/engine/types'
 import type { ExecuteActionCommandResult } from '@/domain/game-facade/commands'
@@ -42,18 +43,29 @@ export const useGameStore = defineStore('game', () => {
    * в computed. Явное чтение значения гарантирует, что Vue отследит зависимость.
    */
   const worldVersionToken = computed(() => worldVersion.value)
+  /**
+   * Счётчик мутаций ECS. Подписывайте computed, которые вызывают get* без реактивных зависимостей
+   * (например getFinanceSnapshot), иначе UI не обновится после действий.
+   */
+  const worldTick = computed(() => worldVersion.value)
   const isInitialized = computed(() => world.value !== null)
   const playerName = ref('Алексей')
+  /** UI: экран приветствия новорождённого закрыт пользователем */
+  const welcomeScreenShown = ref(false)
 
   // ===== Computed from ECS =====
   const stats = computed<StatsComponent | null>(() => {
+    const version = worldVersionToken.value
     if (!world.value) return null
-    return world.value.getComponent<StatsComponent>(PLAYER_ENTITY, 'stats')
+    const comp = world.value.getComponent<StatsComponent>(PLAYER_ENTITY, 'stats')
+    return comp ? ({ ...comp, _version: version } as unknown as StatsComponent) : null
   })
 
   const time = computed<TimeComponent | null>(() => {
+    const version = worldVersionToken.value
     if (!world.value) return null
-    return world.value.getComponent<TimeComponent>(PLAYER_ENTITY, 'time')
+    const comp = world.value.getComponent<TimeComponent>(PLAYER_ENTITY, 'time')
+    return comp ? ({ ...comp, _version: version } as unknown as TimeComponent) : null
   })
 
   const wallet = computed<WalletComponent | null>(() => {
@@ -66,27 +78,39 @@ export const useGameStore = defineStore('game', () => {
   })
 
   const skills = computed<SkillsComponent | null>(() => {
-    const _wv = worldVersionToken.value
+    const version = worldVersionToken.value
     if (!world.value) return null
-    return world.value.getComponent<SkillsComponent>(PLAYER_ENTITY, 'skills')
+    const comp = world.value.getComponent<SkillsComponent>(PLAYER_ENTITY, 'skills')
+    return comp ? ({ ...comp, _version: version } as unknown as SkillsComponent) : null
   })
 
   const career = computed<CareerComponent | null>(() => {
-    const _wv = worldVersionToken.value
+    const version = worldVersionToken.value
     if (!world.value) return null
-    return world.value.getComponent<CareerComponent>(PLAYER_ENTITY, 'career')
+    const comp = world.value.getComponent<CareerComponent>(PLAYER_ENTITY, 'career')
+    return comp ? ({ ...comp, _version: version } as unknown as CareerComponent) : null
   })
 
   const housing = computed<HousingComponent | null>(() => {
-    const _wv = worldVersionToken.value
+    const version = worldVersionToken.value
     if (!world.value) return null
-    return world.value.getComponent<HousingComponent>(PLAYER_ENTITY, 'housing')
+    const comp = world.value.getComponent<HousingComponent>(PLAYER_ENTITY, 'housing')
+    return comp ? ({ ...comp, _version: version } as unknown as HousingComponent) : null
+  })
+
+  const finance = computed<FinanceComponent | null>(() => {
+    const version = worldVersionToken.value
+    if (!world.value) return null
+    const comp = world.value.getComponent<FinanceComponent>(PLAYER_ENTITY, 'finance')
+    return comp ? ({ ...comp, _version: version } as unknown as FinanceComponent) : null
   })
 
   const education = computed<EducationComponent | null>(() => {
-    const _wv = worldVersionToken.value
+    const version = worldVersionToken.value
     if (!world.value) return null
-    return world.value.getComponent<EducationComponent>(PLAYER_ENTITY, 'education')
+    const comp = world.value.getComponent<EducationComponent>(PLAYER_ENTITY, 'education')
+    // Как у wallet: новый объект на каждую версию мира, иначе Vue не оповещает UI после глубоких мутаций ECS
+    return comp ? ({ ...comp, _version: version } as unknown as EducationComponent) : null
   })
 
   /**
@@ -154,6 +178,8 @@ export const useGameStore = defineStore('game', () => {
       playerName.value = saveData.playerName as string
     }
     world.value = w
+    getSystemContext(w)
+    bumpWorldVersion()
   }
 
   // ===== Core Helpers =====
@@ -218,6 +244,9 @@ export const useGameStore = defineStore('game', () => {
     if (typeof savedName === 'string' && savedName.trim()) {
       playerName.value = savedName
     }
+    if (world.value) {
+      getSystemContext(world.value)
+    }
     bumpWorldVersion()
     return true
   }
@@ -226,6 +255,7 @@ export const useGameStore = defineStore('game', () => {
     saveRepository.clear()
     world.value = null
     playerName.value = 'Алексей'
+    welcomeScreenShown.value = false
   }
 
   function getWorld(): GameWorld | null {
@@ -389,8 +419,10 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     world,
+    worldTick,
     isInitialized,
     playerName,
+    welcomeScreenShown,
     currentJobSnapshot,
     stats,
     time,
@@ -398,6 +430,7 @@ export const useGameStore = defineStore('game', () => {
     skills,
     career,
     housing,
+    finance,
     education,
     money,
     gameDays,

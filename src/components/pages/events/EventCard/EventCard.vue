@@ -14,17 +14,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { formatStatChangesBulletListRu } from '@/domain/balance/utils/stat-changes-format'
+import type { EventQueueItem } from '@/domain/engine/types'
 
 const props = defineProps<{
-  event: {
-    title: string
-    description: string
-    day: number
-    data?: { statImpact?: unknown }
-    choices: Array<{ id: string; text: string }>
-  }
+  event: EventQueueItem
 }>()
 
 const impactText = computed(() => {

@@ -75,6 +75,12 @@ export interface EducationData {
   institute: string
   educationLevel: string
   activeCourses: unknown[]
+  completedPrograms?: Array<{
+    id: string
+    name: string
+    typeLabel?: string
+    completedAtGameDay?: number
+  }>
 }
 
 export interface RelationshipData {
@@ -89,6 +95,7 @@ export interface FinanceData {
   reserveFund: number
   monthlyExpenses: Record<string, number>
   lastMonthlySettlement: number | null
+  debt: number
 }
 
 export interface EventStateData {
@@ -199,6 +206,7 @@ export const DEFAULT_SAVE: SaveData = {
     institute: 'none',
     educationLevel: 'Среднее',
     activeCourses: [],
+    completedPrograms: [],
   },
   relationships: [
     {
@@ -220,6 +228,7 @@ export const DEFAULT_SAVE: SaveData = {
       education: 2500,
     },
     lastMonthlySettlement: null,
+    debt: 0,
   },
   eventState: {
     cooldownByEventId: {},

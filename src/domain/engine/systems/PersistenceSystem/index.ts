@@ -182,6 +182,7 @@ export class PersistenceSystem {
             institute: education.institute,
             educationLevel: education.educationLevel,
             activeCourses: education.activeCourses || [],
+            completedPrograms: education.completedPrograms || [],
           }
         }
       },
@@ -366,6 +367,13 @@ export class PersistenceSystem {
     const parsedEducation = (parsed.education ?? {}) as Record<string, unknown>
     const mergedCourses = mergePrimitiveArrays(baseCourses, parsedEducation.activeCourses ?? [])
 
+    const baseCompleted = (((base.education as Record<string, unknown>)?.completedPrograms ?? []) as Record<string, unknown>[])
+    const mergedCompleted = mergeById(
+      baseCompleted,
+      (parsedEducation.completedPrograms ?? []) as unknown[],
+      'id',
+    ) as unknown[]
+
     return {
       ...base,
       ...parsed,
@@ -401,6 +409,7 @@ export class PersistenceSystem {
         ...(base.education as Record<string, unknown>),
         ...((parsed.education ?? {}) as Record<string, unknown>),
         activeCourses: mergedCourses,
+        completedPrograms: mergedCompleted,
       },
       finance: {
         ...(base.finance as Record<string, unknown>),

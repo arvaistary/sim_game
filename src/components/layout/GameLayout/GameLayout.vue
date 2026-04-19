@@ -13,7 +13,6 @@
 
 <script setup lang="ts">
 import { useRouter } from '#imports'
-import GameNav from '@/components/global/GameNav/GameNav.vue'
 import './GameLayout.scss'
 
 withDefaults(defineProps<{

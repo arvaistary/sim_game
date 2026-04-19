@@ -47,5 +47,7 @@ export interface BalanceAction {
   monthlyExpenseDelta?: Record<string, number>
   /** Минимальная возрастная группа для доступа к действию. Если undefined — доступно всем. */
   ageGroup?: AgeGroup
+  /** Максимальная возрастная группа для доступа к действию. Если undefined — без верхнего ограничения. */
+  maxAgeGroup?: AgeGroup
 }
 

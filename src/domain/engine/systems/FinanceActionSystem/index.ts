@@ -29,6 +29,7 @@ const INVESTMENT_ACTIONS = new Set([
   'fin_savings_account',
   'fin_pif',
   'fin_edu_invest',
+  'fin_bonds',
 ])
 
 const RESERVE_ACTIONS: Record<string, number> = {
@@ -183,16 +184,36 @@ export class FinanceActionSystem {
     }
     const time = this._normalizePlayerTime()
     const financeActions = this._getFinanceActions()
+    const finance = this.world.getComponent(PLAYER_ENTITY, FINANCE_COMPONENT) as Record<string, unknown> | null
+    const housing = this.world.getComponent(PLAYER_ENTITY, HOUSING_COMPONENT) as Record<string, unknown> | null
+    const monthlyExpenses = (finance?.monthlyExpenses as Record<string, number>) ?? {}
+    const hasDebt = (finance?.debt as number) ?? 0 > 0
+    const hasMortgage = (monthlyExpenses?.credit_payment ?? 0) > 0
+    const housingLevel = (housing?.level as number) ?? 0
 
     return financeActions.map((action) => {
       const cost = this._resolveHourCost(action)
       const weekBlocked =
         time && typeof (time as Record<string, unknown>).weekHoursRemaining === 'number' && cost > ((time as Record<string, unknown>).weekHoursRemaining as number)
       const ageCheck = this._checkAge(action)
-      const available = overview.liquidMoney >= action.price && !weekBlocked && ageCheck.ok
+
+      let requirementReason = ''
+      if (action.id === 'fin_pay_debt' && !hasDebt) {
+        requirementReason = 'У вас нет долгов для погашения.'
+      } else if (action.id === 'fin_pay_mortgage' && !hasMortgage) {
+        requirementReason = 'У вас нет ипотеки для досрочного погашения.'
+      } else if (action.id === 'fin_rent_out' && housingLevel < 2) {
+        requirementReason = 'Нужна своя недвижимость для сдачи в аренду.'
+      } else if (action.id === 'fin_refinance' && !hasDebt) {
+        requirementReason = 'У вас нет кредитов для рефинансирования.'
+      }
+
+      const available = overview.liquidMoney >= action.price && !weekBlocked && ageCheck.ok && !requirementReason
       let reason = ''
       if (!ageCheck.ok) {
         reason = ageCheck.reason || ''
+      } else if (requirementReason) {
+        reason = requirementReason
       } else if (overview.liquidMoney < action.price) {
         reason = `Нужно ${this._formatMoney(action.price)} ₽ свободных денег.`
       } else if (weekBlocked) {
@@ -226,9 +247,25 @@ export class FinanceActionSystem {
     const playerId = PLAYER_ENTITY
     const wallet = this.world.getComponent(playerId, WALLET_COMPONENT) as Record<string, number> | null
     const finance = this.world.getComponent(playerId, FINANCE_COMPONENT) as Record<string, unknown> | null
+    const housing = this.world.getComponent(playerId, HOUSING_COMPONENT) as Record<string, unknown> | null
 
     if (!wallet || !finance) {
       return { success: false, message: 'Не удалось загрузить финансовые данные.' }
+    }
+
+    const monthlyExpenses = (finance?.monthlyExpenses as Record<string, number>) ?? {}
+    const hasDebt = (finance?.debt as number) ?? 0 > 0
+    const hasMortgage = (monthlyExpenses?.credit_payment ?? 0) > 0
+    const housingLevel = (housing?.level as number) ?? 0
+
+    if (action.id === 'fin_pay_debt' && !hasDebt) {
+      return { success: false, message: 'У вас нет долгов для погашения.' }
+    }
+    if (action.id === 'fin_pay_mortgage' && !hasMortgage) {
+      return { success: false, message: 'У вас нет ипотеки для досрочного погашения.' }
+    }
+    if (action.id === 'fin_rent_out' && housingLevel < 2) {
+      return { success: false, message: 'Нужна своя недвижимость для сдачи в аренду.' }
     }
 
     if (wallet.money < action.price) {
@@ -322,17 +359,17 @@ export class FinanceActionSystem {
       return
     }
 
-    if (action.id === 'fin_sell_stuff') {
-      const saleIncome = Math.round(2000 + Math.random() * 3000)
-      wallet.money += saleIncome
+    if (action.id === 'fin_refinance') {
+      const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
+      if (monthlyExpenses.credit_payment && monthlyExpenses.credit_payment > 0) {
+        monthlyExpenses.credit_payment = Math.max(0, monthlyExpenses.credit_payment - Math.round(monthlyExpenses.credit_payment * 0.2))
+      }
       return
     }
 
-    if (action.id === 'fin_take_credit') {
-      const creditAmount = 100000 + Math.round(Math.random() * 150000)
-      wallet.money += creditAmount
-      const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
-      monthlyExpenses.credit_payment = (monthlyExpenses.credit_payment ?? 0) + Math.round(creditAmount / 36)
+    if (action.id === 'fin_tax_deduction') {
+      const deductionAmount = Math.round(13000 * 12 * 0.13) // Максимальный налоговый вычет в РФ
+      wallet.money += deductionAmount
       return
     }
 
@@ -361,6 +398,7 @@ export class FinanceActionSystem {
     }
 
     if (action.id === 'fin_pay_mortgage') {
+      wallet.money -= action.price
       const monthlyExpenses = finance.monthlyExpenses as Record<string, number>
       if (monthlyExpenses.credit_payment && monthlyExpenses.credit_payment > 0) {
         monthlyExpenses.credit_payment = Math.max(0, monthlyExpenses.credit_payment - 5000)

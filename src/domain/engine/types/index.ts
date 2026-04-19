@@ -184,6 +184,13 @@ export interface EducationComponent {
   institute: string
   educationLevel: string
   activeCourses: unknown[]
+  /** Завершённые программы (история); текущая активная не дублируется в списке плиток UI */
+  completedPrograms?: Array<{
+    id: string
+    name: string
+    typeLabel?: string
+    completedAtGameDay?: number
+  }>
 }
 
 export interface SchoolComponent {
@@ -217,6 +224,7 @@ export interface FinanceComponent {
   reserveFund: number
   monthlyExpenses: Record<string, number>
   lastMonthlySettlement: number | null
+  debt: number
 }
 
 export interface InvestmentComponent {

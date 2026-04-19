@@ -76,6 +76,7 @@ describe('EventQueueSystem dedup', () => {
       }
       const result = eventQueue.enqueueEvent(dto)
       expect(result.status).toBe('accepted')
+      if (result.status !== 'accepted') throw new Error('expected accepted')
       expect(result.instanceId).toBeTruthy()
       const queue = eventQueue.getEventQueue()
       expect(queue.count).toBe(1)

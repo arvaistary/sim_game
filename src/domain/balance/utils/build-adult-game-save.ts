@@ -40,6 +40,7 @@ export function buildAdultGameSavePayload(input: {
     institute: 'none',
     educationLevel: 'Среднее',
     activeCourses: [],
+    completedPrograms: [],
   }
 
   // Базовая работа
@@ -71,6 +72,7 @@ export function buildAdultGameSavePayload(input: {
       education: 0,
     },
     lastMonthlySettlement: null,
+    debt: 0,
   }
 
   return {

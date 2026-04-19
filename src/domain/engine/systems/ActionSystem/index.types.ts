@@ -40,6 +40,8 @@ export interface ActionData {
   grantsItem?: string
   /** Минимальная возрастная группа для доступа к действию. Если undefined — доступно всем. */
   ageGroup?: AgeGroup
+  /** Максимальная возрастная группа. Если указано — действие скрывается при превышении. */
+  maxAgeGroup?: AgeGroup
 }
 
 export type ActionDenyReason =

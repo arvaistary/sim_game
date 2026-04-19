@@ -1,6 +1,7 @@
-import { ref } from 'vue'
+import { ref, type Component } from 'vue'
 import type { StatChangeBreakdownEntry } from '@/domain/balance/types'
 import { buildActionResultStatLines, type ActionResultStatLine } from '@/utils/stat-breakdown-format'
+import { useModalStack } from '../useModalStack'
 
 /**
  * Описание кнопки в модальном окне.
@@ -42,6 +43,7 @@ interface GameModalState extends GameModalOptions {
   actionResultLines: ActionResultStatLine[]
 }
 
+// Сохраняем state для обратной совместимости с GameModalHost
 const state = ref<GameModalState>({
   isOpen: false,
   title: '',
@@ -54,7 +56,7 @@ const state = ref<GameModalState>({
 })
 
 /**
- * Единая система модальных окон.
+ * Единая система модальных окон (legacy, state-based).
  *
  * @example
  * ```ts
@@ -98,6 +100,38 @@ export function useGameModal() {
     show,
     close,
   }
+}
+
+/**
+ * Открыть модальное окно через стек (новый подход).
+ *
+ * @example
+ * ```ts
+ * import { openModal } from '@/composables/useGameModal'
+ * import MyModal from '@/components/MyModal.vue'
+ *
+ * const modalId = openModal(MyModal, { title: 'Hello' })
+ * ```
+ */
+export function openModal(component: Component, props?: Record<string, any>): symbol {
+  const modalStack = useModalStack()
+  return modalStack.open(component, props)
+}
+
+/**
+ * Закрыть модальное окно по ID.
+ */
+export function closeModal(id: symbol): void {
+  const modalStack = useModalStack()
+  modalStack.close(id)
+}
+
+/**
+ * Закрыть все модальные окна в стеке.
+ */
+export function closeAllModals(): void {
+  const modalStack = useModalStack()
+  modalStack.closeAll()
 }
 
 const defaultOkButton: GameModalButton = { label: 'Понятно', accent: true }

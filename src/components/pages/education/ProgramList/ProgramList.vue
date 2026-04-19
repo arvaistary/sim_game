@@ -1,40 +1,84 @@
 <template>
   <div class="programs-wrapper">
-    <h3 class="section-title">Программы обучения</h3>
+    <h3 class="section-title">Курсы и программы</h3>
     <div class="programs-list">
-      <RoundedPanel
-        v-for="program in programs"
+      <Tooltip
+        v-for="program in sortedCoursePrograms"
         :key="program.id"
-        class="program-card"
-        :class="{
-          disabled: !canAfford(program),
-          'age-locked': !isAgeOk(program),
-        }"
-        @click="startProgram(program)"
+        :text="getLockReason(program)"
+        :follow-cursor="true"
+        multiline
       >
-        <div class="program-header">
-          <span class="program-title">{{ program.title }}</span>
-          <span class="program-type">{{ program.typeLabel }}</span>
-        </div>
-        <p class="program-subtitle">{{ program.subtitle }}</p>
-        <div class="program-meta">
-          <span class="meta-tag">{{ formatMoney(program.cost) }} ₽</span>
-          <span class="meta-tag">{{ program.daysRequired }} дн.</span>
-          <span class="meta-tag">{{ program.hoursRequired }} ч</span>
-          <span v-if="program.minAgeGroup" class="meta-tag age-tag">{{ getAgeGroupLabel(program.minAgeGroup) }}+</span>
-        </div>
-        <p class="program-reward">{{ program.rewardText }}</p>
-        <p v-if="!isAgeOk(program)" class="program-lock-reason">
-          🔒 {{ program.ageReason || `Доступно с ${getAgeGroupLabel(program.minAgeGroup ?? AgeGroup.TEEN)}+` }}
-        </p>
-      </RoundedPanel>
+        <RoundedPanel
+          class="program-card"
+          :class="{
+            disabled: !isProgramAvailable(program),
+            'age-locked': !isAgeOk(program),
+          }"
+          @click="startProgram(program)"
+        >
+          <div class="program-header">
+            <span class="program-title">{{ program.title }}</span>
+            <span class="program-type">{{ program.typeLabel }}</span>
+          </div>
+          <p class="program-subtitle">{{ program.subtitle }}</p>
+          <div class="program-meta">
+            <span class="meta-tag">{{ formatMoney(program.cost) }} ₽</span>
+            <span class="meta-tag">{{ program.daysRequired }} дн.</span>
+            <span class="meta-tag">{{ program.hoursRequired }} ч</span>
+            <span v-if="program.minAgeGroup" class="meta-tag age-tag">{{ getAgeGroupLabel(program.minAgeGroup) }}+</span>
+          </div>
+          <p class="program-reward">{{ program.rewardText }}</p>
+        </RoundedPanel>
+      </Tooltip>
     </div>
+
+    <div class="library-header">
+      <h3 class="section-title">Библиотека</h3>
+      <button type="button" class="library-shop-button" @click="goToShopBooks">Купить книги в магазине</button>
+    </div>
+    <p class="library-hint">Книги запускаются из библиотеки только после покупки в магазине.</p>
+
+    <div v-if="sortedOwnedBooks.length" class="programs-list">
+      <Tooltip
+        v-for="program in sortedOwnedBooks"
+        :key="program.id"
+        :text="getLockReason(program)"
+        :follow-cursor="true"
+        multiline
+      >
+        <RoundedPanel
+          class="program-card"
+          :class="{
+            disabled: !isProgramAvailable(program),
+            'age-locked': !isAgeOk(program),
+          }"
+          @click="startProgram(program)"
+        >
+          <div class="program-header">
+            <span class="program-title">{{ program.title }}</span>
+            <span class="program-type">{{ program.typeLabel }}</span>
+          </div>
+          <p class="program-subtitle">{{ program.subtitle }}</p>
+          <div class="program-meta">
+            <span class="meta-tag">Куплено</span>
+            <span class="meta-tag">{{ program.daysRequired }} дн.</span>
+            <span class="meta-tag">{{ program.hoursRequired }} ч</span>
+            <span v-if="program.minAgeGroup" class="meta-tag age-tag">{{ getAgeGroupLabel(program.minAgeGroup) }}+</span>
+          </div>
+          <p class="program-reward">{{ program.rewardText }}</p>
+        </RoundedPanel>
+      </Tooltip>
+    </div>
+    <RoundedPanel v-else class="library-empty">
+      <p class="library-empty__text">В библиотеке пока пусто. Купите книгу в магазине, чтобы запустить обучение по шагам.</p>
+    </RoundedPanel>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
+import { useRouter } from '#imports'
 import { useGameStore } from '@/stores/game.store'
 import { showGameResultModal } from '@/composables/useGameModal'
 import { useToast } from '@/composables/useToast'
@@ -45,8 +89,9 @@ import { AgeGroup, getAgeGroup } from '@/composables/useAgeRestrictions/age-cons
 
 const store = useGameStore()
 const toast = useToast()
+const router = useRouter()
 
-const programs = EDUCATION_PROGRAMS as unknown as EducationProgram[]
+const allPrograms = EDUCATION_PROGRAMS as unknown as EducationProgram[]
 
 const currentAge = computed(() => store.age ?? 0)
 const currentAgeGroup = computed(() => getAgeGroup(currentAge.value))
@@ -71,6 +116,69 @@ function getAgeGroupLabel(ageGroup: AgeGroup): string {
 
 function canAfford(program: EducationProgram): boolean {
   return (store.money ?? 0) >= program.cost
+}
+
+function hasFurnitureItem(itemId: string): boolean {
+  const world = store.getWorld()
+  if (!world) return false
+  const furniture = world.getComponent<Array<Record<string, unknown>>>('player', 'furniture')
+  if (!Array.isArray(furniture)) return false
+  return furniture.some(item => item?.id === itemId)
+}
+
+function isProgramOwned(program: EducationProgram): boolean {
+  if (program.acquisition !== 'shop_only') return true
+  if (!program.requiresItemId) return true
+  return hasFurnitureItem(program.requiresItemId)
+}
+
+/** Получить причину блокировки программы (для tooltip) */
+function getLockReason(program: EducationProgram): string {
+  if (!isAgeOk(program)) {
+    const minAgeGroup = program.minAgeGroup ?? AgeGroup.TEEN
+    return `🔒 ${program.ageReason || `Доступно с ${getAgeGroupLabel(minAgeGroup)}+`}. Вам ${currentAge.value} лет.`
+  }
+  if (!canAfford(program)) {
+    return `💰 Недостаточно денег. Нужно ${formatMoney(program.cost)} ₽, у вас ${formatMoney(store.money ?? 0)} ₽`
+  }
+  if (store.isInitialized) {
+    const check = store.canStartEducationProgramWithReason(program.id)
+    if (!check.ok) {
+      return `🔒 ${check.reason ?? 'Программа недоступна'}`
+    }
+  }
+  return ''
+}
+
+function isProgramAvailable(program: EducationProgram): boolean {
+  return getLockReason(program) === ''
+}
+
+/** Программы отсортированы: доступные первыми */
+function sortByAvailability(programs: EducationProgram[]): EducationProgram[] {
+  void store.worldTick
+  return [...programs].sort((a, b) => {
+    const aAvailable = isProgramAvailable(a) ? 0 : 1
+    const bAvailable = isProgramAvailable(b) ? 0 : 1
+    return aAvailable - bAvailable
+  })
+}
+
+const coursePrograms = computed(() => {
+  void store.worldTick
+  return allPrograms.filter(program => program.track !== 'book')
+})
+
+const sortedCoursePrograms = computed(() => sortByAvailability(coursePrograms.value))
+
+const sortedOwnedBooks = computed(() => {
+  void store.worldTick
+  const ownedBooks = allPrograms.filter(program => program.track === 'book' && isProgramOwned(program))
+  return sortByAvailability(ownedBooks)
+})
+
+function goToShopBooks(): void {
+  void router.push('/game/shop')
 }
 
 function startProgram(program: EducationProgram): void {

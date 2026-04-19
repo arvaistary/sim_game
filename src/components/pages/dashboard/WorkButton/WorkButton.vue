@@ -4,56 +4,16 @@
       <span class="action-button__label">Пойти на работу</span>
       <span class="action-button__subtitle">обменять своё здоровье на деньги</span>
     </button>
-
-    <Modal :is-open="isWorkChoiceModalOpen" title="Рабочая смена" @close="closeWorkChoiceModal">
-      <div v-if="workOptions" class="work-modal">
-        <p class="work-modal__line"><strong>Должность:</strong> {{ workOptions.jobName }}</p>
-        <p class="work-modal__line"><strong>График:</strong> {{ workOptions.schedule }}</p>
-        <p class="work-modal__line"><strong>Один рабочий день:</strong> {{ workOptions.dailyHours }} ч</p>
-        <p class="work-modal__line"><strong>Норма недели:</strong> {{ workOptions.requiredHoursPerWeek }} ч</p>
-        <p class="work-modal__line"><strong>Отработано:</strong> {{ workOptions.workedHoursCurrentWeek }} ч</p>
-        <p class="work-modal__line"><strong>Осталось:</strong> {{ workOptions.remainingHoursCurrentWeek }} ч</p>
-      </div>
-
-      <template #actions>
-        <GameButton
-          :disabled="isWorkInProgress || !canStartOneDayShift"
-          :label="`1 день (${workOptions?.oneDayHours ?? 0} ч)`"
-          @click="runShift(workOptions?.oneDayHours ?? 0)"
-        />
-        <GameButton
-          :disabled="isWorkInProgress || !canStartFullShift"
-          :label="`Вся смена (${workOptions?.fullShiftHours ?? 0} ч)`"
-          color="var(--color-action-secondary)"
-          @click="runShift(workOptions?.fullShiftHours ?? 0)"
-        />
-      </template>
-    </Modal>
-
-    <Modal :is-open="isWorkResultModalOpen" title="Итоги смены" @close="closeWorkResultModal">
-      <p class="work-modal__result">{{ workSummary }}</p>
-      <div v-if="statDiffs.length > 0" class="work-modal__stats">
-        <p class="work-modal__stats-title">Изменения характеристик:</p>
-        <ul class="work-modal__stats-list">
-          <li v-for="diff in statDiffs" :key="diff.key" class="work-modal__stats-item">
-            <span>{{ diff.label }}</span>
-            <span :class="getDeltaClass(diff.delta)">
-              {{ formatDelta(diff.delta) }}
-            </span>
-          </li>
-        </ul>
-      </div>
-    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import GameButton from '@/components/ui/GameButton/index.vue'
-import Modal from '@/components/ui/Modal/index.vue'
 import { useGameStore } from '@/stores/game.store'
-import { useGameModal } from '@/composables/useGameModal'
+import { useGameModal, openModal, closeModal } from '@/composables/useGameModal'
 import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
+import WorkChoiceModal from '../WorkChoiceModal/WorkChoiceModal.vue'
+import WorkResultModal from '../WorkResultModal/WorkResultModal.vue'
 import type { WorkOptions, WorkSnapshot, WorkStatDefinition, WorkStatDiff, WorkStatSnapshot } from './WorkButton.types'
 
 const store = useGameStore()
@@ -72,11 +32,13 @@ const STAT_DEFINITIONS: WorkStatDefinition[] = [
   { key: 'workedHoursCurrentWeek', label: 'Рабочие часы за неделю' },
 ]
 
-const isWorkChoiceModalOpen = ref<boolean>(false)
-const isWorkResultModalOpen = ref<boolean>(false)
 const isWorkInProgress = ref<boolean>(false)
 const workSummary = ref<string>('')
 const statDiffs = ref<WorkStatDiff[]>([])
+
+// IDs for modals in the stack
+let workChoiceModalId: symbol | null = null
+let workResultModalId: symbol | null = null
 
 const currentWork = computed<WorkSnapshot | null>(() => {
   const job = store.currentJobSnapshot
@@ -136,21 +98,24 @@ function handleWorkClick(): void {
         'Сначала устройтесь на работу, чтобы начать зарабатывать.',
       ],
       buttons: [
-        { label: 'Найти работу', route: '/game/career', accent: true },
+        { label: 'Найти работу', route: '/game/work', accent: true },
       ],
     })
     return
   }
 
-  isWorkChoiceModalOpen.value = true
-}
-
-function closeWorkChoiceModal(): void {
-  isWorkChoiceModalOpen.value = false
-}
-
-function closeWorkResultModal(): void {
-  isWorkResultModalOpen.value = false
+  workChoiceModalId = openModal(WorkChoiceModal, {
+    workOptions: workOptions.value,
+    isWorkInProgress: isWorkInProgress.value,
+    canStartOneDayShift: canStartOneDayShift.value,
+    canStartFullShift: canStartFullShift.value,
+    onClose: () => {
+      workChoiceModalId = null
+    },
+    onRunShift: (hours: number) => {
+      runShift(hours)
+    },
+  })
 }
 
 function resolveDailyHours(work: WorkSnapshot): number {
@@ -212,16 +177,20 @@ function runShift(hours: number): void {
   workSummary.value = summary || 'Смена завершена.'
   statDiffs.value = buildDiffs(beforeSnapshot, afterSnapshot)
 
-  isWorkChoiceModalOpen.value = false
-  isWorkResultModalOpen.value = true
-}
+  // Close choice modal
+  if (workChoiceModalId) {
+    closeModal(workChoiceModalId)
+    workChoiceModalId = null
+  }
 
-function formatDelta(delta: number): string {
-  return delta > 0 ? `+${delta}` : `${delta}`
-}
-
-function getDeltaClass(delta: number): string {
-  return delta >= 0 ? 'work-modal__delta--positive' : 'work-modal__delta--negative'
+  // Open result modal
+  workResultModalId = openModal(WorkResultModal, {
+    workSummary: workSummary.value,
+    statDiffs: statDiffs.value,
+    onClose: () => {
+      workResultModalId = null
+    },
+  })
 }
 </script>
 

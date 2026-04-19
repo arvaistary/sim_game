@@ -1,7 +1,12 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="isOpen" class="modal-overlay" @click.self="close">
+      <div
+        v-if="isOpen"
+        class="modal-overlay"
+        :style="overlayStyle"
+        @click.self="handleOverlayClick"
+      >
         <div class="modal-content" :style="contentStyle">
           <div class="modal-header">
             <h3 class="modal-title">{{ title }}</h3>
@@ -20,17 +25,25 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted } from 'vue'
 import './style.scss'
 
 const props = withDefaults(defineProps<{
-  isOpen: boolean
+  isOpen?: boolean
   title?: string
   showClose?: boolean
   maxWidth?: string
+  closeOnOverlay?: boolean
+  closeOnEscape?: boolean
+  zIndex?: number
 }>(), {
+  isOpen: true,
   title: '',
   showClose: true,
-  maxWidth: '360px',
+  maxWidth: '420px',
+  closeOnOverlay: true,
+  closeOnEscape: true,
+  zIndex: 1000,
 })
 
 const emit = defineEmits<{
@@ -41,5 +54,36 @@ function close() {
   emit('close')
 }
 
-const contentStyle = { maxWidth: props.maxWidth }
+function handleOverlayClick() {
+  if (props.closeOnOverlay) {
+    close()
+  }
+}
+
+function handleEscape(event: KeyboardEvent) {
+  if (event.key === 'Escape' && props.isOpen && props.closeOnEscape) {
+    event.preventDefault()
+    close()
+  }
+}
+
+const contentStyle = computed(() => ({
+  maxWidth: props.maxWidth,
+}))
+
+const overlayStyle = computed(() => ({
+  zIndex: props.zIndex,
+}))
+
+onMounted(() => {
+  if (props.closeOnEscape) {
+    window.addEventListener('keydown', handleEscape)
+  }
+})
+
+onUnmounted(() => {
+  if (props.closeOnEscape) {
+    window.removeEventListener('keydown', handleEscape)
+  }
+})
 </script>

@@ -3,3 +3,4 @@
 .balance-label{font-size:$font-size-xs;color:var(--color-text-secondary)}
 .balance-value{font-size:$font-size-lg;font-weight:$font-weight-bold;color:var(--color-brand-accent)}
 .balance-value.reserve{color:var(--color-pastel-green-strong)}
+.balance-value.spent{color:var(--color-text-secondary)}

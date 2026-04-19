@@ -17,6 +17,15 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
   ],
 
+  // Components auto-import: short names without directory prefixes
+  components: [
+    { path: '~/components/global', pathPrefix: false },
+    { path: '~/components/game', pathPrefix: false },
+    { path: '~/components/ui', pathPrefix: false },
+    { path: '~/components/layout', pathPrefix: false },
+    { path: '~/components/pages', pathPrefix: false },
+  ],
+
   colorMode: {
     preference: 'light',
     dataValue: 'theme',

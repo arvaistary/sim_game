@@ -7,10 +7,12 @@ export function useFinance() {
   const toast = useToast()
 
   const overview = computed(() => {
+    void store.worldTick
     return store.getFinanceOverview()
   })
 
   const investments = computed(() => {
+    void store.worldTick
     return store.getInvestments()
   })
 

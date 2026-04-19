@@ -32,13 +32,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { useGameStore } from '@/stores/game.store'
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
 
-const careerTrack = computed(() => store.getCareerTrack())
+const careerTrack = computed(() => {
+  void store.worldTick
+  return store.getCareerTrack()
+})
 </script>
 
 <style scoped lang="scss" src="./CareerTrack.scss"></style>

@@ -1,4 +1,4 @@
-﻿import type { BalanceAction } from './types'
+import type { BalanceAction } from './types'
 import { AgeGroup } from './types'
 
 export const FUN_ACTIONS: BalanceAction[] = [
@@ -527,5 +527,41 @@ export const FUN_ACTIONS: BalanceAction[] = [
     actionType: 'recovery',
     effect: 'Голод +2.3, Энергия -2, Стресс -11.5, Настроение +17.5, Здоровье -0.2, Физическая форма -0.4',
     mood: '🎤 Пой громко — никто не осудит',
+  },
+  {
+    id: 'fun_sleep_short',
+    category: 'fun',
+    title: 'Короткий сон (4 часа)',
+    hourCost: 4,
+    price: 0,
+    ageGroup: AgeGroup.INFANT,
+    statChanges: { hunger: 5, energy: 40, stress: -15, mood: 8, health: 3, physical: 2 },
+    actionType: 'sleep',
+    effect: 'Голод +5, Энергия +40, Стресс -15, Настроение +8, Здоровье +3, Физическая форма +2',
+    mood: '💤 Короткий сон — быстрая перезагрузка',
+  },
+  {
+    id: 'fun_sleep_normal',
+    category: 'fun',
+    title: 'Нормальный сон (7 часов)',
+    hourCost: 7,
+    price: 0,
+    ageGroup: AgeGroup.INFANT,
+    statChanges: { hunger: 8, energy: 70, stress: -25, mood: 15, health: 6, physical: 4 },
+    actionType: 'sleep',
+    effect: 'Голод +8, Энергия +70, Стресс -25, Настроение +15, Здоровье +6, Физическая форма +4',
+    mood: '🌙 Полноценный сон — залог продуктивного дня',
+  },
+  {
+    id: 'fun_sleep_long',
+    category: 'fun',
+    title: 'Длительный сон (10 часов)',
+    hourCost: 10,
+    price: 0,
+    ageGroup: AgeGroup.INFANT,
+    statChanges: { hunger: 12, energy: 100, stress: -35, mood: 20, health: 8, physical: 5 },
+    actionType: 'sleep',
+    effect: 'Голод +12, Энергия +100, Стресс -35, Настроение +20, Здоровье +8, Физическая форма +5',
+    mood: '😴 Длительный отдых — полное восстановление сил',
   },
 ]

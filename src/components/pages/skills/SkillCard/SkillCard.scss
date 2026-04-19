@@ -1,19 +1,89 @@
-.skill-card{transition:all .2s}
-.skill-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:$space-1}
-.skill-name{font-size:$font-size-sm;font-weight:$font-weight-semibold}
-.skill-level{font-size:$font-size-sm;font-weight:$font-weight-bold;color:var(--color-brand-accent)}
-.skill-desc{font-size:$font-size-xs;color:var(--color-text-secondary);margin:$space-1 0 $space-2}
+.skill-card {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: $space-1;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  cursor: default;
+}
 
-// Эффекты навыка
-.skill-effects{margin-top:$space-2;padding-top:$space-2;border-top:1px solid var(--color-border-light)}
-.effects-title{font-size:$font-size-xs;font-weight:$font-weight-semibold;color:var(--color-text-secondary);margin-bottom:$space-1}
-.effects-list{display:flex;flex-direction:column;gap:4px}
-.effect-item{font-size:$font-size-xs;color:var(--color-text-tertiary);padding:2px 4px;border-radius:4px;transition:background-color .15s}
-.effect-item:hover{background-color:var(--color-bg-hover)}
-.effect-item.effect-positive{color:var(--color-pastel-green-strong)}
-.effect-description{display:flex;align-items:center;gap:4px}
-.effect-description::before{content:'•';color:var(--color-brand-accent)}
+.skill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-.milestones{margin-top:$space-2;display:flex;flex-direction:column;gap:2px}
-.milestone{font-size:$font-size-xs;color:var(--color-text-tertiary);padding:2px 0}
-.milestone.achieved{opacity:1;color:var(--color-pastel-green-strong);font-weight:$font-weight-semibold}
+.skill-name {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.skill-level {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: var(--color-brand-accent);
+}
+
+.skill-desc {
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+  margin: $space-1 0;
+  line-height: $line-height-base;
+}
+
+// Tooltip inner styles (rendered inside Teleport → body, so not scoped)
+:global(.skill-tooltip) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+}
+
+:global(.tooltip-header) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+:global(.tooltip-title) {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+:global(.tooltip-level) {
+  font-size: $font-size-xs;
+  color: var(--color-brand-accent);
+  font-weight: $font-weight-bold;
+  white-space: nowrap;
+}
+
+:global(.tooltip-section) {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+:global(.tooltip-section-title) {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-secondary);
+  margin-bottom: 2px;
+}
+
+:global(.tooltip-effect) {
+  font-size: $font-size-xs;
+  color: var(--color-text-tertiary);
+  padding: 1px 0;
+}
+
+:global(.tooltip-effect.effect-positive) {
+  color: var(--color-pastel-green-strong);
+}
+
+:global(.tooltip-effect.effect-neutral) {
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}

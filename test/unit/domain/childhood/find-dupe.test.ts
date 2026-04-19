@@ -14,7 +14,7 @@ describe('find dupe', () => {
     console.log('Duplicates:', dupes)
     for (const dupe of dupes) {
       const events = ALL_CHILDHOOD_EVENTS.filter(e => e.id === dupe)
-      console.log(`Dupe "${dupe}":`, events.map(e => ({ id: e.id, type: e.type, minAge: e.minAge })))
+      console.log(`Dupe "${dupe}":`, events.map(e => ({ id: e.id, type: e.type, ageGroup: e.ageGroup })))
     }
     expect(dupes).toEqual([])
   })

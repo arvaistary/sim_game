@@ -11,8 +11,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
-import GameButton from '@/components/ui/GameButton/index.vue'
 import { useGameStore } from '@/stores/game.store'
 
 const store = useGameStore()

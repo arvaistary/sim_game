@@ -17,7 +17,7 @@ export interface AgeRestrictions {
 /** Правила для каждой возрастной группы */
 export const AGE_RULES: Record<AgeGroup, AgeRestrictions> = {
   [AgeGroup.INFANT]: {
-    hiddenTabs: ['finance', 'career', 'home', 'car', 'social', 'shop', 'education'],
+    hiddenTabs: ['finance', 'career', 'home', 'car', 'actions', 'shop', 'education'],
     hiddenStats: ['money', 'salary', 'debt', 'investments'],
     label: 'Младенец',
     timeSpeed: 4,
@@ -69,7 +69,7 @@ export const AGE_RULES: Record<AgeGroup, AgeRestrictions> = {
 
 /** Возраст, с которого вкладка становится доступна */
 export const TAB_UNLOCK_AGE: Record<string, number> = {
-  social: 4,
+  actions: 4,
   shop: 4,
   education: 8,  // CHILD (осознанное школьное обучение)
   career: 13,    // TEEN (было 8 — пустая страница для CHILD 8-12)
@@ -86,7 +86,7 @@ export const UNLOCK_MESSAGES: Record<string, string> = {
   career: '💼 Теперь вам доступна Работа! Вы можете искать вакансии и устраиваться на работу.',
   home: '🏠 Теперь вам доступна Недвижимость! Вы можете покупать и арендовать жильё.',
   car: '🚗 Теперь вам доступна Машина! Вы можете покупать и обслуживать автомобиль.',
-  social: '❤️ Теперь вам доступны Отношения! Вы можете строить отношения с другими персонажами.',
+  actions: '🎭 Теперь вам доступны Действия! Вы можете развлекаться, заниматься хобби, заботиться о здоровье и общаться.',
   mortgage: '🏦 Теперь вам доступна Ипотека! Вы можете брать кредиты на покупку недвижимости.',
   shop: '🛒 Теперь вам доступен Магазин! Вы можете покупать товары и услуги.',
 }

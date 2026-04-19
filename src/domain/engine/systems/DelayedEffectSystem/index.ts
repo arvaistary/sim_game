@@ -2,9 +2,9 @@ import {
   PLAYER_ENTITY,
   DELAYED_EFFECTS_COMPONENT,
   TIME_COMPONENT,
-  STATS_COMPONENT,
 } from '../../components'
 import type { GameWorld } from '../../world'
+import type { DelayedEffectEntry, DelayedEffectsComponent } from './index.types'
 import { SkillsSystem } from '../SkillsSystem'
 import { PersonalitySystem } from '../PersonalitySystem'
 import { StatsSystem } from '../StatsSystem'

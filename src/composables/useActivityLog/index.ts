@@ -32,6 +32,7 @@ export function useActivityLog() {
   }
 
   const entries = computed<DisplayLogEntry[]>(() => {
+    void store.worldTick
     const all = fetchEntries(visibleCount.value)
     if (activeFilter.value === 'all') return all
     return all.filter((e) => e.type === activeFilter.value)

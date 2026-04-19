@@ -31,13 +31,14 @@ const ALL_ACTIONS_MAP = new Map<string, BalanceAction>()
 
 function registerActions(actions: BalanceAction[]): void {
   for (const action of actions) {
-    if (ALL_ACTIONS_MAP.has(action.id)) {
-      console.warn(`[Actions] Duplicate action id: ${action.id}`)
+    const actionId = action.id
+    if (ALL_ACTIONS_MAP.has(actionId)) {
+      console.warn(`[Actions] Duplicate action id: ${actionId}`)
     }
     if (!validateAction(action)) {
-      console.warn(`[Actions] Invalid action schema: ${action.id}`)
+      console.warn(`[Actions] Invalid action schema: ${actionId}`)
     }
-    ALL_ACTIONS_MAP.set(action.id, action)
+    ALL_ACTIONS_MAP.set(actionId, action)
   }
 }
 

@@ -2,6 +2,14 @@
 import { getActionById, getActionsByCategory, getAllActions } from '../../../balance/actions/index'
 import { AgeGroup } from '../../../balance/actions/types'
 import { calculateStatChangesWithBreakdown } from '../../../balance/utils/hourly-rates'
+
+const ITEM_NAME_MAP: Record<string, string> = {
+  study_laptop: 'Ноутбук для учёбы',
+  book_general: 'Книги и учебные материалы',
+  book_time_management: 'Книга «Как управлять временем»',
+  book_meditation_foundations: 'Книга «Основы медитации»',
+  fitness_membership: 'Абонемент в фитнес-клуб',
+}
 import {
   PLAYER_ENTITY,
   TIME_COMPONENT,
@@ -16,11 +24,13 @@ import {
   SUBSCRIPTION_COMPONENT,
   COOLDOWN_COMPONENT,
   COMPLETED_ACTIONS_COMPONENT,
+  COGNITIVE_LOAD_COMPONENT,
 } from '../../components/index'
 import { StatsSystem } from '../StatsSystem'
 import { SkillsSystem } from '../SkillsSystem'
 import { EventQueueSystem } from '../EventQueueSystem'
 import { AntiGrindSystem } from '../AntiGrindSystem'
+import { resetCognitiveLoad, type CognitiveLoadComponent } from '../EducationSystem/cognitive-load'
 import { resolveActionLogDescription } from '../../utils/activity-log-description'
 import type { GameWorld } from '../../world'
 import { TimeSystem } from '../TimeSystem'
@@ -96,6 +106,17 @@ export class ActionSystem {
       if (currentAge < minAgeForGroup) {
         telemetryInc('action_fail:age_group')
         return this._deny('age_group', `Доступно с ${minAgeForGroup} лет`)
+      }
+    }
+
+    if (action.maxAgeGroup !== undefined) {
+      const time = this.world.getComponent(PLAYER_ENTITY, TIME_COMPONENT) as Record<string, unknown> | null
+      const currentAge = (time?.currentAge as number) ?? 0
+      const currentAgeGroup = this._getAgeGroup(currentAge)
+      if (currentAgeGroup > action.maxAgeGroup) {
+        telemetryInc('action_fail:age_group')
+        const maxAge = this._getMaxAgeForAgeGroup(action.maxAgeGroup)
+        return this._deny('age_group', `Доступно до ${maxAge} лет`)
       }
     }
 
@@ -190,7 +211,8 @@ export class ActionSystem {
         const items = this._getFurnitureItems()
         if (!items.some(item => item.id === req.requiresItem)) {
           telemetryInc('action_fail:requires_item')
-          return this._deny('requires_item', `Нужен предмет: ${req.requiresItem}`)
+          const itemName = ITEM_NAME_MAP[req.requiresItem] ?? req.requiresItem
+          return this._deny('requires_item', `Нужен предмет: ${itemName}`)
         }
       }
 
@@ -282,10 +304,47 @@ export class ActionSystem {
     const timeSystem = this._getTimeSystem()
     if (timeSystem) {
       const isSleep = (action.actionType || '') === 'sleep'
+      const isMeditation = action.id === 'fun_meditation'
+      
       timeSystem.advanceHours(action.hourCost, {
-        actionType: isSleep ? 'sleep' : 'default',
+        actionType: isSleep ? 'sleep' : isMeditation ? 'meditation' : 'default',
         sleepHours: isSleep ? action.hourCost : 0,
       })
+
+      // Сбросить когнитивную нагрузку при сне или медитации
+      if (isSleep || isMeditation) {
+        let cognitiveLoad = this.world.getComponent<CognitiveLoadComponent>(PLAYER_ENTITY, COGNITIVE_LOAD_COMPONENT)
+        if (cognitiveLoad) {
+          let shouldReset = isSleep
+          let resetType = 'sleep'
+          
+          // Для медитации проверяем уровень навыка
+          if (isMeditation) {
+            const meditationLevel = Math.floor(this.skillsSystem.getSkillLevel('meditation'))
+
+            // Уровень 1: действие доступно, когнитивную нагрузку не сбрасывает
+            // Уровень 2–4: частичный сброс нагрузки (как «короткий сон» по смыслу восстановления ума)
+            // Уровень 5+: полный сброс (как нормальный сон)
+            if (meditationLevel >= 5) {
+              shouldReset = true
+              resetType = 'normal_sleep'
+            } else if (meditationLevel >= 2) {
+              shouldReset = true
+              resetType = 'short_sleep'
+              cognitiveLoad.currentLoad = Math.max(0, cognitiveLoad.currentLoad * 0.4)
+              this.world.updateComponent(PLAYER_ENTITY, COGNITIVE_LOAD_COMPONENT, cognitiveLoad as unknown as Record<string, unknown>)
+            }
+          }
+          
+          // Полный сброс для сна или медитации уровня 5+
+          if (shouldReset && resetType !== 'short_sleep') {
+            const previousLoad = cognitiveLoad.currentLoad
+            resetCognitiveLoad(cognitiveLoad)
+            this.world.updateComponent(PLAYER_ENTITY, COGNITIVE_LOAD_COMPONENT, cognitiveLoad as unknown as Record<string, unknown>)
+            
+          }
+        }
+      }
     }
 
     if (action.cooldown) {
@@ -505,6 +564,28 @@ export class ActionSystem {
       [AgeGroup.ADULT]: 19,   // 19+ лет
     }
     return ageMap[ageGroup] ?? 0
+  }
+
+  _getMaxAgeForAgeGroup(ageGroup: AgeGroup): number {
+    const ageMap: Record<AgeGroup, number> = {
+      [AgeGroup.INFANT]: 3,
+      [AgeGroup.TODDLER]: 7,
+      [AgeGroup.CHILD]: 12,
+      [AgeGroup.KID]: 12,
+      [AgeGroup.TEEN]: 15,
+      [AgeGroup.YOUNG]: 18,
+      [AgeGroup.ADULT]: 99,
+    }
+    return ageMap[ageGroup] ?? 99
+  }
+
+  _getAgeGroup(age: number): AgeGroup {
+    if (age <= 3) return AgeGroup.INFANT
+    if (age <= 7) return AgeGroup.TODDLER
+    if (age <= 12) return AgeGroup.CHILD
+    if (age <= 15) return AgeGroup.TEEN
+    if (age <= 18) return AgeGroup.YOUNG
+    return AgeGroup.ADULT
   }
 
   _clamp(value: number, min = 0, max = 100): number {

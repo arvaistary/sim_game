@@ -23,7 +23,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { useActivityLog } from '@/composables/useActivityLog'
 
 const { entries, loadMore } = useActivityLog()

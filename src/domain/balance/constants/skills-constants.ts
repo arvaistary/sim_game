@@ -166,6 +166,24 @@ export const BASIC_SKILLS: SkillDef[] = [
     },
   },
   {
+    key: 'meditation',
+    label: 'Медитация',
+    description: 'Практика осознанности и ментального покоя',
+    category: 'basic',
+    color: 0x9E9E9E,
+    maxLevel: 10,
+    effects: {
+      stressGainMultiplier: (lvl) => 1 - (lvl * 0.04),
+      moodRecoveryMultiplier: (lvl) => 1 + (lvl * 0.06),
+    },
+    milestones: {
+      1: { description: 'Можете практиковать медитацию' },
+      2: { description: 'Медитация сбрасывает когнитивную нагрузку (как короткий сон)' },
+      5: { description: 'Медитация сбрасывает когнитивную нагрузку (как нормальный сон)' },
+      10: { description: 'Мастер осознанности — полное ментальное восстановление' },
+    },
+  },
+  {
     key: 'organization',
     label: 'Организованность',
     description: 'Умение поддерживать порядок в делах',

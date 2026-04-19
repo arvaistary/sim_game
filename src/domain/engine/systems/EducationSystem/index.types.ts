@@ -15,6 +15,14 @@ export interface AdvanceResult {
   summary: string
 }
 
+/** Запись о завершённой программе (книга, курс и т.д.) для UI и сохранений */
+export interface CompletedProgramRecord {
+  id: string
+  name: string
+  typeLabel?: string
+  completedAtGameDay?: number
+}
+
 export interface ActiveCourse {
   id: string
   name: string

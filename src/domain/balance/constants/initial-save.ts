@@ -28,6 +28,7 @@ export interface InitialSaveData {
     institute: string
     educationLevel: string
     activeCourses: unknown[]
+    completedPrograms?: unknown[]
   }
   relationships: unknown[]
   investments: unknown[]
@@ -36,6 +37,7 @@ export interface InitialSaveData {
     reserveFund: number
     monthlyExpenses: Record<string, number>
     lastMonthlySettlement: null
+    debt: number
   }
   eventHistory: unknown[]
   pendingEvents: unknown[]
@@ -108,6 +110,7 @@ export const INITIAL_SAVE: InitialSaveData = {
     institute: 'none',
     educationLevel: 'Нет',
     activeCourses: [],
+    completedPrograms: [],
   },
   relationships: [],
   investments: [],
@@ -122,6 +125,7 @@ export const INITIAL_SAVE: InitialSaveData = {
       education: 0,
     },
     lastMonthlySettlement: null,
+    debt: 0,
   },
   eventHistory: [],
   pendingEvents: [],

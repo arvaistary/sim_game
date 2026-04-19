@@ -16,8 +16,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useGameStore } from '@/stores/game.store'
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
-import StatBar from '@/components/game/StatBar.vue'
 import { STAT_DEFS } from '@/domain/balance/constants/stat-defs'
 
 const store = useGameStore()
@@ -32,8 +30,12 @@ const statValues = computed<Record<string, number>>(() => ({
   physical: store.physical,
 }))
 
+/** Статы с обратной семантикой: чем выше значение, тем хуже (инвертируем для отображения) */
+const INVERTED_STATS = new Set(['hunger', 'stress'])
+
 function getStatValue(key: string): number {
-  return statValues.value[key] ?? 50
+  const raw = statValues.value[key] ?? 50
+  return INVERTED_STATS.has(key) ? 100 - raw : raw
 }
 </script>
 

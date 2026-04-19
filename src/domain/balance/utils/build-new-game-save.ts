@@ -7,15 +7,17 @@ const AGE_MIN = 0
 const AGE_MAX = 65
 
 function educationForPath(pathId: NewGamePathId) {
+  const emptyCourses = [] as unknown[]
+  const emptyCompleted = [] as unknown[]
   switch (pathId) {
     case 'none':
-      return { school: 'none', institute: 'none', educationLevel: 'Нет', activeCourses: [] as unknown[] }
+      return { school: 'none', institute: 'none', educationLevel: 'Нет', activeCourses: emptyCourses, completedPrograms: emptyCompleted }
     case 'school':
-      return { school: 'completed', institute: 'none', educationLevel: 'Среднее', activeCourses: [] as unknown[] }
+      return { school: 'completed', institute: 'none', educationLevel: 'Среднее', activeCourses: emptyCourses, completedPrograms: emptyCompleted }
     case 'institute':
-      return { school: 'completed', institute: 'completed', educationLevel: 'Высшее', activeCourses: [] as unknown[] }
+      return { school: 'completed', institute: 'completed', educationLevel: 'Высшее', activeCourses: emptyCourses, completedPrograms: emptyCompleted }
     default:
-      return { school: 'none', institute: 'none', educationLevel: 'Нет', activeCourses: [] as unknown[] }
+      return { school: 'none', institute: 'none', educationLevel: 'Нет', activeCourses: emptyCourses, completedPrograms: emptyCompleted }
   }
 }
 

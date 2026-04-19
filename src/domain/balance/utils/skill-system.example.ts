@@ -12,12 +12,14 @@ import {
   calculateLevelFromXp,
   convertLegacyLevelToSkillState,
   createEmptySkillState,
+  createInitialActivityState,
   getLevelProgressPercent,
 } from './skill-system'
 
 // 1. Пример получения опыта на работе
 const timestamp = 1234
 const skillState = createEmptySkillState(timestamp)
+const activityState = createInitialActivityState(timestamp)
 
 // Персонаж 22 года, работает с навыком 8 часов
 const newState = addSkillXp(
@@ -25,7 +27,8 @@ const newState = addSkillXp(
   15,       // базовый XP за 8 часов работы
   22,       // возраст персонажа
   'work',   // способ обучения - практика на работе
-  timestamp
+  timestamp,
+  activityState,
 )
 
 console.log('XP получено:', newState.xp)

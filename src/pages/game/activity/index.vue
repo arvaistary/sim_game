@@ -10,9 +10,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { definePageMeta } from '#imports'
-import GameLayout from '@/components/layout/GameLayout/GameLayout.vue'
-import ActivityFilter from '@/components/pages/activity/ActivityFilter/ActivityFilter.vue'
-import ActivityLogList from '@/components/pages/activity/ActivityLogList/ActivityLogList.vue'
 
 definePageMeta({ middleware: 'game-init' })
 

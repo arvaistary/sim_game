@@ -20,6 +20,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     effect: 'Сообщить всему миру что ты голоден',
     statChanges: { stress: 25, mood: -10 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'infant_cry_lonely',
@@ -31,6 +32,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     effect: 'Тебе не комфортно быть одному',
     statChanges: { stress: 20, mood: -15 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'infant_watch_moving',
@@ -43,6 +45,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 10 },
     skillChanges: { observation: 0.5, attention: 0.3 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'infant_smile_back',
@@ -55,6 +58,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15, stress: -5 },
     skillChanges: { empathy: 0.7, trust: 0.5 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'infant_grab_everything',
@@ -67,6 +71,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 10 },
     skillChanges: { fine_motor: 0.6, curiosity: 0.4 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'infant_fall_hurt',
@@ -79,6 +84,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: -10, stress: 15, physical: 5 },
     skillChanges: { coordination: 0.8 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'infant_explore_sounds',
@@ -91,6 +97,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 12 },
     skillChanges: { hearing: 0.7, musical_ear: 0.5 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'toddler_crawl_forbidden',
@@ -103,6 +110,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 20, energy: -10 },
     skillChanges: { curiosity: 1.0, courage: 0.5 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'toddler_bite_everything',
@@ -114,6 +122,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     effect: 'Зубы чешутся и мир надо попробовать на вкус',
     statChanges: { mood: 10, stress: -8 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'infant_sleep_wrong_time',
@@ -125,6 +134,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     effect: 'Всегда хочешь спать именно когда не надо',
     statChanges: { energy: 25, stress: -10 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'toddler_refuse_food',
@@ -137,6 +147,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: -5, stress: 10 },
     skillChanges: { willpower: 0.4 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'toddler_repeat_sounds',
@@ -149,6 +160,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15 },
     skillChanges: { speech: 0.9, language: 0.7 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'toddler_throw_things',
@@ -161,6 +173,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 12 },
     skillChanges: { logic: 0.5 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'infant_laugh_no_reason',
@@ -172,6 +185,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     effect: 'Просто так, потому что хорошо',
     statChanges: { mood: 25, stress: -15 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
   {
     id: 'infant_scare_strangers',
@@ -184,6 +198,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { stress: 20, mood: -10 },
     skillChanges: { observation: 0.6 },
     ageGroup: AgeGroup.INFANT,
+    maxAgeGroup: AgeGroup.INFANT,
   },
 
   // ==============================================
@@ -200,6 +215,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15, stress: -5 },
     skillChanges: { aggression: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_share_toys',
@@ -212,6 +228,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 20, stress: -10 },
     skillChanges: { empathy: 1.0, generosity: 0.7 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_hide_from_teacher',
@@ -224,6 +241,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 18, stress: -3 },
     skillChanges: { stealth: 0.8, observation: 0.5 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_memorize_poem',
@@ -236,6 +254,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 5, stress: 8 },
     skillChanges: { memory: 1.2, language: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_taste_everything',
@@ -248,6 +267,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 8, health: -2 },
     skillChanges: { curiosity: 0.6 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_blame_others',
@@ -260,6 +280,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 10, stress: -5 },
     skillChanges: { manipulation: 0.7, dishonesty: 0.5 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_apologize',
@@ -272,6 +293,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: -5, stress: -8 },
     skillChanges: { empathy: 0.9, honesty: 0.6 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_draw_walls',
@@ -284,6 +306,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 25, stress: -10 },
     skillChanges: { creativity: 1.0, fine_motor: 0.5 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_run_circles',
@@ -296,6 +319,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 20, energy: -15, physical: 2 },
     skillChanges: { stamina: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_ask_why',
@@ -308,6 +332,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 5, stress: 2 },
     skillChanges: { curiosity: 1.2, logic: 0.6 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_tell_lie',
@@ -320,6 +345,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 5, stress: -10 },
     skillChanges: { deception: 0.8, quick_thinking: 0.5 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_do_homework',
@@ -332,6 +358,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: -5, stress: 5 },
     skillChanges: { discipline: 1.0, learning: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_help_mom',
@@ -344,6 +371,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 10, stress: -5 },
     skillChanges: { helpfulness: 1.0, responsibility: 0.7 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_collect_things',
@@ -356,6 +384,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15, stress: -3 },
     skillChanges: { organization: 0.6, focus: 0.5 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_sneak_out',
@@ -368,6 +397,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 20, stress: 5 },
     skillChanges: { stealth: 1.0, courage: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_read_books',
@@ -380,6 +410,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 10, stress: -5 },
     skillChanges: { reading: 1.2, vocabulary: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_play_sports',
@@ -392,6 +423,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15, energy: -20, physical: 5, health: 2 },
     skillChanges: { stamina: 1.0, coordination: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_make_friends',
@@ -404,6 +436,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 20, stress: -8 },
     skillChanges: { social: 1.0, empathy: 0.7 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_break_things',
@@ -416,6 +449,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 10, stress: 3 },
     skillChanges: { destruction: 0.8, curiosity: 0.5 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_be_kind',
@@ -428,6 +462,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15, stress: -10 },
     skillChanges: { kindness: 1.2, empathy: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_learn_music',
@@ -440,6 +475,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 10, stress: -5 },
     skillChanges: { musical_ear: 1.0, rhythm: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_tell_secrets',
@@ -452,6 +488,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 12, stress: -3 },
     skillChanges: { trust: 0.7, communication: 0.5 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_ignore_rules',
@@ -464,6 +501,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 18, stress: 2 },
     skillChanges: { rebellion: 0.8, independence: 0.6 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_admit_mistake',
@@ -476,6 +514,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: -5, stress: -10 },
     skillChanges: { honesty: 1.0, responsibility: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_explore_nature',
@@ -488,6 +527,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 20, stress: -8, health: 3 },
     skillChanges: { observation: 1.0, knowledge: 0.7 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_compete',
@@ -500,6 +540,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15, stress: 5 },
     skillChanges: { competitiveness: 1.0, determination: 0.7 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_share_food',
@@ -512,6 +553,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 12, stress: -5 },
     skillChanges: { generosity: 0.9, kindness: 0.7 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_ask_questions',
@@ -524,6 +566,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 8, stress: 2 },
     skillChanges: { curiosity: 1.2, learning: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_play_alone',
@@ -536,6 +579,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15, stress: -5 },
     skillChanges: { independence: 0.8, creativity: 0.6 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_follow_rules',
@@ -548,6 +592,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 5, stress: -8 },
     skillChanges: { discipline: 1.0, responsibility: 0.7 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_be_brave',
@@ -560,6 +605,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 18, stress: -3 },
     skillChanges: { courage: 1.2, confidence: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_help_others',
@@ -572,6 +618,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15, stress: -8 },
     skillChanges: { helpfulness: 1.0, empathy: 0.7 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_learn_from_mistakes',
@@ -584,6 +631,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 5, stress: -5 },
     skillChanges: { learning: 1.0, wisdom: 0.7 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_be_honest',
@@ -596,6 +644,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 10, stress: -5 },
     skillChanges: { honesty: 1.2, integrity: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_explore_world',
@@ -608,6 +657,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 20, stress: -8, knowledge: 2 },
     skillChanges: { curiosity: 1.0, observation: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_be_patient',
@@ -620,6 +670,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 5, stress: -5 },
     skillChanges: { patience: 1.2, self_control: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_be_creative',
@@ -632,6 +683,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 18, stress: -5 },
     skillChanges: { creativity: 1.2, imagination: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_be_responsible',
@@ -644,6 +696,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 10, stress: -5 },
     skillChanges: { responsibility: 1.2, reliability: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_be_curious',
@@ -656,6 +709,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 12, stress: -3 },
     skillChanges: { curiosity: 1.2, learning: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_be_friendly',
@@ -668,6 +722,7 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 15, stress: -8 },
     skillChanges: { social: 1.0, friendliness: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
   {
     id: 'child_be_adventurous',
@@ -680,5 +735,6 @@ export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
     statChanges: { mood: 20, stress: -5 },
     skillChanges: { courage: 1.0, adventure: 0.8 },
     ageGroup: AgeGroup.CHILD,
+    maxAgeGroup: AgeGroup.CHILD,
   },
 ]

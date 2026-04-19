@@ -43,8 +43,12 @@ export class EventQueueSystem {
   private _ensureSeenInstancesIndex(): void {
     const playerId = PLAYER_ENTITY
     const eventHistory = this.world.getComponent(playerId, EVENT_HISTORY_COMPONENT) as Record<string, unknown> | null
-    if (eventHistory && !eventHistory.seenInstanceIds) {
-      eventHistory.seenInstanceIds = new Set<string>()
+    if (eventHistory) {
+      // Преобразуем массив в Set (при загрузке из сохранения Set превращается в массив)
+      if (!eventHistory.seenInstanceIds || !(eventHistory.seenInstanceIds instanceof Set)) {
+        const existing = eventHistory.seenInstanceIds
+        eventHistory.seenInstanceIds = new Set<string>(Array.isArray(existing) ? existing : [])
+      }
     }
   }
 
@@ -114,14 +118,19 @@ export class EventQueueSystem {
     if (!time) return
 
     const eventState = time.eventState as Record<string, unknown>
-    if (!eventState.processedWeeklyEvents) {
-      eventState.processedWeeklyEvents = new Set<string>()
+    
+    // Преобразуем массивы в Set'ы (при загрузке из сохранения Set превращается в массив)
+    if (!eventState.processedWeeklyEvents || !(eventState.processedWeeklyEvents instanceof Set)) {
+      const existing = eventState.processedWeeklyEvents
+      eventState.processedWeeklyEvents = new Set<string>(Array.isArray(existing) ? existing : [])
     }
-    if (!eventState.processedMonthlyEvents) {
-      eventState.processedMonthlyEvents = new Set<string>()
+    if (!eventState.processedMonthlyEvents || !(eventState.processedMonthlyEvents instanceof Set)) {
+      const existing = eventState.processedMonthlyEvents
+      eventState.processedMonthlyEvents = new Set<string>(Array.isArray(existing) ? existing : [])
     }
-    if (!eventState.processedYearlyEvents) {
-      eventState.processedYearlyEvents = new Set<string>()
+    if (!eventState.processedYearlyEvents || !(eventState.processedYearlyEvents instanceof Set)) {
+      const existing = eventState.processedYearlyEvents
+      eventState.processedYearlyEvents = new Set<string>(Array.isArray(existing) ? existing : [])
     }
   }
 

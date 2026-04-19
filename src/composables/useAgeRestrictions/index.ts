@@ -75,8 +75,9 @@ export function useAgeRestrictions() {
   }
 
   function isActionAvailable(action: BalanceAction): boolean {
-    if (action.ageGroup === undefined) return true
-    return action.ageGroup <= ageGroup.value
+    if (action.ageGroup !== undefined && action.ageGroup > ageGroup.value) return false
+    if (action.maxAgeGroup !== undefined && ageGroup.value > action.maxAgeGroup) return false
+    return true
   }
 
   function filterActionsByAge(actions: BalanceAction[]): BalanceAction[] {

@@ -3,19 +3,40 @@
     <div class="finance-page">
       <BalancePanel />
       <ExpenseList />
-      <FinanceActionList />
+      <SectionHeader title="Финансовые действия" subtitle="Инвестиции, сбережения и управление деньгами" />
+      <ActionCardList
+        :actions="sortedActions"
+        :empty-text="actionsEmptyHint"
+        :is-disabled="(a: any) => !canExecute(a.id)"
+        :get-disabled-reason="getDisabledReason"
+        :show-price-when-zero="true"
+        @execute="executeAction"
+      />
     </div>
   </GameLayout>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { definePageMeta } from '#imports'
-import GameLayout from '@/components/layout/GameLayout/GameLayout.vue'
-import BalancePanel from '@/components/pages/finance/BalancePanel/BalancePanel.vue'
-import ExpenseList from '@/components/pages/finance/ExpenseList/ExpenseList.vue'
-import FinanceActionList from '@/components/pages/finance/FinanceActionList/FinanceActionList.vue'
+import { useActions } from '@/composables/useActions'
+import { useGameStore } from '@/stores/game.store'
 
 definePageMeta({ middleware: 'game-init' })
+
+const store = useGameStore()
+const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
+const actions = getActionsByCategory('finance')
+
+function getDisabledReason(action: any): string {
+  const result = store.canExecuteAction(action.id)
+  return result.reason ?? 'Действие недоступно'
+}
+
+const sortedActions = computed(() => {
+  void store.worldTick
+  return [...actions].sort((a, b) => (canExecute(a.id) ? 0 : 1) - (canExecute(b.id) ? 0 : 1))
+})
 </script>
 
 <style scoped lang="scss">

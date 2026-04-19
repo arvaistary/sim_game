@@ -5,6 +5,7 @@
       :key="action.id"
       :action="action"
       :disabled="isDisabled(action)"
+      :disabled-reason="getDisabledReason ? getDisabledReason(action) : ''"
       :button-label="buttonLabel"
       :show-price-when-zero="showPriceWhenZero"
       :use-format-effect="useFormatEffect"
@@ -15,13 +16,12 @@
 </template>
 
 <script setup lang="ts">
-import ActionCard from '@/components/game/ActionCard/ActionCard.vue'
-import EmptyState from '@/components/game/EmptyState/EmptyState.vue'
 import type { BalanceAction } from '@/domain/balance/actions/types'
 
 withDefaults(defineProps<{
   actions: BalanceAction[]
   isDisabled: (action: BalanceAction) => boolean
+  getDisabledReason?: (action: BalanceAction) => string
   buttonLabel?: string
   showPriceWhenZero?: boolean
   useFormatEffect?: boolean

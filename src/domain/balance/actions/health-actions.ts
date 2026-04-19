@@ -161,4 +161,18 @@ export const HEALTH_ACTIONS: BalanceAction[] = [
     mood: '🌙 Правильный ритуал перед сном улучшает качество отдыха',
     ageGroup: AgeGroup.INFANT,
   },
+  // ───── ПЕРЕНЕСЕНО ИЗ EDUCATION ─────
+  {
+    id: 'edu_fitness_theory',
+    category: 'health',
+    title: 'Теория тренировок и здорового образа жизни',
+    hourCost: 2,
+    price: 0,
+    statChanges: { hunger: 2.8, energy: -3.5, stress: -5, mood: 8.5, health: 2.5, physical: 3.5 },
+    skillChanges: { physicalFitness: 2.5, healthyLifestyle: 3 },
+    actionType: 'health',
+    effect: 'Голод +2.8, Энергия -3.5, Стресс -5, Настроение +8.5, Здоровье +2.5, Физическая форма +3.5, Физическая подготовка +2.5, Здоровый образ жизни +3',
+    mood: '🏋️ Знания о тренировках помогают заниматься эффективнее',
+    ageGroup: AgeGroup.CHILD,
+  },
 ]

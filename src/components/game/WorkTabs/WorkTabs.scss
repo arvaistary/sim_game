@@ -1,0 +1,48 @@
+@import '@/assets/scss/variables.scss';
+
+.work-tabs {
+  display: flex;
+  gap: $space-1;
+  margin-bottom: $space-2;
+}
+
+.work-tab {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $space-2 $space-3;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: $font-size-sm;
+  color: var(--color-text-secondary);
+
+  &:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-accent);
+    color: var(--color-text-primary);
+  }
+
+  &--active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-text-on-accent);
+    font-weight: $font-weight-medium;
+
+    &:hover {
+      background: var(--color-accent-hover);
+      border-color: var(--color-accent-hover);
+    }
+  }
+}
+
+.work-tab__icon {
+  font-size: $font-size-base;
+  line-height: 1;
+}
+
+.work-tab__label {
+  line-height: 1;
+}

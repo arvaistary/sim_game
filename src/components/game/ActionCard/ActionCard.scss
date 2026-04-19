@@ -1,5 +1,6 @@
 .action-card {
   display: flex;
+  width: 100%;
   flex-direction: column;
   gap: $space-1;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);

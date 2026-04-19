@@ -1,6 +1,6 @@
 <template>
   <RoundedPanel>
-    <h3 class="section-title">Ежемесячные расходы</h3>
+    <h3 class="section-title">Постоянные ежемесячные расходы</h3>
     <div class="expense-list">
       <div v-for="(value, key) in monthlyExpenses" :key="key" class="expense-row">
         <span class="expense-name">{{ expenseLabels[key] || key }}</span>
@@ -16,7 +16,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { useGameStore } from '@/stores/game.store'
 import { formatMoney } from '@/utils/format'
 import { EXPENSE_LABELS_RU } from '@/constants/metric-labels'
@@ -26,6 +25,7 @@ const store = useGameStore()
 const expenseLabels = EXPENSE_LABELS_RU
 
 const monthlyExpenses = computed(() => {
+  void store.worldTick
   const snapshot = store.getFinanceSnapshot() as Record<string, unknown> | null
   return (snapshot?.monthlyExpenses as Record<string, number>) ?? {}
 })

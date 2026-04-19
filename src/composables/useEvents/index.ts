@@ -7,7 +7,10 @@ export function useEvents() {
 
   const currentEvent = ref<EventQueueItem | null>(null)
 
-  const hasNextEvent = computed(() => Boolean(store.getNextEvent()))
+  const hasNextEvent = computed(() => {
+    void store.worldTick
+    return Boolean(store.getNextEvent())
+  })
 
   function loadNextEvent(): EventQueueItem | null {
     const nextEvent = store.getNextEvent() as unknown as EventQueueItem | null

@@ -1,10 +1,11 @@
-﻿import {
+import {
   WALLET_COMPONENT,
   EDUCATION_COMPONENT,
   SKILLS_COMPONENT,
   CAREER_COMPONENT,
   TIME_COMPONENT,
   STATS_COMPONENT,
+  FURNITURE_COMPONENT,
   COGNITIVE_LOAD_COMPONENT,
   PLAYER_ENTITY,
 } from '../../components/index'
@@ -14,9 +15,15 @@ import { TimeSystem } from '../TimeSystem'
 import { StatsSystem } from '../StatsSystem'
 import type { GameWorld } from '../../world'
 import type { EducationProgram, StatChanges, ProgramStep } from '@/domain/balance/types'
-import type { CanStartResult, StartResult, AdvanceResult, ActiveCourse } from './index.types'
+import type { CanStartResult, StartResult, AdvanceResult, ActiveCourse, CompletedProgramRecord } from './index.types'
 import { AgeGroup, getAgeGroup } from '@/composables/useAgeRestrictions/age-constants'
-import { calculateLearningEfficiencyV1, getNeedsStateFromComponents, type LearningInput } from './learning-efficiency'
+import {
+  calculateLearningEfficiencyV1,
+  getNeedsStateFromComponents,
+  type LearningInput,
+  EDUCATION_LONG_STEP_ENERGY_BASE,
+  ENERGY_EXHAUSTION_THRESHOLD_STUDY,
+} from './learning-efficiency'
 import { calculateTimeEfficiencyModifiers } from './time-efficiency'
 import type { CognitiveLoadComponent } from './cognitive-load'
 import {
@@ -24,6 +31,10 @@ import {
   addStudyHours,
   calculateCognitiveLoadPenalty,
   getCognitiveLoadStatus,
+  canAddStudyHours,
+  resetCognitiveLoad,
+  EDUCATION_LONG_PROGRAM_STEP_HOURS,
+  COGNITIVE_LOAD_CONSTANTS,
 } from './cognitive-load'
 
 /**
@@ -46,6 +57,26 @@ export class EducationSystem {
     this.skillsSystem = this._resolveSkillsSystem(world)
     this.statsSystem = this._resolveStatsSystem(world)
     this.timeSystem = this._resolveTimeSystem(world)
+    this._repairActiveCourseStepsIfNeeded()
+  }
+
+  /**
+   * Сейвы без массива steps оставляли активный курс «невидимым» для UI.
+   * Восстанавливаем шаги из каталога программ по id курса.
+   */
+  private _repairActiveCourseStepsIfNeeded(): void {
+    const education = this.world.getComponent(PLAYER_ENTITY, EDUCATION_COMPONENT) as Record<string, unknown> | null
+    if (!education) return
+    const courses = education.activeCourses as ActiveCourse[] | undefined
+    if (!Array.isArray(courses) || courses.length === 0) return
+    for (const course of courses) {
+      if (!course || !course.id) continue
+      if (course.steps && course.steps.length > 0) continue
+      const program = this.educationPrograms.find(p => p.id === course.id)
+      if (program) {
+        course.steps = this._generateProgramSteps(program)
+      }
+    }
   }
 
   private _resolveTimeSystem(world: GameWorld): TimeSystem {
@@ -112,6 +143,26 @@ export class EducationSystem {
       }
     }
 
+    if (program.requiresComputer && !this._hasAnyComputer()) {
+      return {
+        ok: false,
+        reason: 'Для этой онлайн-программы нужен компьютер. Купите ноутбук в магазине.',
+      }
+    }
+
+    if (program.requiresItemId && !this._hasFurnitureItem(program.requiresItemId)) {
+      if (program.acquisition === 'shop_only') {
+        return {
+          ok: false,
+          reason: 'Сначала купите этот материал в магазине, затем запускайте обучение из библиотеки.',
+        }
+      }
+      return {
+        ok: false,
+        reason: `Нужен предмет: ${program.requiresItemId}`,
+      }
+    }
+
     const activeCourses = education.activeCourses as ActiveCourse[] | undefined
     if (activeCourses && activeCourses.length > 0) {
       const currentCourse = activeCourses[0]
@@ -126,6 +177,16 @@ export class EducationSystem {
       return {
         ok: false,
         reason: `🎓 Этот уровень образования уже получен: ${program.educationLevel}\n\nВыберите другой курс для продолжения развития.\n\n💡 Подсказка: Попробуйте курсы более высокого уровня или смежные направления.`
+      }
+    }
+
+    if (program.preventRepeat) {
+      const completed = education.completedPrograms as CompletedProgramRecord[] | undefined
+      if (Array.isArray(completed) && completed.some(p => p.id === program.id)) {
+        return {
+          ok: false,
+          reason: `📕 Программа «${program.title}» уже завершена.\n\nПовторное прохождение недоступно.`,
+        }
       }
     }
 
@@ -228,39 +289,17 @@ export class EducationSystem {
       return { completed: false, summary: 'Шаг программы не найден.' }
     }
 
-    const studyHours = 4
+    const studyHours = EDUCATION_LONG_PROGRAM_STEP_HOURS
     
     // Рассчитать time-based модификаторы эффективности
     const timeModifiers = calculateTimeEfficiencyModifiers(time as any)
     
     // Получить или создать компонент когнитивной нагрузки
     let cognitiveLoad = this.world.getComponent<CognitiveLoadComponent>(PLAYER_ENTITY, COGNITIVE_LOAD_COMPONENT)
-    const currentDay = time.gameDays as number
     
     if (!cognitiveLoad) {
-      cognitiveLoad = createDefaultCognitiveLoadComponent(currentDay)
+      cognitiveLoad = createDefaultCognitiveLoadComponent()
       this.world.addComponent(PLAYER_ENTITY, COGNITIVE_LOAD_COMPONENT, cognitiveLoad as unknown as Record<string, unknown>)
-    }
-    
-    // Проверить ограничение на учебные часы в день
-    if (cognitiveLoad.studyHoursToday >= cognitiveLoad.maxStudyHours) {
-      const loadStatus = getCognitiveLoadStatus(cognitiveLoad)
-      return {
-        completed: false,
-        summary: [
-          `⛔ Невозможно продолжить обучение: ${course.name}`,
-          '',
-          'Лимит учебных часов на сегодня исчерпан.',
-          `Учебные часы сегодня: ${cognitiveLoad.studyHoursToday} / ${cognitiveLoad.maxStudyHours}`,
-          '',
-          `Состояние: ${loadStatus.label}`,
-          loadStatus.description,
-          '',
-          '💡 Рекомендации:',
-          '  • Отдохните и восстановитесь',
-          '  • Продолжите обучение завтра',
-        ].join('\n'),
-      }
     }
     
     // Рассчитать эффективность усвоения перед выполнением шага
@@ -303,13 +342,70 @@ export class EducationSystem {
         ].join('\n'),
       }
     }
-    
+
+    const rawEnergy = stats?.energy ?? 0
+    const energyCost = EDUCATION_LONG_STEP_ENERGY_BASE * learningResult.finalEfficiency
+
+    if (rawEnergy < ENERGY_EXHAUSTION_THRESHOLD_STUDY) {
+      return {
+        completed: false,
+        summary: [
+          `\u26D4 \u041d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u0435: ${course.name}`,
+          '',
+          `\u042d\u043d\u0435\u0440\u0433\u0438\u044f \u0441\u043b\u0438\u0448\u043a\u043e\u043c \u043d\u0438\u0437\u043a\u0430\u044f (${Math.round(rawEnergy)}%). \u0414\u043b\u044f \u0437\u0430\u043d\u044f\u0442\u0438\u0439 \u043d\u0443\u0436\u043d\u043e \u043d\u0435 \u043c\u0435\u043d\u044c\u0448\u0435 ${ENERGY_EXHAUSTION_THRESHOLD_STUDY}%.`,
+          '\u0418\u0441\u0442\u043e\u0449\u0435\u043d\u0438\u0435 \u043d\u0435 \u043f\u043e\u0437\u0432\u043e\u043b\u044f\u0435\u0442 \u043d\u043e\u0440\u043c\u0430\u043b\u044c\u043d\u043e \u0443\u0447\u0438\u0442\u044c\u0441\u044f.',
+          '',
+          '\u041e\u0442\u0434\u043e\u0445\u043d\u0438\u0442\u0435 \u0438\u043b\u0438 \u0432\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u0435 \u044d\u043d\u0435\u0440\u0433\u0438\u044e \u0434\u0440\u0443\u0433\u0438\u043c\u0438 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f\u043c\u0438.',
+        ].join('\n'),
+      }
+    }
+
+    if (rawEnergy - energyCost <= 0) {
+      return {
+        completed: false,
+        summary: [
+          `\u26D4 \u041d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u0435: ${course.name}`,
+          '',
+          `\u041d\u0435\u0434\u043e\u0441\u0442\u0430\u0442\u043e\u0447\u043d\u043e \u044d\u043d\u0435\u0440\u0433\u0438\u0438 \u0434\u043b\u044f \u044d\u0442\u043e\u0433\u043e \u0448\u0430\u0433\u0430: \u0441\u0435\u0439\u0447\u0430\u0441 ${Math.round(rawEnergy)}%, \u0440\u0430\u0441\u0445\u043e\u0434 ~${energyCost.toFixed(1)} - \u0437\u0430\u043f\u0430\u0441 \u0443\u0448\u0451\u043b \u0431\u044b \u0432 \u043d\u043e\u043b\u044c \u0438\u043b\u0438 \u043d\u0438\u0436\u0435.`,
+          '',
+          '\u0421\u043d\u0430\u0447\u0430\u043b\u0430 \u0432\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u0435 \u044d\u043d\u0435\u0440\u0433\u0438\u044e.',
+        ].join('\n'),
+      }
+    }
+
     // Продвинуть время с учётом эффективности
     this.timeSystem.advanceHours(studyHours, { actionType: 'education' })
 
+    // Проверить, можно ли добавить учебные часы (накопительная модель)
+    const canStudyCheck = canAddStudyHours(cognitiveLoad, studyHours)
+    if (!canStudyCheck.canStudy) {
+      const loadStatus = getCognitiveLoadStatus(cognitiveLoad)
+      return {
+        completed: false,
+        summary: [
+          `⛔ Невозможно продолжить обучение: ${course.name}`,
+          '',
+          canStudyCheck.reason,
+          '',
+          `Текущее состояние: ${loadStatus.label}`,
+          loadStatus.description,
+          loadStatus.advice,
+          '',
+          `Учёба в этом цикле: ${cognitiveLoad.studyHoursSinceLastSleep} ч. из ${COGNITIVE_LOAD_CONSTANTS.MAX_STUDY_HOURS_CYCLE} ч. макс.`,
+        ].join('\n'),
+      }
+    }
+
     // Обновить когнитивную нагрузку
-    addStudyHours(cognitiveLoad, studyHours, currentDay)
+    addStudyHours(cognitiveLoad, studyHours)
     this.world.updateComponent(PLAYER_ENTITY, COGNITIVE_LOAD_COMPONENT, cognitiveLoad as unknown as Record<string, unknown>)
+
+    const courseHoursCap = course.hoursRequired ?? program.hoursRequired ?? 0
+    const prevHoursSpent = course.hoursSpent ?? 0
+    course.hoursSpent =
+      courseHoursCap > 0
+        ? Math.min(courseHoursCap, prevHoursSpent + studyHours)
+        : prevHoursSpent + studyHours
 
     course.daysSpent += 1
     
@@ -326,7 +422,7 @@ export class EducationSystem {
 
     // Применить изменения статов (базовые, модифицированные эффективностью)
     this.statsSystem.applyStatChanges({
-      energy: -10 * learningResult.finalEfficiency,
+      energy: -energyCost,
       stress: 8 * learningResult.finalEfficiency,
       mood: -3 * learningResult.finalEfficiency,
     })
@@ -400,6 +496,21 @@ export class EducationSystem {
         // Все шаги завершены — завершить программу
         this._applyCompletionRewards(program)
         const careerSummary = this._syncCareerProgress()
+
+        const completedPrograms: CompletedProgramRecord[] = Array.isArray(education.completedPrograms)
+          ? [...(education.completedPrograms as CompletedProgramRecord[])]
+          : []
+        const record: CompletedProgramRecord = {
+          id: program.id,
+          name: program.title,
+          typeLabel: program.typeLabel,
+          completedAtGameDay: (time.gameDays as number) ?? 0,
+        }
+        const existingIdx = completedPrograms.findIndex(p => p.id === program.id)
+        if (existingIdx >= 0) completedPrograms[existingIdx] = record
+        else completedPrograms.unshift(record)
+        education.completedPrograms = completedPrograms
+
         education.activeCourses = (education.activeCourses as ActiveCourse[]).filter(item => item.id !== courseId)
 
         if (this.world && this.world.eventBus) {
@@ -606,6 +717,17 @@ export class EducationSystem {
       return Math.round(career.salaryPerWeek / 40)
     }
     return 0
+  }
+
+  private _hasFurnitureItem(itemId: string): boolean {
+    const items = this.world.getComponent(PLAYER_ENTITY, FURNITURE_COMPONENT) as Array<Record<string, unknown>> | null
+    if (!Array.isArray(items)) return false
+    return items.some(item => item?.id === itemId)
+  }
+
+  private _hasAnyComputer(): boolean {
+    const computerIds = ['study_laptop', 'desktop_pc', 'computer']
+    return computerIds.some(id => this._hasFurnitureItem(id))
   }
 }
 

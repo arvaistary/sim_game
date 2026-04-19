@@ -33,7 +33,7 @@
           :class="{ 'theme-toggle--active': isDarkMode }"
           type="button"
           role="switch"
-          :aria-checked="String(isDarkMode)"
+          :aria-checked="isDarkMode"
           :aria-label="themeToggleLabel"
           @click="handleToggleTheme"
         >
@@ -47,14 +47,13 @@
   </Modal>
 
   <GameModalHost />
+  <ModalStackHost />
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { navigateTo, useColorMode, useRoute } from '#imports'
 
-import Modal from '@/components/ui/Modal/index.vue'
-import GameModalHost from '@/components/ui/GameModalHost/GameModalHost.vue'
 import { useGameStore } from '@/stores/game.store'
 
 import type { AppMenuActionId, AppMenuActionItem } from '@/app.types'

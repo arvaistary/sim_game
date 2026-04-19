@@ -155,6 +155,16 @@ export interface EducationProgram {
   id: string
   title: string
   subtitle: string
+  /** Тип траектории обучения для фильтрации и бизнес-логики. */
+  track: 'course' | 'intensive' | 'online' | 'institute' | 'book'
+  /** Как игрок получает доступ к программе. */
+  acquisition?: 'purchase_on_education_page' | 'shop_only'
+  /** Требуется компьютер для старта программы. */
+  requiresComputer?: boolean
+  /** Требуемый ID предмета (например, купленная книга или ноутбук). */
+  requiresItemId?: string
+  /** Опциональный ID shop-действия, которое открывает программу. */
+  purchaseActionId?: string
   typeLabel: string
   cost: number
   daysRequired: number
@@ -172,6 +182,8 @@ export interface EducationProgram {
   ageReason?: string
   /** Опциональное определение шагов программы. Если не указано, шаги генерируются автоматически. */
   steps?: ProgramStep[]
+  /** Если true, после завершения программа не может быть начата снова (как одноразовая книга). */
+  preventRepeat?: boolean
 }
 
 export interface EducationPathResult {

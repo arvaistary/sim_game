@@ -28,6 +28,11 @@ export const BalanceActionSchema = z.object({
     housingLevel: z.number().min(0).optional(),
     requiresItem: z.string().optional(),
     requiresRelationship: z.boolean().optional(),
+    hasDebt: z.boolean().optional(),
+    hasMortgage: z.boolean().optional(),
+    hasRealty: z.boolean().optional(),
+    minHousingLevel: z.number().min(0).optional(),
+    minReserve: z.number().min(0).optional(),
   }).strict().optional(),
   cooldown: z.object({
     hours: z.number().min(0),
@@ -45,6 +50,7 @@ export const BalanceActionSchema = z.object({
   investmentDurationDays: z.number().min(0).optional(),
   monthlyExpenseDelta: z.record(z.string(), z.number()).optional(),
   ageGroup: z.nativeEnum(AgeGroup).optional(),
+  maxAgeGroup: z.nativeEnum(AgeGroup).optional(),
 }).strict()
 
 /**

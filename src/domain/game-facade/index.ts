@@ -127,7 +127,14 @@ export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
     })
   }
   if (data.housing) world.addComponent(PLAYER_ENTITY, 'housing', data.housing as AnyRecord)
-  if (data.education) world.addComponent(PLAYER_ENTITY, 'education', data.education as AnyRecord)
+  if (data.education) {
+    const edu = data.education as AnyRecord
+    world.addComponent(PLAYER_ENTITY, 'education', {
+      ...edu,
+      activeCourses: edu.activeCourses ?? [],
+      completedPrograms: Array.isArray(edu.completedPrograms) ? edu.completedPrograms : [],
+    })
+  }
   if (data.finance) world.addComponent(PLAYER_ENTITY, 'finance', data.finance as AnyRecord)
   world.addComponent(PLAYER_ENTITY, 'eventHistory', { events: (data.eventHistory as unknown[]) ?? [] })
   if (data.lifetimeStats) world.addComponent(PLAYER_ENTITY, 'lifetimeStats', data.lifetimeStats as AnyRecord)

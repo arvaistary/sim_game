@@ -9,13 +9,16 @@
         <span class="balance-label">Резерв</span>
         <span class="balance-value reserve">{{ formatMoney(reserveFund) }} ₽</span>
       </div>
+      <div class="balance-item">
+        <span class="balance-label">Потрачено</span>
+        <span class="balance-value spent">{{ formatMoney(totalSpent) }} ₽</span>
+      </div>
     </div>
   </RoundedPanel>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { useGameStore } from '@/stores/game.store'
 import { formatMoney } from '@/utils/format'
 
@@ -24,6 +27,11 @@ const store = useGameStore()
 const reserveFund = computed(() => {
   const wallet = store.wallet as unknown as Record<string, unknown> | null
   return (wallet?.reserveFund as number) ?? 0
+})
+
+const totalSpent = computed(() => {
+  const wallet = store.wallet as unknown as Record<string, unknown> | null
+  return (wallet?.totalSpent as number) ?? 0
 })
 </script>
 

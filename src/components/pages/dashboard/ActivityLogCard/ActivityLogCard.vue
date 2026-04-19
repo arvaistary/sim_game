@@ -21,7 +21,6 @@
 import { computed } from 'vue'
 import { navigateTo } from '#imports'
 import { useGameStore } from '@/stores/game.store'
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
 import { resolveActivityLogTitle } from '@/composables/useActivityLog/utils/activity-log-formatters'
 
 const store = useGameStore()
@@ -33,6 +32,7 @@ interface LogEntryDisplay {
 }
 
 const logEntries = computed<LogEntryDisplay[]>(() => {
+  void store.worldTick
   const _w = store.world
   if (!_w) return []
 

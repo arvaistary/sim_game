@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import RoundedPanel from '@/components/ui/RoundedPanel/index.vue'
+
 </script>
 
 <style scoped lang="scss" src="./HomePreview.scss"></style>

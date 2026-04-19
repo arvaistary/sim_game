@@ -4,7 +4,7 @@
     :class="{ 'game-button--disabled': disabled, 'game-button--small': small }"
     :style="buttonStyle"
     :disabled="disabled"
-    @click="$emit('click')"
+    @click="$emit('click', $event)"
   >
     <slot>{{ label }}</slot>
   </button>
@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<{
 })
 
 defineEmits<{
-  click: []
+  click: [event?: MouseEvent]
 }>()
 
 const buttonStyle = computed(() => ({

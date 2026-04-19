@@ -11,12 +11,12 @@
           @click="activeTab = tab.id"
         >
           <span class="edu-tab__icon">{{ tab.icon }}</span>
-          <span class="edu-tab__label">{{ tab.title }}</span>
+          <span class="edu-tab__content">
+            <span class="edu-tab__title">{{ tab.title }}</span>
+            <span class="edu-tab__desc">{{ tab.shortDesc }}</span>
+          </span>
         </button>
       </div>
-
-      <!-- Описание активной категории -->
-      <p class="edu-tab-description">{{ activeTabDescription }}</p>
 
       <!-- Контент: Программы обучения -->
       <template v-if="activeTab === 'programs'">
@@ -24,22 +24,24 @@
         <ProgramList />
       </template>
 
-      <!-- Контент: Учебные занятия -->
-      <template v-if="activeTab === 'lessons'">
+      <!-- Контент: Учёба и навыки -->
+      <template v-if="activeTab === 'study'">
         <ActionCardList
-          :actions="educationActions"
+          :actions="sortedStudyActions"
           :empty-text="actionsEmptyHint"
           :is-disabled="(a: any) => !canExecute(a.id)"
+          :get-disabled-reason="getDisabledReason"
           @execute="executeAction"
         />
       </template>
 
-      <!-- Контент: Саморазвитие -->
-      <template v-if="activeTab === 'selfdev'">
+      <!-- Контент: Практика и привычки -->
+      <template v-if="activeTab === 'practice'">
         <ActionCardList
-          :actions="selfdevActions"
+          :actions="sortedPracticeActions"
           :empty-text="actionsEmptyHint"
           :is-disabled="(a: any) => !canExecute(a.id)"
+          :get-disabled-reason="getDisabledReason"
           @execute="executeAction"
         />
       </template>
@@ -48,35 +50,80 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { definePageMeta } from '#imports'
-import GameLayout from '@/components/layout/GameLayout/GameLayout.vue'
-import ActionCardList from '@/components/game/ActionCardList/ActionCardList.vue'
-import EducationLevel from '@/components/pages/education/EducationLevel/EducationLevel.vue'
-import ProgramList from '@/components/pages/education/ProgramList/ProgramList.vue'
+import { ref, computed, watch } from 'vue'
+import { definePageMeta, useRoute } from '#imports'
 import { useActions } from '@/composables/useActions'
+import { useGameStore } from '@/stores/game.store'
+import { PRACTICE_ACTION_IDS } from '@/config/education-tab-groups'
 
 definePageMeta({ middleware: 'game-init' })
 
 const tabs = [
-  { id: 'programs', icon: '🎓', title: 'Программы обучения', description: 'Долгосрочные курсы и образовательные программы для получения профессии и квалификации' },
-  { id: 'lessons', icon: '📖', title: 'Учебные занятия', description: 'Повседневные действия для развития навыков и получения знаний' },
-  { id: 'selfdev', icon: '🌱', title: 'Саморазвитие', description: 'Личностный рост, привычки и самодисциплина' },
+  { id: 'programs', icon: '🎓', title: 'Программы', shortDesc: 'Курсы и программы обучения' },
+  { id: 'study', icon: '📚', title: 'Учёба и навыки', shortDesc: 'Формальное обучение и развитие профессиональных навыков' },
+  { id: 'practice', icon: '🧘', title: 'Практика и привычки', shortDesc: 'Лёгкие действия для регулярного саморазвития' },
 ] as const
 
-const activeTab = ref<string>('programs')
+const route = useRoute()
+const availableTabIds = tabs.map(tab => tab.id)
 
-const activeTabDescription = computed(() => {
-  const tab = tabs.find(t => t.id === activeTab.value)
-  return tab?.description ?? ''
-})
+function normalizeTab(rawValue: unknown): string {
+  const value = typeof rawValue === 'string' ? rawValue : ''
+  return availableTabIds.includes(value as (typeof tabs)[number]['id']) ? value : 'programs'
+}
 
+const activeTab = ref<string>(normalizeTab(route.query.tab))
+
+watch(
+  () => route.query.tab,
+  (nextTab) => {
+    activeTab.value = normalizeTab(nextTab)
+  },
+)
+
+const store = useGameStore()
 const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
+
 const educationActions = getActionsByCategory('education') as any
 const selfdevActions = getActionsByCategory('selfdev') as any
+
+/** Сортировка: доступные действия первыми */
+function sortByAvailability(actions: any[]): any[] {
+  return [...actions].sort((a, b) => {
+    const aOk = canExecute(a.id) ? 0 : 1
+    const bOk = canExecute(b.id) ? 0 : 1
+    return aOk - bOk
+  })
+}
+
+/** Получить причину недоступности действия */
+function getDisabledReason(action: any): string {
+  const result = store.canExecuteAction(action.id)
+  return result.reason ?? 'Действие недоступно'
+}
+
+// Учёба и навыки: education БЕЗ practice-действий
+const studyActions = computed(() => {
+  void store.worldTick
+  return educationActions.filter((a: any) => !PRACTICE_ACTION_IDS.has(a.id))
+})
+
+// Практика и привычки: practice из education + все selfdev
+const practiceActions = computed(() => {
+  void store.worldTick
+  return [
+    ...educationActions.filter((a: any) => PRACTICE_ACTION_IDS.has(a.id)),
+    ...selfdevActions,
+  ]
+})
+
+const sortedStudyActions = computed(() => sortByAvailability(studyActions.value))
+const sortedPracticeActions = computed(() => sortByAvailability(practiceActions.value))
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/scss/mixins.scss' as *;
+
 .education-page {
   display: flex;
   flex-direction: column;
@@ -85,28 +132,22 @@ const selfdevActions = getActionsByCategory('selfdev') as any
 
 .edu-tabs {
   display: flex;
-  gap: $space-1;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  gap: $space-2;
 }
 
 .edu-tab {
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: $space-1;
-  padding: $space-2 $space-3;
+  align-items: flex-start;
+  gap: $space-2;
+  padding: $space-3 $space-3;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-xl, 16px);
   background: var(--color-bg-card);
   cursor: pointer;
-  white-space: nowrap;
   transition: all var(--transition-fast);
   box-shadow: var(--shadow-card);
+  text-align: left;
 
   &:hover {
     border-color: var(--color-accent);
@@ -117,8 +158,12 @@ const selfdevActions = getActionsByCategory('selfdev') as any
     background: var(--color-accent);
     border-color: var(--color-accent);
 
-    .edu-tab__label {
+    .edu-tab__title {
       color: var(--color-text-on-accent);
+    }
+
+    .edu-tab__desc {
+      color: rgba(255, 255, 255, 0.8);
     }
 
     .edu-tab__icon {
@@ -133,21 +178,47 @@ const selfdevActions = getActionsByCategory('selfdev') as any
 }
 
 .edu-tab__icon {
+  font-size: $font-size-lg;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.edu-tab__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.edu-tab__title {
   font-size: $font-size-sm;
-  line-height: 1;
-}
-
-.edu-tab__label {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-semibold;
+  font-weight: $font-weight-bold;
   color: var(--color-text-primary);
-  line-height: 1;
+  line-height: 1.2;
 }
 
-.edu-tab-description {
-  font-size: $font-size-xs;
+.edu-tab__desc {
+  font-size: 11px;
   color: var(--color-text-secondary);
-  margin: 0;
-  line-height: $line-height-base;
+  line-height: 1.3;
+}
+
+// Mobile: show only icons
+@include mobile {
+  .edu-tab {
+    justify-content: center;
+    align-items: center;
+    padding: $space-3 $space-2;
+  }
+
+  .edu-tab__content {
+    display: none;
+  }
+
+  .edu-tab__icon {
+    margin-top: 0;
+    font-size: $font-size-xl;
+  }
 }
 </style>

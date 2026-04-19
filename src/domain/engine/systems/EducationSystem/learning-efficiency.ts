@@ -57,8 +57,17 @@ export interface LearningResult {
 /**
  * Глобальные ограничения эффективности
  */
-const FINAL_EFFICIENCY_MIN = 0.35
-const FINAL_EFFICIENCY_MAX = 1.25
+export const FINAL_EFFICIENCY_MIN = 0.35
+export const FINAL_EFFICIENCY_MAX = 1.25
+
+/** Базовый расход энергии за длинный шаг программы обучения (множится на finalEfficiency) */
+export const EDUCATION_LONG_STEP_ENERGY_BASE = 10
+
+/** Максимально возможный расход энергии за один шаг (для UI-предиката «хватит ли запаса») */
+export const EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN = EDUCATION_LONG_STEP_ENERGY_BASE * FINAL_EFFICIENCY_MAX
+
+/** Ниже этого уровня энергии (0–100) занятия по программе считаются истощением */
+export const ENERGY_EXHAUSTION_THRESHOLD_STUDY = 20
 
 /**
  * Веса факторов потребностей (сумма = 1.0)
