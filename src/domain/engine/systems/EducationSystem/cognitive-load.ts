@@ -35,6 +35,20 @@ export const COGNITIVE_LOAD_CONSTANTS = {
 } as const
 
 /**
+ * Определяет, сколько часов занимает следующий учебный сеанс.
+ * Обычно это 4 часа, но для короткого модуля берём его размер целиком.
+ * Прогресс шага не должен уменьшать длину следующего сеанса, иначе шаг
+ * с эффективностью < 100% может никогда не завершиться.
+ */
+export function resolveStudySessionHours(stepHours: number): number {
+  if (!Number.isFinite(stepHours) || stepHours <= 0) {
+    return EDUCATION_LONG_PROGRAM_STEP_HOURS
+  }
+
+  return Math.min(EDUCATION_LONG_PROGRAM_STEP_HOURS, stepHours)
+}
+
+/**
  * Создать дефолтный компонент когнитивной нагрузки
  */
 export function createDefaultCognitiveLoadComponent(): CognitiveLoadComponent {
@@ -160,7 +174,7 @@ export function canAddStudyHours(
   if (hours > availableHours) {
     return {
       canStudy: false,
-      reason: `Недостаточно "свежих" часов для этого шага. Осталось ${availableHours.toFixed(1)} ч. из ${maxHoursInCycle} ч. в этом цикле.`,
+      reason: `Недостаточно "свежих" часов для этого шага. Осталось ${Math.round(availableHours)} ч. из ${Math.round(maxHoursInCycle)} ч. в этом цикле.`,
     }
   }
 

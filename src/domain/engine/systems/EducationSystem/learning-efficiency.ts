@@ -200,22 +200,20 @@ export function getNeedsStateFromComponents(
   }
 
   // Нормализовать значения в диапазон 0..100
-  // Предполагаем, что stats содержат значения в диапазоне примерно -100..100
-  // и нужно преобразовать их в 0..100, где 100 = лучшее состояние
+  // Статы игры уже живут в диапазоне 0..100.
+  // Для mood/energy больше = лучше, для hunger меньше = лучше.
   
   const normalizeStat = (value: number, isPositive: boolean): number => {
     if (isPositive) {
-      // Для положительных статов (mood): чем выше, тем лучше
-      return Math.max(0, Math.min(100, (value + 100) / 2))
+      return Math.max(0, Math.min(100, value))
     } else {
-      // Для отрицательных статов (hunger, energy): чем ниже, тем лучше
-      return Math.max(0, Math.min(100, 100 - (value + 100) / 2))
+      return Math.max(0, Math.min(100, 100 - value))
     }
   }
 
   return {
     hunger: normalizeStat(stats.hunger ?? 0, false),
-    energy: normalizeStat(stats.energy ?? 0, false),
+    energy: normalizeStat(stats.energy ?? 0, true),
     mood: normalizeStat(stats.mood ?? 0, true),
   }
 }

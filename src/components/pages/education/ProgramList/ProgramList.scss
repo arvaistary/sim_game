@@ -110,10 +110,30 @@
   color: var(--color-text-secondary)
 }
 
+.meta-tag--owned {
+  background: var(--color-bg-elevated);
+}
+
+.meta-tag--active {
+  background: var(--color-pastel-blue, #dbeafe);
+  color: var(--color-brand-accent);
+}
+
+.meta-tag--done {
+  background: var(--color-pastel-green);
+  color: var(--color-brand-accent);
+}
+
 .program-reward {
   font-size: $font-size-xs;
   color: var(--color-brand-accent);
   font-weight: $font-weight-medium
+}
+
+.program-status-note {
+  margin: 0 0 $space-2;
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
 }
 
 .age-tag {

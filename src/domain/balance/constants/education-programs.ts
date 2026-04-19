@@ -21,6 +21,7 @@ export const EDUCATION_PROGRAMS: EducationProgram[] = [
     description: 'Короткая, но очень практичная книга, которая помогает перестать тратить время впустую.',
     minAgeGroup: AgeGroup.TEEN,
     ageReason: 'Осознанный навык самоорганизации, книга про self-management',
+    preventRepeat: true,
   },
   {
     id: 'meditation_foundations_book',

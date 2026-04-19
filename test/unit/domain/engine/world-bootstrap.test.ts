@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { INITIAL_SAVE } from '@/domain/balance/constants/initial-save'
 import { createWorldFromSave } from '@/domain/game-facade'
+import { FURNITURE_COMPONENT } from '@/domain/engine/components'
 
 describe('domain/engine world bootstrap', () => {
   test('creates world instance from save payload', () => {
@@ -71,6 +72,20 @@ describe('domain/engine world bootstrap', () => {
     expect(typeof time?.totalHours).toBe('number')
     expect(stats).toBeTruthy()
     expect(stats?.hunger).toBe(INITIAL_SAVE.stats.hunger)
+  })
+
+  test('hydrates library items from housing furniture into furniture component', () => {
+    const world = createWorldFromSave({
+      playerName: 'Reader',
+      housing: {
+        ...INITIAL_SAVE.housing,
+        furniture: [{ id: 'book_time_management', level: 1 }],
+      },
+    } as Record<string, unknown>)
+
+    const furniture = world.getComponent<Array<Record<string, unknown>>>('player', FURNITURE_COMPONENT)
+    expect(Array.isArray(furniture)).toBe(true)
+    expect(furniture?.some(item => item.id === 'book_time_management')).toBe(true)
   })
 
   test.todo('restores pending events and investments from save payload')

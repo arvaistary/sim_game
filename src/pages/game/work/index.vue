@@ -88,12 +88,14 @@
 import { computed, ref } from 'vue'
 import { definePageMeta } from '#imports'
 import { useGameStore } from '@/stores/game.store'
+import { useToast } from '@/composables/useToast'
 import { formatMoney } from '@/utils/format'
 import { WORK_TYPES, INDUSTRIES, JOB_INDUSTRY_MAP } from '@/config/work-categories'
 
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()
+const toast = useToast()
 
 const activeWorkType = ref('full-time')
 const activeIndustry = ref('all')
@@ -121,7 +123,12 @@ const filteredJobs = computed(() => {
 })
 
 function applyForJob(job: any): void {
-  console.log('Applying for job:', job.id)
+  const result = store.changeCareer(job.id)
+  if (result.success) {
+    toast.showSuccess(result.message)
+  } else {
+    toast.showWarning(result.message)
+  }
 }
 </script>
 

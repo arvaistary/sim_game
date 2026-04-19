@@ -1,5 +1,7 @@
 <template>
   <RoundedPanel class="current-job-panel">
+    <!-- Reactivity trigger -->
+    <span v-if="reactivityTrigger" class="sr-only">{{ reactivityTrigger }}</span>
     <div class="job-info">
       <div class="job-info__header">
         <span class="job-info__label">Текущая должность</span>
@@ -8,9 +10,8 @@
       <span class="job-info__name">{{ currentJobName }}</span>
     </div>
 
-    <div v-if="isEmployed" class="shift-actions">
-      <GameButton label="Смена 8 ч" accent-key="accent" @click="doWork(8)" />
-      <GameButton label="Смена 4 ч" accent-key="sage" @click="doWork(4)" />
+    <div v-if="isEmployed" class="quit-action">
+      <GameButton label="Уволиться" accent-key="danger" small @click="quitJob" />
     </div>
 
     <p v-if="workResult" class="work-result">{{ workResult }}</p>
@@ -20,30 +21,53 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useGameStore } from '@/stores/game.store'
+import { useGameModal, openModal, closeModal } from '@/composables/useGameModal'
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
+const gameModal = useGameModal()
 const workResult = ref('')
+const resourceModalId = ref<symbol | null>(null)
+
+// Принудительная реактивность через computed
+const reactivityTrigger = computed(() => store.worldTick)
 
 const isEmployed = computed(() => {
+  void reactivityTrigger.value
   const job = store.currentJobSnapshot
   return !!(job && job.id && job.employed)
 })
 
 const currentJobName = computed<string>(() => {
+  void reactivityTrigger.value
   const job = store.currentJobSnapshot
   if (!job || !job.id || !job.employed) return 'Безработный'
   return job.name
 })
 
 const currentSalaryPerHour = computed<number>(() => {
+  void reactivityTrigger.value
   const job = store.currentJobSnapshot
   if (!job || !job.id || !job.employed) return 0
   return job.salaryPerHour
 })
 
 function doWork(hours: number): void {
+  const check = store.canApplyWorkShift(hours)
+  if (!check.canDo) {
+    gameModal.show({
+      title: 'Нельзя работать',
+      lines: [check.reason || 'Невозможно выполнить работу.'],
+      buttons: [{ label: 'OK', accent: true }],
+    })
+    return
+  }
   workResult.value = store.applyWorkShift(hours)
+}
+
+function quitJob(): void {
+  const result = store.quitCareer()
+  workResult.value = result.message
 }
 </script>
 
@@ -86,16 +110,27 @@ function doWork(hours: number): void {
   font-weight: $font-weight-bold;
 }
 
-.shift-actions {
-  display: flex;
-  gap: $space-2;
-}
-
 .work-result {
   font-size: $font-size-xs;
   white-space: pre-line;
   background: color-mix(in srgb, var(--color-pastel-green) 72%, transparent);
   padding: $space-2 $space-3;
   border-radius: var(--radius-sm);
+}
+
+.quit-action {
+  margin-top: $space-2;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

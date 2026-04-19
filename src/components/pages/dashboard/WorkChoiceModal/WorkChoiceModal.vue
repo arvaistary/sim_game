@@ -30,13 +30,13 @@
 
 <script setup lang="ts">
 import type { WorkOptions } from '../WorkButton/WorkButton.types'
+import type { BaseModalProps } from '@/composables/useGameModal/modal.types'
 
-interface Props {
+interface Props extends BaseModalProps {
   workOptions: WorkOptions | null
   isWorkInProgress: boolean
   canStartOneDayShift: boolean
   canStartFullShift: boolean
-  onClose?: () => void
   onRunShift?: (hours: number) => void
 }
 

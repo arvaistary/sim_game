@@ -1,4 +1,4 @@
-﻿import {
+import {
   CAREER_COMPONENT,
   WORK_COMPONENT,
   EDUCATION_COMPONENT,
@@ -188,6 +188,7 @@ export class CareerProgressSystem {
       salaryPerWeek: job.salaryPerWeek,
       daysAtWork: 0,
       workedHoursCurrentWeek: 0,
+      employed: true,
     })
     if (work) {
       Object.assign(work, {
@@ -200,6 +201,7 @@ export class CareerProgressSystem {
         schedule: job.schedule ?? '5/2',
         daysAtWork: 0,
         workedHoursCurrentWeek: 0,
+        employed: true,
       })
     }
     this.syncCurrentJob()
@@ -257,6 +259,68 @@ export class CareerProgressSystem {
       pendingSalaryWeek: career.pendingSalaryWeek ?? 0,
       totalWorkedHours: career.totalWorkedHours ?? 0,
       daysAtWork: career.daysAtWork ?? 0,
+    }
+  }
+
+  quitCareer(): { success: boolean; message: string } {
+    const playerId = PLAYER_ENTITY
+    const career = this.world.getComponent(playerId, CAREER_COMPONENT) as Record<string, unknown> | null
+    const work = this.world.getComponent(playerId, WORK_COMPONENT) as Record<string, unknown> | null
+
+    if (!career || !career.id) {
+      return { success: false, message: 'Вы и так без работы' }
+    }
+
+    const oldPosition = (career.name as string) ?? 'Неизвестно'
+
+    Object.assign(career, {
+      id: null,
+      name: 'Безработный',
+      level: 0,
+      salaryPerHour: 0,
+      salaryPerDay: 0,
+      salaryPerWeek: 0,
+      daysAtWork: 0,
+      workedHoursCurrentWeek: 0,
+      employed: false,
+    })
+
+    if (work) {
+      Object.assign(work, {
+        id: null,
+        name: 'Безработный',
+        level: 0,
+        salaryPerHour: 0,
+        salaryPerDay: 0,
+        salaryPerWeek: 0,
+        schedule: '5/2',
+        daysAtWork: 0,
+        workedHoursCurrentWeek: 0,
+        employed: false,
+      })
+    }
+
+    this.syncCurrentJob()
+
+    telemetryInc('career_quit')
+
+    if (this.world && this.world.eventBus) {
+      this.world.eventBus.dispatchEvent(new CustomEvent('activity:career', {
+        detail: {
+          category: 'quit',
+          title: '🚪 Увольнение',
+          description: `Вы уволились с должности "${oldPosition}"`,
+          icon: null,
+          metadata: {
+            oldPosition,
+          },
+        },
+      }))
+    }
+
+    return {
+      success: true,
+      message: `Вы уволились с должности "${oldPosition}". Теперь вы безработный.`,
     }
   }
 }

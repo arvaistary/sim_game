@@ -280,6 +280,74 @@ export const useGameStore = defineStore('game', () => {
     return result || ''
   }
 
+  function canApplyWorkShift(hours: number): { canDo: boolean; reason?: string; reasonKey?: string } {
+    if (!world.value) return { canDo: false, reason: 'Мир не инициализирован', reasonKey: 'no_world' }
+
+    const statsComp = world.value.getComponent<StatsComponent>(PLAYER_ENTITY, 'stats')
+    if (!statsComp) return { canDo: false, reason: 'Нет данных о персонаже', reasonKey: 'no_stats' }
+
+    const energy = statsComp.energy ?? 100
+    const hunger = statsComp.hunger ?? 0
+
+    const MIN_ENERGY = 10
+    const MAX_HUNGER = 90
+    const ENERGY_COST_PER_HOUR = 2.7
+    const HUNGER_GAIN_PER_HOUR = 2.2
+
+    const energyAfterWork = energy - (hours * ENERGY_COST_PER_HOUR)
+    const hungerAfterWork = hunger + (hours * HUNGER_GAIN_PER_HOUR)
+
+    if (energy < MIN_ENERGY) {
+      return {
+        canDo: false,
+        reason: `Недостаточно энергии для работы (${Math.round(energy)}/${MIN_ENERGY}). Отдохните или поспите.`,
+        reasonKey: 'low_energy',
+      }
+    }
+
+    if (hunger > MAX_HUNGER) {
+      return {
+        canDo: false,
+        reason: `Слишком высокий голод (${Math.round(hunger)}/${MAX_HUNGER}). Поешьте перед работой.`,
+        reasonKey: 'high_hunger',
+      }
+    }
+
+    if (energyAfterWork < 0) {
+      return {
+        canDo: false,
+        reason: `На работе потребуется ${Math.round(hours * ENERGY_COST_PER_HOUR)} энергии, а у вас только ${Math.round(energy)}. Энергия закончится во время смены!`,
+        reasonKey: 'energy_depleted',
+      }
+    }
+
+    if (hungerAfterWork > 100) {
+      return {
+        canDo: false,
+        reason: `После работы голод станет ${Math.round(hungerAfterWork)} (макс. 100). Поешьте перед сменой.`,
+        reasonKey: 'hunger_overflow',
+      }
+    }
+
+    return { canDo: true }
+  }
+
+  function changeCareer(jobId: string): { success: boolean; message: string } {
+    if (!world.value) return { success: false, message: 'Мир не инициализирован' }
+    const result = appGameCommands.changeCareer(world.value, jobId)
+    bumpWorldVersion()
+    save()
+    return result
+  }
+
+  function quitCareer(): { success: boolean; message: string } {
+    if (!world.value) return { success: false, message: 'Мир не инициализирован' }
+    const result = appGameCommands.quitCareer(world.value)
+    bumpWorldVersion()
+    save()
+    return result
+  }
+
   function getCareerTrack(): Array<Record<string, unknown>> {
     if (!world.value) return []
     return appGameQueries.getCareerTrack(world.value)
@@ -450,6 +518,9 @@ export const useGameStore = defineStore('game', () => {
     getWorld,
     applyRecoveryAction,
     applyWorkShift,
+    canApplyWorkShift,
+    changeCareer,
+    quitCareer,
     getCareerTrack,
     getActivityLogEntries,
     canStartEducationProgram,

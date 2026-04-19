@@ -61,11 +61,14 @@
           </div>
           <p class="program-subtitle">{{ program.subtitle }}</p>
           <div class="program-meta">
-            <span class="meta-tag">Куплено</span>
+            <span class="meta-tag" :class="getBookStatusClass(program)">{{ getBookStatusLabel(program) }}</span>
             <span class="meta-tag">{{ program.daysRequired }} дн.</span>
             <span class="meta-tag">{{ program.hoursRequired }} ч</span>
             <span v-if="program.minAgeGroup" class="meta-tag age-tag">{{ getAgeGroupLabel(program.minAgeGroup) }}+</span>
           </div>
+          <p v-if="getBookStatusDescription(program)" class="program-status-note">
+            {{ getBookStatusDescription(program) }}
+          </p>
           <p class="program-reward">{{ program.rewardText }}</p>
         </RoundedPanel>
       </Tooltip>
@@ -86,6 +89,7 @@ import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-program
 import type { EducationProgram } from '@/domain/balance/types'
 import { formatMoney } from '@/utils/format'
 import { AgeGroup, getAgeGroup } from '@/composables/useAgeRestrictions/age-constants'
+import type { ActiveCourse, CompletedProgramRecord } from '@/domain/engine/systems/EducationSystem/index.types'
 
 const store = useGameStore()
 const toast = useToast()
@@ -130,6 +134,42 @@ function isProgramOwned(program: EducationProgram): boolean {
   if (program.acquisition !== 'shop_only') return true
   if (!program.requiresItemId) return true
   return hasFurnitureItem(program.requiresItemId)
+}
+
+const activeCourseId = computed(() => {
+  void store.worldTick
+  const education = store.education as unknown as Record<string, unknown> | null
+  const activeCourses = education?.activeCourses as ActiveCourse[] | undefined
+  return activeCourses?.[0]?.id ?? null
+})
+
+const completedProgramIds = computed(() => {
+  void store.worldTick
+  const education = store.education as unknown as Record<string, unknown> | null
+  const completedPrograms = (education?.completedPrograms ?? []) as CompletedProgramRecord[]
+  return new Set(completedPrograms.map(program => program.id))
+})
+
+function getBookStatusLabel(program: EducationProgram): string {
+  if (activeCourseId.value === program.id) return 'Читаю'
+  if (completedProgramIds.value.has(program.id)) return 'Прочитано'
+  return 'Куплено'
+}
+
+function getBookStatusClass(program: EducationProgram): string {
+  if (activeCourseId.value === program.id) return 'meta-tag--active'
+  if (completedProgramIds.value.has(program.id)) return 'meta-tag--done'
+  return 'meta-tag--owned'
+}
+
+function getBookStatusDescription(program: EducationProgram): string {
+  if (activeCourseId.value === program.id) {
+    return 'Книга остаётся в библиотеке, пока вы читаете её по модулям.'
+  }
+  if (completedProgramIds.value.has(program.id)) {
+    return 'Книга уже прочитана и остаётся в библиотеке как завершённая.'
+  }
+  return 'Книга куплена и доступна для запуска из библиотеки.'
 }
 
 /** Получить причину блокировки программы (для tooltip) */
@@ -178,7 +218,7 @@ const sortedOwnedBooks = computed(() => {
 })
 
 function goToShopBooks(): void {
-  void router.push('/game/shop')
+  void router.push('/game/shop?tab=learning')
 }
 
 function startProgram(program: EducationProgram): void {

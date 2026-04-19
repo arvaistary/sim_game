@@ -25,20 +25,26 @@ export function formatMoney(value: number): string {
 
 export function getEducationRank(level: string): number {
   const map: Record<string, number> = {
+    'Нет': -1,
     'Среднее': 0,
     'Высшее': 1,
-    'MBA': 2,
+    'Бакалавриат': 2,
+    'Магистратура': 3,
+    'MBA': 4,
   }
-  return map[level] ?? 0
+  return map[level] ?? -1
 }
 
 export function getEducationLabelByRank(rank: number): string {
   const map: Record<number, string> = {
+    '-1': 'Любое',
     0: 'Среднее',
     1: 'Высшее',
-    2: 'MBA',
+    2: 'Бакалавриат',
+    3: 'Магистратура',
+    4: 'MBA',
   }
-  return map[rank] ?? 'Среднее'
+  return map[rank] ?? 'Любое'
 }
 
 export function toFiniteNumber(value: unknown, fallback: number): number {

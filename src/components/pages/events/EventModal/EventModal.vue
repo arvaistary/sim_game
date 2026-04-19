@@ -33,10 +33,9 @@ import EventChoices from '../EventChoices/EventChoices.vue'
 import EventResult from '../EventResult/EventResult.vue'
 import { useEvents } from '@/composables/useEvents'
 import { useToast } from '@/composables/useToast'
+import type { BaseModalProps } from '@/composables/useGameModal/modal.types'
 
-interface Props {
-  onClose?: () => void
-}
+interface Props extends BaseModalProps {}
 
 const props = defineProps<Props>()
 

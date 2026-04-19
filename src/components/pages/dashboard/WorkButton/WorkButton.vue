@@ -21,6 +21,9 @@ const gameModal = useGameModal()
 const { isTabVisible } = useAgeRestrictions()
 const isVisible = computed(() => isTabVisible('career'))
 
+// Принудительная реактивность
+const reactivityTrigger = computed(() => store.worldTick)
+
 const STAT_DEFINITIONS: WorkStatDefinition[] = [
   { key: 'money', label: 'Деньги' },
   { key: 'energy', label: 'Энергия' },
@@ -41,6 +44,7 @@ let workChoiceModalId: symbol | null = null
 let workResultModalId: symbol | null = null
 
 const currentWork = computed<WorkSnapshot | null>(() => {
+  void reactivityTrigger.value
   const job = store.currentJobSnapshot
   if (!job) return null
 

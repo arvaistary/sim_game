@@ -79,6 +79,26 @@
   background: var(--color-bg-card);
 }
 
+.course-tile--active-book {
+  border-color: rgba(59, 130, 246, 0.45);
+  background:
+    linear-gradient(180deg, rgba(219, 234, 254, 0.45) 0%, rgba(255, 255, 255, 0) 42%),
+    var(--color-bg-card);
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.12),
+    var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
+}
+
+.course-tile--active-course {
+  border-color: rgba(16, 185, 129, 0.42);
+  background:
+    linear-gradient(180deg, rgba(220, 252, 231, 0.5) 0%, rgba(255, 255, 255, 0) 42%),
+    var(--color-bg-card);
+  box-shadow:
+    0 0 0 1px rgba(16, 185, 129, 0.12),
+    var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
+}
+
 .course-tile__badge {
   align-self: flex-start;
   padding: 2px $space-2;
@@ -92,6 +112,18 @@
 .course-tile__badge--current {
   background: var(--color-accent);
   color: var(--color-text-on-accent);
+}
+
+.course-tile__badge--book {
+  background: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.22);
+}
+
+.course-tile__badge--course {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.22);
 }
 
 .course-tile__badge--done {
@@ -116,11 +148,53 @@
   margin: 0;
   font-size: $font-size-xs;
   color: var(--color-text-secondary);
+  font-weight: $font-weight-medium;
 }
 
 .course-tile__meta {
   margin: 0;
   margin-top: auto;
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.study-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+}
+
+.study-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  line-height: 1;
+}
+
+.study-status-pill--active {
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.study-status-pill--paused {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.study-status-pill--idle {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.study-status-copy {
   font-size: $font-size-xs;
   color: var(--color-text-secondary);
   line-height: 1.4;
@@ -223,6 +297,17 @@
 .hours-remaining {
   color: var(--color-accent);
   font-weight: $font-weight-semibold;
+}
+
+.study-inline-warning {
+  width: 100%;
+  padding: $space-2;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  font-size: $font-size-xs;
+  color: #b45309;
+  line-height: 1.45;
 }
 
 .no-course {
@@ -335,6 +420,83 @@
   color: var(--color-text-secondary);
   margin: 0;
   font-style: italic;
+  line-height: 1.45;
+}
+
+/* Строка-триггер: подсказка по hover / click в Tooltip */
+.study-wake-budget-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-1;
+  width: 100%;
+  margin: 0;
+  padding: 2px 0;
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+  cursor: help;
+  border: none;
+  background: transparent;
+  text-align: left;
+  border-bottom: 1px dashed rgba(59, 130, 246, 0.35);
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-text-primary);
+    border-bottom-color: var(--color-accent);
+    outline: none;
+  }
+}
+
+.study-wake-budget-line__label {
+  font-weight: $font-weight-medium;
+  color: var(--color-text-secondary);
+}
+
+.study-wake-budget-line__value {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+
+.study-wake-budget-line__hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: $font-weight-bold;
+  line-height: 1;
+  color: var(--color-accent);
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  border-radius: 50%;
+}
+
+.study-cycle-course-mismatch {
+  width: 100%;
+  max-width: 100%;
+  padding: $space-2;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(217, 119, 6, 0.45);
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+}
+
+.study-cycle-course-mismatch__icon {
+  flex-shrink: 0;
+  font-size: $font-size-base;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+.study-cycle-course-mismatch__text {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: var(--color-text-primary);
   line-height: 1.45;
 }
 

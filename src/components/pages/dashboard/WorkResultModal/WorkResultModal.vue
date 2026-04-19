@@ -20,16 +20,17 @@
 
 <script setup lang="ts">
 import type { WorkStatDiff } from '../WorkButton/WorkButton.types'
+import type { BaseModalProps } from '@/composables/useGameModal/modal.types'
 
-interface Props {
+interface Props extends BaseModalProps {
   workSummary: string
   statDiffs: WorkStatDiff[]
-  onClose?: () => void
 }
 
 const props = defineProps<Props>()
 
 function handleClose() {
+  // Вызываем onClose, если он передан
   props.onClose?.()
 }
 

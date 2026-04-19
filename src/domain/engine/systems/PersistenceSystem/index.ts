@@ -1,6 +1,6 @@
 ﻿import { DEFAULT_SAVE } from '../../../balance/constants/default-save'
 import type { CharacterTag } from '../../../balance/types'
-import { PLAYER_ENTITY, TAGS_COMPONENT } from '../../components/index'
+import { PLAYER_ENTITY, TAGS_COMPONENT, FURNITURE_COMPONENT } from '../../components/index'
 import type { GameWorld } from '../../world'
 import type { SaveData } from '../../../balance/constants/default-save'
 import type { ValidationResult, ComponentMapper } from './index.types'
@@ -192,12 +192,13 @@ export class PersistenceSystem {
       component: 'housing',
       syncFromWorld: (world, playerId, saveData) => {
         const housing = world.getComponent(playerId, 'housing') as Record<string, unknown> | null
+        const furniture = world.getComponent(playerId, FURNITURE_COMPONENT) as unknown[] | null
         if (housing) {
           saveData.housing = {
             level: housing.level,
             name: housing.name,
             comfort: housing.comfort,
-            furniture: housing.furniture || [],
+            furniture: Array.isArray(furniture) ? furniture : (housing.furniture || []),
             lastWeeklyBonus: housing.lastWeeklyBonus,
           }
         }

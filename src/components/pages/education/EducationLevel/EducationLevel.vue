@@ -1,23 +1,38 @@
 <template>
   <RoundedPanel>
     <div class="education-level-wrap">
-      <h3 class="section-title">Текущий уровень</h3>
-      <div class="edu-level">
-        <span class="edu-label">{{ educationLevel }}</span>
-        <p class="edu-level-hint">
-          Формальная ступень (школа / диплом). Книги и курсы из списка ниже на неё не меняют — только отдельные программы с пометкой об уровне.
-        </p>
-      </div>
+      <h3 class="section-title">Что изучаем</h3>
+      
 
       <div v-if="courseTiles.length > 0" class="courses-grid">
         <article
           v-for="tile in courseTiles"
           :key="tile.key"
           class="course-tile"
-          :class="{ 'course-tile--active': tile.status === 'active' }"
+          :class="{
+            'course-tile--active': tile.status === 'active',
+            'course-tile--active-book': tile.status === 'active' && isBookCourse,
+            'course-tile--active-course': tile.status === 'active' && !isBookCourse,
+          }"
         >
           <template v-if="tile.status === 'active'">
-            <span class="course-tile__badge course-tile__badge--current">Сейчас</span>
+            <span
+              class="course-tile__badge"
+              :class="isBookCourse ? 'course-tile__badge--book' : 'course-tile__badge--course'"
+            >
+              {{ isBookCourse ? 'Читаем' : 'Изучаем' }}
+            </span>
+            <h4 class="course-tile__title">{{ activeCourse?.name }}</h4>
+            <p v-if="activeCourse?.type" class="course-tile__type">{{ activeCourse.type }}</p>
+            <p v-if="currentLearningFocus" class="course-tile__meta">
+              Сейчас изучаете: {{ currentLearningFocus }}
+            </p>
+            <div class="study-status-row">
+              <span class="study-status-pill" :class="`study-status-pill--${studyStatusTone}`">
+                {{ studyStatusLabel }}
+              </span>
+              <span class="study-status-copy">{{ studyStatusHint }}</span>
+            </div>
             <div class="course-progress">
               <div v-if="!currentStep" class="step-info step-info--pending">
                 <span class="step-label">Не удалось загрузить шаги программы</span>
@@ -39,10 +54,45 @@
                 <span v-if="hoursRemaining > 0" class="hours-remaining">Осталось: {{ hoursRemaining.toFixed(1) }}ч</span>
               </div>
 
+              <div v-if="inlineStudyWarning" class="study-inline-warning">
+                {{ inlineStudyWarning }}
+              </div>
+
+              <Tooltip
+                v-if="showStudyWakeHints"
+                :text="studyWakeBudgetTooltipText"
+                multiline
+                placement="bottom"
+                stretch
+                pin-on-click
+              >
+                <div
+                  class="study-wake-budget-line"
+                  tabindex="0"
+                  role="button"
+                  :aria-label="studyWakeBudgetAriaLabel"
+                >
+                  <span class="study-wake-budget-line__label">Учёба до сна</span>
+                  <span class="study-wake-budget-line__value">{{ studyHoursSinceLastSleepDisplay }}/{{ maxStudyHoursCycleDisplay }} ч</span>
+                  <span class="study-wake-budget-line__hint" aria-hidden="true">?</span>
+                </div>
+              </Tooltip>
+
+              <div
+                v-if="studyCycleBlockedWithCourseHoursLeft"
+                class="study-cycle-course-mismatch"
+              >
+                <span class="study-cycle-course-mismatch__icon" aria-hidden="true">&#x26a0;&#xfe0f;</span>
+                <p class="study-cycle-course-mismatch__text">
+                  По курсу ещё есть часы, но в этом цикле бодрствования вы не можете взять следующий сеанс
+                  ({{ studySessionHoursDisplay }} ч). Поспите — счётчик «учёбы до сна» сбросится.
+                </p>
+              </div>
+
               <button
                 class="study-button"
-                :class="{ 'study-button--disabled': !canStudy }"
-                :disabled="!canStudy"
+                :class="{ 'study-button--disabled': !canOpenStudyModal }"
+                :disabled="!canOpenStudyModal"
                 @click="openStudyModal"
               >
                 <span class="study-icon" aria-hidden="true">&#x1f4d6;</span>
@@ -123,18 +173,21 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import Tooltip from '@/components/ui/Tooltip/index.vue'
 import { useGameStore } from '@/stores/game.store'
 import { AgeGroup, getAgeGroup } from '@/composables/useAgeRestrictions/age-constants'
 import type { ActiveCourse, CompletedProgramRecord } from '@/domain/engine/systems/EducationSystem/index.types'
 import {
   EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN,
   ENERGY_EXHAUSTION_THRESHOLD_STUDY,
+  getNeedsStateFromComponents,
 } from '@/domain/engine/systems/EducationSystem/learning-efficiency'
 import {
   getCognitiveLoadStatus,
   canAddStudyHours,
   EDUCATION_LONG_PROGRAM_STEP_HOURS,
   COGNITIVE_LOAD_CONSTANTS,
+  resolveStudySessionHours,
   type CognitiveLoadComponent,
 } from '@/domain/engine/systems/EducationSystem/cognitive-load'
 
@@ -156,9 +209,17 @@ const educationLevel = computed(() => {
 })
 
 const activeCourse = computed(() => {
+  void store.worldTick
   const edu = store.education as unknown as Record<string, unknown> | null
   const courses = edu?.activeCourses as ActiveCourse[] | null
-  return courses && courses.length > 0 ? courses[0] : null
+  if (!courses || courses.length === 0) return null
+  const source = courses[0]
+  // Shallow-clone курс и шаги, чтобы Vue обнаружил изменение ссылки
+  // после мутаций ECS (currentStepIndex, progressPercent и т.д.)
+  return {
+    ...source,
+    steps: source.steps?.map(s => ({ ...s })) ?? [],
+  } as ActiveCourse
 })
 
 const currentStepIndex = computed(() => {
@@ -176,6 +237,19 @@ const currentStep = computed(() => {
   return steps.value[currentStepIndex.value] ?? null
 })
 
+const currentLearningFocus = computed(() => {
+  if (!activeCourse.value) return ''
+  if (currentStep.value?.title) {
+    return `${activeCourse.value.name} - ${currentStep.value.title}`
+  }
+  return activeCourse.value.name
+})
+
+const isBookCourse = computed(() => {
+  const type = activeCourse.value?.type?.toLowerCase() ?? ''
+  return type.includes('книга')
+})
+
 const overallProgress = computed(() => {
   if (!activeCourse.value || steps.value.length === 0) return 0
   const progress = activeCourse.value.progress ?? 0
@@ -183,13 +257,23 @@ const overallProgress = computed(() => {
 })
 
 const hoursRemaining = computed(() => {
-  if (!activeCourse.value) return 0
-  const hoursRequired = activeCourse.value.hoursRequired ?? 0
-  const hoursSpent = activeCourse.value.hoursSpent ?? 0
-  return Math.max(0, hoursRequired - hoursSpent)
+  if (!steps.value.length) return 0
+  return steps.value.reduce((total, step, index) => {
+    if (index < currentStepIndex.value) return total
+    const stepProgress = Math.max(0, Math.min(1, step.progressPercent ?? 0))
+    return total + (step.hoursRequired * (1 - stepProgress))
+  }, 0)
 })
 
+const studySessionHours = computed(() => {
+  if (!currentStep.value) return EDUCATION_LONG_PROGRAM_STEP_HOURS
+  return resolveStudySessionHours(currentStep.value.hoursRequired)
+})
+
+const studySessionHoursDisplay = computed(() => Math.round(studySessionHours.value))
+
 const cognitiveLoadValue = computed(() => {
+  void store.worldTick
   const world = store.world
   if (!world) return 0
   const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
@@ -197,26 +281,62 @@ const cognitiveLoadValue = computed(() => {
 })
 
 const studyHoursSinceLastSleep = computed(() => {
-  void store.education
+  void store.worldTick
   const world = store.world
   if (!world) return 0
   const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
   return cognitiveLoad?.studyHoursSinceLastSleep ?? 0
 })
 
+const studyHoursSinceLastSleepDisplay = computed(() => Math.round(studyHoursSinceLastSleep.value))
+
 /** Максимальное количество учебных часов в одном цикле (константа) */
 const maxStudyHoursCycle = COGNITIVE_LOAD_CONSTANTS.MAX_STUDY_HOURS_CYCLE
+const maxStudyHoursCycleDisplay = Math.round(maxStudyHoursCycle)
+
+const studyWakeBudgetTooltipText = computed(() => {
+  const session = studySessionHours.value
+  const used = studyHoursSinceLastSleep.value
+  return [
+    'Учёба до сна (отдельный лимит)',
+    '',
+    `Сейчас ${Math.round(used)}/${maxStudyHoursCycleDisplay} ч. Следующий сеанс чтения — до ${Math.round(session)} ч. в этом цикле.`,
+    '',
+    'Шкала «когнитивная нагрузка» ниже — про другой показатель (усталость в %), а не про этот лимит часов.',
+  ].join('\n')
+})
+
+const studyWakeBudgetAriaLabel = computed(
+  () =>
+    `Учёба до сна: ${studyHoursSinceLastSleepDisplay.value} из ${maxStudyHoursCycleDisplay} часов. Подробности — в подсказке (наведите или нажмите)`,
+)
+
+const showStudyWakeHints = computed(
+  () => showCognitiveHints.value && !!activeCourse.value && !!currentStep.value,
+)
+
+const canOpenStudyModal = computed(() => !!activeCourse.value && !!currentStep.value)
 
 /** Блокировка по накопительной усталости */
 const dailyStudyHoursBlocked = computed(() => {
+  void store.worldTick
   const world = store.world
   if (!world) return false
   const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
   if (!cognitiveLoad) return false
   
-  const canStudyCheck = canAddStudyHours(cognitiveLoad, EDUCATION_LONG_PROGRAM_STEP_HOURS)
+  const canStudyCheck = canAddStudyHours(cognitiveLoad, studySessionHours.value)
   return !canStudyCheck.canStudy
 })
+
+/** Лимит «учёбы до сна» исчерпан (или не хватает часов под сеанс), но по курсу ещё есть бюджет часов */
+const studyCycleBlockedWithCourseHoursLeft = computed(
+  () =>
+    !!activeCourse.value &&
+    !!currentStep.value &&
+    dailyStudyHoursBlocked.value &&
+    hoursRemaining.value > 0,
+)
 
 /** Истощение для учёбы привязано к энергии персонажа (как на главной), не к когнитивной шкале */
 const energyExhaustedForStudy = computed(() => (store.energy ?? 0) < ENERGY_EXHAUSTION_THRESHOLD_STUDY)
@@ -225,6 +345,7 @@ const energyExhaustedForStudy = computed(() => (store.energy ?? 0) < ENERGY_EXHA
 const energyWouldHitZeroOnStep = computed(() => (store.energy ?? 0) <= EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN)
 
 const cognitiveLoadStatus = computed(() => {
+  void store.worldTick
   const world = store.world
   if (!world) return null
   const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
@@ -246,16 +367,45 @@ const canStudy = computed(() => {
   return true
 })
 
+const studyStatusTone = computed(() => {
+  if (!activeCourse.value || !currentStep.value) return 'idle'
+  if (canStudy.value) return 'active'
+  if (resourceWarning.value) return 'paused'
+  return 'idle'
+})
+
+const studyStatusLabel = computed(() => {
+  if (!activeCourse.value || !currentStep.value) return 'Нет активного обучения'
+  if (canStudy.value) return isBookCourse.value ? 'Можно читать' : 'Можно продолжить'
+  return 'Пауза'
+})
+
+const studyStatusHint = computed(() => {
+  if (!activeCourse.value || !currentStep.value) return 'Выберите программу ниже'
+  if (canStudy.value) {
+    return isBookCourse.value
+      ? `Следующий сеанс: ${studySessionHoursDisplay.value} ч.`
+      : `Следующий шаг: ${studySessionHoursDisplay.value} ч.`
+  }
+  if (dailyStudyHoursBlocked.value) {
+    return `Лимит до сна: ${studyHoursSinceLastSleepDisplay.value}/${maxStudyHoursCycleDisplay} ч.`
+  }
+  if (energyExhaustedForStudy.value || energyWouldHitZeroOnStep.value) {
+    return 'Нужно восстановить силы'
+  }
+  return 'Есть временные ограничения'
+})
+
 const studyButtonText = computed(() => {
   if (!activeCourse.value) return 'Выбрать курс'
   if (!currentStep.value) return 'Ожидание шагов программы'
-  if (energyExhaustedForStudy.value) return 'Мало энергии — отдохните'
-  if (energyWouldHitZeroOnStep.value) return 'Энергии не хватит на шаг'
-  if (dailyStudyHoursBlocked.value) {
-    return `Лимит учёбы (${studyHoursSinceLastSleep.value}/${maxStudyHoursCycle} ч.) — поспите`
+  if (!canStudy.value) {
+    return isBookCourse.value ? 'Почему нельзя читать?' : 'Почему нельзя продолжить?'
   }
-  if (hoursRemaining.value <= 0) return 'Завершить курс'
-  return 'Читать'
+  if (currentStepIndex.value === 0) {
+    return isBookCourse.value ? 'Начать читать' : 'Начать обучение'
+  }
+  return isBookCourse.value ? 'Продолжить чтение' : 'Продолжить курс'
 })
 
 const isStudyModalOpen = ref(false)
@@ -271,13 +421,16 @@ const canContinueStudy = computed(() => {
   if (energyExhaustedForStudy.value) return false
   if (energyWouldHitZeroOnStep.value) return false
   if (dailyStudyHoursBlocked.value) return false
-  if (hoursRemaining.value <= 0) return false
   return true
 })
 
 const canFinishStudy = computed(() => !!activeCourse.value)
 
 const resourceWarning = computed(() => {
+  const needs = getNeedsStateFromComponents(store.stats as unknown as Record<string, number> | null)
+  if (needs.hunger < 10) {
+    return 'Вы слишком голодны для учёбы. Сначала поешьте, потом возвращайтесь к чтению.'
+  }
   if (energyExhaustedForStudy.value) {
     return `Энергия ниже ${ENERGY_EXHAUSTION_THRESHOLD_STUDY}% — истощение. Восстановите силы, прежде чем учиться.`
   }
@@ -289,13 +442,22 @@ const resourceWarning = computed(() => {
     if (world) {
       const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
       if (cognitiveLoad) {
-        const canStudyCheck = canAddStudyHours(cognitiveLoad, EDUCATION_LONG_PROGRAM_STEP_HOURS)
-        return canStudyCheck.reason
+        const canStudyCheck = canAddStudyHours(cognitiveLoad, studySessionHours.value)
+        const base = canStudyCheck.reason
+        if (hoursRemaining.value > 0) {
+          return `${base}\n\nШкала «когнитивной нагрузки» может быть в норме — она не отражает лимит «учёбы до сна» (${studyHoursSinceLastSleepDisplay.value}/${maxStudyHoursCycleDisplay} ч).`
+        }
+        return base
       }
     }
     return 'Лимит учёбы исчерпан. Поспите для восстановления.'
   }
   return null
+})
+
+const inlineStudyWarning = computed(() => {
+  if (!resourceWarning.value) return null
+  return resourceWarning.value.split('\n')[0] ?? resourceWarning.value
 })
 
 const completedProgramsForGrid = computed(() => {
@@ -320,7 +482,7 @@ const courseTiles = computed<CourseTile[]>(() => {
 })
 
 function openStudyModal() {
-  if (!canStudy.value) return
+  if (!canOpenStudyModal.value) return
   isStudyModalOpen.value = true
 }
 

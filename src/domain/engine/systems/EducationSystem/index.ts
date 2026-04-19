@@ -35,6 +35,7 @@ import {
   resetCognitiveLoad,
   EDUCATION_LONG_PROGRAM_STEP_HOURS,
   COGNITIVE_LOAD_CONSTANTS,
+  resolveStudySessionHours,
 } from './cognitive-load'
 
 /**
@@ -289,7 +290,7 @@ export class EducationSystem {
       return { completed: false, summary: 'Шаг программы не найден.' }
     }
 
-    const studyHours = EDUCATION_LONG_PROGRAM_STEP_HOURS
+    const studyHours = resolveStudySessionHours(currentStep.hoursRequired)
     
     // Рассчитать time-based модификаторы эффективности
     const timeModifiers = calculateTimeEfficiencyModifiers(time as any)
@@ -489,7 +490,9 @@ export class EducationSystem {
             `Время: ${studyHours} ч. • Энергия -${Math.round(10 * learningResult.finalEfficiency)} • Стресс +${Math.round(8 * learningResult.finalEfficiency)} • Настроение -${Math.round(3 * learningResult.finalEfficiency)}`,
             timeInfo,
             cognitiveInfo,
-            ...(currentStep.milestoneReward?.message && [`\n${currentStep.milestoneReward.message}`]),
+            ...(currentStep.milestoneReward?.message
+              ? [`\n${currentStep.milestoneReward.message}`]
+              : []),
           ].filter(Boolean).join('\n'),
         }
       } else {
@@ -730,5 +733,3 @@ export class EducationSystem {
     return computerIds.some(id => this._hasFurnitureItem(id))
   }
 }
-
-

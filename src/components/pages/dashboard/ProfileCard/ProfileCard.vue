@@ -1,5 +1,7 @@
 <template>
   <RoundedPanel class="card profile-card" padding="18px">
+    <!-- Reactivity trigger -->
+    <span v-if="reactivityTrigger" class="sr-only">{{ reactivityTrigger }}</span>
     <h1 class="profile-name">{{ playerName }}</h1>
     <p class="profile-job">{{ jobLabel }}</p>
     <p v-if="isMoneyVisible" class="profile-money">{{ formatMoney(money) }} ₽</p>
@@ -23,6 +25,9 @@ const store = useGameStore()
 const { isStatVisible } = useAgeRestrictions()
 const isMoneyVisible = computed(() => isStatVisible('money'))
 
+// Принудительная реактивность
+const reactivityTrigger = computed(() => store.worldTick)
+
 function openSkillsModal() {
   openModal(SkillsModal, {
     onClose: () => {
@@ -35,7 +40,11 @@ const playerName = computed(() => store.playerName)
 const money = computed(() => store.money)
 const comfort = computed(() => store.comfort)
 
+// Зависимость от reactivityTrigger
+void reactivityTrigger.value
+
 const jobLabel = computed(() => {
+  void reactivityTrigger.value
   const job = store.currentJobSnapshot
   if (!job || !job.id) return 'Безработный'
 

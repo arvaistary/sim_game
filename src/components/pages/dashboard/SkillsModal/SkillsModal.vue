@@ -37,10 +37,9 @@ import { useGameStore } from '@/stores/game.store'
 import { ALL_SKILLS } from '@/domain/balance/constants/skills-constants'
 import { buildSkillTooltipText } from '@/domain/balance/utils/skill-tooltip-content'
 import type { SkillDef } from '@/domain/balance/types'
+import type { BaseModalProps } from '@/composables/useGameModal/modal.types'
 
-interface Props {
-  onClose?: () => void
-}
+interface Props extends BaseModalProps {}
 
 const props = defineProps<Props>()
 

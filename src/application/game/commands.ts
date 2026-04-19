@@ -8,6 +8,12 @@ export const appGameCommands = {
   simulateWorkShift(world: GameWorld, hours: number): string {
     return gameCommands.applyWorkShift(world, hours)
   },
+  changeCareer(world: GameWorld, jobId: string): { success: boolean; message: string } {
+    return gameCommands.changeCareer(world, jobId)
+  },
+  quitCareer(world: GameWorld): { success: boolean; message: string } {
+    return gameCommands.quitCareer(world)
+  },
   startEducationProgram(world: GameWorld, programId: string): string {
     return gameCommands.startEducationProgram(world, programId)
   },

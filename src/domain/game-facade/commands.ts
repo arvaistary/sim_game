@@ -21,6 +21,16 @@ export const gameCommands = {
     const ctx = getSystemContext(world)
     return ctx.workPeriod.applyWorkShift(hours) || ''
   },
+  changeCareer(world: GameWorld, jobId: string): { success: boolean; message: string } {
+    const ctx = getSystemContext(world)
+    const result = ctx.careerProgress.changeCareer(jobId)
+    return { success: result.success, message: result.success ? result.message ?? '' : result.reason ?? '' }
+  },
+  quitCareer(world: GameWorld): { success: boolean; message: string } {
+    const ctx = getSystemContext(world)
+    const result = ctx.careerProgress.quitCareer()
+    return { success: result.success, message: result.message }
+  },
   startEducationProgram(world: GameWorld, programId: string): string {
     const ctx = getSystemContext(world)
     return ctx.education.startEducationProgram(programId).message

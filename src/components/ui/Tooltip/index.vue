@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="wrapperRef"
     class="tooltip-wrapper"
     :class="{
       'tooltip-wrapper--bottom': placement === 'bottom',
@@ -9,6 +10,7 @@
     @mouseenter="onEnter"
     @mouseleave="onLeave"
     @mousemove="onMove"
+    @click="onWrapperClick"
   >
     <slot />
     <Teleport to="body">
@@ -20,6 +22,7 @@
           :class="{
             'tooltip--multiline': multiline,
             'tooltip--follow': followCursor,
+            'tooltip--interactive': pinOnClick && pinned,
           }"
           :style="tooltipStyle"
         >
@@ -31,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import './style.scss'
 
 const props = withDefaults(defineProps<{
@@ -44,11 +47,18 @@ const props = withDefaults(defineProps<{
   stretch?: boolean
   /** Следовать за курсором */
   followCursor?: boolean
+  /**
+   * Клик по якорю закрепляет подсказку (удобно без hover).
+   * Повторный клик по якорю или снаружи — закрывает.
+   */
+  pinOnClick?: boolean
 }>(), {
   placement: 'top',
 })
 
 const show = ref(false)
+const pinned = ref(false)
+const wrapperRef = ref<HTMLElement | null>(null)
 const mouseX = ref(0)
 const mouseY = ref(0)
 
@@ -65,11 +75,33 @@ const tooltipStyle = computed(() => {
 })
 
 function onEnter() {
+  if (props.pinOnClick && pinned.value) return
   show.value = true
 }
 
 function onLeave() {
+  if (props.pinOnClick && pinned.value) return
   show.value = false
+}
+
+function onWrapperClick(e: MouseEvent) {
+  if (!props.pinOnClick) return
+  e.stopPropagation()
+  pinned.value = !pinned.value
+  show.value = pinned.value
+}
+
+function onDocPointerDown(e: MouseEvent) {
+  if (!props.pinOnClick || !pinned.value) return
+  const t = e.target
+  if (!(t instanceof Node)) return
+  // Подсказка в Teleport(body) — клик по тексту не должен считаться «снаружи»
+  if (t instanceof Element && t.closest('.tooltip')) return
+  const root = wrapperRef.value
+  if (!root?.contains(t)) {
+    pinned.value = false
+    show.value = false
+  }
 }
 
 function onMove(e: MouseEvent) {
@@ -78,4 +110,14 @@ function onMove(e: MouseEvent) {
     mouseY.value = e.clientY
   }
 }
+
+onMounted(() => {
+  if (props.pinOnClick) {
+    document.addEventListener('pointerdown', onDocPointerDown, true)
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocPointerDown, true)
+})
 </script>

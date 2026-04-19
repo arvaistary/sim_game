@@ -14,6 +14,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
     actionType: 'hobby',
     effect: 'Голод +4.2, Энергия -5.5, Стресс -4.5, Настроение +18.5, Здоровье -0.3, Физическая форма -0.7, Художественное мастерство +3.5, Креативность +3',
     mood: '🎨 Когда кисть в руках — время летит незаметно',
+    requirements: { requiresItem: 'art_supplies' },
   },
   {
     id: 'hob_instrument',
@@ -53,6 +54,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
     actionType: 'hobby',
     effect: 'Голод +4.3, Энергия -4.5, Стресс -5, Настроение +17, Здоровье +0.5, Физическая форма +1.2, Фотография +3, Креативность +2.5',
     mood: '📸 Ловишь момент — и мир становится красивее',
+    requirements: { requiresItem: 'camera' },
   },
   {
     id: 'hob_gardening_act',
@@ -67,6 +69,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
     actionType: 'hobby',
     effect: 'Голод +3.2, Энергия -3.8, Стресс -7.5, Настроение +14.5, Здоровье +2.8, Физическая форма +3.5, Садоводство +3.5, Комфорт жилья +10',
     mood: '🌱 Растения учат терпению и дают ощущение жизни',
+    requirements: { requiresItem: 'garden_tools' },
   },
   {
     id: 'hob_craft',
@@ -106,6 +109,7 @@ export const HOBBY_ACTIONS: BalanceAction[] = [
     actionType: 'hobby',
     effect: 'Голод -10.5, Энергия -3.5, Стресс -6, Настроение +19, Здоровье +3.5, Физическая форма -0.5, Кулинарное мастерство +3.5',
     mood: '🍳 Когда эксперимент удался — это настоящая победа',
+    requirements: { requiresItem: 'cooking_set' },
   },
   {
     id: 'hob_content',

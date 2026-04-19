@@ -543,13 +543,24 @@ export class ActionSystem {
   _addFurnitureItem(itemId: string): void {
     const items = this._getFurnitureItems()
     if (items.some(item => item.id === itemId)) return
-    items.push({ id: itemId, level: 1 })
+    const nextItem = { id: itemId, level: 1 }
+    items.push(nextItem)
     if (!this.world.components.has(FURNITURE_COMPONENT)) {
       this.world.components.set(FURNITURE_COMPONENT, new Map())
       const entity = this.world.entities.get(PLAYER_ENTITY)
       if (entity) entity.components.add(FURNITURE_COMPONENT)
     }
     this.world.components.get(FURNITURE_COMPONENT)!.set(PLAYER_ENTITY, items as unknown as Record<string, unknown>)
+
+    const housing = this.world.getComponent(PLAYER_ENTITY, HOUSING_COMPONENT) as Record<string, unknown> | null
+    if (housing) {
+      const housingFurniture = Array.isArray(housing.furniture) ? housing.furniture as Array<Record<string, unknown>> : []
+      if (!housingFurniture.some(item => item?.id === itemId)) {
+        housingFurniture.push(nextItem)
+      }
+      housing.furniture = housingFurniture
+      this.world.updateComponent(PLAYER_ENTITY, HOUSING_COMPONENT, housing)
+    }
   }
 
   _getMinAgeForAgeGroup(ageGroup: AgeGroup): number {
@@ -592,5 +603,4 @@ export class ActionSystem {
     return Math.max(min, Math.min(max, value))
   }
 }
-
 

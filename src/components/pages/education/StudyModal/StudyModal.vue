@@ -64,14 +64,14 @@
         <span class="btn-text">{{ readButtonText }}</span>
       </button>
 
-      <button
+      <!-- <button
         class="action-btn action-btn--finish"
         :disabled="!canFinish"
         @click="handleFinish"
       >
         <span class="btn-icon">✅</span>
         <span class="btn-text">{{ finishButtonText }}</span>
-      </button>
+      </button> -->
     </template>
   </Modal>
 </template>
@@ -123,7 +123,13 @@ const currentPageContent = computed(() => {
 })
 
 const readButtonText = computed(() => {
-  if (!props.canContinue) return 'Нельзя продолжить'
+  if (!props.canContinue) {
+    const warning = (props.resourceWarning ?? '').toLowerCase()
+    if (warning.includes('голод')) return 'Сначала поешьте'
+    if (warning.includes('энерг')) return 'Нужно отдохнуть'
+    if (warning.includes('поспите') || warning.includes('учёбы до сна')) return 'Сначала поспите'
+    return 'Пока нельзя читать'
+  }
   return props.currentStep === 0 ? 'Начать читать' : 'Читать дальше'
 })
 
@@ -292,8 +298,8 @@ watch(() => props.isOpen, (newVal) => {
 
 .resource-warning {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 8px;
   padding: 12px;
   background: rgba(251, 191, 36, 0.15);
@@ -302,11 +308,15 @@ watch(() => props.isOpen, (newVal) => {
 
 .warning-icon {
   font-size: 16px;
+  flex-shrink: 0;
+  line-height: 1.3;
 }
 
 .warning-text {
   font-size: 13px;
   color: #b45309;
+  line-height: 1.45;
+  white-space: pre-line;
 }
 
 .action-btn {

@@ -2,6 +2,7 @@ import { ref, type Component } from 'vue'
 import type { StatChangeBreakdownEntry } from '@/domain/balance/types'
 import { buildActionResultStatLines, type ActionResultStatLine } from '@/utils/stat-breakdown-format'
 import { useModalStack } from '../useModalStack'
+import type { BaseModalProps, OpenModalOptions } from './modal.types'
 
 /**
  * Описание кнопки в модальном окне.
@@ -103,18 +104,65 @@ export function useGameModal() {
 }
 
 /**
- * Открыть модальное окно через стек (новый подход).
+ * Открыть модальное окно через стек (унифицированный подход).
+ *
+ * Автоматически добавляет проп `onClose` в переданные props, если он указан в options.
  *
  * @example
  * ```ts
  * import { openModal } from '@/composables/useGameModal'
  * import MyModal from '@/components/MyModal.vue'
  *
+ * // Простой способ - передаем props напрямую
  * const modalId = openModal(MyModal, { title: 'Hello' })
+ *
+ * // С callback закрытия
+ * const modalId = openModal(MyModal, {
+ *   title: 'Hello',
+ *   onClose: () => console.log('Closed')
+ * })
+ *
+ * // Или через options
+ * const modalId = openModal(MyModal, {
+ *   props: { title: 'Hello' },
+ *   onClose: () => console.log('Closed')
+ * })
  * ```
  */
-export function openModal(component: Component, props?: Record<string, any>): symbol {
+export function openModal<T extends BaseModalProps = BaseModalProps>(
+  component: Component,
+  options?: OpenModalOptions | Record<string, any>
+): symbol {
   const modalStack = useModalStack()
+  
+  // Поддержка обоих форматов вызова:
+  // 1. openModal(Component, { props: {...}, onClose: ... })
+  // 2. openModal(Component, { title: '...', onClose: ... })
+  
+  let props: Record<string, any> = {}
+  let onClose: (() => void) | undefined
+  
+  if (options) {
+    if ('props' in options && typeof options.props === 'object') {
+      // Формат с options
+      props = { ...options.props }
+      onClose = options.onClose
+    } else {
+      // Прямой формат - всё в props
+      props = { ...options }
+      // Извлекаем onClose из props, если он там есть
+      if ('onClose' in props && typeof props.onClose === 'function') {
+        onClose = props.onClose as () => void
+        delete props.onClose
+      }
+    }
+  }
+  
+  // Добавляем onClose в props, если он указан
+  if (onClose) {
+    props.onClose = onClose
+  }
+  
   return modalStack.open(component, props)
 }
 

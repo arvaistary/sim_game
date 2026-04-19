@@ -48,6 +48,10 @@
   text-align: left;
 }
 
+.tooltip--interactive {
+  pointer-events: auto;
+}
+
 .tooltip-enter-active,
 .tooltip-leave-active {
   transition: opacity 0.15s ease;

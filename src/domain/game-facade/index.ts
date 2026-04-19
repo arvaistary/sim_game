@@ -7,6 +7,7 @@ import {
   LIFE_MEMORY_COMPONENT,
   CHAIN_STATE_COMPONENT,
   TAGS_COMPONENT,
+  FURNITURE_COMPONENT,
 } from '@/domain/engine/components'
 import { GameWorld } from '@/domain/engine/world'
 import { ActivityLogSystem } from '@/domain/engine/systems/ActivityLogSystem'
@@ -126,7 +127,14 @@ export function createWorldFromSave(saveData?: AnyRecord): GameWorld {
       jobHistory: [],
     })
   }
-  if (data.housing) world.addComponent(PLAYER_ENTITY, 'housing', data.housing as AnyRecord)
+  if (data.housing) {
+    const housing = data.housing as AnyRecord
+    world.addComponent(PLAYER_ENTITY, 'housing', housing)
+
+    const furnitureItems = Array.isArray(housing.furniture) ? housing.furniture : []
+    world.components.set(FURNITURE_COMPONENT, new Map([[PLAYER_ENTITY, furnitureItems as unknown as AnyRecord]]))
+    world.entities.get(PLAYER_ENTITY)?.components.add(FURNITURE_COMPONENT)
+  }
   if (data.education) {
     const edu = data.education as AnyRecord
     world.addComponent(PLAYER_ENTITY, 'education', {
