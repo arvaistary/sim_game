@@ -116,6 +116,22 @@ export const useFinanceStore = defineStore('finance', () => {
     debt.value = 0
   }
 
+  function save(): Record<string, unknown> {
+    return {
+      investments: investments.value,
+      monthlyExpenses: monthlyExpenses.value,
+      lastSettlement: lastSettlement.value,
+      debt: debt.value,
+    }
+  }
+
+  function load(data: Record<string, unknown>): void {
+    if (Array.isArray(data.investments)) investments.value = data.investments as Investment[]
+    if (Array.isArray(data.monthlyExpenses)) monthlyExpenses.value = data.monthlyExpenses as MonthlyExpense[]
+    if (data.lastSettlement !== undefined) lastSettlement.value = data.lastSettlement as number | null
+    if (typeof data.debt === 'number') debt.value = data.debt
+  }
+
   function applyAction(cardData: Record<string, unknown>): boolean {
     const actionType = cardData.type as string
     if (actionType === 'invest') {
@@ -155,5 +171,7 @@ export const useFinanceStore = defineStore('finance', () => {
     repayDebt,
     applyAction,
     reset,
+    save,
+    load,
   }
 })

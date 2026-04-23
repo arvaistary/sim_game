@@ -48,7 +48,10 @@ const currentWork = computed<WorkSnapshot | null>(() => {
   return {
     id: job.id,
     name: job.name,
+    schedule: job.schedule,
+    employed: job.employed,
     salaryPerHour: job.salaryPerHour,
+    salaryPerDay: job.salaryPerDay,
     requiredHoursPerWeek: job.requiredHoursPerWeek,
     workedHoursCurrentWeek: job.workedHoursCurrentWeek,
   }

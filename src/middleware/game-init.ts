@@ -1,4 +1,4 @@
-import { defineNuxtRouteMiddleware, navigateTo } from '#imports'
+import { defineNuxtRouteMiddleware, navigateTo, useNuxtApp } from '#imports'
 import { usePlayerStore } from '@/stores/player-store'
 import { useGameStore } from '@/stores/game.store'
 import { useTimeStore } from '@/stores/time-store'
@@ -11,9 +11,9 @@ import { useHousingStore } from '@/stores/housing-store'
 import { useActivityStore } from '@/stores/activity-store'
 import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 import { ROUTE_MAP } from '@/constants/navigation'
-import { LocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
+import { createLocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
 
-const saveRepository = new LocalStorageSaveRepository()
+const saveRepository = createLocalStorageSaveRepository()
 
 export default defineNuxtRouteMiddleware((to) => {
   if (!to.path.startsWith('/game')) {
@@ -30,6 +30,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const housingStore = useHousingStore()
   const activityStore = useActivityStore()
   const gameStore = useGameStore()
+  const { $autoSave } = useNuxtApp()
 
   if (!playerStore.isInitialized) {
     const savedData = saveRepository.load()
@@ -38,6 +39,8 @@ export default defineNuxtRouteMiddleware((to) => {
     } else {
       playerStore.initialize()
     }
+    // Включаем автосохранение после первой инициализации
+    $autoSave.enable()
   }
 
   const { isTabVisible } = useAgeRestrictions()

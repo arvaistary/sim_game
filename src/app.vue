@@ -52,18 +52,15 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { navigateTo, useColorMode, useRoute } from '#imports'
+import { navigateTo, useColorMode, useNuxtApp, useRoute } from '#imports'
 import { usePlayerStore } from '@/stores'
-import { useGameStore } from '@/stores/game.store'
-import { LocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
 
 import type { AppMenuActionId, AppMenuActionItem } from '@/app.types'
 
 const route = useRoute()
 const colorMode = useColorMode()
+const { $autoSave } = useNuxtApp()
 const playerStore = usePlayerStore()
-const gameStore = useGameStore()
-const saveRepository = new LocalStorageSaveRepository()
 
 const isMenuOpen = ref<boolean>(false)
 
@@ -115,6 +112,7 @@ function handleToggleTheme(): void {
 
 function handleMenuAction(actionId: AppMenuActionId): void {
   if (actionId === 'newGame') {
+    $autoSave.clear()
     playerStore.reset()
     handleCloseMenu()
     navigateTo('/')
@@ -138,23 +136,12 @@ watch(() => route.fullPath, () => {
   handleCloseMenu()
 })
 
-function flushSaveToStorage(): void {
-  if (playerStore.isInitialized) {
-    const saveData = gameStore.save()
-    saveRepository.save(saveData)
-  }
-}
-
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalKeydown)
-  window.addEventListener('beforeunload', flushSaveToStorage)
-  window.addEventListener('pagehide', flushSaveToStorage)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleGlobalKeydown)
-  window.removeEventListener('beforeunload', flushSaveToStorage)
-  window.removeEventListener('pagehide', flushSaveToStorage)
 })
 </script>
 

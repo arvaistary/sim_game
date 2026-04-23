@@ -146,6 +146,18 @@ export const useActivityStore = defineStore('activity', () => {
     nextId.value = 0
   }
 
+  function save(): Record<string, unknown> {
+    return {
+      entries: entries.value,
+      nextId: nextId.value,
+    }
+  }
+
+  function load(data: Record<string, unknown>): void {
+    if (Array.isArray(data.entries)) entries.value = data.entries as ActivityEntry[]
+    if (typeof data.nextId === 'number') nextId.value = data.nextId
+  }
+
   return {
     entries,
     count,
@@ -163,5 +175,7 @@ export const useActivityStore = defineStore('activity', () => {
     getEntries,
     clear,
     reset,
+    save,
+    load,
   }
 })

@@ -20,18 +20,20 @@
 
 <script setup lang="ts">
 import type { WorkStatDiff } from '../WorkButton/WorkButton.types'
-import type { BaseModalProps } from '@/composables/useGameModal/modal.types'
 
-interface Props extends BaseModalProps {
+interface Props {
   workSummary: string
   statDiffs: WorkStatDiff[]
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
+
+const emit = defineEmits<{
+  close: []
+}>()
 
 function handleClose() {
-  // Вызываем onClose, если он передан
-  props.onClose?.()
+  emit('close')
 }
 
 function formatDelta(delta: number): string {

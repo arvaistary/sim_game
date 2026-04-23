@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest'
-import { ActionValidator, validateAction, validateActionCatalog } from '@/domain/balance/actions/action-schema'
+import {
+  validateAction,
+  validateActionCatalog,
+  validateActionWithErrors,
+  validateActionArray,
+  validateUniqueIds,
+  validateRequiredFields,
+} from '@/domain/balance/actions/action-schema'
 import { AgeGroup } from '@/domain/balance/actions/types'
 import type { BalanceAction } from '@/domain/balance/actions'
 
@@ -126,9 +133,8 @@ describe('Action Schema Validation', () => {
     })
   })
 
-  describe('ActionValidator', () => {
+  describe('validateActionWithErrors', () => {
     test('getErrors возвращает список ошибок', () => {
-      const validator = new ActionValidator()
       const invalidAction = {
         id: '',
         category: 'invalid' as any,
@@ -139,14 +145,13 @@ describe('Action Schema Validation', () => {
         effect: '',
       }
 
-      validator.validate(invalidAction)
-      const errors = validator.getErrors()
+      const result = validateActionWithErrors(invalidAction)
 
-      expect(errors.length).toBeGreaterThan(0)
+      expect(result.valid).toBe(false)
+      expect(result.errors.length).toBeGreaterThan(0)
     })
 
     test('getFirstError возвращает первую ошибку', () => {
-      const validator = new ActionValidator()
       const invalidAction = {
         id: '',
         category: 'invalid' as any,
@@ -157,15 +162,16 @@ describe('Action Schema Validation', () => {
         effect: '',
       }
 
-      validator.validate(invalidAction)
-      const firstError = validator.getFirstError()
+      const result = validateActionWithErrors(invalidAction)
 
-      expect(firstError).toBeTruthy()
-      expect(typeof firstError).toBe('string')
+      expect(result.valid).toBe(false)
+      expect(result.errors[0]).toBeTruthy()
+      expect(typeof result.errors[0]).toBe('string')
     })
+  })
 
-    test('validateArray валидирует массив действий', () => {
-      const validator = new ActionValidator()
+  describe('validateActionArray', () => {
+    test('валидирует массив действий', () => {
       const actions = [
         {
           id: 'action1',
@@ -187,14 +193,13 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validator.validateArray(actions)
+      const result = validateActionArray(actions)
 
       expect(result.valid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
-    test('validateArray находит ошибки в массиве', () => {
-      const validator = new ActionValidator()
+    test('находит ошибки в массиве', () => {
       const actions = [
         {
           id: 'action1',
@@ -216,7 +221,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validator.validateArray(actions)
+      const result = validateActionArray(actions)
 
       expect(result.valid).toBe(false)
       expect(result.errors).toHaveLength(1)
@@ -247,7 +252,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = ActionValidator.validateUniqueIds(actions)
+      const result = validateUniqueIds(actions)
 
       expect(result.valid).toBe(false)
       expect(result.duplicates).toContain('duplicate')
@@ -275,7 +280,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = ActionValidator.validateUniqueIds(actions)
+      const result = validateUniqueIds(actions)
 
       expect(result.valid).toBe(true)
       expect(result.duplicates).toHaveLength(0)
@@ -296,7 +301,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = ActionValidator.validateRequiredFields(actions)
+      const result = validateRequiredFields(actions)
 
       expect(result.valid).toBe(false)
       expect(result.missing).toHaveLength(1)
@@ -317,7 +322,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = ActionValidator.validateRequiredFields(actions)
+      const result = validateRequiredFields(actions)
 
       expect(result.valid).toBe(true)
       expect(result.missing).toHaveLength(0)

@@ -1,11 +1,12 @@
 <template>
   <Modal
+    v-if="skillsWithProgress.length"
     title="Мои навыки"
     max-width="520px"
     @close="handleClose"
   >
     <div class="skills-modal__scroll">
-      <ul v-if="skillsWithProgress.length" class="skills-list">
+      <ul class="skills-list">
         <li
           v-for="{ skill, level } in skillsWithProgress"
           :key="skill.key"
@@ -24,9 +25,6 @@
           </Tooltip>
         </li>
       </ul>
-      <p v-else class="skills-list__empty">
-        Нет навыков с уровнем выше 1
-      </p>
     </div>
   </Modal>
 </template>
@@ -37,11 +35,10 @@ import { useSkillsStore } from '@/stores'
 import { ALL_SKILLS } from '@/domain/balance/constants/skills-constants'
 import { buildSkillTooltipText } from '@/domain/balance/utils/skill-tooltip-content'
 import type { SkillDef } from '@/domain/balance/types'
-import type { BaseModalProps } from '@/composables/useGameModal/modal.types'
 
-interface Props extends BaseModalProps {}
-
-const props = defineProps<Props>()
+const emit = defineEmits<{
+  close: []
+}>()
 
 const skillsStore = useSkillsStore()
 
@@ -61,7 +58,7 @@ function skillDetailTooltip(skill: SkillDef): string {
 }
 
 function handleClose() {
-  props.onClose?.()
+  emit('close')
 }
 </script>
 

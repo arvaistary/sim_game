@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useTimeStore } from './time-store'
 import { useStatsStore } from './stats-store'
 import { useWalletStore } from './wallet-store'
@@ -13,6 +13,7 @@ import { useActionsStore } from './actions-store'
 import { useFinanceStore } from './finance-store'
 import { useActivityStore } from './activity-store'
 import { getActionById, type BalanceAction } from '@/domain/balance/actions'
+import { appGameCommands } from '@/application/game/commands'
 
 export const useGameStore = defineStore('game', () => {
   const worldVersion = ref(0)
@@ -33,20 +34,30 @@ export const useGameStore = defineStore('game', () => {
 
   const worldTick = computed(() => worldVersion.value)
 
+  // Еженедельный сброс рабочих часов при смене недели
+  watch(() => time.gameWeeks, (newWeek, oldWeek) => {
+    if (newWeek !== oldWeek && oldWeek !== undefined) {
+      career.resetWeek()
+    }
+  })
+
   function initWorld() { worldVersion.value++ }
-  function save() { 
-    return { 
-      player: player.save(), 
-      time: time.save(), 
-      stats: stats.save(), 
-      wallet: wallet.save(), 
-      skills: skills.save ? skills.save() : {}, 
-      career: career.save ? career.save() : {}, 
-      education: education.save ? education.save() : {}, 
-      housing: housing.save ? housing.save() : {} 
-    } 
+  function save() {
+    return {
+      player: player.save(),
+      time: time.save(),
+      stats: stats.save(),
+      wallet: wallet.save(),
+      skills: skills.save ? skills.save() : {},
+      career: career.save ? career.save() : {},
+      education: education.save ? education.save() : {},
+      housing: housing.save ? housing.save() : {},
+      events: events.save ? events.save() : {},
+      finance: finance.save ? finance.save() : {},
+      activity: activity.save ? activity.save() : {},
+    }
   }
-  function load(data?: Record<string, unknown>) { 
+  function load(data?: Record<string, unknown>) {
     if (data?.player) player.load(data.player as Record<string, unknown>)
     if (data?.time) time.load(data.time as Record<string, unknown>)
     if (data?.stats) stats.load(data.stats as Record<string, unknown>)
@@ -55,8 +66,11 @@ export const useGameStore = defineStore('game', () => {
     if (data?.career) career.load?.(data.career as Record<string, unknown>)
     if (data?.education) education.load?.(data.education as Record<string, unknown>)
     if (data?.housing) housing.load?.(data.housing as Record<string, unknown>)
-    isInitialized.value = true; 
-    return true 
+    if (data?.events) events.load?.(data.events as Record<string, unknown>)
+    if (data?.finance) finance.load?.(data.finance as Record<string, unknown>)
+    if (data?.activity) activity.load?.(data.activity as Record<string, unknown>)
+    isInitialized.value = true;
+    return true
   }
   function resetGame() {
     time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset()
@@ -66,27 +80,39 @@ export const useGameStore = defineStore('game', () => {
   function canApplyWorkShift(hours: number) {
     if (!career.isEmployed) return { canDo: false, reason: 'Нет работы' }
     if (stats.energy < hours * 3) return { canDo: false, reason: 'Недостаточно энергии' }
+    if (time.weekHoursRemaining < hours) return { canDo: false, reason: 'Недостаточно часов в неделе' }
     return { canDo: true }
   }
 
   function applyWorkShift(hours: number) {
+    const check = canApplyWorkShift(hours)
+    if (!check.canDo) return check.reason
+
     const salary = hours * (career.currentJob?.salaryPerHour ?? 0)
     career.addWorkHours(hours)
     career.addPendingSalary(salary)
+
+    // Собираем зарплату сразу в кошелёк
+    const actualSalary = career.collectSalary()
+    wallet.earn(actualSalary)
+
     stats.applyStatChanges({ energy: -(hours * 3), hunger: +(hours * 2) })
+    time.advanceHours(hours)
     worldVersion.value++
-    activity.addWorkEntry('Работа', hours, salary)
-    return `Вы заработали ${salary} ₽`
+    activity.addWorkEntry('Работа', hours, actualSalary)
+    return `Вы заработали ${actualSalary} ₽`
   }
 
   function quitCareer() {
     career.endWork()
+    worldVersion.value++
     return { success: true, message: 'Вы уволились' }
   }
 
   function changeCareer(jobId: string) {
-    career.startWork({ id: jobId, name: 'Работа', employed: true })
-    return { success: true, message: 'Вы устроились' }
+    const result = appGameCommands.changeCareer(jobId)
+    if (result.success) worldVersion.value++
+    return result
   }
 
   function getCareerTrack(): { id: string; name: string; level: number; schedule: string; salaryPerHour: number }[] {

@@ -33,11 +33,10 @@ import EventChoices from '../EventChoices/EventChoices.vue'
 import EventResult from '../EventResult/EventResult.vue'
 import { useEvents } from '@/composables/useEvents'
 import { useToast } from '@/composables/useToast'
-import type { BaseModalProps } from '@/composables/useGameModal/modal.types'
 
-interface Props extends BaseModalProps {}
-
-const props = defineProps<Props>()
+const emit = defineEmits<{
+  close: []
+}>()
 
 const events = useEvents()
 const toast = useToast()
@@ -71,7 +70,7 @@ function proceedNext() {
 }
 
 function handleClose() {
-  props.onClose?.()
+  emit('close')
 }
 </script>
 

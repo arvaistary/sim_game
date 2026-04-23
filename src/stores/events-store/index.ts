@@ -123,6 +123,21 @@ export const useEventsStore = defineStore('events', () => {
     seenEventIds.value = new Set()
   }
 
+  function save(): Record<string, unknown> {
+    return {
+      eventQueue: eventQueue.value,
+      eventHistory: eventHistory.value,
+      seenEventIds: [...seenEventIds.value],
+    }
+  }
+
+  function load(data: Record<string, unknown>): void {
+    if (Array.isArray(data.eventQueue)) eventQueue.value = data.eventQueue as GameEvent[]
+    if (Array.isArray(data.eventHistory)) eventHistory.value = data.eventHistory as EventHistoryEntry[]
+    if (Array.isArray(data.seenEventIds)) seenEventIds.value = new Set(data.seenEventIds as string[])
+    currentEvent.value = null
+  }
+
   return {
     eventQueue,
     currentEvent,
@@ -140,5 +155,7 @@ export const useEventsStore = defineStore('events', () => {
     clearQueue,
     hasSeenEvent,
     reset,
+    save,
+    load,
   }
 })

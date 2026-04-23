@@ -30,9 +30,8 @@
 
 <script setup lang="ts">
 import type { WorkOptions } from '../WorkButton/WorkButton.types'
-import type { BaseModalProps } from '@/composables/useGameModal/modal.types'
 
-interface Props extends BaseModalProps {
+interface Props {
   workOptions: WorkOptions | null
   isWorkInProgress: boolean
   canStartOneDayShift: boolean
@@ -42,8 +41,12 @@ interface Props extends BaseModalProps {
 
 const props = defineProps<Props>()
 
+const emit = defineEmits<{
+  close: []
+}>()
+
 function handleClose() {
-  props.onClose?.()
+  emit('close')
 }
 
 function handleOneDayShift() {
