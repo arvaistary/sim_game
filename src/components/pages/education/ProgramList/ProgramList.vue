@@ -83,21 +83,24 @@
 import { computed } from 'vue'
 import { useRouter } from '#imports'
 import { useGameStore } from '@/stores/game.store'
+import { useHousingStore, useTimeStore } from '@/stores'
 import { showGameResultModal } from '@/composables/useGameModal'
 import { useToast } from '@/composables/useToast'
 import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 import type { EducationProgram } from '@/domain/balance/types'
 import { formatMoney } from '@/utils/format'
 import { AgeGroup, getAgeGroup } from '@/composables/useAgeRestrictions/age-constants'
-import type { ActiveCourse, CompletedProgramRecord } from '@/domain/engine/systems/EducationSystem/index.types'
+import type { ActiveCourse, CompletedProgramRecord } from '@/stores/education-store'
 
 const store = useGameStore()
+const timeStore = useTimeStore()
+const housingStore = useHousingStore()
 const toast = useToast()
 const router = useRouter()
 
 const allPrograms = EDUCATION_PROGRAMS as unknown as EducationProgram[]
 
-const currentAge = computed(() => store.age ?? 0)
+const currentAge = computed(() => timeStore.currentAge ?? store.age ?? 18)
 const currentAgeGroup = computed(() => getAgeGroup(currentAge.value))
 
 function isAgeOk(program: EducationProgram): boolean {
@@ -123,11 +126,7 @@ function canAfford(program: EducationProgram): boolean {
 }
 
 function hasFurnitureItem(itemId: string): boolean {
-  const world = store.getWorld()
-  if (!world) return false
-  const furniture = world.getComponent<Array<Record<string, unknown>>>('player', 'furniture')
-  if (!Array.isArray(furniture)) return false
-  return furniture.some(item => item?.id === itemId)
+  return housingStore.hasFurniture(itemId)
 }
 
 function isProgramOwned(program: EducationProgram): boolean {

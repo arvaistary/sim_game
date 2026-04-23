@@ -81,10 +81,15 @@
 import { ref, computed, watch } from 'vue'
 import { definePageMeta, useRoute } from '#imports'
 import { useActions } from '@/composables/useActions'
-import { useGameStore } from '@/stores/game.store'
+import { useTimeStore } from '@/stores/time-store'
+import { useWalletStore } from '@/stores/wallet-store'
+import { getActionById } from '@/domain/balance/actions'
 import { FOOD_ACTION_IDS, LEARNING_ACTION_IDS, THINGS_ACTION_IDS, HOME_ACTION_IDS } from '@/config/shop-tab-groups'
 
 definePageMeta({ middleware: 'game-init' })
+
+const timeStore = useTimeStore()
+const walletStore = useWalletStore()
 
 const tabs = [
   { id: 'food', icon: '🍔', title: 'Еда', shortDesc: 'Продукты, напитки и доставка' },
@@ -110,7 +115,6 @@ watch(
   },
 )
 
-const store = useGameStore()
 const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 
 const allShopActions = getActionsByCategory('shop' as any)
@@ -126,31 +130,34 @@ function sortByAvailability(actions: any[]): any[] {
 
 /** Получить причину недоступности действия */
 function getDisabledReason(action: any): string {
-  const result = store.canExecuteAction(action.id)
-  return result.reason ?? 'Действие недоступно'
+  const result = getActionById(action.id)
+  if (!result) return 'Действие не найдено'
+  if (walletStore.money < result.price) return 'Недостаточно денег'
+  if (timeStore.weekHoursRemaining < result.hourCost) return 'Недостаточно времени'
+  return 'Действие недоступно'
 }
 
 // Еда
 const foodActions = computed(() => {
-  void store.worldTick
+  void timeStore.totalHours
   return allShopActions.filter((a: any) => FOOD_ACTION_IDS.has(a.id))
 })
 
 // Обучение
 const learningActions = computed(() => {
-  void store.worldTick
+  void timeStore.totalHours
   return allShopActions.filter((a: any) => LEARNING_ACTION_IDS.has(a.id))
 })
 
 // Вещи
 const thingsActions = computed(() => {
-  void store.worldTick
+  void timeStore.totalHours
   return allShopActions.filter((a: any) => THINGS_ACTION_IDS.has(a.id))
 })
 
 // Дом
 const homeActions = computed(() => {
-  void store.worldTick
+  void timeStore.totalHours
   return allShopActions.filter((a: any) => HOME_ACTION_IDS.has(a.id))
 })
 

@@ -1,1 +1,0 @@
-// EventHistorySystem utils

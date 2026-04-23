@@ -16,22 +16,28 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useGameStore } from '@/stores/game.store'
+import { useFinanceStore } from '@/stores'
 import { formatMoney } from '@/utils/format'
 import { EXPENSE_LABELS_RU } from '@/constants/metric-labels'
 
-const store = useGameStore()
+const financeStore = useFinanceStore()
 
 const expenseLabels = EXPENSE_LABELS_RU
 
 const monthlyExpenses = computed(() => {
-  void store.worldTick
-  const snapshot = store.getFinanceSnapshot() as Record<string, unknown> | null
-  return (snapshot?.monthlyExpenses as Record<string, number>) ?? {}
+  const expenses = financeStore.monthlyExpenses
+  if (expenses && expenses.length > 0) {
+    const expenseMap: Record<string, number> = {}
+    for (const exp of expenses) {
+      expenseMap[exp.category] = exp.amount
+    }
+    return expenseMap
+  }
+  return {}
 })
 
 const totalExpenses = computed(() => {
-  return Object.values(monthlyExpenses.value).reduce((sum, v) => sum + v, 0)
+  return financeStore.totalExpense
 })
 </script>
 

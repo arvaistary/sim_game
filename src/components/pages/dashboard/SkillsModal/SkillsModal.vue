@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useGameStore } from '@/stores/game.store'
+import { useSkillsStore } from '@/stores'
 import { ALL_SKILLS } from '@/domain/balance/constants/skills-constants'
 import { buildSkillTooltipText } from '@/domain/balance/utils/skill-tooltip-content'
 import type { SkillDef } from '@/domain/balance/types'
@@ -43,17 +43,10 @@ interface Props extends BaseModalProps {}
 
 const props = defineProps<Props>()
 
-const store = useGameStore()
+const skillsStore = useSkillsStore()
 
 function skillLevel(key: string): number {
-  const skills = store.skills as Record<string, unknown> | null
-  if (!skills) return 0
-  const entry = skills[key]
-  if (typeof entry === 'number') return entry
-  if (entry && typeof entry === 'object' && 'level' in (entry as Record<string, unknown>)) {
-    return (entry as { level: number }).level
-  }
-  return 0
+  return skillsStore.getSkillLevel(key)
 }
 
 const skillsWithProgress = computed(() => {

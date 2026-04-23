@@ -5,7 +5,7 @@
  */
 
 export interface EventFeatureFlags {
-  // Включает новый EventIngress API вместо legacy queuePendingEvent
+  // Включает новый EventIngress API вместо queuePendingEvent
   ingressV2: boolean
   
   // Включает улучшенный dedup с period guards

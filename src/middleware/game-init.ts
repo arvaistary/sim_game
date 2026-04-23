@@ -1,24 +1,47 @@
 import { defineNuxtRouteMiddleware, navigateTo } from '#imports'
+import { usePlayerStore } from '@/stores/player-store'
 import { useGameStore } from '@/stores/game.store'
+import { useTimeStore } from '@/stores/time-store'
+import { useStatsStore } from '@/stores/stats-store'
+import { useWalletStore } from '@/stores/wallet-store'
+import { useSkillsStore } from '@/stores/skills-store'
+import { useCareerStore } from '@/stores/career-store'
+import { useEducationStore } from '@/stores/education-store'
+import { useHousingStore } from '@/stores/housing-store'
+import { useActivityStore } from '@/stores/activity-store'
 import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 import { ROUTE_MAP } from '@/constants/navigation'
+import { LocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
+
+const saveRepository = new LocalStorageSaveRepository()
 
 export default defineNuxtRouteMiddleware((to) => {
   if (!to.path.startsWith('/game')) {
     return
   }
 
+  const playerStore = usePlayerStore()
+  const timeStore = useTimeStore()
+  const statsStore = useStatsStore()
+  const walletStore = useWalletStore()
+  const skillsStore = useSkillsStore()
+  const careerStore = useCareerStore()
+  const educationStore = useEducationStore()
+  const housingStore = useHousingStore()
+  const activityStore = useActivityStore()
   const gameStore = useGameStore()
 
-  if (!gameStore.isInitialized) {
-    gameStore.initWorld()
-    gameStore.load()
+  if (!playerStore.isInitialized) {
+    const savedData = saveRepository.load()
+    if (savedData) {
+      gameStore.load(savedData)
+    } else {
+      playerStore.initialize()
+    }
   }
 
-  // Проверка возрастных ограничений для маршрутов
   const { isTabVisible } = useAgeRestrictions()
 
-  // Найдём id вкладки по маршруту
   const routeEntry = Object.entries(ROUTE_MAP).find(([_, path]) => path === to.path)
 
   if (routeEntry) {
@@ -28,4 +51,3 @@ export default defineNuxtRouteMiddleware((to) => {
     }
   }
 })
-

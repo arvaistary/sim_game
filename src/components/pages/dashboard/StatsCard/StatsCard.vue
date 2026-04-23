@@ -15,22 +15,21 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useGameStore } from '@/stores/game.store'
+import { useStatsStore } from '@/stores'
 import { STAT_DEFS } from '@/domain/balance/constants/stat-defs'
 
-const store = useGameStore()
+const statsStore = useStatsStore()
 const statDefs = STAT_DEFS
 
 const statValues = computed<Record<string, number>>(() => ({
-  hunger: store.hunger,
-  energy: store.energy,
-  stress: store.stress,
-  mood: store.mood,
-  health: store.health,
-  physical: store.physical,
+  hunger: statsStore.hunger,
+  energy: statsStore.energy,
+  stress: statsStore.stress,
+  mood: statsStore.mood,
+  health: statsStore.health,
+  physical: statsStore.physical,
 }))
 
-/** Статы с обратной семантикой: чем выше значение, тем хуже (инвертируем для отображения) */
 const INVERTED_STATS = new Set(['hunger', 'stress'])
 
 function getStatValue(key: string): number {

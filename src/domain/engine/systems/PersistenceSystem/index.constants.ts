@@ -1,1 +1,0 @@
-// PersistenceSystem constants

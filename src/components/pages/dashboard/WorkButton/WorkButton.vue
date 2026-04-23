@@ -9,20 +9,21 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useCareerStore, useStatsStore, useWalletStore } from '@/stores'
 import { useGameStore } from '@/stores/game.store'
-import { useGameModal, openModal, closeModal } from '@/composables/useGameModal'
 import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
+import { useGameModal, openModal, closeModal } from '@/composables/useGameModal'
 import WorkChoiceModal from '../WorkChoiceModal/WorkChoiceModal.vue'
 import WorkResultModal from '../WorkResultModal/WorkResultModal.vue'
-import type { WorkOptions, WorkSnapshot, WorkStatDefinition, WorkStatDiff, WorkStatSnapshot } from './WorkButton.types'
+import type { WorkStatDefinition, WorkStatDiff, WorkSnapshot, WorkOptions, WorkStatSnapshot } from './WorkButton.types'
 
-const store = useGameStore()
-const gameModal = useGameModal()
+const careerStore = useCareerStore()
+const statsStore = useStatsStore()
+const walletStore = useWalletStore()
+const gameStore = useGameStore()
 const { isTabVisible } = useAgeRestrictions()
+const gameModal = useGameModal()
 const isVisible = computed(() => isTabVisible('career'))
-
-// Принудительная реактивность
-const reactivityTrigger = computed(() => store.worldTick)
 
 const STAT_DEFINITIONS: WorkStatDefinition[] = [
   { key: 'money', label: 'Деньги' },
@@ -38,23 +39,16 @@ const STAT_DEFINITIONS: WorkStatDefinition[] = [
 const isWorkInProgress = ref<boolean>(false)
 const workSummary = ref<string>('')
 const statDiffs = ref<WorkStatDiff[]>([])
-
-// IDs for modals in the stack
 let workChoiceModalId: symbol | null = null
 let workResultModalId: symbol | null = null
 
 const currentWork = computed<WorkSnapshot | null>(() => {
-  void reactivityTrigger.value
-  const job = store.currentJobSnapshot
-  if (!job) return null
-
+  const job = careerStore.currentJob
+  if (!job || !job.id) return null
   return {
     id: job.id,
     name: job.name,
-    schedule: job.schedule,
-    employed: job.employed,
     salaryPerHour: job.salaryPerHour,
-    salaryPerDay: job.salaryPerDay,
     requiredHoursPerWeek: job.requiredHoursPerWeek,
     workedHoursCurrentWeek: job.workedHoursCurrentWeek,
   }
@@ -137,17 +131,15 @@ function resolveDailyHours(work: WorkSnapshot): number {
 }
 
 function createWorkStatSnapshot(): WorkStatSnapshot {
-  const job = store.currentJobSnapshot
-
   return {
-    money: store.money,
-    energy: store.energy,
-    hunger: store.hunger,
-    stress: store.stress,
-    mood: store.mood,
-    health: store.health,
-    physical: store.physical,
-    workedHoursCurrentWeek: job?.workedHoursCurrentWeek ?? 0,
+    money: walletStore.money,
+    energy: statsStore.energy,
+    hunger: statsStore.hunger,
+    stress: statsStore.stress,
+    mood: statsStore.mood,
+    health: statsStore.health,
+    physical: statsStore.physical,
+    workedHoursCurrentWeek: careerStore.currentJob?.workedHoursCurrentWeek ?? 0,
   }
 }
 
@@ -174,20 +166,18 @@ function runShift(hours: number): void {
 
   isWorkInProgress.value = true
   const beforeSnapshot = createWorkStatSnapshot()
-  const summary = store.applyWorkShift(hours)
+  const summary = gameStore.applyWorkShift(hours)
   const afterSnapshot = createWorkStatSnapshot()
   isWorkInProgress.value = false
 
   workSummary.value = summary || 'Смена завершена.'
   statDiffs.value = buildDiffs(beforeSnapshot, afterSnapshot)
 
-  // Close choice modal
   if (workChoiceModalId) {
     closeModal(workChoiceModalId)
     workChoiceModalId = null
   }
 
-  // Open result modal
   workResultModalId = openModal(WorkResultModal, {
     workSummary: workSummary.value,
     statDiffs: statDiffs.value,

@@ -53,14 +53,17 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { navigateTo, useColorMode, useRoute } from '#imports'
-
+import { usePlayerStore } from '@/stores'
 import { useGameStore } from '@/stores/game.store'
+import { LocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
 
 import type { AppMenuActionId, AppMenuActionItem } from '@/app.types'
 
 const route = useRoute()
 const colorMode = useColorMode()
+const playerStore = usePlayerStore()
 const gameStore = useGameStore()
+const saveRepository = new LocalStorageSaveRepository()
 
 const isMenuOpen = ref<boolean>(false)
 
@@ -112,7 +115,7 @@ function handleToggleTheme(): void {
 
 function handleMenuAction(actionId: AppMenuActionId): void {
   if (actionId === 'newGame') {
-    gameStore.resetGame()
+    playerStore.reset()
     handleCloseMenu()
     navigateTo('/')
   }
@@ -136,8 +139,9 @@ watch(() => route.fullPath, () => {
 })
 
 function flushSaveToStorage(): void {
-  if (gameStore.isInitialized) {
-    gameStore.save()
+  if (playerStore.isInitialized) {
+    const saveData = gameStore.save()
+    saveRepository.save(saveData)
   }
 }
 

@@ -50,9 +50,9 @@ export const DEFAULT_SKILL_PROGRESSION_CONFIG: SkillProgressionConfig = {
 }
 
 /**
- * Конфигурация для обратной совместимости (level-only)
+ * Конфигурация для level-only модели (обратная совместимость)
  */
-export const LEGACY_SKILL_PROGRESSION_CONFIG: SkillProgressionConfig = {
+export const LEVEL_ONLY_SKILL_PROGRESSION_CONFIG: SkillProgressionConfig = {
   activeModel: 'level-only',
   useTwoCircuitModel: false,
   enableDecay: false,

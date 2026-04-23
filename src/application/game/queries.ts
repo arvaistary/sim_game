@@ -1,57 +1,106 @@
-import { gameQueries } from '@/domain/game-facade/queries'
-import { GameWorld } from '@/domain/engine/world'
-import type { EventQueueComponent, FinanceComponent, InvestmentComponent, WalletComponent } from '@/domain/engine/types'
+import { useCareerStore } from '@/stores/career-store'
+import { useEducationStore } from '@/stores/education-store'
+import { useFinanceStore } from '@/stores/finance-store'
+import { useWalletStore } from '@/stores/wallet-store'
+import { useActivityStore } from '@/stores/activity-store'
+import { useEventsStore } from '@/stores/events-store'
+import { useTimeStore } from '@/stores/time-store'
+import { getActionById } from '@/domain/balance/actions'
 
 export const appGameQueries = {
-  getCareerTrack(world: GameWorld): Array<Record<string, unknown>> {
-    return gameQueries.getCareerTrack(world)
+  getCareerTrack(): Array<Record<string, unknown>> {
+    const careerStore = useCareerStore()
+    return [careerStore.currentJob]
   },
-  getActivityLogEntries(world: GameWorld, count = 8): Array<Record<string, unknown>> {
-    return gameQueries.getActivityLogEntries(world, count)
+
+  getActivityLogEntries(count = 8): Array<Record<string, unknown>> {
+    const activityStore = useActivityStore()
+    return activityStore.getEntries(count) as unknown as Array<Record<string, unknown>>
   },
-  canStartEducationProgram(world: GameWorld, programId: string): boolean {
-    return gameQueries.canStartEducationProgram(world, programId)
+
+  canStartEducationProgram(programId: string): boolean {
+    const educationStore = useEducationStore()
+    return educationStore.canStartProgramById(programId)
   },
-  canStartEducationProgramWithReason(world: GameWorld, programId: string): { ok: boolean; reason?: string } {
-    return gameQueries.canStartEducationProgramWithReason(world, programId)
+
+  canStartEducationProgramWithReason(programId: string): { ok: boolean; reason?: string } {
+    const educationStore = useEducationStore()
+    if (!educationStore.canStartProgramById(programId)) {
+      return { ok: false, reason: 'Невозможно начать программу' }
+    }
+    return { ok: true }
   },
-  getFinanceOverview(world: GameWorld) {
-    return gameQueries.getFinanceOverview(world)
-  },
-  getFinanceActions(world: GameWorld) {
-    return gameQueries.getFinanceActions(world)
-  },
-  getInvestments(world: GameWorld) {
-    return gameQueries.getInvestments(world)
-  },
-  canExecuteAction(world: GameWorld, actionId: string): { canExecute: boolean; reason?: string } {
-    return gameQueries.canExecuteAction(world, actionId)
-  },
-  peekScheduledEvent(world: GameWorld): Record<string, unknown> | null {
-    return gameQueries.getNextEvent(world)
-  },
-  getActivityLog(world: GameWorld, filter?: string, limit?: number) {
-    return gameQueries.getActivityLog(world, filter, limit)
-  },
-  getActivityTimelineWindow(world: GameWorld, count: number, beforeIndex?: number) {
-    return gameQueries.getActivityLogWindow(world, count, beforeIndex)
-  },
-  getEventQueue(world: GameWorld, playerId: string): EventQueueComponent['queue'] {
-    const component = world.getComponent<EventQueueComponent>(playerId, 'eventQueue')
-    return component?.queue ?? []
-  },
-  getFinanceSnapshot(world: GameWorld, playerId: string) {
-    const wallet = world.getComponent<WalletComponent>(playerId, 'wallet')
-    const finance = world.getComponent<FinanceComponent>(playerId, 'finance')
-    const investments = world.getComponent<InvestmentComponent>(playerId, 'investment')
+
+  getFinanceOverview() {
+    const walletStore = useWalletStore()
+    const financeStore = useFinanceStore()
     return {
-      money: wallet?.money ?? 0,
-      reserveFund: wallet?.reserveFund ?? 0,
-      monthlyIncome: wallet?.monthlyIncome ?? 0,
-      monthlyExpenses: (finance as unknown as { monthlyExpenses?: Record<string, number> } | null)?.monthlyExpenses ?? {},
-      emergencyFund: 0,
+      balance: walletStore.money,
+      expenses: financeStore.totalExpense,
+      income: walletStore.totalEarned,
+    }
+  },
+
+  getFinanceActions() {
+    return []
+  },
+
+  getInvestments() {
+    const financeStore = useFinanceStore()
+    return financeStore.investments
+  },
+
+  canExecuteAction(actionId: string): { canExecute: boolean; reason?: string } {
+    const action = getActionById(actionId)
+    if (!action) return { canExecute: false, reason: 'Действие не найдено' }
+
+    const walletStore = useWalletStore()
+    const timeStore = useTimeStore()
+
+    if (walletStore.money < action.price) return { canExecute: false, reason: 'Недостаточно денег' }
+    if (timeStore.weekHoursRemaining < action.hourCost) return { canExecute: false, reason: 'Недостаточно времени' }
+
+    return { canExecute: true }
+  },
+
+  peekScheduledEvent(): Record<string, unknown> | null {
+    const eventsStore = useEventsStore()
+    return eventsStore.currentEvent as unknown as Record<string, unknown> | null
+  },
+
+  getActivityLog(filter?: string, limit?: number) {
+    const activityStore = useActivityStore()
+    let entries = activityStore.entries
+    if (filter && filter !== 'all') {
+      entries = entries.filter(e => e.type === filter)
+    }
+    if (limit) {
+      entries = entries.slice(-limit)
+    }
+    return entries
+  },
+
+  getActivityTimelineWindow(count: number, _beforeIndex?: number) {
+    const activityStore = useActivityStore()
+    return activityStore.getEntries(count)
+  },
+
+  getEventQueue(_playerId: string) {
+    const eventsStore = useEventsStore()
+    return eventsStore.eventQueue
+  },
+
+  getFinanceSnapshot(_playerId: string) {
+    const walletStore = useWalletStore()
+    const financeStore = useFinanceStore()
+    return {
+      money: walletStore.money,
+      reserveFund: walletStore.reserveFund,
+      monthlyIncome: walletStore.totalEarned,
+      monthlyExpenses: financeStore.monthlyExpenses.reduce((acc, e) => ({ ...acc, [e.category]: e.amount }), {}),
+      emergencyFund: walletStore.reserveFund,
       deposits: [],
-      portfolios: investments?.portfolios ?? [],
+      portfolios: financeStore.investments,
     }
   },
 }

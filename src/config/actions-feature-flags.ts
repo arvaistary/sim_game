@@ -30,7 +30,7 @@ export interface ActionsFeatureFlags {
 export const DEFAULT_ACTIONS_FEATURE_FLAGS: ActionsFeatureFlags = {
   schemaV2: false, // TODO: реализовать schema validation
   engineReasonsV2: true, // Реализовано: reason codes в canExecute
-  financeUnifiedV2: false, // TODO: мигрировать finance в ActionSystem
+  financeUnifiedV2: false, // TODO: мигрировать finance в actions-store
   eventIngressIntegration: false, // TODO: перейти на EventIngress
   needsValidation: false, // TODO: добавить needs проверки
   antiGrind: false, // TODO: добавить anti-grind механизмы

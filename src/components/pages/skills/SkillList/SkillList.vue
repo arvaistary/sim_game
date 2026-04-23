@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useGameStore } from '@/stores/game.store'
+import { useSkillsStore } from '@/stores'
 import {
   BASIC_SKILLS,
   PROFESSIONAL_SKILLS,
@@ -55,7 +55,7 @@ const tabs = [
 
 const activeTab = ref<string>('basic')
 
-const store = useGameStore()
+const skillsStore = useSkillsStore()
 
 const skillsMap: Record<string, SkillDef[]> = {
   basic: BASIC_SKILLS as unknown as SkillDef[],
@@ -70,14 +70,7 @@ const activeSkills = computed<SkillDef[]>(() => {
 })
 
 function getSkillLevel(key: string): number {
-  const skills = store.skills as Record<string, unknown> | null
-  if (!skills) return 0
-  const entry = skills[key]
-  if (typeof entry === 'number') return entry
-  if (entry && typeof entry === 'object' && 'level' in (entry as Record<string, unknown>)) {
-    return (entry as { level: number }).level
-  }
-  return 0
+  return skillsStore.getSkillLevel(key)
 }
 </script>
 

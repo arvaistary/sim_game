@@ -20,10 +20,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { navigateTo } from '#imports'
-import { useGameStore } from '@/stores/game.store'
+import { useActivityStore } from '@/stores'
 import { resolveActivityLogTitle } from '@/composables/useActivityLog/utils/activity-log-formatters'
 
-const store = useGameStore()
+const activityStore = useActivityStore()
 
 interface LogEntryDisplay {
   icon: string
@@ -32,24 +32,14 @@ interface LogEntryDisplay {
 }
 
 const logEntries = computed<LogEntryDisplay[]>(() => {
-  void store.worldTick
-  const _w = store.world
-  if (!_w) return []
-
-  const entries = store.getActivityLogEntries(8)
+  const entries = activityStore.recentEntries
   if (!entries || entries.length === 0) return []
 
-  return entries.map((entry: any) => {
-    const displayTitle = resolveActivityLogTitle(entry)
-    const title = displayTitle.length > 28
-      ? displayTitle.substring(0, 25) + '…'
-      : displayTitle
-    return {
-      icon: entry.icon || '•',
-      displayTitle: title,
-      day: entry.timestamp?.day ?? '?',
-    }
-  })
+  return entries.slice(0, 8).map(entry => ({
+    icon: '•',
+    displayTitle: entry.title?.substring(0, 25) ?? entry.description?.substring(0, 25) ?? 'Событие',
+    day: entry.day ?? '?',
+  }))
 })
 </script>
 

@@ -4,7 +4,7 @@ import { AgeGroup } from './types'
 /**
  * Child actions, адаптированные под тип BalanceAction для интеграции в runtime.
  * Оригинальный файл child-actions.ts содержит действия с другой структурой (description вместо effect).
- * Этот файл содержит конвертированные действия, совместимые с ActionSystem.
+ * Этот файл содержит конвертированные действия, совместимые с actions-store.
  */
 export const CHILD_ACTIONS_REGISTERED: BalanceAction[] = [
   // ==============================================

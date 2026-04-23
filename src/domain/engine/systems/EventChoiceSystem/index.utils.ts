@@ -1,1 +1,0 @@
-// EventChoiceSystem utils

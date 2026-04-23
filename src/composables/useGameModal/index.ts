@@ -57,7 +57,7 @@ const state = ref<GameModalState>({
 })
 
 /**
- * Единая система модальных окон (legacy, state-based).
+ * Единая система модальных окон (state-based).
  *
  * @example
  * ```ts

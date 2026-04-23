@@ -18,12 +18,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useGameStore } from '@/stores/game.store'
 
-const store = useGameStore()
 const visible = ref(false)
-
-const playerName = computed(() => store.playerName)
+const playerName = ref('Алексей')
+const welcomeScreenShown = ref(false)
 
 onMounted(() => {
   setTimeout(() => {
@@ -33,11 +31,13 @@ onMounted(() => {
 
 function onStart() {
   visible.value = false
-  store.welcomeScreenShown = true
+  welcomeScreenShown.value = true
 }
 
 defineExpose({
   visible,
+  welcomeScreenShown,
+})
 })
 </script>
 

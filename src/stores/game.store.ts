@@ -1,546 +1,170 @@
 import { defineStore } from 'pinia'
-import { shallowRef, computed, triggerRef, ref, watch } from 'vue'
-import { GameWorld } from '../domain/engine/world'
-import { createWorldFromSave, resetSystemContext, getSystemContext } from '../domain/game-facade'
-import { MigrationSystem } from '../domain/engine/systems/MigrationSystem'
-import { PersistenceSystem } from '../domain/engine/systems/PersistenceSystem'
-import { appGameCommands, appGameQueries } from '@/application/game'
-import { PLAYER_ENTITY } from '../domain/engine/components/index'
-import type { RecoveryCard } from '../domain/balance/types'
-import { LocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
-import { checkAgeUnlocks, resetAgeUnlocksState } from '@/composables/useAgeRestrictions/age-unlocks'
-import type {
-  StatsComponent,
-  TimeComponent,
-  WalletComponent,
-  SkillsComponent,
-  CareerComponent,
-  HousingComponent,
-  EducationComponent,
-  FinanceComponent,
-  ActivityLogEntry,
-} from '../domain/engine/types'
-import type { ExecuteActionCommandResult } from '@/domain/game-facade/commands'
-import { ActionSystem } from '../domain/engine/systems/ActionSystem'
-
-function isEngineWorldSnapshot(data: Record<string, unknown>): boolean {
-  return Array.isArray(data.entities)
-}
+import { computed, ref } from 'vue'
+import { useTimeStore } from './time-store'
+import { useStatsStore } from './stats-store'
+import { useWalletStore } from './wallet-store'
+import { useSkillsStore } from './skills-store'
+import { useCareerStore } from './career-store'
+import { useEducationStore } from './education-store'
+import { useHousingStore } from './housing-store'
+import { usePlayerStore } from './player-store'
+import { useEventsStore } from './events-store'
+import { useActionsStore } from './actions-store'
+import { useFinanceStore } from './finance-store'
+import { useActivityStore } from './activity-store'
+import { getActionById, type BalanceAction } from '@/domain/balance/actions'
 
 export const useGameStore = defineStore('game', () => {
-  const saveRepository = new LocalStorageSaveRepository()
-  // ===== State =====
-  const world = shallowRef<GameWorld | null>(null)
-  /**
-   * Счётчик мутаций мира.
-   * world — shallowRef, и его глубокие мутации (wallet.money, stats.energy…)
-   * не отслеживаются реактивностью Vue автоматически.
-   * Инкремент worldVersion заставляет зависимые computed пересчитываться.
-   */
   const worldVersion = ref(0)
-  /**
-   * Токен версии мира — используется для создания реактивной зависимости
-   * в computed. Явное чтение значения гарантирует, что Vue отследит зависимость.
-   */
-  const worldVersionToken = computed(() => worldVersion.value)
-  /**
-   * Счётчик мутаций ECS. Подписывайте computed, которые вызывают get* без реактивных зависимостей
-   * (например getFinanceSnapshot), иначе UI не обновится после действий.
-   */
+  const isInitialized = ref(true)
+
+  const time = useTimeStore()
+  const stats = useStatsStore()
+  const wallet = useWalletStore()
+  const skills = useSkillsStore()
+  const career = useCareerStore()
+  const education = useEducationStore()
+  const housing = useHousingStore()
+  const player = usePlayerStore()
+  const events = useEventsStore()
+  const actions = useActionsStore()
+  const finance = useFinanceStore()
+  const activity = useActivityStore()
+
   const worldTick = computed(() => worldVersion.value)
-  const isInitialized = computed(() => world.value !== null)
-  const playerName = ref('Алексей')
-  /** UI: экран приветствия новорождённого закрыт пользователем */
-  const welcomeScreenShown = ref(false)
 
-  // ===== Computed from ECS =====
-  const stats = computed<StatsComponent | null>(() => {
-    const version = worldVersionToken.value
-    if (!world.value) return null
-    const comp = world.value.getComponent<StatsComponent>(PLAYER_ENTITY, 'stats')
-    return comp ? ({ ...comp, _version: version } as unknown as StatsComponent) : null
-  })
-
-  const time = computed<TimeComponent | null>(() => {
-    const version = worldVersionToken.value
-    if (!world.value) return null
-    const comp = world.value.getComponent<TimeComponent>(PLAYER_ENTITY, 'time')
-    return comp ? ({ ...comp, _version: version } as unknown as TimeComponent) : null
-  })
-
-  const wallet = computed<WalletComponent | null>(() => {
-    // Зависимость от worldVersionToken гарантирует пересчёт после глубоких мутаций
-    const version = worldVersionToken.value
-    if (!world.value) return null
-    const comp = world.value.getComponent<WalletComponent>(PLAYER_ENTITY, 'wallet')
-    // Возвращаем новый объект с версией, чтобы Vue видел изменение
-    return comp ? { ...comp, _version: version } as unknown as WalletComponent : null
-  })
-
-  const skills = computed<SkillsComponent | null>(() => {
-    const version = worldVersionToken.value
-    if (!world.value) return null
-    const comp = world.value.getComponent<SkillsComponent>(PLAYER_ENTITY, 'skills')
-    return comp ? ({ ...comp, _version: version } as unknown as SkillsComponent) : null
-  })
-
-  const career = computed<CareerComponent | null>(() => {
-    const version = worldVersionToken.value
-    if (!world.value) return null
-    const comp = world.value.getComponent<CareerComponent>(PLAYER_ENTITY, 'career')
-    return comp ? ({ ...comp, _version: version } as unknown as CareerComponent) : null
-  })
-
-  const housing = computed<HousingComponent | null>(() => {
-    const version = worldVersionToken.value
-    if (!world.value) return null
-    const comp = world.value.getComponent<HousingComponent>(PLAYER_ENTITY, 'housing')
-    return comp ? ({ ...comp, _version: version } as unknown as HousingComponent) : null
-  })
-
-  const finance = computed<FinanceComponent | null>(() => {
-    const version = worldVersionToken.value
-    if (!world.value) return null
-    const comp = world.value.getComponent<FinanceComponent>(PLAYER_ENTITY, 'finance')
-    return comp ? ({ ...comp, _version: version } as unknown as FinanceComponent) : null
-  })
-
-  const education = computed<EducationComponent | null>(() => {
-    const version = worldVersionToken.value
-    if (!world.value) return null
-    const comp = world.value.getComponent<EducationComponent>(PLAYER_ENTITY, 'education')
-    // Как у wallet: новый объект на каждую версию мира, иначе Vue не оповещает UI после глубоких мутаций ECS
-    return comp ? ({ ...comp, _version: version } as unknown as EducationComponent) : null
-  })
-
-  /**
-   * Канонический снимок текущей работы для UI.
-   * UI-компоненты должны использовать этот computed вместо прямого чтения work/career/currentJob.
-   */
-  const currentJobSnapshot = computed(() => {
-    const _wv = worldVersionToken.value
-    const w = world.value
-    if (!w) return null
-    const work = w.getComponent<Record<string, unknown>>('player', 'work')
-    const career = w.getComponent<Record<string, unknown>>('player', 'career')
-    const legacyCurrentJob = (career?.currentJob as Record<string, unknown> | undefined) ?? null
-    const source = work ?? legacyCurrentJob ?? career
-    if (!source || !source.id) return null
-
-    return {
-      id: source.id as string,
-      name: (source.name as string) || 'Безработный',
-      employed: source.employed !== false,
-      salaryPerHour: Math.max(0, Number(source.salaryPerHour) || 0),
-      salaryPerDay: Math.max(0, Number(source.salaryPerDay) || 0),
-      salaryPerWeek: Math.max(0, Number(source.salaryPerWeek) || 0),
-      requiredHoursPerWeek: Math.max(0, Number(source.requiredHoursPerWeek) || 0),
-      workedHoursCurrentWeek: Math.max(0, Number(source.workedHoursCurrentWeek) || 0),
-      pendingSalaryWeek: Math.max(0, Number(source.pendingSalaryWeek) || 0),
-      schedule: (source.schedule as string) || '—',
-      level: Math.max(0, Number(source.level) || 0),
-      totalWorkedHours: Math.max(0, Number(source.totalWorkedHours) || 0),
-      daysAtWork: Math.max(0, Number(source.daysAtWork) || 0),
-    }
-  })
-
-  const money = computed(() => {
-    const val = wallet.value?.money ?? 0
-    return val
-  })
-  const gameDays = computed(() => {
-    if (!time.value) return 0
-    return time.value.gameDays ?? 0
-  })
-  const age = computed(() => {
-    if (!time.value) return 18
-    return (time.value as unknown as Record<string, unknown>).currentAge as number ?? 18
-  })
-
-  // Отслеживать смену возраста и показывать уведомления о разблокировке
-  watch(age, (newAge) => {
-    checkAgeUnlocks(newAge)
-  })
-
-  const energy = computed(() => stats.value?.energy ?? 0)
-  const hunger = computed(() => stats.value?.hunger ?? 0)
-  const stress = computed(() => stats.value?.stress ?? 0)
-  const mood = computed(() => stats.value?.mood ?? 0)
-  const health = computed(() => stats.value?.health ?? 0)
-  const physical = computed(() => stats.value?.physical ?? 0)
-  const comfort = computed(() => housing.value?.comfort ?? 0)
-
-  // ===== World Initialization =====
-
-  function initWorld(saveData?: Record<string, unknown>) {
-    const w = createWorldFromSave(saveData)
-    if (saveData?.playerName) {
-      playerName.value = saveData.playerName as string
-    }
-    world.value = w
-    getSystemContext(w)
-    bumpWorldVersion()
+  function initWorld() { worldVersion.value++ }
+  function save() { 
+    return { 
+      player: player.save(), 
+      time: time.save(), 
+      stats: stats.save(), 
+      wallet: wallet.save(), 
+      skills: skills.save ? skills.save() : {}, 
+      career: career.save ? career.save() : {}, 
+      education: education.save ? education.save() : {}, 
+      housing: housing.save ? housing.save() : {} 
+    } 
   }
-
-  // ===== Core Helpers =====
-
-  function refresh() {
-    if (world.value) {
-      triggerRef(world)
-    }
+  function load(data?: Record<string, unknown>) { 
+    if (data?.player) player.load(data.player as Record<string, unknown>)
+    if (data?.time) time.load(data.time as Record<string, unknown>)
+    if (data?.stats) stats.load(data.stats as Record<string, unknown>)
+    if (data?.wallet) wallet.load(data.wallet as Record<string, unknown>)
+    if (data?.skills) skills.load?.(data.skills as Record<string, unknown>)
+    if (data?.career) career.load?.(data.career as Record<string, unknown>)
+    if (data?.education) education.load?.(data.education as Record<string, unknown>)
+    if (data?.housing) housing.load?.(data.housing as Record<string, unknown>)
+    isInitialized.value = true; 
+    return true 
   }
-
-  /**
-   * Уведомить реактивность о глубокой мутации мира.
-   * Вызывать после любых изменений компонентов через ECS.
-   */
-  function bumpWorldVersion() {
+  function resetGame() {
+    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset()
     worldVersion.value++
-    triggerRef(world)
-    
-    // Обновляем кэш доступности действий
-    if (world.value) {
-      const actionSystem = world.value.getSystem(ActionSystem) as ActionSystem | undefined
-      if (actionSystem && typeof actionSystem.updateWorldVersion === 'function') {
-        actionSystem.updateWorldVersion(worldVersion.value)
-      }
-    }
   }
 
-  function save() {
-    if (!world.value) return
-    const migration = new MigrationSystem()
-    migration.init(world.value)
-    const snapshot = world.value.toJSON() as Record<string, unknown>
-    snapshot.playerName = playerName.value
-    ;(snapshot as Record<string, unknown>).saveMigrationVersion = migration.getCurrentVersion()
-    const stamped = migration.migrateEngineSnapshot(snapshot as Record<string, unknown>) as Record<string, unknown>
-    saveRepository.save(stamped)
-  }
-
-  function load(): boolean {
-    const data = saveRepository.load()
-    if (!data || !world.value) return false
-    const savedName = data.playerName as string | undefined
-
-    const migration = new MigrationSystem()
-    migration.init(world.value)
-
-    if (isEngineWorldSnapshot(data)) {
-      resetSystemContext(world.value)
-      const prepared = migration.migrateEngineSnapshot(data as Record<string, unknown>) as Parameters<GameWorld['fromJSON']>[0]
-      world.value.fromJSON(prepared)
-    } else {
-      const persistence = new PersistenceSystem(migration)
-      const hydrated = persistence.hydrateFromRecord(data as Record<string, unknown>, JSON.stringify(data))
-      resetSystemContext(world.value)
-      world.value = createWorldFromSave(hydrated as unknown as Record<string, unknown>)
-    }
-
-    // Заменяем eventBus, чтобы обработчики удалённых систем
-    // больше не получали события (предотвращает дубликаты в журнале).
-    world.value.eventBus = new EventTarget()
-
-    if (typeof savedName === 'string' && savedName.trim()) {
-      playerName.value = savedName
-    }
-    if (world.value) {
-      getSystemContext(world.value)
-    }
-    bumpWorldVersion()
-    return true
-  }
-
-  function resetGame(): void {
-    saveRepository.clear()
-    world.value = null
-    playerName.value = 'Алексей'
-    welcomeScreenShown.value = false
-  }
-
-  function getWorld(): GameWorld | null {
-    return world.value
-  }
-
-  // ===== Recovery & Work =====
-
-  function applyRecoveryAction(cardData: Record<string, unknown> | RecoveryCard): string {
-    if (!world.value) return ''
-    const result = appGameCommands.executeLifestyleAction(world.value, cardData as Record<string, unknown>)
-    bumpWorldVersion()
-    save()
-    return result || ''
-  }
-
-  function applyWorkShift(hours: number): string {
-    if (!world.value) return ''
-    const result = appGameCommands.simulateWorkShift(world.value, hours)
-    bumpWorldVersion()
-    save()
-    return result || ''
-  }
-
-  function canApplyWorkShift(hours: number): { canDo: boolean; reason?: string; reasonKey?: string } {
-    if (!world.value) return { canDo: false, reason: 'Мир не инициализирован', reasonKey: 'no_world' }
-
-    const statsComp = world.value.getComponent<StatsComponent>(PLAYER_ENTITY, 'stats')
-    if (!statsComp) return { canDo: false, reason: 'Нет данных о персонаже', reasonKey: 'no_stats' }
-
-    const energy = statsComp.energy ?? 100
-    const hunger = statsComp.hunger ?? 0
-
-    const MIN_ENERGY = 10
-    const MAX_HUNGER = 90
-    const ENERGY_COST_PER_HOUR = 2.7
-    const HUNGER_GAIN_PER_HOUR = 2.2
-
-    const energyAfterWork = energy - (hours * ENERGY_COST_PER_HOUR)
-    const hungerAfterWork = hunger + (hours * HUNGER_GAIN_PER_HOUR)
-
-    if (energy < MIN_ENERGY) {
-      return {
-        canDo: false,
-        reason: `Недостаточно энергии для работы (${Math.round(energy)}/${MIN_ENERGY}). Отдохните или поспите.`,
-        reasonKey: 'low_energy',
-      }
-    }
-
-    if (hunger > MAX_HUNGER) {
-      return {
-        canDo: false,
-        reason: `Слишком высокий голод (${Math.round(hunger)}/${MAX_HUNGER}). Поешьте перед работой.`,
-        reasonKey: 'high_hunger',
-      }
-    }
-
-    if (energyAfterWork < 0) {
-      return {
-        canDo: false,
-        reason: `На работе потребуется ${Math.round(hours * ENERGY_COST_PER_HOUR)} энергии, а у вас только ${Math.round(energy)}. Энергия закончится во время смены!`,
-        reasonKey: 'energy_depleted',
-      }
-    }
-
-    if (hungerAfterWork > 100) {
-      return {
-        canDo: false,
-        reason: `После работы голод станет ${Math.round(hungerAfterWork)} (макс. 100). Поешьте перед сменой.`,
-        reasonKey: 'hunger_overflow',
-      }
-    }
-
+  function canApplyWorkShift(hours: number) {
+    if (!career.isEmployed) return { canDo: false, reason: 'Нет работы' }
+    if (stats.energy < hours * 3) return { canDo: false, reason: 'Недостаточно энергии' }
     return { canDo: true }
   }
 
-  function changeCareer(jobId: string): { success: boolean; message: string } {
-    if (!world.value) return { success: false, message: 'Мир не инициализирован' }
-    const result = appGameCommands.changeCareer(world.value, jobId)
-    bumpWorldVersion()
-    save()
-    return result
+  function applyWorkShift(hours: number) {
+    const salary = hours * (career.currentJob?.salaryPerHour ?? 0)
+    career.addWorkHours(hours)
+    career.addPendingSalary(salary)
+    stats.applyStatChanges({ energy: -(hours * 3), hunger: +(hours * 2) })
+    worldVersion.value++
+    activity.addWorkEntry('Работа', hours, salary)
+    return `Вы заработали ${salary} ₽`
   }
 
-  function quitCareer(): { success: boolean; message: string } {
-    if (!world.value) return { success: false, message: 'Мир не инициализирован' }
-    const result = appGameCommands.quitCareer(world.value)
-    bumpWorldVersion()
-    save()
-    return result
+  function quitCareer() {
+    career.endWork()
+    return { success: true, message: 'Вы уволились' }
   }
 
-  function getCareerTrack(): Array<Record<string, unknown>> {
-    if (!world.value) return []
-    return appGameQueries.getCareerTrack(world.value)
+  function changeCareer(jobId: string) {
+    career.startWork({ id: jobId, name: 'Работа', employed: true })
+    return { success: true, message: 'Вы устроились' }
   }
 
-  function getActivityLogEntries(count = 8): Array<Record<string, unknown>> {
-    if (!world.value) return []
-    return appGameQueries.getActivityLogEntries(world.value, count)
+  function getCareerTrack(): { id: string; name: string; level: number; schedule: string; salaryPerHour: number }[] {
+    return career.currentJob ? [{ id: career.currentJob.id, name: career.currentJob.name, level: career.currentJob.level, schedule: career.currentJob.schedule, salaryPerHour: career.currentJob.salaryPerHour }] : []
+  }
+  function getCareerSnapshot() { return career.currentJob }
+  function getFinanceSnapshot() { return { monthlyExpenses: finance.monthlyExpenses } }
+  function getFinanceActions() { return [] }
+  function getActivityLogEntries(count: number = 10) { return activity.getEntries(count) }
+
+  function getActionByIdFromBalance(actionId: string) {
+    return getActionById(actionId)
   }
 
-  // ===== Education =====
-
-  function canStartEducationProgram(programId: string): boolean {
-    if (!world.value) return false
-    return appGameQueries.canStartEducationProgram(world.value, programId)
+  function toGameAction(action: BalanceAction) {
+    return {
+      id: action.id,
+      title: action.title,
+      category: action.category as string,
+      actionType: action.actionType,
+      hourCost: action.hourCost,
+      price: action.price,
+      statChanges: action.statChanges as Record<string, number> | undefined,
+      skillChanges: action.skillChanges,
+      cooldown: action.cooldown,
+      requirements: action.requirements as { minAge?: number; minSkills?: Record<string, number> } | undefined,
+    }
   }
 
-  function canStartEducationProgramWithReason(programId: string): { ok: boolean; reason?: string } {
-    if (!world.value) return { ok: false, reason: 'Мир не инициализирован' }
-    return appGameQueries.canStartEducationProgramWithReason(world.value, programId)
+  function canExecuteAction(actionId: string) {
+    const action = getActionByIdFromBalance(actionId)
+    if (!action) return { canDo: false, canExecute: false, reason: 'Действие не найдено' }
+    const result = actions.canExecute(toGameAction(action))
+    return { canDo: result.canDo, canExecute: result.canDo, reason: result.reason }
+  }
+  function executeAction(actionId: string) {
+    const action = getActionByIdFromBalance(actionId)
+    if (!action) return { success: false, message: 'Действие не найдено' }
+    const result = actions.executeAction(toGameAction(action))
+    return { success: result.success, message: result.summary ?? (result.success ? 'Выполнено' : result.error ?? 'Ошибка') }
   }
 
-  function startEducationProgram(programId: string): string {
-    if (!world.value) return 'Мир не инициализирован'
-    const result = appGameCommands.startEducationProgram(world.value, programId)
-    bumpWorldVersion()
-    save()
-    return result
+  function getNextEvent() { return events.currentEvent }
+  function applyEventChoice(eventId: string, choiceId: string) {
+    const success = events.applyChoice(choiceId)
+    return success ? 'Событие применено' : 'Ошибка'
   }
-
-  function advanceEducation(): string {
-    if (!world.value) return 'Мир не инициализирован'
-    const result = appGameCommands.advanceEducation(world.value)
-    bumpWorldVersion()
-    save()
-    return result
-  }
-
-  // ===== Finance =====
-
-  function getFinanceOverview() {
-    if (!world.value) return null
-    return appGameQueries.getFinanceOverview(world.value)
-  }
-
-  function getFinanceActions() {
-    if (!world.value) return []
-    return appGameQueries.getFinanceActions(world.value)
-  }
-
-  function getFinanceSnapshot() {
-    if (!world.value) return null
-    return appGameQueries.getFinanceSnapshot(world.value, PLAYER_ENTITY)
-  }
-
-  function applyFinanceAction(actionId: string, _amount?: number): string {
-    if (!world.value) return 'Мир не инициализирован'
-    const result = appGameCommands.executeFinanceDecision(world.value, actionId)
-    bumpWorldVersion()
-    save()
-    return result
-  }
-
-  function getInvestments() {
-    if (!world.value) return []
-    return appGameQueries.getInvestments(world.value)
-  }
-
-  function collectInvestment(investmentId: string): string {
-    if (!world.value) return 'Мир не инициализирован'
-    const result = appGameCommands.collectInvestment(world.value, investmentId)
-    bumpWorldVersion()
-    save()
-    return result
-  }
-
-  // ===== Actions =====
-
-  function canExecuteAction(actionId: string): { canExecute: boolean; reason?: string } {
-    if (!world.value) return { canExecute: false, reason: 'Мир не инициализирован' }
-    return appGameQueries.canExecuteAction(world.value, actionId)
-  }
-
-  function executeAction(actionId: string): ExecuteActionCommandResult {
-    if (!world.value) return { message: 'Мир не инициализирован' }
-    const result = appGameCommands.executeAction(world.value, actionId)
-    bumpWorldVersion()
-    save()
-    return result
-  }
-
-  // ===== Events =====
-
-  function getNextEvent(): Record<string, unknown> | null {
-    if (!world.value) return null
-    return appGameQueries.peekScheduledEvent(world.value)
-  }
-
-  function applyEventChoice(eventId: string, choiceId: string): string {
-    if (!world.value) return 'Мир не инициализирован'
-    const result = appGameCommands.resolveEventDecision(world.value, eventId, choiceId)
-    bumpWorldVersion()
-    save()
-    return result
-  }
-
-  // ===== Activity Log =====
-
-  function getActivityLog(filter?: string, limit?: number): ActivityLogEntry[] {
-    if (!world.value) return []
-    return appGameQueries.getActivityLog(world.value, filter, limit) as unknown as ActivityLogEntry[]
-  }
-
-  function getActivityLogWindow(count: number, beforeIndex?: number) {
-    if (!world.value) return { entries: [], total: 0, hasMoreOlder: false, rangeStart: 0, rangeEnd: 0 }
-    return appGameQueries.getActivityTimelineWindow(world.value, count, beforeIndex)
-  }
-
-  // ===== Time =====
-
-  function advanceTime(hours: number): void {
-    if (!world.value) return
-    appGameCommands.advanceTime(world.value, hours)
-    bumpWorldVersion()
-    save()
-  }
-
-  // ===== Monthly Settlement =====
-
-  function applyMonthlySettlement(): string {
-    if (!world.value) return 'Мир не инициализирован'
-    const result = appGameCommands.applyMonthlySettlement(world.value)
-    bumpWorldVersion()
-    save()
-    return result
-  }
+  function getFinanceOverview() { return { balance: wallet.money, expenses: finance.totalExpense, income: wallet.totalEarned } }
+  function getInvestments() { return finance.investments }
+  function applyRecoveryAction(cardData: Record<string, unknown>) { return finance.applyAction(cardData) ? 'Выполнено' : '' }
+  function collectInvestment(investmentId: string) { return finance.divest(investmentId) > 0 ? 'Получено' : 'Ошибка' }
 
   return {
-    world,
-    worldTick,
-    isInitialized,
-    playerName,
-    welcomeScreenShown,
-    currentJobSnapshot,
-    stats,
-    time,
-    wallet,
-    skills,
-    career,
-    housing,
-    finance,
-    education,
-    money,
-    gameDays,
-    age,
-    energy,
-    hunger,
-    stress,
-    mood,
-    health,
-    physical,
-    comfort,
-    initWorld,
-    refresh,
-    save,
-    load,
-    resetGame,
-    getWorld,
-    applyRecoveryAction,
-    applyWorkShift,
-    canApplyWorkShift,
-    changeCareer,
-    quitCareer,
-    getCareerTrack,
-    getActivityLogEntries,
-    canStartEducationProgram,
-    canStartEducationProgramWithReason,
-    startEducationProgram,
-    advanceEducation,
-    getFinanceOverview,
-    getFinanceActions,
-    getFinanceSnapshot,
-    applyFinanceAction,
-    getInvestments,
-    collectInvestment,
-    canExecuteAction,
-    executeAction,
-    getNextEvent,
-    applyEventChoice,
-    getActivityLog,
-    getActivityLogWindow,
-    advanceTime,
-    applyMonthlySettlement,
+    worldVersion, worldTick, isInitialized,
+    playerName: computed(() => player.name),
+    welcomeScreenShown: computed(() => player.welcomeScreenShown),
+    money: computed(() => wallet.money),
+    energy: computed(() => stats.energy),
+    health: computed(() => stats.health),
+    hunger: computed(() => stats.hunger),
+    stress: computed(() => stats.stress),
+    mood: computed(() => stats.mood),
+    comfort: computed(() => housing.comfort),
+    age: computed(() => time.currentAge),
+    gameDays: computed(() => time.gameDays),
+    gameWeeks: computed(() => time.gameWeeks),
+    weekHoursRemaining: computed(() => time.weekHoursRemaining),
+    currentJobSnapshot: computed(() => career.currentJob),
+    time: computed(() => ({ totalHours: time.totalHours, gameDays: time.gameDays, gameWeeks: time.gameWeeks, currentAge: time.currentAge, sleepDebt: time.sleepDebt, weekHoursRemaining: time.weekHoursRemaining })),
+    stats: computed(() => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood, physical: stats.physical })),
+    wallet: computed(() => ({ money: wallet.money, reserveFund: wallet.reserveFund, totalEarned: wallet.totalEarned, totalSpent: wallet.totalSpent })),
+    skills: computed(() => skills.skills),
+    career: computed(() => career.currentJob),
+    education: computed(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
+    housing: computed(() => ({ level: housing.level, comfort: housing.comfort, furniture: housing.furniture })),
+    getCareerTrack, getCareerSnapshot, getFinanceSnapshot, getFinanceActions, getActivityLogEntries, getStats: () => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
+    initWorld, save, load, resetGame,
+    canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
+    canExecuteAction, executeAction, getNextEvent, applyEventChoice, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment
   }
 })
-

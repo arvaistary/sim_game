@@ -1,7 +1,5 @@
 <template>
   <RoundedPanel class="card profile-card" padding="18px">
-    <!-- Reactivity trigger -->
-    <span v-if="reactivityTrigger" class="sr-only">{{ reactivityTrigger }}</span>
     <h1 class="profile-name">{{ playerName }}</h1>
     <p class="profile-job">{{ jobLabel }}</p>
     <p v-if="isMoneyVisible" class="profile-money">{{ formatMoney(money) }} ₽</p>
@@ -14,38 +12,34 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useGameStore } from '@/stores/game.store'
+import { computed, ref } from 'vue'
+import { useTimeStore, useWalletStore, useCareerStore, useHousingStore } from '@/stores'
 import { openModal } from '@/composables/useGameModal'
 import SkillsModal from '../SkillsModal/SkillsModal.vue'
 import { formatMoney } from '@/utils/format'
 import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 
-const store = useGameStore()
+const timeStore = useTimeStore()
+const walletStore = useWalletStore()
+const careerStore = useCareerStore()
+const housingStore = useHousingStore()
+
 const { isStatVisible } = useAgeRestrictions()
 const isMoneyVisible = computed(() => isStatVisible('money'))
 
-// Принудительная реактивность
-const reactivityTrigger = computed(() => store.worldTick)
+const playerName = ref('Алексей') // Можно вынести в отдельный store
 
 function openSkillsModal() {
   openModal(SkillsModal, {
-    onClose: () => {
-      // Modal will be closed by the stack
-    },
+    onClose: () => {},
   })
 }
 
-const playerName = computed(() => store.playerName)
-const money = computed(() => store.money)
-const comfort = computed(() => store.comfort)
-
-// Зависимость от reactivityTrigger
-void reactivityTrigger.value
+const money = computed(() => walletStore.money)
+const comfort = computed(() => housingStore.comfort)
 
 const jobLabel = computed(() => {
-  void reactivityTrigger.value
-  const job = store.currentJobSnapshot
+  const job = careerStore.currentJob
   if (!job || !job.id) return 'Безработный'
 
   const baseLabel = job.name
@@ -62,12 +56,10 @@ const jobLabel = computed(() => {
 })
 
 const timeLabel = computed(() => {
-  const t = store.time as unknown as Record<string, unknown> | null
-  if (!t) return 'День 0 • Неделя 1 (168 ч. осталось) • 18 лет'
-  const gameDays = (t.gameDays as number) ?? 0
-  const gameWeeks = (t.gameWeeks as number) ?? 1
-  const weekHoursRemaining = (t.weekHoursRemaining as number) ?? 168
-  const currentAge = (t.currentAge as number) ?? 18
+  const gameDays = timeStore.gameDays
+  const gameWeeks = timeStore.gameWeeksFloored
+  const weekHoursRemaining = timeStore.weekHoursRemaining
+  const currentAge = timeStore.currentAge
   return `День ${gameDays} • Неделя ${gameWeeks} (${weekHoursRemaining} ч. осталось) • ${currentAge} лет`
 })
 </script>

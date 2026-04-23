@@ -20,37 +20,22 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useCareerStore } from '@/stores'
 import { useGameStore } from '@/stores/game.store'
 import { useGameModal, openModal, closeModal } from '@/composables/useGameModal'
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
+
+const careerStore = useCareerStore()
 const gameModal = useGameModal()
 const workResult = ref('')
 const resourceModalId = ref<symbol | null>(null)
 
-// Принудительная реактивность через computed
-const reactivityTrigger = computed(() => store.worldTick)
-
-const isEmployed = computed(() => {
-  void reactivityTrigger.value
-  const job = store.currentJobSnapshot
-  return !!(job && job.id && job.employed)
-})
-
-const currentJobName = computed<string>(() => {
-  void reactivityTrigger.value
-  const job = store.currentJobSnapshot
-  if (!job || !job.id || !job.employed) return 'Безработный'
-  return job.name
-})
-
-const currentSalaryPerHour = computed<number>(() => {
-  void reactivityTrigger.value
-  const job = store.currentJobSnapshot
-  if (!job || !job.id || !job.employed) return 0
-  return job.salaryPerHour
-})
+const isEmployed = computed(() => careerStore.isEmployed)
+const reactivityTrigger = computed(() => useGameStore().worldTick)
+const currentJobName = computed(() => careerStore.currentJob.name ?? 'Безработный')
+const currentSalaryPerHour = computed(() => careerStore.currentJob.salaryPerHour ?? 0)
 
 function doWork(hours: number): void {
   const check = store.canApplyWorkShift(hours)
@@ -66,8 +51,9 @@ function doWork(hours: number): void {
 }
 
 function quitJob(): void {
+  careerStore.endWork()
   const result = store.quitCareer()
-  workResult.value = result.message
+  workResult.value = result?.message ?? 'Вы уволились'
 }
 </script>
 

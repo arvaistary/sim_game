@@ -176,26 +176,27 @@ import { ref, computed } from 'vue'
 import Tooltip from '@/components/ui/Tooltip/index.vue'
 import { useGameStore } from '@/stores/game.store'
 import { AgeGroup, getAgeGroup } from '@/composables/useAgeRestrictions/age-constants'
-import type { ActiveCourse, CompletedProgramRecord } from '@/domain/engine/systems/EducationSystem/index.types'
+import { useEducationStore } from '@/stores/education-store'
 import {
+  type ActiveCourse,
+  type CompletedProgramRecord,
   EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN,
   ENERGY_EXHAUSTION_THRESHOLD_STUDY,
   getNeedsStateFromComponents,
-} from '@/domain/engine/systems/EducationSystem/learning-efficiency'
-import {
   getCognitiveLoadStatus,
   canAddStudyHours,
   EDUCATION_LONG_PROGRAM_STEP_HOURS,
   COGNITIVE_LOAD_CONSTANTS,
   resolveStudySessionHours,
   type CognitiveLoadComponent,
-} from '@/domain/engine/systems/EducationSystem/cognitive-load'
+} from '@/stores/education-store'
 
 type CourseTile =
   | { key: string; status: 'active' }
   | { key: string; status: 'completed'; record: CompletedProgramRecord }
 
 const store = useGameStore()
+const educationStore = useEducationStore()
 
 const currentAge = computed(() => store.age ?? 0)
 const currentAgeGroup = computed(() => getAgeGroup(currentAge.value))
@@ -273,19 +274,11 @@ const studySessionHours = computed(() => {
 const studySessionHoursDisplay = computed(() => Math.round(studySessionHours.value))
 
 const cognitiveLoadValue = computed(() => {
-  void store.worldTick
-  const world = store.world
-  if (!world) return 0
-  const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
-  return cognitiveLoad?.currentLoad ?? 0
+  return educationStore.cognitiveLoad
 })
 
 const studyHoursSinceLastSleep = computed(() => {
-  void store.worldTick
-  const world = store.world
-  if (!world) return 0
-  const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
-  return cognitiveLoad?.studyHoursSinceLastSleep ?? 0
+  return educationStore.studyHoursSinceLastSleep
 })
 
 const studyHoursSinceLastSleepDisplay = computed(() => Math.round(studyHoursSinceLastSleep.value))
@@ -319,14 +312,11 @@ const canOpenStudyModal = computed(() => !!activeCourse.value && !!currentStep.v
 
 /** Блокировка по накопительной усталости */
 const dailyStudyHoursBlocked = computed(() => {
-  void store.worldTick
-  const world = store.world
-  if (!world) return false
-  const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
-  if (!cognitiveLoad) return false
+  const cognitiveValue = cognitiveLoadValue.value
+  if (!cognitiveValue) return false
   
-  const canStudyCheck = canAddStudyHours(cognitiveLoad, studySessionHours.value)
-  return !canStudyCheck.canStudy
+  const canStudyCheck = canAddStudyHours(cognitiveValue, (store.energy ?? 0))
+  return !canStudyCheck.canDo
 })
 
 /** Лимит «учёбы до сна» исчерпан (или не хватает часов под сеанс), но по курсу ещё есть бюджет часов */
@@ -345,13 +335,10 @@ const energyExhaustedForStudy = computed(() => (store.energy ?? 0) < ENERGY_EXHA
 const energyWouldHitZeroOnStep = computed(() => (store.energy ?? 0) <= EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN)
 
 const cognitiveLoadStatus = computed(() => {
-  void store.worldTick
-  const world = store.world
-  if (!world) return null
-  const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
-  if (!cognitiveLoad) return null
+  const cognitiveValue = cognitiveLoadValue.value
+  if (!cognitiveValue) return null
   
-  const status = getCognitiveLoadStatus(cognitiveLoad)
+  const status = getCognitiveLoadStatus(cognitiveValue)
   return {
     label: status.label,
     description: status.description,
@@ -438,17 +425,12 @@ const resourceWarning = computed(() => {
     return 'Этого занятия не хватает: при текущей энергии шаг опустил бы запас до нуля или ниже.'
   }
   if (dailyStudyHoursBlocked.value) {
-    const world = store.world
-    if (world) {
-      const cognitiveLoad = world.getComponent('player', 'cognitive_load') as CognitiveLoadComponent | null
-      if (cognitiveLoad) {
-        const canStudyCheck = canAddStudyHours(cognitiveLoad, studySessionHours.value)
-        const base = canStudyCheck.reason
-        if (hoursRemaining.value > 0) {
-          return `${base}\n\nШкала «когнитивной нагрузки» может быть в норме — она не отражает лимит «учёбы до сна» (${studyHoursSinceLastSleepDisplay.value}/${maxStudyHoursCycleDisplay} ч).`
-        }
-        return base
+    const canStudyCheck = canAddStudyHours(cognitiveLoadValue.value, energy)
+    if (canStudyCheck.canDo) {
+      if (hoursRemaining.value > 0) {
+        return `${canStudyCheck.reason}\n\nШкала «когнитивной нагрузки» может быть в норме — она не отражает лимит «учёбы до сна» (${studyHoursSinceLastSleepDisplay.value}/${maxStudyHoursCycleDisplay} ч).`
       }
+      return canStudyCheck.reason
     }
     return 'Лимит учёбы исчерпан. Поспите для восстановления.'
   }

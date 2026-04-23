@@ -1,24 +1,30 @@
 import { ref, computed } from 'vue'
-import { useGameStore } from '@/stores/game.store'
-import type { EventQueueItem, EventChoice } from '@/domain/engine/types'
+import { useEventsStore, type EventQueueItem, type EventChoice } from '@/stores/events-store'
+import { useTimeStore } from '@/stores/time-store'
+import { useStatsStore } from '@/stores/stats-store'
+import { useActivityStore } from '@/stores/activity-store'
 
 export function useEvents() {
-  const store = useGameStore()
+  const eventsStore = useEventsStore()
+  const timeStore = useTimeStore()
+  const statsStore = useStatsStore()
+  const activityStore = useActivityStore()
 
   const currentEvent = ref<EventQueueItem | null>(null)
 
   const hasNextEvent = computed(() => {
-    void store.worldTick
-    return Boolean(store.getNextEvent())
+    void timeStore.totalHours
+    return eventsStore.hasEvent
   })
 
   function loadNextEvent(): EventQueueItem | null {
-    const nextEvent = store.getNextEvent() as unknown as EventQueueItem | null
-    if (!nextEvent) {
+    eventsStore.showNextEvent()
+    const next = eventsStore.currentEvent
+    if (!next) {
       currentEvent.value = null
       return null
     }
-    currentEvent.value = nextEvent
+    currentEvent.value = next as unknown as EventQueueItem
     return currentEvent.value
   }
 
@@ -27,8 +33,18 @@ export function useEvents() {
     const choice = currentEvent.value.choices.find((c) => c.id === choiceId) as EventChoice | undefined
     if (!choice) return false
 
-    const result = store.applyEventChoice(currentEvent.value.id, choiceId)
-    if (!result || result.startsWith('Событие не найдено') || result.startsWith('У события нет')) return false
+    if (choice.effects) {
+      statsStore.applyStatChanges(choice.effects)
+    }
+
+    eventsStore.resolveCurrentEvent(choiceId, choice.text, choice.effects)
+
+    activityStore.addEventEntry(
+      currentEvent.value.title,
+      choice.text,
+      choice.outcome
+    )
+
     currentEvent.value = null
     return true
   }
@@ -40,4 +56,3 @@ export function useEvents() {
     applyChoice,
   }
 }
-

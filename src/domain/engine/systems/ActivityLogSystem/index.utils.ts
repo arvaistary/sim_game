@@ -1,1 +1,0 @@
-// ActivityLogSystem utils

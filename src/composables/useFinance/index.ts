@@ -1,37 +1,59 @@
 import { computed } from 'vue'
-import { useGameStore } from '@/stores/game.store'
+import { useWalletStore } from '@/stores/wallet-store'
+import { useFinanceStore } from '@/stores/finance-store'
 import { useToast } from '../useToast'
 
 export function useFinance() {
-  const store = useGameStore()
+  const walletStore = useWalletStore()
+  const financeStore = useFinanceStore()
   const toast = useToast()
 
   const overview = computed(() => {
-    void store.worldTick
-    return store.getFinanceOverview()
+    return {
+      balance: walletStore.money,
+      expenses: financeStore.totalExpense,
+      income: walletStore.totalEarned,
+    }
   })
 
   const investments = computed(() => {
-    void store.worldTick
-    return store.getInvestments()
+    return financeStore.investments
   })
 
   function applyAction(actionData: Record<string, unknown>): boolean {
-    if (!store.isInitialized) return false
-
-    const result = store.applyRecoveryAction(actionData)
-    if (result) {
-      toast.showSuccess(result)
+    const actionType = actionData.type as string
+    if (actionType === 'invest') {
+      const amount = actionData.amount as number
+      const returnRate = actionData.returnRate as number ?? 5
+      const type = actionData.investmentType as 'deposit' | 'stocks' | 'business' ?? 'deposit'
+      const success = financeStore.invest(type, amount, returnRate)
+      if (success) {
+        toast.showSuccess(`Инвестиция ${amount}₽ успешна`)
+      }
+      return success
+    }
+    if (actionType === 'take_debt') {
+      const amount = actionData.amount as number
+      financeStore.takeDebt(amount)
+      toast.showSuccess(`Кредит на ${amount}₽ получен`)
+      return true
+    }
+    if (actionType === 'repay_debt') {
+      const amount = actionData.amount as number
+      financeStore.repayDebt(amount)
+      toast.showSuccess(`Долг погашен на ${amount}₽`)
       return true
     }
     return false
   }
 
   function collectInvestment(portfolioId: string): boolean {
-    const result = store.collectInvestment(portfolioId)
-    if (!result || result.startsWith('Мир не')) return false
-    toast.showSuccess(result)
-    return true
+    const amount = financeStore.divest(portfolioId)
+    if (amount > 0) {
+      toast.showSuccess(`Получено ${amount}₽ от инвестиции`)
+      return true
+    }
+    return false
   }
 
   return {
@@ -41,4 +63,3 @@ export function useFinance() {
     collectInvestment,
   }
 }
-

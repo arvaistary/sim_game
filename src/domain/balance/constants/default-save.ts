@@ -1,6 +1,5 @@
 /**
- * Демо-сейв для ECS-сцен и тестов
- * Старт новой игры: initial-save.js → legacy DEFAULT_SAVE в game-state.js
+ * Демо-сейв для тестов и начального состояния новой игры
  */
 
 import type { CharacterTag } from '../types'

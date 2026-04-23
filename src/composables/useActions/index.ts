@@ -1,5 +1,8 @@
 import { computed } from 'vue'
-import { useGameStore } from '@/stores/game.store'
+import { useTimeStore } from '@/stores/time-store'
+import { useStatsStore } from '@/stores/stats-store'
+import { useWalletStore } from '@/stores/wallet-store'
+import { useActivityStore } from '@/stores/activity-store'
 import { getActionsByCategory, getActionById } from '@/domain/balance/actions'
 import { showGameResultModal } from '@/composables/useGameModal'
 import { useToast } from '../useToast'
@@ -8,39 +11,60 @@ import type { BalanceAction } from '@/domain/balance/actions'
 import type { ActionCategory } from '@/domain/balance/types'
 
 export function useActions() {
-  const store = useGameStore()
+  const timeStore = useTimeStore()
+  const statsStore = useStatsStore()
+  const walletStore = useWalletStore()
+  const activityStore = useActivityStore()
   const toast = useToast()
   const { filterActionsByAge, ageGroupLabel } = useAgeRestrictions()
 
-  /** Подсказка при пустом списке после age-gating и прочих фильтров */
   const actionsEmptyHint = computed(
     () =>
       `Для этапа «${ageGroupLabel.value}» сейчас нет доступных действий в этом разделе. Часть активностей откроется в следующих возрастных группах.`,
   )
 
   function canExecute(actionId: string): boolean {
-    return store.canExecuteAction(actionId).canExecute
+    const action = getActionById(actionId)
+    if (!action) return false
+    if (walletStore.money < action.price) return false
+    if (timeStore.weekHoursRemaining < action.hourCost) return false
+    return true
+  }
+
+  function getCanExecuteReason(actionId: string): string | null {
+    const action = getActionById(actionId)
+    if (!action) return 'Действие не найдено'
+    if (walletStore.money < action.price) return 'Недостаточно денег'
+    if (timeStore.weekHoursRemaining < action.hourCost) return 'Недостаточно времени'
+    return null
   }
 
   function executeAction(actionId: string): boolean {
-    const { canExecute: ok, reason } = store.canExecuteAction(actionId)
-    if (!ok) {
-      toast.showError(reason ?? `Действие недоступно: ${actionId}`)
+    const action = getActionById(actionId)
+    if (!action) {
+      toast.showError(`Действие не найдено: ${actionId}`)
       return false
     }
 
-    const result = store.executeAction(actionId)
-    const action = getActionById(actionId)
-    const title = action?.title ?? 'Действие выполнено'
-    if (/не удалось|нельзя|не найден/i.test(result.message)) {
-      toast.showError(result.message)
+    const reason = getCanExecuteReason(actionId)
+    if (reason) {
+      toast.showError(reason)
       return false
     }
-    const body = result.message.trim() || action?.effect || 'Изменения применены.'
-    showGameResultModal(title, body, {
-      statBreakdown: result.statBreakdown,
-      hourCost: action?.hourCost,
-      price: action?.price,
+
+    walletStore.spend(action.price)
+    timeStore.advanceHours(action.hourCost, { actionType: action.actionType as 'work' | 'sleep' | 'default' })
+    statsStore.applyStatChanges(action.statChanges ?? {})
+
+    const statBreakdown = action.statChanges
+    const message = action.effect || 'Действие выполнено'
+
+    activityStore.addActionEntry(action.title, message, { category: action.category })
+
+    showGameResultModal(action.title, message, {
+      statBreakdown: statBreakdown as any,
+      hourCost: action.hourCost,
+      price: action.price,
     })
     return true
   }
@@ -65,4 +89,3 @@ export function useActions() {
     actionsEmptyHint,
   }
 }
-

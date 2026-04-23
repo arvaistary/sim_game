@@ -2,6 +2,8 @@
   <GameLayout title="Работа">
     <CurrentJobPanel />
 
+    <CareerTrack />
+
     <SectionHeader title="Доступные вакансии" subtitle="Выберите подходящую ваканцию" />
 
     <div class="filter-bar">
@@ -91,6 +93,7 @@ import { useGameStore } from '@/stores/game.store'
 import { useToast } from '@/composables/useToast'
 import { formatMoney } from '@/utils/format'
 import { WORK_TYPES, INDUSTRIES, JOB_INDUSTRY_MAP } from '@/config/work-categories'
+import CareerTrack from '@/components/pages/career/CareerTrack/CareerTrack.vue'
 
 definePageMeta({ middleware: 'game-init' })
 

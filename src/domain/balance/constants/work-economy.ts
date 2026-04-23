@@ -1,8 +1,8 @@
 import type { StatChanges } from '@/domain/balance/types'
 
-export const LEGACY_WORK_PERIOD_RANDOM_EVENT_CHANCE = 0.15
+export const WORK_PERIOD_RANDOM_EVENT_CHANCE = 0.15
 
-export const LEGACY_BASE_STAT_CHANGES_PER_WORK_DAY: StatChanges = {
+export const BASE_STAT_CHANGES_PER_WORK_DAY: StatChanges = {
   hunger: 17.5,     // ты тратишь калории в течение рабочего дня
   energy: -26,      // ощутимая усталость к концу дня
   stress: 11.5,     // умеренное накопление напряжения

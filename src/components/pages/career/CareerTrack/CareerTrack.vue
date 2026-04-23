@@ -1,12 +1,10 @@
 <template>
   <div class="career-track-wrapper">
-    <!-- Reactivity trigger -->
-    <span v-if="reactivityTrigger" class="sr-only">{{ reactivityTrigger }}</span>
     <h3 class="section-title">Карьерный путь</h3>
     <div class="career-track">
       <RoundedPanel
         v-for="job in careerTrack"
-        :key="(job as any).id"
+        :key="job.id"
         class="job-card"
         :class="{ current: job.current, locked: !job.unlocked, clickable: job.unlocked && !job.current }"
         :clickable="job.unlocked && !job.current"
@@ -21,13 +19,13 @@
         <div class="job-details">
           <span class="detail">Уровень: {{ job.level }}</span>
           <span class="detail">График: {{ job.schedule }}</span>
-          <span class="detail">ЗП: {{ formatMoney((job as any).effectiveSalaryPerHour ?? (job as any).salaryPerHour) }} ₽/ч</span>
+          <span class="detail">ЗП: {{ formatMoney(job.salaryPerHour) }} ₽/ч</span>
         </div>
         <div v-if="!job.unlocked" class="job-reqs">
-          <span v-if="(job as any).missingProfessionalism > 0" class="req">
-            Профессионализм: ещё {{ (job as any).missingProfessionalism }} ур.
+          <span v-if="job.missingProfessionalism > 0" class="req">
+            Профессионализм: ещё {{ job.missingProfessionalism }} ур.
           </span>
-          <span class="req">Образование: {{ (job as any).educationRequiredLabel }}</span>
+          <span class="req">Образование: {{ job.educationRequiredLabel }}</span>
         </div>
         <div v-else-if="job.unlocked && !job.current" class="job-action-hint">
           Кликните, чтобы устроиться
@@ -40,26 +38,79 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useSkillsStore, useEducationStore, useCareerStore } from '@/stores'
 import { useGameStore } from '@/stores/game.store'
+import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
 import { formatMoney } from '@/utils/format'
+import { RANK_LABELS, EDUCATION_RANK, type EducationLevel } from '@/stores/education-store'
 
 const store = useGameStore()
+const skillsStore = useSkillsStore()
+const educationStore = useEducationStore()
+const careerStore = useCareerStore()
 const message = ref('')
 
-// Принудительная реактивность
-const reactivityTrigger = computed(() => store.worldTick)
+interface CareerTrackJob {
+  id: string
+  name: string
+  level: number
+  schedule: string
+  salaryPerHour: number
+  current: boolean
+  unlocked: boolean
+  missingProfessionalism: number
+  educationRequiredLabel: string
+}
 
-const careerTrack = computed(() => {
-  void reactivityTrigger.value
-  return store.getCareerTrack()
+const careerTrack = computed<CareerTrackJob[]>(() => {
+  void store.worldTick
+  void skillsStore.totalLevels
+  void educationStore.educationRank
+  
+  const currentJobId = careerStore.currentJob?.id ?? ''
+  const educationRank = educationStore.educationRank
+  const professionalism = skillsStore.skills?.professionalism ?? 0
+
+  return CAREER_JOBS.map(job => {
+    const educationRequiredLabel = job.minEducationRank === -1 
+      ? 'Любое' 
+      : RANK_LABELS[job.minEducationRank as EducationLevel] ?? 'Неизвестно'
+    
+    const missing = job.minProfessionalism - professionalism
+    const unlocked = professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank
+
+    return {
+      id: job.id,
+      name: job.name,
+      level: job.level,
+      schedule: job.schedule,
+      salaryPerHour: job.salaryPerHour,
+      current: job.id === currentJobId,
+      unlocked,
+      missingProfessionalism: Math.max(0, missing),
+      educationRequiredLabel,
+    }
+  })
 })
 
-function takeJob(job: Record<string, unknown>): void {
+function takeJob(job: CareerTrackJob): void {
   if (!job.unlocked || job.current) return
-  
-  const result = store.changeCareer(job.id as string)
-  message.value = result.message
-  
+  careerStore.startWork({
+    id: job.id,
+    name: job.name,
+    schedule: job.schedule,
+    employed: true,
+    level: job.level,
+    salaryPerHour: job.salaryPerHour,
+    salaryPerDay: job.salaryPerHour * 8,
+    salaryPerWeek: job.salaryPerHour * 40,
+    requiredHoursPerWeek: 40,
+    workedHoursCurrentWeek: 0,
+    pendingSalaryWeek: 0,
+    totalWorkedHours: 0,
+    daysAtWork: 0,
+  })
+  message.value = `Вы устроились на работу: ${job.name}`
   setTimeout(() => {
     message.value = ''
   }, 3000)

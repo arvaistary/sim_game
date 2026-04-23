@@ -34,6 +34,7 @@ export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { formatMoney, formatEffect } from '../src/utils/format';
 export { buildStatBreakdownExplanation, buildActionResultStatLines, ActionResultStatLine } from '../src/utils/stat-breakdown-format';
 export { useGameStore } from '../src/stores/game.store';
+export { useTimeStore, useStatsStore, useWalletStore, useSkillsStore, useCareerStore, useEducationStore, useEventsStore, useActionsStore, useHousingStore, HOUSING_LEVELS, FURNITURE_CATALOG, useFinanceStore, DEFAULT_EXPENSES, useActivityStore, ACTIVITY_TYPES, usePlayerStore } from '../src/stores/index';
 export { defineStore, acceptHMRUpdate, usePinia, storeToRefs } from '../node_modules/@pinia/nuxt/dist/runtime/composables';
 export { useColorMode } from '../node_modules/@nuxtjs/color-mode/dist/runtime/composables';
 export { useNuxtDevTools } from '../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools';

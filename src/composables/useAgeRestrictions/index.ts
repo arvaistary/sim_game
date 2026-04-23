@@ -1,6 +1,6 @@
 ﻿import type { BalanceAction } from '@/domain/balance/actions/types'
 import { computed } from 'vue'
-import { useGameStore } from '@/stores/game.store'
+import { useTimeStore } from '@/stores/time-store'
 import { useToast } from '@/composables/useToast'
 import {
   AgeGroup,
@@ -18,10 +18,10 @@ let lastKnownAge: number = 0
 let unlockedTabsCache: Set<string> = new Set()
 
 export function useAgeRestrictions() {
-  const store = useGameStore()
+  const timeStore = useTimeStore()
   const toast = useToast()
 
-  const age = computed(() => store.age)
+  const age = computed(() => timeStore.currentAge)
 
   const ageGroup = computed<AgeGroup>(() => {
     return getAgeGroup(age.value)

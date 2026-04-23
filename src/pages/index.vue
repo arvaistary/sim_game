@@ -74,27 +74,27 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { navigateTo } from '#imports'
-import {
-  NEW_GAME_AGE_BOUNDS,
-  buildNewGameSavePayload,
-} from '@/domain/balance/utils/build-new-game-save'
-import { useGameStore } from '@/stores/game.store'
+import { usePlayerStore, useTimeStore, useStatsStore, useWalletStore, useSkillsStore } from '@/stores'
+import type { StartMode } from '@/types'
 
-type StartMode = 'infancy' | 'adult'
+const playerStore = usePlayerStore()
+const timeStore = useTimeStore()
+const statsStore = useStatsStore()
+const walletStore = useWalletStore()
+const skillsStore = useSkillsStore()
 
-const store = useGameStore()
 const playerName = ref('')
 const startMode = ref<StartMode>('infancy')
 const adultAge = ref(18)
 
-const ageMax = NEW_GAME_AGE_BOUNDS.max
-const adultAgeMin = 16
+const MIN_ADULT_AGE = 16
+const MAX_AGE = 18
 
 const canStart = computed(() => {
   if (!playerName.value.trim()) return false
   if (startMode.value === 'adult') {
     const a = Number(adultAge.value)
-    return Number.isFinite(a) && a >= adultAgeMin && a <= ageMax
+    return Number.isFinite(a) && a >= MIN_ADULT_AGE && a <= MAX_AGE
   }
   return true
 })
@@ -103,16 +103,17 @@ function startGame() {
   if (!canStart.value) return
 
   const startAge = startMode.value === 'infancy' ? 0 : adultAge.value
-  const pathId = startMode.value === 'infancy' ? 'none' : 'institute'
 
-  store.initWorld(
-    buildNewGameSavePayload({
-      playerName: playerName.value,
-      startAge,
-      pathId,
-    }),
-  )
-  store.save()
+  // Инициализируем все stores
+  playerStore.setName(playerName.value)
+  playerStore.showWelcomeScreen()
+
+  timeStore.setTotalHours(startAge * 365 * 24)
+
+  statsStore.reset()
+  walletStore.reset()
+  skillsStore.reset()
+
   navigateTo('/game')
 }
 </script>
