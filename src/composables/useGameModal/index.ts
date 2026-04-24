@@ -1,4 +1,3 @@
-import { ref, type Component } from 'vue'
 import type { StatChangeBreakdownEntry } from '@/domain/balance/types'
 import { buildActionResultStatLines, type ActionResultStatLine } from '@/utils/stat-breakdown-format'
 import { useModalStack } from '../useModalStack'

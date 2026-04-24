@@ -1,5 +1,4 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+
 
 export interface CareerComponent {
   id: string | null

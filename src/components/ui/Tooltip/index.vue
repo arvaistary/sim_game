@@ -34,7 +34,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
 import './style.scss'
 
 const props = withDefaults(defineProps<{

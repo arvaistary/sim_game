@@ -8,11 +8,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useCareerStore, useStatsStore, useWalletStore } from '@/stores'
-import { useGameStore } from '@/stores/game.store'
-import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
-import { useGameModal, openModal, closeModal } from '@/composables/useGameModal'
 import WorkChoiceModal from '../WorkChoiceModal/WorkChoiceModal.vue'
 import WorkResultModal from '../WorkResultModal/WorkResultModal.vue'
 import type { WorkStatDefinition, WorkStatDiff, WorkSnapshot, WorkOptions, WorkStatSnapshot } from './WorkButton.types'

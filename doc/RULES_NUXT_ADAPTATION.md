@@ -2,7 +2,9 @@
 
 ## Обзор
 
-Этот документ описывает, как адаптировать правила из `.cursor/rules/` (оригинально написанные для React/Next.js) под текущую архитектуру проекта на Nuxt 4 + Vue 3 + Pinia.
+Этот документ описывает адаптацию правил проекта под текущую архитектуру на Nuxt 4.4.2 + Vue 3 + Pinia.
+
+> **Статус:** ✅ Актуально. Миграция на Nuxt 4 завершена 24 апреля 2026. Все правила в `.cursor/rules/` адаптированы под текущую архитектуру.
 
 ## Исходная архитектура vs Текущая архитектура
 
@@ -14,33 +16,48 @@
 - Компоненты: `.tsx`
 - Директивы: `'use client'`
 
-### Nuxt/Vue (текущий проект)
-- Nuxt 4 + Vue 3 Composition API
+### Nuxt 4 / Vue 3 (текущий проект)
+- Nuxt 4.4.2 + Vue 3.5.32 + Composition API
 - Vue composables и hooks (`computed`, `ref`, `onMounted`, `watch`)
-- Pinia для state management
+- Pinia 3.0.4 для state management
 - Архитектура: `domain -> application -> stores -> composables -> components -> pages`
 - Компоненты: `.vue` с `<script setup lang="ts">`
-- SSR отключен (`ssr: false` в конфиге)
+- SPA режим (`ssr: false` в nuxt.config.ts)
+- TypeScript strict mode включён
+- Автоимпорты компонентов, stores, composables
 
 ## Структура проекта
 
 ```
 src/
-├── nuxt-pages/          # Nuxt pages (основные маршруты)
-├── pages/               # Дополнительные страницы
+├── pages/               # Nuxt pages (файловый роутинг)
+│   ├── index.vue
+│   └── game/
+│       └── [section].vue
 ├── components/
 │   ├── layout/          # Layout компоненты
-│   ├── ui/              # UI компоненты (аналог shared/ui)
-│   └── game/            # Game-специфичные компоненты
-├── stores/              # Pinia stores (вместо Zustand)
-├── composables/         # Vue composables (вместо React hooks)
+│   ├── ui/              # UI компоненты
+│   ├── game/            # Game-специфичные компоненты
+│   └── pages/           # Page-специфичные компоненты
+├── stores/              # Pinia stores
+├── composables/         # Vue composables
 ├── domain/              # Domain layer
 │   ├── engine/          # ECS engine
 │   ├── balance/         # Game balance constants
 │   └── game-facade/     # Game facade
 ├── application/         # Application layer (commands/queries)
-├── shared/              # Shared utilities
+├── infrastructure/      # Адаптеры, persistence
+├── middleware/          # Nuxt route middleware
+├── plugins/             # Nuxt/Vue plugins
+├── utils/               # Утилиты
+├── constants/           # Константы
+├── config/              # Конфигурация
+├── types/               # Типы
 └── assets/              # Assets (CSS, images)
+
+shared/                  # Общие типы и утилиты (автоимпорт)
+├── types/
+└── utils/
 ```
 
 ## Адаптация правил по секциям

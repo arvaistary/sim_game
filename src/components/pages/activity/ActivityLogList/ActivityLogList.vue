@@ -22,9 +22,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useActivityLog } from '@/composables/useActivityLog'
-
 const { entries, loadMore } = useActivityLog()
 
 const scrollRef = ref<HTMLElement | null>(null)

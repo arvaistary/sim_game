@@ -8,9 +8,10 @@ alwaysApply: true
 
 Направление зависимостей:
 
-`utils/constants -> domain -> application -> stores/composables -> infrastructure -> components -> pages`
+`utils/constants -> domain -> application -> infrastructure -> stores/composables -> components -> pages`
 
 **Детализация слоев:**
+
 - `utils` - утилиты (format, helpers)
 - `constants` - константы, метки, навигация
 - `domain` - бизнес-логика (engine, balance, game-facade)
@@ -49,13 +50,28 @@ alwaysApply: true
 
 ## Nuxt components
 
-- Nuxt 4 по умолчанию использует client-side rendering (SSR отключен в конфиге).
-- Все компоненты могут использовать browser APIs без специальных директив.
-- Для server-side логики используйте Nitro plugins/server routes (не применимо при SSR: false).
+- Базовый режим рендеринга определяется `nuxt.config.ts` (`ssr: true|false`).
+- В этом проекте опирайся на фактическую настройку `ssr` из конфига, а не на общее допущение.
+- Browser APIs в компонентах используй только с учетом режима рендеринга:
+  - при `ssr: false` — без дополнительных guard-условий;
+  - при `ssr: true` — через `onMounted`, `import.meta.client` или `<ClientOnly>`.
+- Для server-side логики используй Nitro server routes, server plugins и `server/api`.
+
+## Nuxt data-fetching и hydration safety
+
+- Для асинхронных данных в страницах/компонентах используй `useAsyncData`/`useFetch` с явным ключом и типизированным результатом.
+- Обрабатывай состояния `pending`/`error` явно в UI, не полагайся на неявное поведение.
+- Не допускай hydration-мисматчей: значения, зависящие от времени/рандома/окружения браузера, вычисляй только на клиенте.
+
+## Nuxt server/client boundaries
+
+- Код из `server/**` не импортируется в `src/**` клиентских слоев.
+- Общие типы и pure-утилиты для обеих сторон храни в нейтральных модулях (например, `shared/**`, `src/constants`, `src/utils` без browser/server-specific API).
+- При добавлении инфраструктурных адаптеров явно отмечай их среду выполнения (client/server/universal).
 
 ## Структура проекта
 
-```
+```text
 src/
 ├── pages/               # Nuxt pages (маршруты)
 ├── components/
@@ -82,10 +98,11 @@ src/
 
 - Используй layout components из `src/components/layout/` и подключай через Nuxt layouts.
 - Пример layout:
-  ```vue
-  <template>
-    <div class="app">
-      <slot />
-    </div>
-  </template>
-  ```
+
+```vue
+<template>
+  <div class="app">
+    <slot />
+  </div>
+</template>
+```

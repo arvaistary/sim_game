@@ -15,11 +15,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { definePageMeta } from '#imports'
-import { useActions } from '@/composables/useActions'
-import { useTimeStore } from '@/stores/time-store'
-import { useWalletStore } from '@/stores/wallet-store'
 import { getActionById } from '@/domain/balance/actions'
 import type { BalanceAction } from '@/domain/balance/actions'
 

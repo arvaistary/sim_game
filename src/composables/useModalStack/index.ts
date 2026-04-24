@@ -1,5 +1,3 @@
-import { ref, computed, type Component } from 'vue'
-
 /**
  * Запись модального окна в стеке
  */
@@ -66,7 +64,6 @@ export function useModalStack() {
     const index = stack.value.findIndex(entry => entry.id === id)
     if (index !== -1) {
       stack.value.splice(index, 1)
-      // Пересчитать z-index для оставшихся модалок
       recalculateZIndexes()
     }
   }

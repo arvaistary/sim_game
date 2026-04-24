@@ -21,11 +21,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useWalletStore, useFinanceStore } from '@/stores'
-import { showGameResultModal } from '@/composables/useGameModal'
-import { useToast } from '@/composables/useToast'
-import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 import type { LegacyFinanceAction } from '@/domain/balance/types'
 import { formatMoney } from '@/utils/format'
 

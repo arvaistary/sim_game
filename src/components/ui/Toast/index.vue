@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+
 import { TOAST_ICON_MAP } from './index.constants'
 import './style.scss'
 

@@ -1,7 +1,4 @@
-﻿import type { BalanceAction } from '@/domain/balance/actions/types'
-import { computed } from 'vue'
-import { useTimeStore } from '@/stores/time-store'
-import { useToast } from '@/composables/useToast'
+import type { BalanceAction } from '@/domain/balance/actions/types'
 import {
   AgeGroup,
   AGE_RULES,

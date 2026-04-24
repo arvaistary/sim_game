@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+
 import type { SkillDef } from '@/domain/balance/types'
 import type { SkillModifiers } from '@/domain/balance/types'
 import { getSkillEffectsForUi } from '@/domain/balance/constants/skill-effects-generator'

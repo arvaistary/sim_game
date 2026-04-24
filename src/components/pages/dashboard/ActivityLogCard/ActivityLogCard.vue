@@ -18,11 +18,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { navigateTo } from '#imports'
-import { useActivityStore } from '@/stores'
-import { resolveActivityLogTitle } from '@/composables/useActivityLog/utils/activity-log-formatters'
-
 const activityStore = useActivityStore()
 
 interface LogEntryDisplay {

@@ -12,7 +12,6 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from '#imports'
 import './GameLayout.scss'
 
 withDefaults(defineProps<{
@@ -24,9 +23,4 @@ withDefaults(defineProps<{
   showHeader: true,
   showNav: true,
 })
-
-function goBack() {
-  const router = useRouter()
-  router.back()
-}
 </script>

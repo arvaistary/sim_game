@@ -72,9 +72,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { navigateTo } from '#imports'
-import { usePlayerStore, useTimeStore, useStatsStore, useWalletStore, useSkillsStore } from '@/stores'
 import type { StartMode } from '@/types'
 
 const playerStore = usePlayerStore()

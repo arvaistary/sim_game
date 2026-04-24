@@ -172,24 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import Tooltip from '@/components/ui/Tooltip/index.vue'
-import { useGameStore } from '@/stores/game.store'
-import { AgeGroup, getAgeGroup } from '@/composables/useAgeRestrictions/age-constants'
-import { useEducationStore } from '@/stores/education-store'
-import {
-  type ActiveCourse,
-  type CompletedProgramRecord,
-  EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN,
-  ENERGY_EXHAUSTION_THRESHOLD_STUDY,
-  getNeedsStateFromComponents,
-  getCognitiveLoadStatus,
-  canAddStudyHours,
-  EDUCATION_LONG_PROGRAM_STEP_HOURS,
-  COGNITIVE_LOAD_CONSTANTS,
-  resolveStudySessionHours,
-  type CognitiveLoadComponent,
-} from '@/stores/education-store'
 
 type CourseTile =
   | { key: string; status: 'active' }

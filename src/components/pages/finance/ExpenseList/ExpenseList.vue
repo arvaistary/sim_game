@@ -15,8 +15,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useFinanceStore } from '@/stores'
 import { formatMoney } from '@/utils/format'
 import { EXPENSE_LABELS_RU } from '@/constants/metric-labels'
 

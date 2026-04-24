@@ -12,12 +12,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useTimeStore, useWalletStore, useCareerStore, useHousingStore } from '@/stores'
-import { openModal } from '@/composables/useGameModal'
 import SkillsModal from '../SkillsModal/SkillsModal.vue'
 import { formatMoney } from '@/utils/format'
-import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 
 const timeStore = useTimeStore()
 const walletStore = useWalletStore()

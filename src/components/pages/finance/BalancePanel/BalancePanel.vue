@@ -18,8 +18,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useWalletStore } from '@/stores'
 import { formatMoney } from '@/utils/format'
 
 const walletStore = useWalletStore()

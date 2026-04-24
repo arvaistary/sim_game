@@ -1,22 +1,19 @@
-import { ref, computed } from 'vue'
-import { useActivityStore } from '@/stores/activity-store'
-import { useTimeStore } from '@/stores/time-store'
 import { resolveActivityLogTitle, resolveActivityLogDescription } from './utils/activity-log-formatters'
-
-const PAGE_SIZE = 8
-
-export interface DisplayLogEntry {
-  day: number
-  type: string
-  title: string
-  description: string
-  effects?: Record<string, number>
-  raw: Record<string, unknown>
-}
 
 export function useActivityLog() {
   const activityStore = useActivityStore()
   const timeStore = useTimeStore()
+
+  const PAGE_SIZE = 8
+
+  interface DisplayLogEntry {
+    day: number
+    type: string
+    title: string
+    description: string
+    effects?: Record<string, number>
+    raw: Record<string, unknown>
+  }
 
   const activeFilter = ref<string>('all')
   const visibleCount = ref(PAGE_SIZE)

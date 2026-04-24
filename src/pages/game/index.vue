@@ -12,7 +12,6 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta } from '#imports'
 import './index.scss'
 
 definePageMeta({ middleware: 'game-init' })

@@ -10,8 +10,6 @@
 </template>
 
 <script setup lang="ts">
-import { useModalStack, type ModalEntry } from '@/composables/useModalStack'
-
 const { stack, close } = useModalStack()
 
 /**

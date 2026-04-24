@@ -8,12 +8,9 @@
  *
  * Сброс при новой игре: вызов $autoSave.clear() из provide.
  */
-import { defineNuxtPlugin } from '#imports'
 import type { Pinia } from 'pinia'
 import { createLocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
 import { DEFAULT_SAVE_KEY } from '@/infrastructure/persistence/constants'
-import { useGameStore } from '@/stores/game.store'
-import { usePlayerStore } from '@/stores/player-store'
 
 const DEBOUNCE_MS = 300
 const PERIODIC_MS = 30_000

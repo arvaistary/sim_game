@@ -78,11 +78,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { definePageMeta, useRoute } from '#imports'
-import { useActions } from '@/composables/useActions'
-import { useTimeStore } from '@/stores/time-store'
-import { useWalletStore } from '@/stores/wallet-store'
 import { getActionById } from '@/domain/balance/actions'
 import { FOOD_ACTION_IDS, LEARNING_ACTION_IDS, THINGS_ACTION_IDS, HOME_ACTION_IDS } from '@/config/shop-tab-groups'
 

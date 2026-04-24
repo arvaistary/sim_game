@@ -30,8 +30,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useSkillsStore } from '@/stores'
 import { ALL_SKILLS } from '@/domain/balance/constants/skills-constants'
 import { buildSkillTooltipText } from '@/domain/balance/utils/skill-tooltip-content'
 import type { SkillDef } from '@/domain/balance/types'

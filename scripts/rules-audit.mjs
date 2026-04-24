@@ -519,28 +519,6 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     );
   }
 
-  // Vue lifecycle hooks callback check: onMounted, watch, etc. should use inline arrow functions
-  const hookOpenPattern = /\b(onMounted|onUnmounted|onBeforeMount|onBeforeUnmount|onUpdated|watch|watchEffect)\s*\(\s*$/;
-
-  for (let index = 0; index < lines.length - 1; index += 1) {
-    const currentTrimmedLine = lines[index].trim();
-    const nextTrimmedLine = lines[index + 1].trim();
-
-    const hookOpenMatch = currentTrimmedLine.match(hookOpenPattern);
-    if (!hookOpenMatch) {
-      continue;
-    }
-
-    if (/^\s*(async\s*)?\([^)]*\)\s*=>/.test(nextTrimmedLine)) {
-      const hookName = hookOpenMatch[1];
-      pushFinding(
-        'style/hooks-callback-inline',
-        filePath,
-        `Line ${index + 1}: place ${hookName} callback inline: ${hookName}(() => { ... });`,
-      );
-    }
-  }
-
   // Named function in Vue lifecycle hooks
   const hookNamedFunctionPattern =
     /\b(onMounted|onUnmounted|onBeforeMount|onBeforeUnmount|onUpdated|watch|watchEffect)\s*\(\s*function\s+[A-Za-z_$][\w$]*\s*\([^)]*\)\s*(?::\s*[^{}]+)?\s*\{/g;
@@ -780,6 +758,58 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
   runPiniaStoreGroupSeparationHeuristics({ filePath, lines });
 }
 
+// Проверяет Nuxt-специфичные соглашения: useAsyncData/useFetch key и границы server/client.
+function runNuxtHeuristics({ content, filePath, lines }) {
+  const normalizedPath = filePath.split(sep).join('/');
+  const isClientLayerFile =
+    normalizedPath.includes('/src/') &&
+    !normalizedPath.includes('/server/') &&
+    !normalizedPath.includes('/.nuxt/') &&
+    !normalizedPath.includes('/.output/');
+
+  if (isClientLayerFile) {
+    const serverImportPattern =
+      /^\s*import\s+.*from\s+['"](?:node:|#internal\/nitro|~\/server\/|@\/server\/|\.{1,2}\/server\/|\/server\/)/;
+
+    lines.forEach((line, index) => {
+      if (!serverImportPattern.test(line)) {
+        return;
+      }
+
+      pushFinding(
+        'nuxt/server-client-boundary',
+        filePath,
+        `Line ${index + 1}: do not import server-only modules into client layers (src/**)`,
+      );
+    });
+  }
+
+  const asyncDataWithoutKeyPattern = /\buseAsyncData\s*\(\s*(?:async\s*)?(?:\([^)]*\)\s*=>|function\s*\()/g;
+  for (const match of content.matchAll(asyncDataWithoutKeyPattern)) {
+    const lineNumber = getLineNumberByOffset(content, match.index ?? 0);
+    pushFinding(
+      'nuxt/use-async-data-key',
+      filePath,
+      `Line ${lineNumber}: provide explicit stable key in useAsyncData(key, handler, ...)`,
+    );
+  }
+
+  const useFetchWithoutKeyPattern = /\buseFetch\s*\(\s*[^,\n)]+(?:,\s*\{[\s\S]*?\})?\s*\)/g;
+  for (const match of content.matchAll(useFetchWithoutKeyPattern)) {
+    const callText = match[0];
+    if (/key\s*:/.test(callText)) {
+      continue;
+    }
+
+    const lineNumber = getLineNumberByOffset(content, match.index ?? 0);
+    pushFinding(
+      'nuxt/use-fetch-key',
+      filePath,
+      `Line ${lineNumber}: add explicit key in useFetch(..., { key: '...' }) for stable cross-route caching`,
+    );
+  }
+}
+
 // Запускает ESLint через `node node_modules/eslint/bin/eslint.js`, чтобы не зависеть от `.bin` шимов Windows (ENOENT/EINVAL).
 function runEslintAudit() {
   const eslintCli = resolve(repoRoot, 'node_modules/eslint/bin/eslint.js');
@@ -979,7 +1009,6 @@ function runRuleHeuristics() {
             /=\s*(async\s*)?\([^)]*\)\s*:\s*[^=]+\s*=>/.test(trimmedLine) ||
             /=\s*(async\s*)?function\s*\([^)]*\)\s*:\s*[^{=]+/.test(trimmedLine);
           const hasInlineFunctionAnnotation = hasInlineFunctionParamsAnnotation || hasInlineFunctionReturnAnnotation;
-          const isFunctionCallInitializer = /=\s*(new\s+)?[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\s*\(/.test(trimmedLine);
           const isHookCallInitializer = /=\s*use[A-Z][A-Za-z0-9_]*(?:\s*<[^>]+>)?\s*\(/.test(trimmedLine);
           const variableAnnotationMatch = trimmedLine.match(/^(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*:\s*([^=]+?)\s*=/);
           const variableAnnotationRaw = variableAnnotationMatch?.[1]?.trim() ?? '';
@@ -1030,9 +1059,6 @@ function runRuleHeuristics() {
           if (isFunctionAssignment && hasInlineFunctionAnnotation) {
             return;
           }
-          if (isFunctionCallInitializer) {
-            return;
-          }
 
           pushFinding(
             'typing/explicit-variable-annotation',
@@ -1043,6 +1069,11 @@ function runRuleHeuristics() {
       }
 
       runAdditionalStyleHeuristics({
+        content,
+        filePath,
+        lines,
+      });
+      runNuxtHeuristics({
         content,
         filePath,
         lines,

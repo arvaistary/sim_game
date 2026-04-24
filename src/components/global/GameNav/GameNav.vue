@@ -39,11 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { navigateTo, useRoute } from '#imports'
 import { NAV_ITEMS, ROUTE_MAP } from '@/constants/navigation'
-import { useAgeRestrictions, TAB_UNLOCK_AGE } from '@/composables/useAgeRestrictions'
-import { useToast } from '@/composables/useToast'
 import './GameNav.scss'
 
 interface NavItemWithState {

@@ -50,10 +50,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { definePageMeta, useRoute } from '#imports'
-import { useActions } from '@/composables/useActions'
-import { useGameStore } from '@/stores/game.store'
 import { PRACTICE_ACTION_IDS } from '@/config/education-tab-groups'
 
 definePageMeta({ middleware: 'game-init' })

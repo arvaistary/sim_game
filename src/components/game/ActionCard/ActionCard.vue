@@ -25,9 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { formatMoney, formatEffect } from '@/utils/format'
-import { useToast } from '@/composables/useToast'
 import type { BalanceAction } from '@/domain/balance/actions/types'
 
 const props = withDefaults(defineProps<{

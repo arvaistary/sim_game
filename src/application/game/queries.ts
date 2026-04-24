@@ -1,3 +1,5 @@
+import type { ExecuteActionCommandResult } from './index.types'
+import { getActionById } from '@/domain/balance/actions'
 import { useCareerStore } from '@/stores/career-store'
 import { useEducationStore } from '@/stores/education-store'
 import { useFinanceStore } from '@/stores/finance-store'
@@ -5,7 +7,6 @@ import { useWalletStore } from '@/stores/wallet-store'
 import { useActivityStore } from '@/stores/activity-store'
 import { useEventsStore } from '@/stores/events-store'
 import { useTimeStore } from '@/stores/time-store'
-import { getActionById } from '@/domain/balance/actions'
 
 export const appGameQueries = {
   getCareerTrack(): Array<Record<string, unknown>> {

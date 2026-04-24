@@ -14,8 +14,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useStatsStore } from '@/stores'
 import { STAT_DEFS } from '@/domain/balance/constants/stat-defs'
 
 const statsStore = useStatsStore()

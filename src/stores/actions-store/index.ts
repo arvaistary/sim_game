@@ -1,9 +1,3 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { useTimeStore } from '@/stores/time-store'
-import { useStatsStore } from '@/stores/stats-store'
-import { useWalletStore } from '@/stores/wallet-store'
-import { useSkillsStore } from '@/stores/skills-store'
 
 export interface GameAction {
   id: string

@@ -8,9 +8,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { definePageMeta } from '#imports'
-
 definePageMeta({ middleware: 'game-init' })
 
 const activeFilter = ref('all')

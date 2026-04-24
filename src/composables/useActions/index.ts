@@ -1,12 +1,5 @@
-import { computed } from 'vue'
-import { useTimeStore } from '@/stores/time-store'
-import { useStatsStore } from '@/stores/stats-store'
-import { useWalletStore } from '@/stores/wallet-store'
-import { useActivityStore } from '@/stores/activity-store'
+
 import { getActionsByCategory, getActionById } from '@/domain/balance/actions'
-import { showGameResultModal } from '@/composables/useGameModal'
-import { useToast } from '../useToast'
-import { useAgeRestrictions } from '@/composables/useAgeRestrictions'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { ActionCategory } from '@/domain/balance/types'
 

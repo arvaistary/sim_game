@@ -15,13 +15,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { definePageMeta } from '#imports'
-import { useActions } from '@/composables/useActions'
-import { useGameStore } from '@/stores/game.store'
-import { ACTION_CATEGORIES } from '@/config/action-categories'
-import type { ActionCategory } from '@/domain/balance/types'
-
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()

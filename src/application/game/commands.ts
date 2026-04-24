@@ -1,4 +1,5 @@
 import type { ExecuteActionCommandResult } from './index.types'
+import { getActionById } from '@/domain/balance/actions'
 import { useTimeStore } from '@/stores/time-store'
 import { useStatsStore } from '@/stores/stats-store'
 import { useWalletStore } from '@/stores/wallet-store'
@@ -9,7 +10,6 @@ import { useFinanceStore } from '@/stores/finance-store'
 import { useActionsStore } from '@/stores/actions-store'
 import { useActivityStore } from '@/stores/activity-store'
 import { useEventsStore } from '@/stores/events-store'
-import { getActionById } from '@/domain/balance/actions'
 
 export const appGameCommands = {
   executeLifestyleAction(cardData: Record<string, unknown>): string {

@@ -31,10 +31,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { navigateTo } from '#imports'
-import { useGameModal } from '@/composables/useGameModal'
-import type { GameModalButton } from '@/composables/useGameModal'
 import { STAT_LABELS_RU, METRIC_LABELS } from '@/constants/metric-labels'
 
 const { state, close } = useGameModal()

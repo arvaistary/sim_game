@@ -87,10 +87,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { definePageMeta } from '#imports'
-import { useGameStore } from '@/stores/game.store'
-import { useToast } from '@/composables/useToast'
 import { formatMoney } from '@/utils/format'
 import { WORK_TYPES, INDUSTRIES, JOB_INDUSTRY_MAP } from '@/config/work-categories'
 import CareerTrack from '@/components/pages/career/CareerTrack/CareerTrack.vue'

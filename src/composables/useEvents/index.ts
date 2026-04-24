@@ -1,8 +1,3 @@
-import { ref, computed } from 'vue'
-import { useEventsStore, type EventQueueItem, type EventChoice } from '@/stores/events-store'
-import { useTimeStore } from '@/stores/time-store'
-import { useStatsStore } from '@/stores/stats-store'
-import { useActivityStore } from '@/stores/activity-store'
 
 export function useEvents() {
   const eventsStore = useEventsStore()

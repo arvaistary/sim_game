@@ -23,11 +23,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, definePageMeta } from '#imports'
-import { useEvents } from '@/composables/useEvents'
-import { useToast } from '@/composables/useToast'
-
 definePageMeta({ middleware: 'game-init' })
 
 const events = useEvents()

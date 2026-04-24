@@ -10,11 +10,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useCareerStore, useStatsStore } from '@/stores'
-
-const careerStore = useCareerStore()
-const statsStore = useStatsStore()
 const workResult = ref('')
 
 function doWork(hours: number): void {

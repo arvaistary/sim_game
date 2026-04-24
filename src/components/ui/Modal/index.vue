@@ -25,7 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
 import './style.scss'
 
 const props = withDefaults(defineProps<{

@@ -27,12 +27,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
 import EventCard from '../EventCard/EventCard.vue'
 import EventChoices from '../EventChoices/EventChoices.vue'
 import EventResult from '../EventResult/EventResult.vue'
-import { useEvents } from '@/composables/useEvents'
-import { useToast } from '@/composables/useToast'
 
 const emit = defineEmits<{
   close: []

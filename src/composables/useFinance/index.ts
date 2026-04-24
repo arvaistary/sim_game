@@ -1,8 +1,3 @@
-import { computed } from 'vue'
-import { useWalletStore } from '@/stores/wallet-store'
-import { useFinanceStore } from '@/stores/finance-store'
-import { useToast } from '../useToast'
-
 export function useFinance() {
   const walletStore = useWalletStore()
   const financeStore = useFinanceStore()

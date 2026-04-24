@@ -4,7 +4,6 @@
  *
  * Импортирует константы из age-constants.ts - единый источник истины.
  */
-import { useToast } from '@/composables/useToast'
 import {
   AgeGroup,
   AGE_RULES,

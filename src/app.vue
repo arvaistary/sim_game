@@ -51,11 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { navigateTo, useColorMode, useNuxtApp, useRoute } from '#imports'
-import { usePlayerStore } from '@/stores'
-
-import type { AppMenuActionId, AppMenuActionItem } from '@/app.types'
+import type { AppMenuActionId, AppMenuActionItem } from '#shared/types'
 
 const route = useRoute()
 const colorMode = useColorMode()

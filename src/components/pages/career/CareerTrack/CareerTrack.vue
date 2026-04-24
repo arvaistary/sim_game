@@ -37,12 +37,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useSkillsStore, useEducationStore, useCareerStore } from '@/stores'
-import { useGameStore } from '@/stores/game.store'
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
 import { formatMoney } from '@/utils/format'
-import { RANK_LABELS, EDUCATION_RANK, type EducationLevel } from '@/stores/education-store'
 
 const store = useGameStore()
 const skillsStore = useSkillsStore()

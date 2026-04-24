@@ -19,10 +19,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useCareerStore } from '@/stores'
-import { useGameStore } from '@/stores/game.store'
-import { useGameModal, openModal, closeModal } from '@/composables/useGameModal'
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()

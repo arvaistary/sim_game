@@ -80,17 +80,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from '#imports'
-import { useGameStore } from '@/stores/game.store'
-import { useHousingStore, useTimeStore } from '@/stores'
-import { showGameResultModal } from '@/composables/useGameModal'
-import { useToast } from '@/composables/useToast'
 import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 import type { EducationProgram } from '@/domain/balance/types'
 import { formatMoney } from '@/utils/format'
-import { AgeGroup, getAgeGroup } from '@/composables/useAgeRestrictions/age-constants'
-import type { ActiveCourse, CompletedProgramRecord } from '@/stores/education-store'
 
 const store = useGameStore()
 const timeStore = useTimeStore()

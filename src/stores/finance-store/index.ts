@@ -1,6 +1,3 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { useWalletStore } from '@/stores/wallet-store'
 
 export interface Investment {
   id: string

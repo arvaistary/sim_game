@@ -33,8 +33,16 @@ export default defineNuxtConfig({
   },
 
   typescript: {
-    strict: false,
+    strict: true,
     typeCheck: false,
+  },
+
+  imports: {
+    dirs: [
+      'stores',
+      'composables/*/index.{ts,js,mjs,mts}',
+      'shared/types',
+    ],
   },
 
   // SCSS preprocessor options: make variables & mixins globally available

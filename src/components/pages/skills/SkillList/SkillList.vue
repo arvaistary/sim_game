@@ -34,8 +34,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useSkillsStore } from '@/stores'
 import {
   BASIC_SKILLS,
   PROFESSIONAL_SKILLS,

@@ -17,8 +17,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-
 const visible = ref(false)
 const playerName = ref('Алексей')
 const welcomeScreenShown = ref(false)
@@ -37,7 +35,6 @@ function onStart() {
 defineExpose({
   visible,
   welcomeScreenShown,
-})
 })
 </script>
 

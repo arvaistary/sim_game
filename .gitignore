@@ -16,6 +16,8 @@ _temp_test/
 .mempalace/
 .tmp-mempalace/
 .aider*
+.nuxt
+.output
 
 opencode.json
 test-results.json

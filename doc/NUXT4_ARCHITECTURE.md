@@ -1,6 +1,6 @@
 # Nuxt 4 Архитектура
 
-**Последнее обновление:** 10 апреля 2026
+**Последнее обновление:** 24 апреля 2026
 **Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia
 
 ---
@@ -27,10 +27,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-04-10',
   ssr: false,                    // SPA режим - только клиентский рендеринг
   srcDir: 'src/',                 // Папка с исходным кодом
-  dir: {
-    pages: 'nuxt-pages',          // Кастомная папка для страниц
-  },
-  css: ['~/assets/css/main.css'],  // Глобальные стили
+  css: ['~/assets/scss/reset.scss', '~/assets/scss/global.scss', '~/assets/scss/transitions.scss'],
 
   modules: [
     '@pinia/nuxt',                // Pinia интеграция
@@ -38,8 +35,8 @@ export default defineNuxtConfig({
   ],
 
   typescript: {
-    strict: false,                 // Отключена строгая проверка
-    typeCheck: true,               // Проверка типов при сборке
+    strict: true,                  // Включена строгая проверка
+    typeCheck: false,              // Отключена для ускорения сборки (strict null checks в tsconfig.json включены)
   },
 
   app: {
@@ -64,8 +61,8 @@ export default defineNuxtConfig({
 | `compatibilityDate` | `'2026-04-10'` | Дата совместимости для автоматических миграций |
 | `ssr` | `false` | SPA режим - только клиентский рендеринг |
 | `srcDir` | `'src/'` | Папка с исходным кодом |
-| `dir.pages` | `'nuxt-pages'` | Кастомная папка для страниц |
-| `typescript.strict` | `false` | Строгая проверка отключена |
+| `typescript.strict` | `true` | Строгая проверка TypeScript включена |
+| `typescript.typeCheck` | `false` | Type-check отключен для ускорения сборки |
 | `devtools.enabled` | `true` | Vue DevTools включены |
 
 ---
@@ -75,7 +72,7 @@ export default defineNuxtConfig({
 ### Структура папки
 
 ```
-src/nuxt-pages/
+src/pages/
 ├── index.vue           → /
 └── game/
     └── [section].vue   → /game/:section
@@ -362,7 +359,8 @@ Vue компоненты поддерживают scoped стили:
 {
   "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
-    "strict": false,
+    "strict": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
     "skipLibCheck": true
   }
@@ -371,8 +369,9 @@ Vue компоненты поддерживают scoped стили:
 
 ### Типизация
 
-- **Strict mode:** Отключена (`strict: false`)
-- **Type checking:** Включена (`typeCheck: true`)
+- **Strict mode:** Включена (`strict: true` в nuxt.config.ts)
+- **Strict null checks:** Включена (`strictNullChecks: true` в tsconfig.json)
+- **Type checking:** Отключена (`typeCheck: false` в nuxt.config.ts для ускорения сборки)
 - **Nuxt types:** Автоматически генерируются в `.nuxt/`
 - **Component props:** Типизируются через интерфейсы
 

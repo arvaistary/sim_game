@@ -13,6 +13,8 @@
 </template>
 
 <script setup lang="ts">
+import './ActivityFilter.scss'
+
 defineProps<{
   modelValue: string
 }>()
@@ -32,5 +34,3 @@ const filters = [
   { label: 'Время', type: 'time' },
 ]
 </script>
-
-<style scoped lang="scss" src="./ActivityFilter.scss"></style>

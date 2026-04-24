@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+
 import { STAT_LABELS_RU, METRIC_LABELS } from '@/constants/metric-labels'
 
 const props = defineProps<{

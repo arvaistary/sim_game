@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+
 import { formatStatChangesBulletListRu } from '@/domain/balance/utils/stat-changes-format'
 import type { EventQueueItem } from '@/stores/events-store'
 
