@@ -16,6 +16,8 @@
 </template>
 
 <script setup lang="ts">
+import './ActionCardList.scss'
+
 import type { BalanceAction } from '@/domain/balance/actions/types'
 
 withDefaults(defineProps<{
@@ -38,4 +40,3 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped lang="scss" src="./ActionCardList.scss"></style>

@@ -375,6 +375,7 @@ export function createWeeklyJobDismissalQueuedEvent(params: {
   jobId: string
 }) {
   const { jobName, worked, required, newWeekNumber, jobId } = params
+
   return {
     id: 'job_dismissal',
     type: 'career' as const,

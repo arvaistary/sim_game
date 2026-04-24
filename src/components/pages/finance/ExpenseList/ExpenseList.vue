@@ -15,7 +15,10 @@
 </template>
 
 <script setup lang="ts">
+import './ExpenseList.scss'
+
 import { formatMoney } from '@/utils/format'
+
 import { EXPENSE_LABELS_RU } from '@/constants/metric-labels'
 
 const financeStore = useFinanceStore()
@@ -29,8 +32,10 @@ const monthlyExpenses = computed(() => {
     for (const exp of expenses) {
       expenseMap[exp.category] = exp.amount
     }
+
     return expenseMap
   }
+
   return {}
 })
 
@@ -39,4 +44,3 @@ const totalExpenses = computed(() => {
 })
 </script>
 
-<style scoped lang="scss" src="./ExpenseList.scss"></style>

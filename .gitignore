@@ -22,3 +22,11 @@ _temp_test/
 opencode.json
 test-results.json
 test.html
+
+# Local tooling/temp directories
+_temp_test/
+.cursor/
+.nuxt/
+.output/
+.qwen/
+.roo/

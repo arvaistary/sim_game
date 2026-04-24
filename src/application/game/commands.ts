@@ -23,14 +23,17 @@ export const appGameCommands = {
       const returnRate = (cardData.returnRate as number) ?? 5
       const type = (cardData.investmentType as 'deposit' | 'stocks' | 'business') ?? 'deposit'
       const success = financeStore.invest(type, amount, returnRate)
+
       return success ? 'Инвестиция успешна' : 'Недостаточно средств'
     }
     if (actionType === 'sleep') {
       const hours = (cardData.hours as number) ?? 8
       const energy = Math.min(100, statsStore.energy + hours * 10)
       statsStore.setEnergy(energy)
+
       return 'Вы поспали'
     }
+
     return 'Неизвестное действие'
   },
 
@@ -98,7 +101,9 @@ export const appGameCommands = {
 
   quitCareer(): { success: boolean; message: string } {
     const careerStore = useCareerStore()
+
     careerStore.endWork()
+
     return { success: true, message: 'Вы уволились' }
   },
 
@@ -115,12 +120,15 @@ export const appGameCommands = {
     if (!program) return 'Программа не найдена'
 
     educationStore.startProgramById(programId, program.name, program.duration)
+
     return `Начато обучение: ${program.name}`
   },
 
   advanceEducation(): string {
     const educationStore = useEducationStore()
+
     const result = educationStore.advance()
+
     return result ? `Изучено: ${result}` : 'Нет активной программы'
   },
 
@@ -134,6 +142,7 @@ export const appGameCommands = {
     if (action.price > walletStore.money) return 'Недостаточно средств'
 
     walletStore.spend(action.price)
+
     return action.effect || 'Выполнено'
   },
 
@@ -147,6 +156,7 @@ export const appGameCommands = {
     const activityStore = useActivityStore()
 
     if (walletStore.money < action.price) return { success: false, message: 'Недостаточно денег' }
+
     if (timeStore.weekHoursRemaining < action.hourCost) return { success: false, message: 'Недостаточно времени' }
 
     walletStore.spend(action.price)
@@ -183,12 +193,15 @@ export const appGameCommands = {
 
   collectInvestment(investmentId: string): string {
     const financeStore = useFinanceStore()
+
     const amount = financeStore.divest(investmentId)
+
     return amount > 0 ? `Получено ${amount} ₽` : 'Инвестиция не найдена'
   },
 
   advanceTime(hours: number): void {
     const timeStore = useTimeStore()
+
     timeStore.advanceHours(hours)
   },
 

@@ -61,10 +61,16 @@ export default defineNuxtConfig({
 
   // Aliases
   alias: {
-    '@constants': resolve(__dirname, 'src/constants/index.ts'),
-    '@utils': resolve(__dirname, 'src/utils/index.ts'),
-    '@domain': resolve(__dirname, 'src/domain/index.ts'),
-    '@composables': resolve(__dirname, 'src/composables/index.ts'),
+    '@components': resolve(__dirname, 'src/components'),
+    '@stores': resolve(__dirname, 'src/stores'),
+    '@composables': resolve(__dirname, 'src/composables'),
+    '@domain': resolve(__dirname, 'src/domain'),
+    '@application': resolve(__dirname, 'src/application'),
+    '@utils': resolve(__dirname, 'src/utils'),
+    '@constants': resolve(__dirname, 'src/constants'),
+    '@infrastructure': resolve(__dirname, 'src/infrastructure'),
+    '@pages': resolve(__dirname, 'src/pages'),
+    '@shared': resolve(__dirname, 'shared'),
   },
 
   // App head

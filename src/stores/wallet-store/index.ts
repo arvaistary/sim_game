@@ -41,6 +41,7 @@ export const useWalletStore = defineStore('wallet', () => {
     if (addToNetWorth) {
       totalSpent.value += actualSpend
     }
+
     return actualSpend
   }
 
@@ -82,8 +83,11 @@ export const useWalletStore = defineStore('wallet', () => {
 
   function load(data: Record<string, unknown>): void {
     if (typeof data.money === 'number') money.value = data.money
+
     if (typeof data.reserveFund === 'number') reserveFund.value = data.reserveFund
+
     if (typeof data.totalEarned === 'number') totalEarned.value = data.totalEarned
+
     if (typeof data.totalSpent === 'number') totalSpent.value = data.totalSpent
   }
 

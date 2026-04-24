@@ -69,7 +69,9 @@ export function getNeedsStateFromComponents(stats: Record<string, number>) {
 
 export function getCognitiveLoadStatus(cognitive: number) {
   if (cognitive < COGNITIVE_LOAD_CONSTANTS.LOW) return 'low'
+
   if (cognitive < COGNITIVE_LOAD_CONSTANTS.MEDIUM) return 'medium'
+
   return 'high'
 }
 
@@ -85,6 +87,7 @@ export function canAddStudyHours(cognitive: number, energy: number): CanAddStudy
   if (energy <= ENERGY_EXHAUSTION_THRESHOLD_STUDY) {
     return { canDo: false, reason: 'Энергия слишком низка для учёбы' }
   }
+
   return { canDo: true }
 }
 
@@ -95,6 +98,7 @@ export function resolveStudySessionHours(cognitive: number, energy: number, maxH
   if (cognitive < COGNITIVE_LOAD_CONSTANTS.LOW && energy > 80) {
     return maxHours
   }
+
   return Math.floor(maxHours / 2)
 }
 
@@ -172,9 +176,13 @@ export const useEducationStore = defineStore('education', () => {
   function getProgramBonus(): number {
     const rank = educationRank.value
     if (rank >= 4) return 12
+
     if (rank >= 3) return 10
+
     if (rank >= 2) return 6
+
     if (rank >= 1) return 3
+
     return 0
   }
 
@@ -200,8 +208,10 @@ export const useEducationStore = defineStore('education', () => {
         completedAtGameDay: 0,
       }
       completeProgram(completed)
+
       return completed.name
     }
+
     return null
   }
 
@@ -229,11 +239,17 @@ export const useEducationStore = defineStore('education', () => {
 
   function load(data: Record<string, unknown>): void {
     if (data.school) school.value = data.school as string
+
     if (data.institute) institute.value = data.institute as string
+
     if (data.educationLevel) educationLevel.value = data.educationLevel as EducationLevel
+
     if (data.activeEducation) activeEducation.value = data.activeEducation as ActiveEducation | null
+
     if (data.completedPrograms) completedPrograms.value = data.completedPrograms as CompletedProgram[]
+
     if (data.cognitiveLoad) cognitiveLoad.value = data.cognitiveLoad as number
+
     if (data.studyHoursSinceLastSleep) studyHoursSinceLastSleep.value = data.studyHoursSinceLastSleep as number
   }
 

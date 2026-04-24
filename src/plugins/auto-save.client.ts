@@ -35,15 +35,18 @@ export default defineNuxtPlugin((nuxtApp) => {
    */
   function flushSave(): void {
     if (!saveEnabled) return
+
     if (saveTimer) {
       clearTimeout(saveTimer)
       saveTimer = null
     }
 
     const playerStore = usePlayerStore()
+
     if (!playerStore.isInitialized) return
 
     const gameStore = useGameStore()
+
     saveRepository.save(gameStore.save())
   }
 
@@ -52,6 +55,7 @@ export default defineNuxtPlugin((nuxtApp) => {
    */
   function debouncedSave(): void {
     if (!saveEnabled) return
+
     if (saveTimer) clearTimeout(saveTimer)
     saveTimer = setTimeout(flushSave, DEBOUNCE_MS)
   }

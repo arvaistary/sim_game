@@ -24,6 +24,7 @@ function levelFromXp(xp: number): number {
   while (xp >= xpForLevel(level + 1)) {
     level++
   }
+
   return clamp(level, 0, MAX_LEVEL)
 }
 

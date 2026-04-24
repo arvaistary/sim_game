@@ -56,8 +56,8 @@
               v-model.number="adultAge"
               class="start-page__input start-page__input--narrow"
               type="number"
-              :min="adultAgeMin"
-              :max="ageMax"
+              :min="ADULT_AGE_MIN"
+              :max="ADULT_AGE_MAX"
               step="1"
             />
           </div>
@@ -72,7 +72,11 @@
 </template>
 
 <script setup lang="ts">
-import type { StartMode } from '@/types'
+import './index.scss'
+
+import { ADULT_AGE_MAX, ADULT_AGE_MIN } from './index.constants'
+
+import type { StartMode } from './index.types.ts'
 
 const playerStore = usePlayerStore()
 const timeStore = useTimeStore()
@@ -84,15 +88,15 @@ const playerName = ref('')
 const startMode = ref<StartMode>('infancy')
 const adultAge = ref(18)
 
-const MIN_ADULT_AGE = 16
-const MAX_AGE = 18
-
 const canStart = computed(() => {
   if (!playerName.value.trim()) return false
+
   if (startMode.value === 'adult') {
-    const a = Number(adultAge.value)
-    return Number.isFinite(a) && a >= MIN_ADULT_AGE && a <= MAX_AGE
+    const parsedAdultAge: number = Number(adultAge.value)
+
+    return Number.isFinite(parsedAdultAge) && parsedAdultAge >= ADULT_AGE_MIN && parsedAdultAge <= ADULT_AGE_MAX
   }
+
   return true
 })
 
@@ -115,4 +119,3 @@ function startGame() {
 }
 </script>
 
-<style scoped lang="scss" src="./index.scss"></style>

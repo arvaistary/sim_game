@@ -1,0 +1,5 @@
+_temp_test/
+.nuxt/
+.output/
+.qwen/
+.roo/

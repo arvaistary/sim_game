@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import type { WorkType } from '@/config/work-categories'
+import type { WorkType } from '@/constants/work-categories'
 
 defineProps<{
   types: WorkType[]

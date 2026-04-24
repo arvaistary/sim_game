@@ -35,8 +35,10 @@ export const usePlayerStore = defineStore('player', () => {
 
   function load(_saveData?: Record<string, unknown>): boolean {
     if (_saveData?.name) name.value = _saveData.name as string
+
     if (_saveData?.welcomeScreenShown) welcomeScreenShown.value = _saveData.welcomeScreenShown as boolean
     isInitialized.value = true
+
     return true
   }
 

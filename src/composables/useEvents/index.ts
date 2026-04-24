@@ -1,5 +1,4 @@
-
-export function useEvents() {
+export const useEvents = () => {
   const eventsStore = useEventsStore()
   const timeStore = useTimeStore()
   const statsStore = useStatsStore()
@@ -9,6 +8,7 @@ export function useEvents() {
 
   const hasNextEvent = computed(() => {
     void timeStore.totalHours
+
     return eventsStore.hasEvent
   })
 
@@ -17,15 +17,18 @@ export function useEvents() {
     const next = eventsStore.currentEvent
     if (!next) {
       currentEvent.value = null
+
       return null
     }
     currentEvent.value = next as unknown as EventQueueItem
+
     return currentEvent.value
   }
 
   function applyChoice(choiceId: string): boolean {
     if (!currentEvent.value?.choices) return false
-    const choice = currentEvent.value.choices.find((c) => c.id === choiceId) as EventChoice | undefined
+    const choice = currentEvent.value.choices.find(
+      (c: EventChoice) => c.id === choiceId) as EventChoice | undefined
     if (!choice) return false
 
     if (choice.effects) {
@@ -41,6 +44,7 @@ export function useEvents() {
     )
 
     currentEvent.value = null
+
     return true
   }
 

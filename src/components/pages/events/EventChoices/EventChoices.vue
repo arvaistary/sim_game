@@ -14,7 +14,10 @@
 
 <script setup lang="ts">
 
+import './EventChoices.scss'
+
 defineProps<{
+
   choices: Array<{ id: string; text: string }>
 }>()
 
@@ -23,4 +26,3 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped lang="scss" src="./EventChoices.scss"></style>

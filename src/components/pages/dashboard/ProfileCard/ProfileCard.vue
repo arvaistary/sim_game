@@ -12,7 +12,10 @@
 </template>
 
 <script setup lang="ts">
+import './ProfileCard.scss'
+
 import SkillsModal from '../SkillsModal/SkillsModal.vue'
+
 import { formatMoney } from '@/utils/format'
 
 const timeStore = useTimeStore()
@@ -56,8 +59,8 @@ const timeLabel = computed(() => {
   const gameWeeks = timeStore.gameWeeksFloored
   const weekHoursRemaining = timeStore.weekHoursRemaining
   const currentAge = timeStore.currentAge
+
   return `День ${gameDays} • Неделя ${gameWeeks} (${weekHoursRemaining} ч. осталось) • ${currentAge} лет`
 })
 </script>
 
-<style scoped lang="scss" src="./ProfileCard.scss"></style>

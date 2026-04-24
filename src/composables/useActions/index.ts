@@ -8,6 +8,7 @@ export function useActions() {
   const statsStore = useStatsStore()
   const walletStore = useWalletStore()
   const activityStore = useActivityStore()
+
   const toast = useToast()
   const { filterActionsByAge, ageGroupLabel } = useAgeRestrictions()
 
@@ -19,16 +20,22 @@ export function useActions() {
   function canExecute(actionId: string): boolean {
     const action = getActionById(actionId)
     if (!action) return false
+
     if (walletStore.money < action.price) return false
+
     if (timeStore.weekHoursRemaining < action.hourCost) return false
+
     return true
   }
 
   function getCanExecuteReason(actionId: string): string | null {
     const action = getActionById(actionId)
     if (!action) return 'Действие не найдено'
+
     if (walletStore.money < action.price) return 'Недостаточно денег'
+
     if (timeStore.weekHoursRemaining < action.hourCost) return 'Недостаточно времени'
+
     return null
   }
 
@@ -36,12 +43,14 @@ export function useActions() {
     const action = getActionById(actionId)
     if (!action) {
       toast.showError(`Действие не найдено: ${actionId}`)
+
       return false
     }
 
     const reason = getCanExecuteReason(actionId)
     if (reason) {
       toast.showError(reason)
+
       return false
     }
 
@@ -59,11 +68,13 @@ export function useActions() {
       hourCost: action.hourCost,
       price: action.price,
     })
+
     return true
   }
 
   function getActions(category: ActionCategory): BalanceAction[] {
     const actions = getActionsByCategory(category)
+
     return filterActionsByAge(actions)
   }
 

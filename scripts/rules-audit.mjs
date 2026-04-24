@@ -449,38 +449,6 @@ function countTopLevelFunctionParams(paramsText) {
 
 // Проверяет дополнительные локальные стилевые соглашения для Vue/Nuxt/Pinia.
 function runAdditionalStyleHeuristics({ content, filePath, lines }) {
-  let braceDepth = 0;
-
-  lines.forEach((line, index) => {
-    const trimmedLine = line.trim();
-
-    if (
-      braceDepth === 0 &&
-      /^(export\s+)?(const|let|var)\s+[A-Za-z_$][\w$]*\s*=\s*(async\s*)?(\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>/.test(trimmedLine)
-    ) {
-      pushFinding(
-        'style/prefer-function-declaration',
-        filePath,
-        `Line ${index + 1}: prefer function declarations instead of arrow functions for non-callback declarations`,
-      );
-    }
-
-    if (braceDepth === 0 && /^(export\s+)?(const|let|var)\s+[A-Za-z_$][\w$]*\s*=\s*(async\s*)?function\b/.test(trimmedLine)) {
-      pushFinding(
-        'style/prefer-function-declaration',
-        filePath,
-        `Line ${index + 1}: prefer function declarations instead of function expressions`,
-      );
-    }
-
-    const openingBracesCount = (line.match(/\{/g) ?? []).length;
-    const closingBracesCount = (line.match(/\}/g) ?? []).length;
-    braceDepth += openingBracesCount - closingBracesCount;
-    if (braceDepth < 0) {
-      braceDepth = 0;
-    }
-  });
-
   for (let index = 1; index < lines.length; index += 1) {
     const currentTrimmedLine = lines[index].trim();
     const previousTrimmedLine = lines[index - 1].trim();
@@ -504,6 +472,40 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding('style/blank-line-before-if', filePath, `Line ${index + 1}: keep an empty line before if blocks`);
   }
 
+  for (let index = 1; index < lines.length; index += 1) {
+    const currentTrimmedLine = lines[index].trim();
+    const previousTrimmedLine = lines[index - 1].trim();
+
+    if (!/^if\s*\(/.test(currentTrimmedLine) || !/^if\s*\(/.test(previousTrimmedLine)) {
+      continue;
+    }
+
+    pushFinding(
+      'style/blank-line-between-consecutive-if',
+      filePath,
+      `Line ${index + 1}: add an empty line between consecutive if statements`,
+    );
+  }
+
+  for (let index = 1; index < lines.length; index += 1) {
+    const currentTrimmedLine = lines[index].trim();
+    const previousTrimmedLine = lines[index - 1].trim();
+
+    if (!/^return\b/.test(currentTrimmedLine)) {
+      continue;
+    }
+
+    if (!previousTrimmedLine || previousTrimmedLine.endsWith('{')) {
+      continue;
+    }
+
+    pushFinding(
+      'style/blank-line-before-return',
+      filePath,
+      `Line ${index + 1}: keep an empty line before return when it follows other expressions`,
+    );
+  }
+
   for (let index = 0; index < lines.length; index += 1) {
     const trimmedLine = lines[index].trim();
     const hasVoidCallPattern = /^void\s+[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\s*\([^;]*\)\s*;\s*$/.test(trimmedLine);
@@ -516,21 +518,6 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
       'style/no-void-fire-and-forget',
       filePath,
       `Line ${index + 1}: avoid "void fn()"; use await/return or explicit error handling`,
-    );
-  }
-
-  // Named function in Vue lifecycle hooks
-  const hookNamedFunctionPattern =
-    /\b(onMounted|onUnmounted|onBeforeMount|onBeforeUnmount|onUpdated|watch|watchEffect)\s*\(\s*function\s+[A-Za-z_$][\w$]*\s*\([^)]*\)\s*(?::\s*[^{}]+)?\s*\{/g;
-
-  for (const hookMatch of content.matchAll(hookNamedFunctionPattern)) {
-    const hookName = hookMatch[1];
-    const hookOffset = hookMatch.index ?? 0;
-    const lineNumber = getLineNumberByOffset(content, hookOffset);
-    pushFinding(
-      'style/hooks-named-function',
-      filePath,
-      `Line ${lineNumber}: use arrow function in ${hookName} callback instead of named function`,
     );
   }
 
@@ -758,6 +745,119 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
   runPiniaStoreGroupSeparationHeuristics({ filePath, lines });
 }
 
+// Проверяет правила для composables: export const useXxx и обязательный JSDoc/TSDoc перед экспортом.
+function runComposableHeuristics({ filePath, lines }) {
+  const normalizedPath = filePath.split(sep).join('/');
+  if (!normalizedPath.includes('/src/composables/')) {
+    return;
+  }
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const trimmedLine = lines[index].trim();
+    const exportedComposableFunctionPattern = /^export\s+(async\s+)?function\s+use[A-Z][A-Za-z0-9_]*\s*\(/;
+    const exportedComposableConstPattern = /^export\s+const\s+use[A-Z][A-Za-z0-9_]*\s*=/;
+
+    if (exportedComposableFunctionPattern.test(trimmedLine)) {
+      pushFinding(
+        'composables/export-const-required',
+        filePath,
+        `Line ${index + 1}: export composables via const (export const useXxx = ...), not function declaration`,
+      );
+      continue;
+    }
+
+    if (!exportedComposableConstPattern.test(trimmedLine)) {
+      continue;
+    }
+
+    const jsDocBlock = getTsDocBeforeLine(lines, index);
+    if (!jsDocBlock) {
+      pushFinding(
+        'composables/exported-jsdoc',
+        filePath,
+        `Line ${index + 1}: add JSDoc/TSDoc comment (/** ... */) before exported composable`,
+      );
+      continue;
+    }
+
+    if (!/@description\s+/.test(jsDocBlock)) {
+      pushFinding(
+        'composables/exported-jsdoc-format',
+        filePath,
+        `Line ${index + 1}: include @description in exported composable JSDoc/TSDoc`,
+      );
+    }
+  }
+}
+
+// Проверяет подключение стилей Vue-компонента через import в начале <script setup>.
+function runVueStyleImportHeuristics({ content, filePath, lines }) {
+  const hasStyleSrcTag = /<style\b[^>]*\bsrc\s*=\s*["'][^"']+["'][^>]*><\/style>/.test(content);
+  const hasScriptStyleImport = /^\s*import\s+['"]\.\/[^'"]+\.(scss|sass|css|less|styl|pcss)['"]\s*;?\s*$/m.test(content);
+  if (hasStyleSrcTag) {
+    pushFinding(
+      'style/vue-style-import-in-script-setup',
+      filePath,
+      'Use local style import in <script setup> instead of <style src="..."></style>',
+    );
+  }
+
+  if (!hasStyleSrcTag && !hasScriptStyleImport) {
+    return;
+  }
+
+  const scriptSetupStartIndex = lines.findIndex((line) => /^<script\s+setup\s+lang="ts"\s*>/.test(line.trim()));
+  if (scriptSetupStartIndex < 0) {
+    return;
+  }
+
+  let scriptSetupEndIndex = -1;
+  for (let index = scriptSetupStartIndex + 1; index < lines.length; index += 1) {
+    if (/^<\/script>/.test(lines[index].trim())) {
+      scriptSetupEndIndex = index;
+      break;
+    }
+  }
+
+  if (scriptSetupEndIndex < 0) {
+    return;
+  }
+
+  const styleImportPattern = /^\s*import\s+['"]\.\/[^'"]+\.(scss|sass|css|less|styl|pcss)['"]\s*;?\s*$/;
+  let firstMeaningfulLineIndex = -1;
+
+  for (let index = scriptSetupStartIndex + 1; index < scriptSetupEndIndex; index += 1) {
+    if (lines[index].trim() === '') {
+      continue;
+    }
+
+    firstMeaningfulLineIndex = index;
+    break;
+  }
+
+  if (firstMeaningfulLineIndex < 0) {
+    return;
+  }
+
+  if (!styleImportPattern.test(lines[firstMeaningfulLineIndex])) {
+    pushFinding(
+      'style/vue-style-import-first',
+      filePath,
+      `Line ${firstMeaningfulLineIndex + 1}: place local style import ('./*.scss') as the first statement in <script setup>`,
+    );
+    return;
+  }
+
+  const nextLine = lines[firstMeaningfulLineIndex + 1] ?? '';
+  if (nextLine.trim() !== '') {
+    pushFinding(
+      'style/vue-style-import-blank-line-after',
+      filePath,
+      `Line ${firstMeaningfulLineIndex + 2}: add an empty line after local style import in <script setup>`,
+    );
+  }
+}
+
 // Проверяет Nuxt-специфичные соглашения: useAsyncData/useFetch key и границы server/client.
 function runNuxtHeuristics({ content, filePath, lines }) {
   const normalizedPath = filePath.split(sep).join('/');
@@ -808,6 +908,30 @@ function runNuxtHeuristics({ content, filePath, lines }) {
       `Line ${lineNumber}: add explicit key in useFetch(..., { key: '...' }) for stable cross-route caching`,
     );
   }
+
+  lines.forEach((line, index) => {
+    if (!/^\s*import\s+.*['"]@\/.+['"]\s*;?\s*$/.test(line) && !/^\s*export\s+.*from\s+['"]@\/.+['"]\s*;?\s*$/.test(line)) {
+      return;
+    }
+
+    pushFinding(
+      'style/alias-no-root-slash',
+      filePath,
+      `Line ${index + 1}: replace '@/...' with '@catalog_name/...' alias format`,
+    );
+  });
+
+  lines.forEach((line, index) => {
+    if (!/^\s*import\s+.*['"]#shared\/.+['"]\s*;?\s*$/.test(line) && !/^\s*export\s+.*from\s+['"]#shared\/.+['"]\s*;?\s*$/.test(line)) {
+      return;
+    }
+
+    pushFinding(
+      'style/alias-no-shared-hash',
+      filePath,
+      `Line ${index + 1}: replace '#shared/...' with '@shared/...'`,
+    );
+  });
 }
 
 // Запускает ESLint через `node node_modules/eslint/bin/eslint.js`, чтобы не зависеть от `.bin` шимов Windows (ENOENT/EINVAL).
@@ -980,6 +1104,16 @@ function runRuleHeuristics() {
         pushFinding('typing/types-location', filePath, 'Move type/interface declarations to *.types.ts or types.ts');
       }
 
+      const hasUpperSnakeConstDeclaration = /^\s*const\s+[A-Z][A-Z0-9_]*\s*[:=]/m.test(content);
+      const isConstantsFile = /(\.constants\.ts|[\\/]constants\.ts)$/.test(filePath);
+      if (hasUpperSnakeConstDeclaration && !isConstantsFile) {
+        pushFinding(
+          'style/constants-location',
+          filePath,
+          'Move local UPPER_SNAKE const declarations to a nearby *.constants.ts file',
+        );
+      }
+
       // Variable type annotation check (только для .ts файлов, не .vue)
       if (filePath.endsWith('.ts')) {
         lines.forEach((line, index) => {
@@ -1078,6 +1212,17 @@ function runRuleHeuristics() {
         filePath,
         lines,
       });
+      runComposableHeuristics({
+        filePath,
+        lines,
+      });
+      if (filePath.endsWith('.vue')) {
+        runVueStyleImportHeuristics({
+          content,
+          filePath,
+          lines,
+        });
+      }
     }
   }
 }

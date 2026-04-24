@@ -37,13 +37,17 @@
 </template>
 
 <script setup lang="ts">
+import './CareerTrack.scss'
+
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
+
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
 const skillsStore = useSkillsStore()
 const educationStore = useEducationStore()
 const careerStore = useCareerStore()
+
 const message = ref('')
 
 interface CareerTrackJob {
@@ -113,4 +117,3 @@ function takeJob(job: CareerTrackJob): void {
 }
 </script>
 
-<style scoped lang="scss" src="./CareerTrack.scss"></style>

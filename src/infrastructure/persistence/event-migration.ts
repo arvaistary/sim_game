@@ -205,6 +205,7 @@ export function migrateSave(payload: Record<string, unknown>): MigrationResult {
  */
 export function needsMigration(payload: Record<string, unknown>): boolean {
   const currentVersion = payload.eventSchemaVersion as number || 1
+
   return currentVersion < EVENT_SCHEMA_VERSION
 }
 

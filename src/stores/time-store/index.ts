@@ -82,7 +82,9 @@ export const useTimeStore = defineStore('time', () => {
 
   function load(data: Record<string, unknown>): void {
     if (typeof data.totalHours === 'number') totalHours.value = data.totalHours
+
     if (typeof data.sleepDebt === 'number') sleepDebt.value = data.sleepDebt
+
     if (typeof data.startAge === 'number') startAge.value = data.startAge
   }
 

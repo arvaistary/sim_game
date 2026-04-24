@@ -5,9 +5,11 @@
 </template>
 
 <script setup lang="ts">
+import './EmptyState.scss'
+
 defineProps<{
+
   text: string
 }>()
 </script>
 
-<style scoped lang="scss" src="./EmptyState.scss"></style>

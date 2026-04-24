@@ -14,7 +14,10 @@
 
 <script setup lang="ts">
 
+import './EventCard.scss'
+
 import { formatStatChangesBulletListRu } from '@/domain/balance/utils/stat-changes-format'
+
 import type { EventQueueItem } from '@/stores/events-store'
 
 const props = defineProps<{
@@ -23,8 +26,8 @@ const props = defineProps<{
 
 const impactText = computed(() => {
   if (!props.event?.data?.statImpact) return ''
+
   return formatStatChangesBulletListRu(props.event.data.statImpact as any)
 })
 </script>
 
-<style scoped lang="scss" src="./EventCard.scss"></style>

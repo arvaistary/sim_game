@@ -30,12 +30,19 @@ export const MAX_LEVEL = 10
  */
 export function getAgeLearningMultiplier(age: number): number {
   if (age <= 7) return 2.5
+
   if (age <= 12) return 2.0
+
   if (age <= 18) return 1.7
+
   if (age <= 25) return 1.4
+
   if (age <= 35) return 1.1
+
   if (age <= 45) return 0.8
+
   if (age <= 60) return 0.5
+
   return 0.3
 }
 
@@ -50,6 +57,7 @@ export function getLearningMethodMultiplier(method: LearningMethod): number {
     books: 0.7,
     videos: 0.4,
   }
+
   return multipliers[method]
 }
 
@@ -81,6 +89,7 @@ export function getXpForLevel(level: number): number {
 export function getComfortZoneMultiplier(consecutiveUses: number): number {
   if (consecutiveUses <= 5) return 1.0
   const penalty = (consecutiveUses - 5) * 0.15
+
   return Math.max(0.2, 1 - penalty)
 }
 
@@ -89,10 +98,12 @@ export function getComfortZoneMultiplier(consecutiveUses: number): number {
  */
 export function getBurnoutMultiplier(weeklyHours: number): { multiplier: number; stressBonus: number } {
   if (weeklyHours <= 30) return { multiplier: 1.0, stressBonus: 0 }
+
   if (weeklyHours >= 50) return { multiplier: 0, stressBonus: 0.15 }
 
   const extraHours = weeklyHours - 30
   const penalty = extraHours * 0.05
+
   return {
     multiplier: Math.max(0, 1 - penalty),
     stressBonus: 0.15
@@ -210,6 +221,7 @@ export function createEmptySkillState(currentTimestamp: number): SkillState {
  */
 export function convertLegacyLevelToSkillState(level: number, currentTimestamp: number): SkillState {
   const xp = getXpForLevel(level)
+
   return {
     xp,
     level,

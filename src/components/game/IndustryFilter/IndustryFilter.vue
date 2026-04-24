@@ -17,7 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Industry } from '@/config/work-categories'
+import './IndustryFilter.scss'
+
+import type { Industry } from '@/constants/work-categories'
 
 defineProps<{
   industries: Industry[]
@@ -29,4 +31,3 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped lang="scss" src="./IndustryFilter.scss"></style>

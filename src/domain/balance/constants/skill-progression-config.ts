@@ -114,6 +114,7 @@ export function proficiencyScoreToDisplayLevel(score: number): number {
   const maxScore = getMaxProficiencyScore()
   const maxLevel = getMaxSkillLevel()
   const normalizedScore = Math.min(maxScore, Math.max(0, score))
+
   return Math.floor((normalizedScore / maxScore) * maxLevel)
 }
 
@@ -129,5 +130,6 @@ export function displayLevelToProficiencyScore(level: number): number {
   const maxLevel = getMaxSkillLevel()
   const maxScore = getMaxProficiencyScore()
   const normalizedLevel = Math.min(maxLevel, Math.max(0, level))
+
   return Math.floor((normalizedLevel / maxLevel) * maxScore)
 }

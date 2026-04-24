@@ -50,7 +50,9 @@ export const useHousingStore = defineStore('housing', () => {
 
   const totalComfort = computed(() => {
     const baseComfort = currentHousing.value.comfort
-    const furnitureBonus = purchasedFurniture.value.reduce((sum, f) => sum + f.comfortBonus, 0)
+    const furnitureBonus = purchasedFurniture.value.reduce(
+      (sum, f) => sum + f.comfortBonus, 0)
+
     return Math.min(100, baseComfort + furnitureBonus)
   })
 
@@ -74,6 +76,7 @@ export const useHousingStore = defineStore('housing', () => {
     } else {
       furniture.value.push({ ...catalogItem, purchased: true })
     }
+
     return true
   }
 
@@ -87,6 +90,7 @@ export const useHousingStore = defineStore('housing', () => {
 
   function getFurnitureBonus(itemId: string): number {
     const item = furniture.value.find(f => f.id === itemId)
+
     return item?.comfortBonus ?? 0
   }
 
@@ -108,8 +112,11 @@ export const useHousingStore = defineStore('housing', () => {
 
   function load(data: Record<string, unknown>): void {
     if (data?.level !== undefined) level.value = data.level as number
+
     if (data?.comfort !== undefined) comfort.value = data.comfort as number
+
     if (data?.furniture) furniture.value = data.furniture as FurnitureItem[]
+
     if (data?.lastWeeklyBonus) lastWeeklyBonus.value = data.lastWeeklyBonus as number | null
   }
 

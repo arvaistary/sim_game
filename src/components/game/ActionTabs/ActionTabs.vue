@@ -17,7 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import type { ActionCategory } from '@/config/action-categories'
+import './ActionTabs.scss'
+
+import type { ActionCategory } from '@/constants/action-categories'
 
 defineProps<{
   categories: ActionCategory[]
@@ -29,4 +31,3 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped lang="scss" src="./ActionTabs.scss"></style>

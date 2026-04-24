@@ -55,6 +55,7 @@ export const useStatsStore = defineStore('stats', () => {
   const totalNegative = computed(() => {
     const hungerPenalty = hunger.value > 50 ? hunger.value - 50 : 0
     const stressPenalty = stress.value > 50 ? stress.value - 50 : 0
+
     return hungerPenalty + stressPenalty
   })
 
@@ -106,10 +107,15 @@ export const useStatsStore = defineStore('stats', () => {
 
   function setStats(newStats: Partial<StatsState>) {
     if (newStats.energy !== undefined) energy.value = clampStat(newStats.energy)
+
     if (newStats.health !== undefined) health.value = clampStat(newStats.health)
+
     if (newStats.hunger !== undefined) hunger.value = clampStat(newStats.hunger)
+
     if (newStats.stress !== undefined) stress.value = clampStat(newStats.stress)
+
     if (newStats.mood !== undefined) mood.value = clampStat(newStats.mood)
+
     if (newStats.physical !== undefined) physical.value = clampStat(newStats.physical)
   }
 
@@ -147,10 +153,15 @@ export const useStatsStore = defineStore('stats', () => {
 
   function load(data: Record<string, unknown>): void {
     if (typeof data.energy === 'number') energy.value = clampStat(data.energy)
+
     if (typeof data.health === 'number') health.value = clampStat(data.health)
+
     if (typeof data.hunger === 'number') hunger.value = clampStat(data.hunger)
+
     if (typeof data.stress === 'number') stress.value = clampStat(data.stress)
+
     if (typeof data.mood === 'number') mood.value = clampStat(data.mood)
+
     if (typeof data.physical === 'number') physical.value = clampStat(data.physical)
   }
 

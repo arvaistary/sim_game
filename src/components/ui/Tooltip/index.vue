@@ -70,6 +70,7 @@ const tooltipStyle = computed(() => {
       transform: 'none',
     }
   }
+
   return {}
 })
 

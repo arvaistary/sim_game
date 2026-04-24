@@ -21,11 +21,15 @@
 </template>
 
 <script setup lang="ts">
+import './FinanceActionList.scss'
+
 import type { LegacyFinanceAction } from '@/domain/balance/types'
+
 import { formatMoney } from '@/utils/format'
 
 const walletStore = useWalletStore()
 const financeStore = useFinanceStore()
+
 const toast = useToast()
 const { ageGroupLabel } = useAgeRestrictions()
 
@@ -40,22 +44,26 @@ const financeActions = computed(() => {
   void financeStore.totalExpense
   // Здесь можно использовать financeStore для получения действий
   // Пока возвращаем пустой массив - нужно добавить данные
+
   return [] as Array<LegacyFinanceAction & { available?: boolean; reason?: string }>
 })
 
 function handleAction(action: LegacyFinanceAction & { available?: boolean; reason?: string }): void {
   if (action.available === false) {
     toast.showError(action.reason || 'Действие недоступно')
+
     return
   }
   if (!isInitialized.value) {
     toast.showError('Система не инициализирована')
+
     return
   }
 
   const result = walletStore.canAfford(action.amount ?? 0)
   if (!result) {
     toast.showError('Недостаточно средств')
+
     return
   }
 
@@ -76,16 +84,19 @@ const financeActions = computed(() => {
   void store.worldTick
   void financeStore.totalExpense
   const actions = store.getFinanceActions() as Array<LegacyFinanceAction & { available?: boolean; reason?: string }>
+
   return actions.length > 0 ? actions : []
 })
 
 function handleAction(action: LegacyFinanceAction & { available?: boolean; reason?: string }): void {
   if (action.available === false) {
     toast.showError(action.reason || 'Действие недоступно')
+
     return
   }
   if (!store.isInitialized) {
     toast.showError('Мир не инициализирован')
+
     return
   }
   const result = store.applyFinanceAction(action.id)
@@ -98,4 +109,3 @@ function handleAction(action: LegacyFinanceAction & { available?: boolean; reaso
 }
 </script>
 
-<style scoped lang="scss" src="./FinanceActionList.scss"></style>

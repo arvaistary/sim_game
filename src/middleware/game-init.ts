@@ -18,6 +18,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const housingStore = useHousingStore()
   const activityStore = useActivityStore()
   const gameStore = useGameStore()
+
   const { $autoSave } = useNuxtApp()
 
   if (!playerStore.isInitialized) {

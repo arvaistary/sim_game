@@ -1,2 +1,6 @@
 export * from './metric-labels'
 export * from './navigation'
+export * from './action-categories'
+export * from './work-categories'
+export * from './education-tab-groups'
+export * from './shop-tab-groups'

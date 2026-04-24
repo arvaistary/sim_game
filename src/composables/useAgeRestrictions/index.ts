@@ -14,8 +14,9 @@ export type { AgeRestrictions }
 let lastKnownAge: number = 0
 let unlockedTabsCache: Set<string> = new Set()
 
-export function useAgeRestrictions() {
+export const useAgeRestrictions = () => {
   const timeStore = useTimeStore()
+
   const toast = useToast()
 
   const age = computed(() => timeStore.currentAge)
@@ -45,6 +46,7 @@ export function useAgeRestrictions() {
 
     if (previousGroup === newGroup) {
       lastKnownAge = currentAge
+
       return
     }
 
@@ -73,7 +75,9 @@ export function useAgeRestrictions() {
 
   function isActionAvailable(action: BalanceAction): boolean {
     if (action.ageGroup !== undefined && action.ageGroup > ageGroup.value) return false
+
     if (action.maxAgeGroup !== undefined && ageGroup.value > action.maxAgeGroup) return false
+
     return true
   }
 

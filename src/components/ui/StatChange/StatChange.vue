@@ -126,6 +126,7 @@ const change = computed<StatChange>(() => {
   
   if (!match) {
     // Если не удалось распознать, возвращаем как обычный текст
+
     return {
       icon: '📊',
       name: text,

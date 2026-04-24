@@ -59,6 +59,7 @@ export function getSkillCapByAge(firstTouchAge: number): number {
       return entry.cap
     }
   }
+
   return 0.30
 }
 

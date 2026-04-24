@@ -80,13 +80,17 @@
 </template>
 
 <script setup lang="ts">
+import './ProgramList.scss'
+
 import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
+
 import type { EducationProgram } from '@/domain/balance/types'
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
 const timeStore = useTimeStore()
 const housingStore = useHousingStore()
+
 const toast = useToast()
 const router = useRouter()
 
@@ -97,6 +101,7 @@ const currentAgeGroup = computed(() => getAgeGroup(currentAge.value))
 
 function isAgeOk(program: EducationProgram): boolean {
   const minAgeGroup = program.minAgeGroup ?? AgeGroup.TEEN
+
   return currentAgeGroup.value >= minAgeGroup
 }
 
@@ -110,6 +115,7 @@ function getAgeGroupLabel(ageGroup: AgeGroup): string {
     [AgeGroup.YOUNG]: '16–18',
     [AgeGroup.ADULT]: '19+',
   }
+
   return labels[ageGroup]
 }
 
@@ -123,7 +129,9 @@ function hasFurnitureItem(itemId: string): boolean {
 
 function isProgramOwned(program: EducationProgram): boolean {
   if (program.acquisition !== 'shop_only') return true
+
   if (!program.requiresItemId) return true
+
   return hasFurnitureItem(program.requiresItemId)
 }
 
@@ -131,6 +139,7 @@ const activeCourseId = computed(() => {
   void store.worldTick
   const education = store.education as unknown as Record<string, unknown> | null
   const activeCourses = education?.activeCourses as ActiveCourse[] | undefined
+
   return activeCourses?.[0]?.id ?? null
 })
 
@@ -138,18 +147,23 @@ const completedProgramIds = computed(() => {
   void store.worldTick
   const education = store.education as unknown as Record<string, unknown> | null
   const completedPrograms = (education?.completedPrograms ?? []) as CompletedProgramRecord[]
+
   return new Set(completedPrograms.map(program => program.id))
 })
 
 function getBookStatusLabel(program: EducationProgram): string {
   if (activeCourseId.value === program.id) return 'Читаю'
+
   if (completedProgramIds.value.has(program.id)) return 'Прочитано'
+
   return 'Куплено'
 }
 
 function getBookStatusClass(program: EducationProgram): string {
   if (activeCourseId.value === program.id) return 'meta-tag--active'
+
   if (completedProgramIds.value.has(program.id)) return 'meta-tag--done'
+
   return 'meta-tag--owned'
 }
 
@@ -160,6 +174,7 @@ function getBookStatusDescription(program: EducationProgram): string {
   if (completedProgramIds.value.has(program.id)) {
     return 'Книга уже прочитана и остаётся в библиотеке как завершённая.'
   }
+
   return 'Книга куплена и доступна для запуска из библиотеки.'
 }
 
@@ -167,6 +182,7 @@ function getBookStatusDescription(program: EducationProgram): string {
 function getLockReason(program: EducationProgram): string {
   if (!isAgeOk(program)) {
     const minAgeGroup = program.minAgeGroup ?? AgeGroup.TEEN
+
     return `🔒 ${program.ageReason || `Доступно с ${getAgeGroupLabel(minAgeGroup)}+`}. Вам ${currentAge.value} лет.`
   }
   if (!canAfford(program)) {
@@ -178,6 +194,7 @@ function getLockReason(program: EducationProgram): string {
       return `🔒 ${check.reason ?? 'Программа недоступна'}`
     }
   }
+
   return ''
 }
 
@@ -188,15 +205,18 @@ function isProgramAvailable(program: EducationProgram): boolean {
 /** Программы отсортированы: доступные первыми */
 function sortByAvailability(programs: EducationProgram[]): EducationProgram[] {
   void store.worldTick
+
   return [...programs].sort((a, b) => {
     const aAvailable = isProgramAvailable(a) ? 0 : 1
     const bAvailable = isProgramAvailable(b) ? 0 : 1
+
     return aAvailable - bAvailable
   })
 }
 
 const coursePrograms = computed(() => {
   void store.worldTick
+
   return allPrograms.filter(program => program.track !== 'book')
 })
 
@@ -205,6 +225,7 @@ const sortedCoursePrograms = computed(() => sortByAvailability(coursePrograms.va
 const sortedOwnedBooks = computed(() => {
   void store.worldTick
   const ownedBooks = allPrograms.filter(program => program.track === 'book' && isProgramOwned(program))
+
   return sortByAvailability(ownedBooks)
 })
 
@@ -216,19 +237,23 @@ function startProgram(program: EducationProgram): void {
   if (!isAgeOk(program)) {
     const minAgeGroup = program.minAgeGroup ?? AgeGroup.TEEN
     toast.showWarning(`${program.ageReason || `Эта программа доступна с ${getAgeGroupLabel(minAgeGroup)}+`}. Сейчас вам ${currentAge.value} лет.`)
+
     return
   }
   if (!canAfford(program)) {
     toast.showWarning('Недостаточно денег')
+
     return
   }
   if (!store.isInitialized) {
     toast.showError('Мир не инициализирован')
+
     return
   }
   const check = store.canStartEducationProgramWithReason(program.id)
   if (!check.ok) {
     toast.showWarning(check.reason ?? 'Нельзя начать эту программу')
+
     return
   }
   const result = store.startEducationProgram(program.id)
@@ -242,4 +267,3 @@ function startProgram(program: EducationProgram): void {
 }
 </script>
 
-<style scoped lang="scss" src="./ProgramList.scss"></style>

@@ -58,17 +58,28 @@ export const useGameStore = defineStore('game', () => {
   }
   function load(data?: Record<string, unknown>) {
     if (data?.player) player.load(data.player as Record<string, unknown>)
+
     if (data?.time) time.load(data.time as Record<string, unknown>)
+
     if (data?.stats) stats.load(data.stats as Record<string, unknown>)
+
     if (data?.wallet) wallet.load(data.wallet as Record<string, unknown>)
+
     if (data?.skills) skills.load?.(data.skills as Record<string, unknown>)
+
     if (data?.career) career.load?.(data.career as Record<string, unknown>)
+
     if (data?.education) education.load?.(data.education as Record<string, unknown>)
+
     if (data?.housing) housing.load?.(data.housing as Record<string, unknown>)
+
     if (data?.events) events.load?.(data.events as Record<string, unknown>)
+
     if (data?.finance) finance.load?.(data.finance as Record<string, unknown>)
+
     if (data?.activity) activity.load?.(data.activity as Record<string, unknown>)
     isInitialized.value = true;
+
     return true
   }
   function resetGame() {
@@ -78,8 +89,11 @@ export const useGameStore = defineStore('game', () => {
 
   function canApplyWorkShift(hours: number) {
     if (!career.isEmployed) return { canDo: false, reason: 'Нет работы' }
+
     if (stats.energy < hours * 3) return { canDo: false, reason: 'Недостаточно энергии' }
+
     if (time.weekHoursRemaining < hours) return { canDo: false, reason: 'Недостаточно часов в неделе' }
+
     return { canDo: true }
   }
 
@@ -99,18 +113,21 @@ export const useGameStore = defineStore('game', () => {
     time.advanceHours(hours)
     worldVersion.value++
     activity.addWorkEntry('Работа', hours, actualSalary)
+
     return `Вы заработали ${actualSalary} ₽`
   }
 
   function quitCareer() {
     career.endWork()
     worldVersion.value++
+
     return { success: true, message: 'Вы уволились' }
   }
 
   function changeCareer(jobId: string) {
     const result = appGameCommands.changeCareer(jobId)
     if (result.success) worldVersion.value++
+
     return result
   }
 
@@ -145,18 +162,21 @@ export const useGameStore = defineStore('game', () => {
     const action = getActionByIdFromBalance(actionId)
     if (!action) return { canDo: false, canExecute: false, reason: 'Действие не найдено' }
     const result = actions.canExecute(toGameAction(action))
+
     return { canDo: result.canDo, canExecute: result.canDo, reason: result.reason }
   }
   function executeAction(actionId: string) {
     const action = getActionByIdFromBalance(actionId)
     if (!action) return { success: false, message: 'Действие не найдено' }
     const result = actions.executeAction(toGameAction(action))
+
     return { success: result.success, message: result.summary ?? (result.success ? 'Выполнено' : result.error ?? 'Ошибка') }
   }
 
   function getNextEvent() { return events.currentEvent }
   function applyEventChoice(eventId: string, choiceId: string) {
     const success = events.applyChoice(choiceId)
+
     return success ? 'Событие применено' : 'Ошибка'
   }
   function getFinanceOverview() { return { balance: wallet.money, expenses: finance.totalExpense, income: wallet.totalEarned } }

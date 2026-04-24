@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import { getActionById } from '@/domain/balance/actions'
-import { FOOD_ACTION_IDS, LEARNING_ACTION_IDS, THINGS_ACTION_IDS, HOME_ACTION_IDS } from '@/config/shop-tab-groups'
+import { FOOD_ACTION_IDS, LEARNING_ACTION_IDS, THINGS_ACTION_IDS, HOME_ACTION_IDS } from '@/constants/shop-tab-groups'
 
 definePageMeta({ middleware: 'game-init' })
 
@@ -98,6 +98,7 @@ const availableTabIds = tabs.map(tab => tab.id)
 
 function normalizeTab(rawValue: unknown): string {
   const value = typeof rawValue === 'string' ? rawValue : ''
+
   return availableTabIds.includes(value as (typeof tabs)[number]['id']) ? value : 'food'
 }
 
@@ -119,6 +120,7 @@ function sortByAvailability(actions: any[]): any[] {
   return [...actions].sort((a, b) => {
     const aOk = canExecute(a.id) ? 0 : 1
     const bOk = canExecute(b.id) ? 0 : 1
+
     return aOk - bOk
   })
 }
@@ -127,32 +129,39 @@ function sortByAvailability(actions: any[]): any[] {
 function getDisabledReason(action: any): string {
   const result = getActionById(action.id)
   if (!result) return 'Действие не найдено'
+
   if (walletStore.money < result.price) return 'Недостаточно денег'
+
   if (timeStore.weekHoursRemaining < result.hourCost) return 'Недостаточно времени'
+
   return 'Действие недоступно'
 }
 
 // Еда
 const foodActions = computed(() => {
   void timeStore.totalHours
+
   return allShopActions.filter((a: any) => FOOD_ACTION_IDS.has(a.id))
 })
 
 // Обучение
 const learningActions = computed(() => {
   void timeStore.totalHours
+
   return allShopActions.filter((a: any) => LEARNING_ACTION_IDS.has(a.id))
 })
 
 // Вещи
 const thingsActions = computed(() => {
   void timeStore.totalHours
+
   return allShopActions.filter((a: any) => THINGS_ACTION_IDS.has(a.id))
 })
 
 // Дом
 const homeActions = computed(() => {
   void timeStore.totalHours
+
   return allShopActions.filter((a: any) => HOME_ACTION_IDS.has(a.id))
 })
 

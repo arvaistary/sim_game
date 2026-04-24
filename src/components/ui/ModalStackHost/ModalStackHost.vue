@@ -20,6 +20,7 @@ const { stack, close } = useModalStack()
 function getComponentProps(entry: ModalEntry): Record<string, any> {
   if (!entry.props) return {}
   const { onClose, ...rest } = entry.props
+
   return rest
 }
 

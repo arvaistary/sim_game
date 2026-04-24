@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { PRACTICE_ACTION_IDS } from '@/config/education-tab-groups'
+import { PRACTICE_ACTION_IDS } from '@/constants/education-tab-groups'
 
 definePageMeta({ middleware: 'game-init' })
 
@@ -65,6 +65,7 @@ const availableTabIds = tabs.map(tab => tab.id)
 
 function normalizeTab(rawValue: unknown): string {
   const value = typeof rawValue === 'string' ? rawValue : ''
+
   return availableTabIds.includes(value as (typeof tabs)[number]['id']) ? value : 'programs'
 }
 
@@ -78,6 +79,7 @@ watch(
 )
 
 const store = useGameStore()
+
 const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 
 const educationActions = getActionsByCategory('education') as any
@@ -88,6 +90,7 @@ function sortByAvailability(actions: any[]): any[] {
   return [...actions].sort((a, b) => {
     const aOk = canExecute(a.id) ? 0 : 1
     const bOk = canExecute(b.id) ? 0 : 1
+
     return aOk - bOk
   })
 }
@@ -95,18 +98,21 @@ function sortByAvailability(actions: any[]): any[] {
 /** Получить причину недоступности действия */
 function getDisabledReason(action: any): string {
   const result = store.canExecuteAction(action.id)
+
   return result.reason ?? 'Действие недоступно'
 }
 
 // Учёба и навыки: education БЕЗ practice-действий
 const studyActions = computed(() => {
   void store.worldTick
+
   return educationActions.filter((a: any) => !PRACTICE_ACTION_IDS.has(a.id))
 })
 
 // Практика и привычки: practice из education + все selfdev
 const practiceActions = computed(() => {
   void store.worldTick
+
   return [
     ...educationActions.filter((a: any) => PRACTICE_ACTION_IDS.has(a.id)),
     ...selfdevActions,

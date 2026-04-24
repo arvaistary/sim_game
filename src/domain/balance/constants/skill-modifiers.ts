@@ -138,6 +138,7 @@ export function getSkillMilestones(
       achieved.push({ threshold: parseInt(threshold, 10), ...data })
     }
   }
+
   return achieved
 }
 

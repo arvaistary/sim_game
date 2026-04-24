@@ -99,5 +99,6 @@ export function getAgeGroupByAge(age: number): AgeGroup {
       return Number(group) as AgeGroup
     }
   }
+
   return AgeGroup.ADULT
 }

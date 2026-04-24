@@ -65,6 +65,7 @@ export function getActionsByCategory(categoryId: string): BalanceAction[] {
       result.push(action)
     }
   }
+
   return result
 }
 

@@ -51,11 +51,12 @@
 </template>
 
 <script setup lang="ts">
-import type { AppMenuActionId, AppMenuActionItem } from '#shared/types'
+import type { AppMenuActionId, AppMenuActionItem } from '@shared/types'
 
 const route = useRoute()
 const colorMode = useColorMode()
 const { $autoSave } = useNuxtApp()
+
 const playerStore = usePlayerStore()
 
 const isMenuOpen = ref<boolean>(false)
@@ -122,6 +123,7 @@ function handleGlobalKeydown(event: KeyboardEvent): void {
 
   if (isMenuOpen.value) {
     handleCloseMenu()
+
     return
   }
 

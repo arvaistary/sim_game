@@ -154,6 +154,7 @@ export const useActivityStore = defineStore('activity', () => {
 
   function load(data: Record<string, unknown>): void {
     if (Array.isArray(data.entries)) entries.value = data.entries as ActivityEntry[]
+
     if (typeof data.nextId === 'number') nextId.value = data.nextId
   }
 

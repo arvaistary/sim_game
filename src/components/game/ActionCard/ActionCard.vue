@@ -25,7 +25,10 @@
 </template>
 
 <script setup lang="ts">
+import './ActionCard.scss'
+
 import { formatMoney, formatEffect } from '@/utils/format'
+
 import type { BalanceAction } from '@/domain/balance/actions/types'
 
 const props = withDefaults(defineProps<{
@@ -51,6 +54,7 @@ const toast = useToast()
 
 const displayEffect = computed(() => {
   if (props.useFormatEffect) return formatEffect(props.action.effect)
+
   return props.action.effect
 })
 
@@ -66,4 +70,3 @@ function handleButtonClick(event?: MouseEvent) {
 }
 </script>
 
-<style scoped lang="scss" src="./ActionCard.scss"></style>

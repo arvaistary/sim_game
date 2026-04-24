@@ -14,9 +14,12 @@
 </template>
 
 <script setup lang="ts">
+import './StatsCard.scss'
+
 import { STAT_DEFS } from '@/domain/balance/constants/stat-defs'
 
 const statsStore = useStatsStore()
+
 const statDefs = STAT_DEFS
 
 const statValues = computed<Record<string, number>>(() => ({
@@ -32,8 +35,8 @@ const INVERTED_STATS = new Set(['hunger', 'stress'])
 
 function getStatValue(key: string): number {
   const raw = statValues.value[key] ?? 50
+
   return INVERTED_STATS.has(key) ? 100 - raw : raw
 }
 </script>
 
-<style scoped lang="scss" src="./StatsCard.scss"></style>

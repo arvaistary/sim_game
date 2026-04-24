@@ -105,7 +105,9 @@ const isFlipped = ref(false)
 
 const bookLabel = computed(() => {
   if (props.currentStep === 0) return 'Начать чтение'
+
   if (props.currentStep >= props.totalSteps - 1) return 'Последняя страница'
+
   return `Страница ${props.currentStep + 1}`
 })
 
@@ -118,6 +120,7 @@ const currentPageContent = computed(() => {
     'Финальные рекомендации и план действий. Время подвести итоги...',
     'Книга завершена! Вы получили ценные знания и навыки.',
   ]
+
   return contents[Math.min(props.currentStep, contents.length - 1)]
 })
 
@@ -125,18 +128,25 @@ const readButtonText = computed(() => {
   if (!props.canContinue) {
     const warning = (props.resourceWarning ?? '').toLowerCase()
     if (warning.includes('голод')) return 'Сначала поешьте'
+
     if (warning.includes('энерг')) return 'Нужно отдохнуть'
+
     if (warning.includes('поспите') || warning.includes('учёбы до сна')) return 'Сначала поспите'
+
     return 'Пока нельзя читать'
   }
+
   return props.currentStep === 0 ? 'Начать читать' : 'Читать дальше'
 })
 
 const finishButtonText = computed(() => {
   if (!props.canFinish) {
+
     if (props.currentStep === 0) return 'Начните читать'
+
     return 'Доступно позже'
   }
+
   return 'Закрыть'
 })
 

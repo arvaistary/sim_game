@@ -18,6 +18,8 @@
 </template>
 
 <script setup lang="ts">
+import './BalancePanel.scss'
+
 import { formatMoney } from '@/utils/format'
 
 const walletStore = useWalletStore()
@@ -26,4 +28,3 @@ const reserveFund = computed(() => walletStore.reserveFund)
 const totalSpent = computed(() => walletStore.totalSpent)
 </script>
 
-<style scoped lang="scss" src="./BalancePanel.scss"></style>

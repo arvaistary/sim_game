@@ -73,6 +73,7 @@ export function validateActionWithErrors(action: unknown): {
     const errors = result.error.issues.map(
       (issue) => `${issue.path.join('.')}: ${issue.message}`
     )
+
     return { valid: false, errors }
   }
 

@@ -22,8 +22,8 @@
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
-
 const careerStore = useCareerStore()
+
 const gameModal = useGameModal()
 const workResult = ref('')
 const resourceModalId = ref<symbol | null>(null)
@@ -41,6 +41,7 @@ function doWork(hours: number): void {
       lines: [check.reason || 'Невозможно выполнить работу.'],
       buttons: [{ label: 'OK', accent: true }],
     })
+
     return
   }
   workResult.value = store.applyWorkShift(hours)

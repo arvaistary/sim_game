@@ -21,7 +21,10 @@
 
 <script setup lang="ts">
 
+import './EventResult.scss'
+
 defineProps<{
+
   resultText: string
   hasNextEvent: boolean
 }>()
@@ -32,4 +35,3 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped lang="scss" src="./EventResult.scss"></style>

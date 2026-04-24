@@ -39,8 +39,9 @@
 </template>
 
 <script setup lang="ts">
-import { NAV_ITEMS, ROUTE_MAP } from '@/constants/navigation'
 import './GameNav.scss'
+
+import { NAV_ITEMS, ROUTE_MAP } from '@/constants/navigation'
 
 interface NavItemWithState {
   id: string
@@ -69,7 +70,9 @@ const isHomePage = computed(() => route.path === '/game')
 
 const activeItemId = computed(() => {
   const currentPath = route.path
-  const activeItem = navItems.find((item) => ROUTE_MAP[item.id] === currentPath)
+  const activeItem = navItems.find(
+    (item) => ROUTE_MAP[item.id] === currentPath)
+
   return activeItem?.id ?? ''
 })
 

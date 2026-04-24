@@ -6,10 +6,12 @@
 </template>
 
 <script setup lang="ts">
+import './SectionHeader.scss'
+
 defineProps<{
+
   title: string
   subtitle?: string
 }>()
 </script>
 
-<style scoped lang="scss" src="./SectionHeader.scss"></style>

@@ -51,6 +51,7 @@ export const useEventsStore = defineStore('events', () => {
 
   function addToQueue(event: GameEvent): void {
     if (seenEventIds.value.has(event.instanceId)) return
+
     if (eventQueue.value.length >= MAX_QUEUE) return
     eventQueue.value.push(event)
   }
@@ -92,6 +93,7 @@ export const useEventsStore = defineStore('events', () => {
     const choice = currentEvent.value.choices?.find(c => c.id === choiceId)
     if (!choice) return false
     resolveCurrentEvent(choiceId, choice.text, choice.effects)
+
     return true
   }
 
@@ -132,7 +134,9 @@ export const useEventsStore = defineStore('events', () => {
 
   function load(data: Record<string, unknown>): void {
     if (Array.isArray(data.eventQueue)) eventQueue.value = data.eventQueue as GameEvent[]
+
     if (Array.isArray(data.eventHistory)) eventHistory.value = data.eventHistory as EventHistoryEntry[]
+
     if (Array.isArray(data.seenEventIds)) seenEventIds.value = new Set(data.seenEventIds as string[])
     currentEvent.value = null
   }

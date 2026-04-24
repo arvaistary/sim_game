@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
+import './HomePreview.scss'
 
 </script>
 
-<style scoped lang="scss" src="./HomePreview.scss"></style>

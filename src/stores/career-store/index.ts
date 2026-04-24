@@ -63,6 +63,7 @@ export const useCareerStore = defineStore('career', () => {
 
   const weeklyHoursRemaining = computed(() => {
     if (!currentJob.value.employed) return 0
+
     return Math.max(0, currentJob.value.requiredHoursPerWeek - currentJob.value.workedHoursCurrentWeek)
   })
 
@@ -102,6 +103,7 @@ export const useCareerStore = defineStore('career', () => {
   function collectSalary(): number {
     const salary = currentJob.value.pendingSalaryWeek
     currentJob.value.pendingSalaryWeek = 0
+
     return salary
   }
 
@@ -135,8 +137,11 @@ export const useCareerStore = defineStore('career', () => {
 
   function load(data: Record<string, unknown>): void {
     if (data?.currentJob) currentJob.value = data.currentJob as JobSnapshot
+
     if (data?.jobHistory) jobHistory.value = data.jobHistory as JobSnapshot[]
+
     if (data?.careerLevel) careerLevel.value = data.careerLevel as number
+
     if (data?.promotions) promotions.value = data.promotions as number
   }
 

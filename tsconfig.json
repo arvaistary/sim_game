@@ -4,5 +4,14 @@
     "strictNullChecks": true,
     "types": ["vitest/globals"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "test/**/*.ts", "shared/**/*.ts"]
+  "include": [
+    ".nuxt/nuxt.d.ts",
+    ".nuxt/imports.d.ts",
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "test/**/*.ts",
+    "shared/**/*.ts"
+  ]
 }

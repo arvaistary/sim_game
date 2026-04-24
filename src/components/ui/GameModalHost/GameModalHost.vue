@@ -44,12 +44,14 @@ function handleButtonClick(btn: GameModalButton): void {
   if (btn.action) {
     btn.action()
     close()
+
     return
   }
 
   if (btn.route) {
     close()
     navigateTo(btn.route)
+
     return
   }
 
@@ -75,6 +77,7 @@ function getExplanation(statKey: string, finalValue: number): string {
   if (Math.abs(diffPercent) < 5) {
     return ''
   }
+
   return `относительно строки эффекта: ${diffPercent > 0 ? '+' : ''}${diffPercent}%`
 }
 

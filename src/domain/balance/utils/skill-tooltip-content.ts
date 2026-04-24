@@ -30,6 +30,7 @@ function formatEffectValue(key: string, value: number | ((...args: unknown[]) =>
     if (Math.abs(value) <= 1) {
       return formatPercent(value)
     }
+
     return `${value > 0 ? '+' : ''}${Math.round(value)}`
   }
 
@@ -43,6 +44,7 @@ function formatEffectValue(key: string, value: number | ((...args: unknown[]) =>
 function formatEffectLine([key, effect]: [string, ((level: number) => number) | unknown], maxLevel: number): string {
   const label = EFFECT_LABELS[key] || humanizeKey(key)
   const value = typeof effect === 'function' ? (effect as (level: number) => number)(maxLevel) : effect
+
   return `• ${label}: ${formatEffectValue(key, value as number)}`
 }
 

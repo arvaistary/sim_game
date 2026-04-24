@@ -55,11 +55,13 @@ const STATS: StatKey[] = ['hunger', 'energy', 'stress', 'mood', 'health', 'physi
 
 export function getAgingPenalty(currentAge: number): number {
   if (currentAge < BALANCE_CONSTANTS.AGE_PENALTY_START) return 1.0
+
   return 1.0 + (currentAge - BALANCE_CONSTANTS.AGE_PENALTY_START) * BALANCE_CONSTANTS.AGE_PENALTY_RATE
 }
 
 export function getSleepDebtPenalty(sleepDebt: number): SleepDebtPenalty {
   if (sleepDebt <= 0) return { energyPenalty: 0, stressPenalty: 0, efficiencyPenalty: 0 }
+
   return {
     energyPenalty: -(sleepDebt * 1.5),
     stressPenalty: sleepDebt * 0.8,

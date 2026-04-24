@@ -142,6 +142,7 @@ export function openModal<T extends BaseModalProps = BaseModalProps>(
   let onClose: (() => void) | undefined
   
   if (options) {
+
     if ('props' in options && typeof options.props === 'object') {
       // Формат с options
       props = { ...options.props }
@@ -236,6 +237,7 @@ export function showGameResultModal(title: string, detail: string, extra?: ShowG
     const actionResultLines = buildActionResultStatLines(extra.statBreakdown)
     const metaParts: string[] = []
     if (extra.hourCost) metaParts.push(`время ${extra.hourCost}ч`)
+
     if (extra.price) metaParts.push(`деньги -${extra.price}`)
     show({
       title,
@@ -246,6 +248,7 @@ export function showGameResultModal(title: string, detail: string, extra?: ShowG
       actionResultLines,
       buttons: [defaultOkButton],
     })
+
     return
   }
 

@@ -101,6 +101,7 @@ export const useActionsStore = defineStore('actions', () => {
     if (!action) {
       return { success: false, error: 'Действие не найдено' }
     }
+
     return executeAction(action)
   }
 

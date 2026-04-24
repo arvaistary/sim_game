@@ -53,6 +53,7 @@ export const useFinanceStore = defineStore('finance', () => {
       startDate: Date.now(),
     }
     investments.value.push(investment)
+
     return true
   }
 
@@ -63,12 +64,14 @@ export const useFinanceStore = defineStore('finance', () => {
     const investment = investments.value[index]
     investments.value.splice(index, 1)
     walletStore.earn(investment.amount, false)
+
     return investment.amount
   }
 
   const calculateMonthlyReturn = (): number => {
     return investments.value.reduce((sum, inv) => {
       const monthlyReturn = inv.amount * (inv.returnRate / 100 / 12)
+
       return sum + monthlyReturn
     }, 0)
   }
@@ -124,8 +127,11 @@ export const useFinanceStore = defineStore('finance', () => {
 
   function load(data: Record<string, unknown>): void {
     if (Array.isArray(data.investments)) investments.value = data.investments as Investment[]
+
     if (Array.isArray(data.monthlyExpenses)) monthlyExpenses.value = data.monthlyExpenses as MonthlyExpense[]
+
     if (data.lastSettlement !== undefined) lastSettlement.value = data.lastSettlement as number | null
+
     if (typeof data.debt === 'number') debt.value = data.debt
   }
 
@@ -135,18 +141,22 @@ export const useFinanceStore = defineStore('finance', () => {
       const amount = cardData.amount as number
       const returnRate = (cardData.returnRate as number) ?? 5
       const type = (cardData.investmentType as 'deposit' | 'stocks' | 'business') ?? 'deposit'
+
       return invest(type, amount, returnRate)
     }
     if (actionType === 'take_debt') {
       const amount = cardData.amount as number
       takeDebt(amount)
+
       return true
     }
     if (actionType === 'repay_debt') {
       const amount = cardData.amount as number
       repayDebt(amount)
+
       return true
     }
+
     return false
   }
 

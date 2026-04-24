@@ -387,6 +387,52 @@ function fixVoidFireAndForgetCalls(content) {
   return { fixedContent: lines.join('\n'), fixesCount };
 }
 
+// Добавляет пустую строку между двумя последовательными if-блоками.
+function fixBlankLineBetweenConsecutiveIf(content) {
+  const lines = content.split(/\r?\n/);
+  let fixesCount = 0;
+
+  for (let index = 1; index < lines.length; index += 1) {
+    const currentTrimmed = lines[index].trim();
+    const previousTrimmed = lines[index - 1].trim();
+
+    if (!/^if\s*\(/.test(currentTrimmed) || !/^if\s*\(/.test(previousTrimmed)) {
+      continue;
+    }
+
+    lines.splice(index, 0, '');
+    fixesCount += 1;
+    index += 1;
+  }
+
+  return { fixedContent: lines.join('\n'), fixesCount };
+}
+
+// Добавляет пустую строку перед return, если перед ним есть другие выражения.
+function fixBlankLineBeforeReturn(content) {
+  const lines = content.split(/\r?\n/);
+  let fixesCount = 0;
+
+  for (let index = 1; index < lines.length; index += 1) {
+    const currentTrimmed = lines[index].trim();
+    const previousTrimmed = lines[index - 1].trim();
+
+    if (!/^return\b/.test(currentTrimmed)) {
+      continue;
+    }
+
+    if (!previousTrimmed || previousTrimmed.endsWith('{')) {
+      continue;
+    }
+
+    lines.splice(index, 0, '');
+    fixesCount += 1;
+    index += 1;
+  }
+
+  return { fixedContent: lines.join('\n'), fixesCount };
+}
+
 // Переносит однострочные `useSomeStore((state) => state.value)` в многострочный формат,
 // ожидаемый проектными правилами для Pinia-сторов.
 function fixPiniaStoreSelectorFormatting(content) {
@@ -471,66 +517,96 @@ function fixDefinePropsEmitsBlankLine(content) {
   return { fixedContent: lines.join('\n'), fixesCount };
 }
 
-// Обеспечивает пустую строку после объявления Pinia store в composables/components:
-// const useStore = useSomeStore();
+// Группирует объявления Pinia store в единый блок:
+// const aStore = useAStore();
+// const bStore = useBStore();
 //
 // const someVar = ...
+// Без пустых строк между store-декларациями и с одной пустой строкой после всей группы.
 function fixStoreDeclarationBlankLine(content) {
   const lines = content.split(/\r?\n/);
   let fixesCount = 0;
 
-  for (let index = 0; index < lines.length - 1; index += 1) {
+  const isStoreDeclarationLine = (line) => /^const\s+\w+.*=\s*use[A-Z]\w*Store\(/.test(line.trim());
+
+  for (let index = 0; index < lines.length; index += 1) {
     const currentTrimmed = lines[index].trim();
 
-    // Пропускаем строки, которые уже являются частью селектора (внутри store())
-    if (/^\(state\)\s*=>/.test(currentTrimmed) || /^state\s*=>/.test(currentTrimmed)) {
+    if (!isStoreDeclarationLine(lines[index])) {
       continue;
     }
 
-    if (!/^const\s+\w+.*=\s*use[A-Z]\w*Store\(/.test(currentTrimmed)) {
-      continue;
-    }
-
-    // Если это многострочное объявление с селектором, ищем закрывающую строку
+    // Если это многострочное объявление с селектором, ищем закрывающую строку.
+    let declarationEnd = index;
     if (!currentTrimmed.endsWith(');') && !currentTrimmed.endsWith(')')) {
-      let scanIndex = index + 1;
+      let scanIndex = declarationEnd + 1;
       let depth = 1;
       while (scanIndex < lines.length && depth > 0) {
         depth += (lines[scanIndex].match(/\(/g) ?? []).length;
         depth -= (lines[scanIndex].match(/\)/g) ?? []).length;
         scanIndex += 1;
       }
-      if (scanIndex > 0) {
-        index = scanIndex - 1;
-      } else {
+      declarationEnd = scanIndex > 0 ? scanIndex - 1 : declarationEnd;
+    }
+
+    // Удаляем пустые строки между соседними store-объявлениями.
+    let nextIndex = declarationEnd + 1;
+    let removedBlankLines = 0;
+    while (nextIndex < lines.length && lines[nextIndex].trim() === '') {
+      nextIndex += 1;
+      removedBlankLines += 1;
+    }
+
+    if (nextIndex < lines.length && isStoreDeclarationLine(lines[nextIndex]) && removedBlankLines > 0) {
+      lines.splice(declarationEnd + 1, removedBlankLines);
+      fixesCount += removedBlankLines;
+      index = declarationEnd;
+      continue;
+    }
+
+    // Ищем конец группы store-объявлений.
+    let groupEnd = declarationEnd;
+    let cursor = declarationEnd + 1;
+    while (cursor < lines.length) {
+      if (lines[cursor].trim() === '') {
+        cursor += 1;
         continue;
       }
+
+      if (!isStoreDeclarationLine(lines[cursor])) {
+        break;
+      }
+
+      groupEnd = cursor;
+      cursor += 1;
     }
 
-    let scanIndex = index + 1;
-    let blankLinesCount = 0;
-
-    while (scanIndex < lines.length && lines[scanIndex].trim() === '') {
-      blankLinesCount += 1;
-      scanIndex += 1;
+    // Гарантируем ровно одну пустую строку после всей группы.
+    let afterGroupIndex = groupEnd + 1;
+    let blankLinesAfterGroup = 0;
+    while (afterGroupIndex < lines.length && lines[afterGroupIndex].trim() === '') {
+      blankLinesAfterGroup += 1;
+      afterGroupIndex += 1;
     }
 
-    if (scanIndex >= lines.length) {
+    if (afterGroupIndex >= lines.length) {
+      index = groupEnd;
       continue;
     }
 
-    if (blankLinesCount === 1) {
-      continue;
-    }
-
-    if (blankLinesCount === 0) {
-      lines.splice(index + 1, 0, '');
+    if (blankLinesAfterGroup === 0) {
+      lines.splice(groupEnd + 1, 0, '');
       fixesCount += 1;
+      index = groupEnd + 1;
       continue;
     }
 
-    lines.splice(index + 2, blankLinesCount - 1);
-    fixesCount += blankLinesCount - 1;
+    if (blankLinesAfterGroup > 1) {
+      lines.splice(groupEnd + 2, blankLinesAfterGroup - 1);
+      fixesCount += blankLinesAfterGroup - 1;
+    }
+
+    index = groupEnd;
   }
 
   return { fixedContent: lines.join('\n'), fixesCount };
@@ -598,6 +674,153 @@ function fixAsyncSingleAwaitTailToReturn(content) {
   return { fixedContent, fixesCount };
 }
 
+// Переносит подключение локального стиля из <style src="..."></style> в импорт
+// в начало <script setup lang="ts"> и оставляет пустую строку после него.
+function fixVueStyleImportPlacement(content) {
+  let fixedContent = content;
+  let fixesCount = 0;
+
+  const styleSrcTagPattern = /<style\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*><\/style>\s*/g;
+  const styleSrcMatch = fixedContent.match(styleSrcTagPattern);
+  const stylePathMatch = fixedContent.match(/<style\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*><\/style>/);
+  const stylePath = stylePathMatch?.[1] ?? '';
+
+  if (!stylePath) {
+    return { fixedContent, fixesCount };
+  }
+
+  // Удаляем style src tag из файла.
+  if (styleSrcMatch?.length) {
+    fixedContent = fixedContent.replace(styleSrcTagPattern, '');
+    fixesCount += styleSrcMatch.length;
+  }
+
+  const scriptSetupPattern = /<script\s+setup\s+lang="ts">\r?\n([\s\S]*?)\r?\n<\/script>/m;
+  const scriptSetupMatch = fixedContent.match(scriptSetupPattern);
+  if (!scriptSetupMatch) {
+    return { fixedContent, fixesCount };
+  }
+
+  const scriptBody = scriptSetupMatch[1];
+  const scriptLines = scriptBody.split(/\r?\n/);
+  const styleImportLine = `import '${stylePath}'`;
+  const styleImportPattern = /^\s*import\s+['"]\.\/[^'"]+\.(scss|sass|css|less|styl|pcss)['"]\s*;?\s*$/;
+
+  let firstMeaningfulIndex = -1;
+  for (let index = 0; index < scriptLines.length; index += 1) {
+    if (scriptLines[index].trim() === '') {
+      continue;
+    }
+    firstMeaningfulIndex = index;
+    break;
+  }
+
+  if (firstMeaningfulIndex === -1) {
+    const newScript = `<script setup lang="ts">\n${styleImportLine}\n\n</script>`;
+    fixedContent = fixedContent.replace(scriptSetupPattern, newScript);
+    fixesCount += 1;
+    return { fixedContent, fixesCount };
+  }
+
+  if (!styleImportPattern.test(scriptLines[firstMeaningfulIndex])) {
+    scriptLines.splice(firstMeaningfulIndex, 0, styleImportLine);
+    fixesCount += 1;
+    firstMeaningfulIndex += 1;
+  }
+
+  if (scriptLines[firstMeaningfulIndex + 1]?.trim() !== '') {
+    scriptLines.splice(firstMeaningfulIndex + 1, 0, '');
+    fixesCount += 1;
+  }
+
+  const updatedScriptBody = scriptLines.join('\n');
+  const newScript = `<script setup lang="ts">\n${updatedScriptBody}\n</script>`;
+  fixedContent = fixedContent.replace(scriptSetupPattern, newScript);
+
+  return { fixedContent, fixesCount };
+}
+
+// Делает импорт локального стиля первым в <script setup> и добавляет пустую строку после него.
+function fixVueStyleImportFirstAndSpacing(content) {
+  let fixedContent = content;
+  let fixesCount = 0;
+
+  const scriptSetupPattern = /<script\s+setup\s+lang="ts">\r?\n([\s\S]*?)\r?\n<\/script>/m;
+  const scriptSetupMatch = fixedContent.match(scriptSetupPattern);
+  if (!scriptSetupMatch) {
+    return { fixedContent, fixesCount };
+  }
+
+  const scriptLines = scriptSetupMatch[1].split(/\r?\n/);
+  const styleImportPattern = /^\s*import\s+['"]\.\/[^'"]+\.(scss|sass|css|less|styl|pcss)['"]\s*;?\s*$/;
+
+  const styleImportIndex = scriptLines.findIndex((line) => styleImportPattern.test(line));
+  if (styleImportIndex < 0) {
+    return { fixedContent, fixesCount };
+  }
+
+  const styleImportLine = scriptLines[styleImportIndex].trim().replace(/;$/, '');
+
+  let firstMeaningfulIndex = -1;
+  for (let index = 0; index < scriptLines.length; index += 1) {
+    if (scriptLines[index].trim() === '') {
+      continue;
+    }
+    firstMeaningfulIndex = index;
+    break;
+  }
+
+  if (firstMeaningfulIndex >= 0 && styleImportIndex !== firstMeaningfulIndex) {
+    scriptLines.splice(styleImportIndex, 1);
+    scriptLines.splice(firstMeaningfulIndex, 0, styleImportLine);
+    fixesCount += 1;
+  }
+
+  const normalizedFirstStyleIndex = scriptLines.findIndex((line) => styleImportPattern.test(line));
+  if (normalizedFirstStyleIndex >= 0 && scriptLines[normalizedFirstStyleIndex + 1]?.trim() !== '') {
+    scriptLines.splice(normalizedFirstStyleIndex + 1, 0, '');
+    fixesCount += 1;
+  }
+
+  const updatedScriptBody = scriptLines.join('\n');
+  const newScript = `<script setup lang="ts">\n${updatedScriptBody}\n</script>`;
+  fixedContent = fixedContent.replace(scriptSetupPattern, newScript);
+
+  return { fixedContent, fixesCount };
+}
+
+// Нормализует алиасы вида "@/folder/path" в "@folder/path".
+function fixRootAliasToCatalogAlias(content) {
+  let fixedContent = content;
+  let fixesCount = 0;
+
+  const aliasImportPattern = /(from\s+['"])@\/([a-zA-Z0-9_-]+)\/([^'"]+)(['"])/g;
+  fixedContent = fixedContent.replace(aliasImportPattern, (_fullMatch, prefix, catalogName, pathTail, suffix) => {
+    fixesCount += 1;
+    return `${prefix}@${catalogName}/${pathTail}${suffix}`;
+  });
+
+  const aliasSideEffectImportPattern = /(import\s+['"])@\/([a-zA-Z0-9_-]+)\/([^'"]+)(['"])/g;
+  fixedContent = fixedContent.replace(aliasSideEffectImportPattern, (_fullMatch, prefix, catalogName, pathTail, suffix) => {
+    fixesCount += 1;
+    return `${prefix}@${catalogName}/${pathTail}${suffix}`;
+  });
+
+  const sharedHashImportPattern = /(from\s+['"])#shared\/([^'"]+)(['"])/g;
+  fixedContent = fixedContent.replace(sharedHashImportPattern, (_fullMatch, prefix, pathTail, suffix) => {
+    fixesCount += 1;
+    return `${prefix}@shared/${pathTail}${suffix}`;
+  });
+
+  const sharedHashSideEffectImportPattern = /(import\s+['"])#shared\/([^'"]+)(['"])/g;
+  fixedContent = fixedContent.replace(sharedHashSideEffectImportPattern, (_fullMatch, prefix, pathTail, suffix) => {
+    fixesCount += 1;
+    return `${prefix}@shared/${pathTail}${suffix}`;
+  });
+
+  return { fixedContent, fixesCount };
+}
+
 // Запускает `eslint --fix` и, если доступен, `prettier` для дочистки форматных правок.
 function runEslintFix() {
   const eslintCli = resolve(repoRoot, 'node_modules/eslint/bin/eslint.js');
@@ -633,6 +856,11 @@ const contentFixers = [
   fixVueLifecycleNamedFunction,
   fixAsyncSingleAwaitTailToReturn,
   fixVoidFireAndForgetCalls,
+  fixBlankLineBetweenConsecutiveIf,
+  fixBlankLineBeforeReturn,
+  fixVueStyleImportPlacement,
+  fixVueStyleImportFirstAndSpacing,
+  fixRootAliasToCatalogAlias,
 ];
 
 for (const filePath of filePaths) {

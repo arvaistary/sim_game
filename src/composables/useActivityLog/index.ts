@@ -20,6 +20,7 @@ export function useActivityLog() {
 
   function fetchEntries(count: number): DisplayLogEntry[] {
     const raw = activityStore.getEntries(count)
+
     return raw.map((entry) => ({
       day: entry.day ?? 0,
       type: entry.type ?? 'unknown',
@@ -34,6 +35,7 @@ export function useActivityLog() {
     void timeStore.totalHours
     const all = fetchEntries(visibleCount.value)
     if (activeFilter.value === 'all') return all
+
     return all.filter((e) => e.type === activeFilter.value)
   })
 

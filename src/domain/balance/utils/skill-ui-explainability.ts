@@ -58,6 +58,7 @@ export function getSkillContributionsToModifier(
   }
   
   // Сортируем по абсолютному вкладу (по убыванию)
+
   return contributions.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
 }
 
@@ -220,6 +221,7 @@ export function getPlayerActiveEffects(
   }
   
   // Преобразуем в массив
+
   return Object.entries(categories).map(([category, effects]) => ({
     category,
     effects
@@ -255,12 +257,19 @@ function isMultiplicativeModifier(modifierKey: keyof SkillModifiers): boolean {
 
 function getAgeLearningMultiplier(age: number): number {
   if (age <= 7) return 2.5
+
   if (age <= 12) return 2.0
+
   if (age <= 18) return 1.7
+
   if (age <= 25) return 1.4
+
   if (age <= 35) return 1.1
+
   if (age <= 45) return 0.8
+
   if (age <= 60) return 0.5
+
   return 0.3
 }
 
@@ -280,6 +289,7 @@ function getLearningMethodMultiplier(method: 'work' | 'practice' | 'courses' | '
     books: 0.7,
     videos: 0.4
   }
+
   return multipliers[method] || 1.0
 }
 
@@ -302,23 +312,28 @@ function getMethodMultiplierDescription(method: string, multiplier: number): str
 function getComfortZoneMultiplier(consecutiveUses: number): number {
   if (consecutiveUses <= 5) return 1.0
   const penalty = (consecutiveUses - 5) * 0.15
+
   return Math.max(0.2, 1 - penalty)
 }
 
 function getComfortZoneDescription(consecutiveUses: number, multiplier: number): string {
   if (consecutiveUses > 5) {
     const penalty = (1 - multiplier) * 100
+
     return `Повторение одного и того же: -${penalty.toFixed(0)}% (${consecutiveUses} раз подряд)`
   }
+
   return 'Разнообразие действий: максимальная эффективность'
 }
 
 function getBurnoutMultiplier(weeklyHours: number): { multiplier: number; stressBonus: number } {
   if (weeklyHours <= 30) return { multiplier: 1.0, stressBonus: 0 }
+
   if (weeklyHours >= 50) return { multiplier: 0, stressBonus: 0.15 }
   
   const extraHours = weeklyHours - 30
   const penalty = extraHours * 0.05
+
   return {
     multiplier: Math.max(0, 1 - penalty),
     stressBonus: 0.15
@@ -328,8 +343,10 @@ function getBurnoutMultiplier(weeklyHours: number): { multiplier: number; stress
 function getBurnoutDescription(weeklyHours: number, multiplier: number): string {
   if (weeklyHours > 30) {
     const penalty = (1 - multiplier) * 100
+
     return `Переутомление: -${penalty.toFixed(0)}% (${weeklyHours} часов/неделю)`
   }
+
   return 'Нормальная нагрузка: полная эффективность'
 }
 
@@ -338,8 +355,11 @@ function getDifficultyMultiplier(baseXp: number, finalXp: number): number {
   const finalLevel = Math.floor(finalXp / 10)
   
   if (finalLevel <= 3) return 1.0
+
   if (finalLevel <= 6) return 1.35
+
   if (finalLevel <= 8) return 1.8
+
   return 2.6
 }
 
@@ -367,9 +387,11 @@ function formatModifierValue(modifierKey: keyof SkillModifiers, value: number): 
   if (isMultiplicativeModifier(modifierKey)) {
     const percent = (value - 1) * 100
     const sign = percent > 0 ? '+' : ''
+
     return `${sign}${percent.toFixed(1)}%`
   } else {
     const sign = value > 0 ? '+' : ''
+
     return `${sign}${value.toFixed(2)}`
   }
 }

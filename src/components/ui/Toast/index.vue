@@ -11,8 +11,9 @@
 
 <script setup lang="ts">
 
-import { TOAST_ICON_MAP } from './index.constants'
 import './style.scss'
+
+import { TOAST_ICON_MAP } from './index.constants'
 
 const props = withDefaults(defineProps<{
   message: string

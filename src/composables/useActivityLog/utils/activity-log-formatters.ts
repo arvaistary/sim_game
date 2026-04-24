@@ -7,6 +7,7 @@ import type { ActionMetadata, ActivityLogEntry } from '@/domain/balance/types/ac
 function normalizeActionId(actionId: unknown): string | null {
   if (typeof actionId !== 'string' || actionId.length === 0) return null
   const normalized = actionId.trim().toLowerCase()
+
   return ACTION_ID_ALIASES[normalized] || normalized
 }
 
@@ -28,12 +29,14 @@ function extractActionIdFromTitle(title: string): string | null {
 
 function formatNumber(value: number, fractionDigits = 1): string {
   const rounded = Number(value.toFixed(fractionDigits))
+
   return `${rounded}`
 }
 
 function resolveMetricLabel(metricKey: string): string {
   const key = String(metricKey || '').trim()
   if (!key) return ''
+
   if (METRIC_LABELS[key]) return METRIC_LABELS[key]
 
   const skill = getSkillByKey(key)
@@ -44,6 +47,7 @@ function resolveMetricLabel(metricKey: string): string {
 
 function formatSignedValue(value: number, fractionDigits = 1): string {
   const sign = value > 0 ? '+' : ''
+
   return `${sign}${formatNumber(value, fractionDigits)}`
 }
 
@@ -79,6 +83,7 @@ function buildActionEffectsFromMetadata(metadata: ActionMetadata | null | undefi
   }
 
   if (parts.length === 0) return ''
+
   return parts.map((line) => `• ${line}`).join('\n')
 }
 
@@ -89,7 +94,8 @@ function translateRawEffectsText(rawText: unknown): string {
   const chunks = raw.split(',').map((chunk) => chunk.trim()).filter(Boolean)
   if (chunks.length === 0) return raw
 
-  const translated = chunks.map((chunk) => {
+  const translated = chunks.map(
+    (chunk) => {
     const match = chunk.match(/^([a-z0-9_]+)\s*:\s*([+-]?\d+(?:\.\d+)?)$/i)
     if (!match) return chunk
 

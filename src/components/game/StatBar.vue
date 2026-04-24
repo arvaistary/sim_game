@@ -19,8 +19,11 @@ const props = withDefaults(defineProps<{
 
 const barColor = computed(() => {
   if (props.color) return props.color
+
   if (props.value > 60) return 'var(--color-sage)'
+
   if (props.value > 30) return 'var(--color-accent)'
+
   return 'var(--color-danger)'
 })
 </script>

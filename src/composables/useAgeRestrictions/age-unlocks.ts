@@ -30,6 +30,7 @@ export function checkAgeUnlocks(currentAge: number): void {
 
   if (previousGroup === newGroup) {
     lastKnownAge = currentAge
+
     return
   }
 

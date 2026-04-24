@@ -34,7 +34,10 @@
 </template>
 
 <script setup lang="ts">
+import './SkillList.scss'
+
 import {
+
   BASIC_SKILLS,
   PROFESSIONAL_SKILLS,
   SOCIAL_SKILLS,
@@ -72,4 +75,3 @@ function getSkillLevel(key: string): number {
 }
 </script>
 
-<style scoped lang="scss" src="./SkillList.scss"></style>

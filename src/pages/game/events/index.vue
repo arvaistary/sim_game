@@ -42,6 +42,7 @@ function selectChoice(choice: { id: string; text: string }) {
   const ok = events.applyChoice(choice.id)
   if (!ok) {
     toast.showError('Не удалось применить выбор')
+
     return
   }
   toast.showSuccess('Выбор применён!')

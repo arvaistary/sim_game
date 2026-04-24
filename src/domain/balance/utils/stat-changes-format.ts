@@ -3,6 +3,7 @@ import { STAT_LABELS_RU, STAT_KEY_ORDER } from '@/constants/metric-labels'
 
 function formatStatLine(key: string, value: number): string {
   const label = STAT_LABELS_RU[key] ?? key
+
   return `${label} ${value > 0 ? '+' : ''}${value}`
 }
 
@@ -19,6 +20,7 @@ function collectStatParts(statChanges: StatChanges = {}): [string, number][] {
     if (seen.has(key) || value === undefined || value === 0) continue
     parts.push([key, value])
   }
+
   return parts
 }
 

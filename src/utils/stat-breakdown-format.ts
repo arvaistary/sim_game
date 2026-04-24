@@ -3,6 +3,7 @@ import { METRIC_LABELS } from '@/constants/metric-labels'
 
 function formatSigned(value: number): string {
   const rounded = Math.round(value * 100) / 100
+
   return `${rounded >= 0 ? '+' : ''}${rounded}`
 }
 
@@ -24,6 +25,7 @@ export function buildStatBreakdownExplanation(entry: StatChangeBreakdownEntry): 
   if (entry.sleepDebtDelta !== 0) {
     parts.push(`долг сна ${formatSigned(entry.sleepDebtDelta)}`)
   }
+
   return parts.join('; ')
 }
 
@@ -42,6 +44,7 @@ export function buildActionResultStatLines(breakdown: StatChangeBreakdownEntry[]
     .map(e => {
       const label = METRIC_LABELS[e.stat] ?? e.stat
       const text = `${label} ${e.final >= 0 ? '+' : ''}${e.final}`
+
       return {
         label,
         text,

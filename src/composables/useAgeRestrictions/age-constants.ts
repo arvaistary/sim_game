@@ -107,9 +107,14 @@ export const AGE_GROUP_RANGES: Record<AgeGroup, { min: number; max: number }> = 
  */
 export function getAgeGroup(ageValue: number): AgeGroup {
   if (ageValue <= 3) return AgeGroup.INFANT
+
   if (ageValue <= 7) return AgeGroup.TODDLER
+
   if (ageValue <= 12) return AgeGroup.CHILD
+
   if (ageValue <= 15) return AgeGroup.TEEN
+
   if (ageValue <= 18) return AgeGroup.YOUNG
+
   return AgeGroup.ADULT
 }

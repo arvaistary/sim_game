@@ -88,12 +88,13 @@
 
 <script setup lang="ts">
 import { formatMoney } from '@/utils/format'
-import { WORK_TYPES, INDUSTRIES, JOB_INDUSTRY_MAP } from '@/config/work-categories'
+import { WORK_TYPES, INDUSTRIES, JOB_INDUSTRY_MAP } from '@/constants/work-categories'
 import CareerTrack from '@/components/pages/career/CareerTrack/CareerTrack.vue'
 
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()
+
 const toast = useToast()
 
 const activeWorkType = ref('full-time')
@@ -104,6 +105,7 @@ const industries = INDUSTRIES
 
 const careerTrack = computed(() => {
   void store.worldTick
+
   return store.getCareerTrack()
 })
 
@@ -113,10 +115,12 @@ const currentWorkType = computed(() =>
 
 const filteredJobs = computed(() => {
   const jobs = careerTrack.value as any[]
+
   return jobs.filter(job => {
     const scheduleMatches = currentWorkType.value.scheduleFilter.includes(job.schedule)
     const industryId = JOB_INDUSTRY_MAP[job.id] ?? 'all'
     const industryMatches = activeIndustry.value === 'all' || industryId === activeIndustry.value
+
     return scheduleMatches && industryMatches
   })
 })

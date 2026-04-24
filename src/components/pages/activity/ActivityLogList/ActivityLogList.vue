@@ -22,6 +22,8 @@
 </template>
 
 <script setup lang="ts">
+import './ActivityLogList.scss'
+
 const { entries, loadMore } = useActivityLog()
 
 const scrollRef = ref<HTMLElement | null>(null)
@@ -39,4 +41,3 @@ function onScroll() {
 }
 </script>
 
-<style scoped lang="scss" src="./ActivityLogList.scss"></style>

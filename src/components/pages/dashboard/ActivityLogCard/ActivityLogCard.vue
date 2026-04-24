@@ -18,6 +18,8 @@
 </template>
 
 <script setup lang="ts">
+import './ActivityLogCard.scss'
+
 const activityStore = useActivityStore()
 
 interface LogEntryDisplay {
@@ -38,4 +40,3 @@ const logEntries = computed<LogEntryDisplay[]>(() => {
 })
 </script>
 
-<style scoped lang="scss" src="./ActivityLogCard.scss"></style>

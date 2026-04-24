@@ -10,17 +10,21 @@
 </template>
 
 <script setup lang="ts">
+import './WorkShiftPanel.scss'
+
 const workResult = ref('')
 
 function doWork(hours: number): void {
   if (!careerStore.isEmployed) {
     workResult.value = 'Сначала устройтесь на работу'
+
     return
   }
   
   // Проверяем достаточно ли энергии
   if (statsStore.energy < hours * 3) {
     workResult.value = 'Недостаточно энергии'
+
     return
   }
 
@@ -32,4 +36,3 @@ function doWork(hours: number): void {
 }
 </script>
 
-<style scoped lang="scss" src="./WorkShiftPanel.scss"></style>

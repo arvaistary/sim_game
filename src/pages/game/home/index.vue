@@ -22,6 +22,7 @@ definePageMeta({ middleware: 'game-init' })
 
 const timeStore = useTimeStore()
 const walletStore = useWalletStore()
+
 const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 
 const actions = getActionsByCategory('home' as any)
@@ -33,13 +34,17 @@ function isDisabled(action: BalanceAction): boolean {
 function getDisabledReason(action: any): string {
   const result = getActionById(action.id)
   if (!result) return 'Действие не найдено'
+
   if (walletStore.money < result.price) return 'Недостаточно денег'
+
   if (timeStore.weekHoursRemaining < result.hourCost) return 'Недостаточно времени'
+
   return 'Действие недоступно'
 }
 
 const sortedActions = computed(() => {
   void timeStore.totalHours
+
   return [...actions].sort((a, b) => (canExecute(a.id) ? 0 : 1) - (canExecute(b.id) ? 0 : 1))
 })
 </script>
