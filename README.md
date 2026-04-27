@@ -1,70 +1,158 @@
 # Game Life
 
-Cozy turn-based life simulator on Phaser 3 with a warm minimal UI and a scene-based architecture.
-
-## 📚 Documentation
-
-For complete documentation, see the [`doc/`](doc/) folder:
-
-- **📖 Quick Start** → [`doc/core/README.md`](doc/core/README.md)
-- **📊 Implementation Status** → [`doc/core/IMPLEMENTATION_STATUS.md`](doc/core/IMPLEMENTATION_STATUS.md)
-- **🛣️ Roadmap** → [`doc/core/ROADMAP.md`](doc/core/ROADMAP.md)
-- **🧠 MemPalace Setup** → [`doc/core/MEMPALACE_SETUP.md`](doc/core/MEMPALACE_SETUP.md)
-- **🎮 Game Design** → [`doc/GDD/GDD.md`](doc/GDD/GDD.md)
-- **⚙️ ECS Architecture** → [`doc/ecs/ECS_ARCHITECTURE.md`](doc/ecs/ECS_ARCHITECTURE.md)
+Cozy turn-based life simulator на Nuxt 4 / Vue 3 с тёплым минималистичным UI и послойной архитектурой (Domain → Application → Stores → Components → Pages).
 
 ## Tech Stack
 
-- `Phaser 3.80+`
-- `Vite`
-- `localStorage` for save persistence
-- Pure Phaser `GameObjects` for UI, no DOM overlays
+- **Nuxt 4.4** (SPA, `ssr: false`)
+- **Vue 3.5** + `<script setup lang="ts">`
+- **Pinia 3** — state management (13 специализированных stores)
+- **TypeScript** (strict mode)
+- **SCSS** — дизайн-система (переменные, миксины, глобальные стили)
+- **Vitest** — unit-тесты
+- **localStorage** — persistence через репозиторий
 
-## Run
+## Запуск
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:3000
 ```
 
-## Current Project Structure
+## Скрипты
 
-- `src/bootstrap.js` — entry point: Phaser game config, scene list, dev hook.
-- `src/game-state.js` — save schema, constants, helpers shared with UI.
-- `src/ui-kit.js` — shared panels, buttons, modals, toast, palette, text styles.
-- `src/style.css` — fullscreen shell for the canvas.
-- `src/scenes/` — Phaser scenes (see `doc/core/SCENES_REFERENCE.md`).
-- `src/ecs/` — ECS world, components, systems, adapters.
-- `src/balance/` — tunable game data: jobs, housing, demo save, skill UI defs, education programs, default monthly expenses (`index.js` re-exports).
-- `doc/` — documentation: **core/**, **GDD/**, **ecs/**.
+| Команда | Описание |
+|---|---|
+| `npm run dev` | Dev-сервер Nuxt |
+| `npm run build` | Production-сборка |
+| `npm run typecheck` | Проверка типов TypeScript |
+| `npm run test` | Запуск тестов (Vitest) |
+| `npm run test:watch` | Тесты в watch-режиме |
+| `npm run test:coverage` | Тесты с покрытием |
+| `npm run rules:audit` | Аудит типизационных антипаттернов |
+| `npm run rules:fix` | Автоисправление типизации |
 
-## Implemented Scenes (see `src/scenes/`)
+## Архитектура
 
-- **StartScene** — character creation.
-- **SchoolIntroScene** / **InstituteIntroScene** — intro mini-games.
-- **MainGameScene** (`MainGameSceneECS.js`) — HUD, bottom navigation.
-- **HomeScene**, **ShopScene**, **FunScene**, **SocialScene** — recovery actions per category (shared core; scrollable cards).
-- **RecoveryScene** — optional multi-tab recovery via `initialTab`.
-- **CareerScene** — jobs, income, requirements.
-- **FinanceScene** — overview, expenses, actions, investments (scrollable block).
-- **EducationScene** — programs and active courses (scrollable programs block).
-- **EventQueueScene** — event queue and choices.
-- **SkillsScene** — skills screen.
+Направление зависимостей:
 
-## Current Gameplay Systems
+```
+utils/constants → domain → application → infrastructure → stores/composables → components → pages
+```
 
-- Work phase and recovery integrated with ECS (`SceneAdapter`, relevant systems).
-- Recovery, career, finance, education, events — see `doc/core/IMPLEMENTATION_STATUS.md`.
-- Autosave after meaningful state changes (`PersistenceSystem`).
+```
+src/
+├── pages/                    # Nuxt pages (маршруты)
+│   ├── index.vue             # Стартовая: создание персонажа
+│   └── game/                 # Игровые экраны
+│       ├── index.vue         # Dashboard (профиль, статы, журнал)
+│       ├── home/             # Недвижимость
+│       ├── shop/             # Магазин
+│       ├── actions/          # Действия (lifestyle)
+│       ├── work/             # Работа / карьера
+│       ├── education/        # Обучение
+│       ├── skills/           # Навыки
+│       ├── finance/          # Финансы
+│       ├── activity/         # Журнал активности
+│       ├── events/           # События
+│       └── selfdev/          # Саморазвитие
+├── components/
+│   ├── ui/                   # Общие UI-компоненты (GameButton, Modal, Toast, ProgressBar, …)
+│   ├── game/                 # Игровые компоненты (ActionCard, StatBar, WorkTabs, …)
+│   ├── layout/               # Layout (GameLayout)
+│   ├── global/               # Глобальные (GameNav)
+│   └── pages/                # Page-специфичные (dashboard, career, education, …)
+├── stores/                   # Pinia stores
+│   ├── game.store.ts         # Фасад: агрегирует все stores, save/load
+│   ├── player-store/         # Игрок (имя, возраст, режим старта)
+│   ├── time-store/           # Игровое время (дни, недели, месяцы)
+│   ├── stats-store/          # Характеристики (энергия, голод, стресс, …)
+│   ├── wallet-store/         # Кошелёк (деньги, доходы)
+│   ├── career-store/         # Карьера (работа, смены, зарплата)
+│   ├── education-store/      # Обучение (программы, курсы)
+│   ├── skills-store/         # Навыки (прогрессия, модификаторы)
+│   ├── housing-store/        # Жильё (уровни)
+│   ├── finance-store/        # Финансы (инвестиции, расходы)
+│   ├── events-store/         # Случайные события
+│   ├── actions-store/        # Действия по категориям
+│   └── activity-store/       # Журнал активности
+├── composables/              # Vue composables
+│   ├── useActions/           # Логика действий
+│   ├── useActivityLog/       # Форматирование журнала
+│   ├── useAgeRestrictions/   # Ограничения по возрасту
+│   ├── useEvents/            # Логика событий
+│   ├── useGameModal/         # Модальные окна
+│   ├── useModalStack/        # Стек модалов
+│   └── useToast/             # Уведомления
+├── domain/                   # Domain layer
+│   ├── balance/              # Баланс: действия, константы, навыки, экономика
+│   │   ├── actions/          # Каталог действий по категориям
+│   │   ├── constants/        # Балансовые таблицы (работы, жильё, навыки, …)
+│   │   ├── types/            # Доменные типы
+│   │   └── utils/            # Утилиты (hourly-rates, skill-system, …)
+│   └── education/            # Логика образования
+├── application/              # Application layer
+│   └── game/                 # Команды (executeAction, simulateWorkShift, …)
+│                            # Запросы (getCareerTrack, getFinanceOverview, …)
+├── infrastructure/           # Адаптеры
+│   └── persistence/          # LocalStorageSaveRepository
+├── plugins/                  # Nuxt plugins
+│   └── auto-save.client.ts   # Автосохранение (debounced + visibility + periodic)
+├── constants/                # Навигация, категории, метки
+├── utils/                    # Утилиты (clamp, format)
+├── assets/scss/              # SCSS дизайн-система
+└── types/                    # Глобальные type-декларации
+```
 
-## UI Principles
+## Игровые системы
 
-- Fullscreen responsive canvas (`Phaser.Scale.RESIZE`).
-- Palette and components from `ui-kit.js` and `doc/visual.txt`.
-- Long lists: container + mask + scroll (wheel / touch) where implemented.
+| Система | Описание |
+|---|---|
+| **Создание персонажа** | Выбор имени, режим старта (младенчество / взрослая жизнь) |
+| **Время** | Дни, недели, месяцы; еженедельный сброс рабочих часов |
+| **Характеристики** | Энергия, голод, стресс и др.; clamp 0–100 |
+| **Кошелёк** | Доходы, расходы, баланс |
+| **Карьера** | Трудоустройство, рабочие смены, зарплата по часам |
+| **Образование** | Программы, курсы, требования, прогресс |
+| **Навыки** | Прогрессия, модификаторы, эффекты на действия |
+| **Жильё** | Уровни жилья, расходы |
+| **Финансы** | Инвестиции (депозит, акции, бизнес), ежемесячные расходы |
+| **Действия** | Lifestyle-действия по категориям (отдых, развлечения, здоровье, …) |
+| **События** | Случайные события с выбором и последствиями |
+| **Журнал активности** | Лог всех действий с фильтрацией |
+| **Автосохранение** | Debounced (300ms) + visibilitychange + periodic (30 сек) |
 
-## Notes For Further Development
+## Тесты
 
-- Prefer **ECS systems** for new stateful logic; put numbers and static tables in **`src/balance/`**; `game-state.js` for save merge defaults and legacy helpers.
-- New UI: extend `ui-kit.js`, follow patterns in `doc/core/SCENES_REFERENCE.md`.
-- ECS docs: `doc/ecs/`.
+```
+test/
+├── unit/
+│   ├── architecture/         # Границы слоёв, store-boundaries
+│   ├── domain/balance/       # Схема действий, каталог, hourly-rates
+│   └── stores/               # career, skills, stats, time, wallet
+└── e2e/
+    └── routes/               # Smoke-тесты маршрутов
+```
+
+```bash
+npm run test            # Все тесты
+npm run test:watch      # Watch-режим
+npm run test:coverage   # С покрытием
+```
+
+## UI-принципы
+
+- SPA без SSR — все браузерные API доступны без guard-условий.
+- SCSS дизайн-система: переменные (`variables.scss`), миксины (`mixins.scss`), глобальные стили.
+- Стили компонентов вынесены в отдельные `.scss` файлы; секция `<style>` в `.vue` запрещена.
+- UI-кит: `GameButton`, `Modal`, `Toast`, `ProgressBar`, `RoundedPanel`, `StatChange`, `Tooltip`.
+- Навигация через `GameNav` с 8 разделами.
+
+## Заметки для разработки
+
+- Новую стейтфул-логику добавляй через **Pinia stores** и **application commands/queries**.
+- Балансовые таблицы и статичные данные — в `src/domain/balance/`.
+- Новые UI-компоненты — в `src/components/ui/` (общие) или `src/components/pages/` (page-специфичные).
+- Правила типизации и code style — см. `.roo/rules/`.
+- Аудит типизации: `npm run rules:audit -- src/`.
+- Автоисправление: `npm run rules:fix -- src/`.
