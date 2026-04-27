@@ -7,7 +7,7 @@
     <ActionCardList
       :actions="sortedActions"
       :empty-text="actionsEmptyHint"
-      :is-disabled="(a: any) => !canExecute(a.id)"
+      :is-disabled="isActionDisabled"
       :get-disabled-reason="getDisabledReason"
       @execute="executeAction"
     />
@@ -15,6 +15,10 @@
 </template>
 
 <script setup lang="ts">
+import { type BalanceAction, ACTION_CATEGORIES } from '@domain/balance/actions'
+import type { ActionCategory } from '@domain/balance/types'
+import type { CanExecuteActionResult } from '@stores/game.store.types'
+
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()
@@ -23,17 +27,21 @@ const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = us
 
 const activeCategory = ref<ActionCategory>('fun')
 
-const actions = computed(() => getActionsByCategory(activeCategory.value))
+const actions = computed<BalanceAction[]>(() => getActionsByCategory(activeCategory.value))
 
-function getDisabledReason(action: any): string {
-  const result = store.canExecuteAction(action.id)
+const sortedActions = computed<BalanceAction[]>(() => {
+  void store.worldTick
+
+  return [...actions.value].sort((a: BalanceAction, b: BalanceAction) => Number(isActionDisabled(a)) - Number(isActionDisabled(b)))
+})
+
+function isActionDisabled(action: BalanceAction): boolean {
+  return !canExecute(action.id)
+}
+
+function getDisabledReason(action: BalanceAction): string {
+  const result: CanExecuteActionResult = store.canExecuteAction(action.id)
 
   return result.reason ?? 'Действие недоступно'
 }
-
-const sortedActions = computed(() => {
-  void store.worldTick
-
-  return [...actions.value].sort((a, b) => (canExecute(a.id) ? 0 : 1) - (canExecute(b.id) ? 0 : 1))
-})
 </script>

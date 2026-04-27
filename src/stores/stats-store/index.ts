@@ -1,86 +1,63 @@
 
-
-export interface StatsComponent {
-  energy: number
-  health: number
-  hunger: number
-  stress: number
-  mood: number
-  physical: number
-}
-
-export interface StatsState {
-  energy: number
-  health: number
-  hunger: number
-  stress: number
-  mood: number
-  physical: number
-}
-
-const INITIAL_STATS: StatsState = {
-  energy: 100,
-  health: 100,
-  hunger: 0,
-  stress: 0,
-  mood: 100,
-  physical: 50,
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
+import type { StatsComponent, StatsState } from './index.types'
+import { INITIAL_STATS } from './index.constants'
+import { clamp } from '@utils/clamp'
 
 function clampStat(value: number): number {
   return clamp(value, 0, 100)
 }
 
 export const useStatsStore = defineStore('stats', () => {
-  const energy = ref(INITIAL_STATS.energy)
-  const health = ref(INITIAL_STATS.health)
-  const hunger = ref(INITIAL_STATS.hunger)
-  const stress = ref(INITIAL_STATS.stress)
-  const mood = ref(INITIAL_STATS.mood)
-  const physical = ref(INITIAL_STATS.physical)
+  const energy = ref<number>(INITIAL_STATS.energy)
+  const health = ref<number>(INITIAL_STATS.health)
+  const hunger = ref<number>(INITIAL_STATS.hunger)
+  const stress = ref<number>(INITIAL_STATS.stress)
+  const mood = ref<number>(INITIAL_STATS.mood)
+  const physical = ref<number>(INITIAL_STATS.physical)
 
-  const isFull = computed(() => 
+  const isFull = computed<boolean>(() =>
     energy.value >= 100 && health.value >= 100 && mood.value >= 100
   )
 
-  const isTired = computed(() => energy.value < 20)
-  const isStarving = computed(() => hunger.value > 80)
-  const isStressed = computed(() => stress.value > 80)
-  const isHappy = computed(() => mood.value > 70)
+  const isTired = computed<boolean>(() => energy.value < 20)
+  const isStarving = computed<boolean>(() => hunger.value > 80)
+  const isStressed = computed<boolean>(() => stress.value > 80)
+  const isHappy = computed<boolean>(() => mood.value > 70)
 
-  const totalNegative = computed(() => {
-    const hungerPenalty = hunger.value > 50 ? hunger.value - 50 : 0
-    const stressPenalty = stress.value > 50 ? stress.value - 50 : 0
+  const totalNegative = computed<number>(() => {
+    const hungerPenalty: number = hunger.value > 50 ? hunger.value - 50 : 0
+    const stressPenalty: number = stress.value > 50 ? stress.value - 50 : 0
 
     return hungerPenalty + stressPenalty
   })
 
-  function applyStatChanges(changes: Partial<StatsComponent>) {
+  function applyStatChanges(changes: Partial<StatsComponent>): void {
     if (changes.energy !== undefined) {
       energy.value = clampStat(energy.value + changes.energy)
     }
+
     if (changes.health !== undefined) {
       health.value = clampStat(health.value + changes.health)
     }
+
     if (changes.hunger !== undefined) {
       hunger.value = clampStat(hunger.value + changes.hunger)
     }
+
     if (changes.stress !== undefined) {
       stress.value = clampStat(stress.value + changes.stress)
     }
+
     if (changes.mood !== undefined) {
       mood.value = clampStat(mood.value + changes.mood)
     }
+
     if (changes.physical !== undefined) {
       physical.value = clampStat(physical.value + changes.physical)
     }
   }
 
-  function applyStatChangesRaw(changes: Record<string, number>) {
+  function applyStatChangesRaw(changes: Record<string, number>): void {
     for (const [key, delta] of Object.entries(changes)) {
       switch (key) {
         case 'energy':
@@ -105,7 +82,7 @@ export const useStatsStore = defineStore('stats', () => {
     }
   }
 
-  function setStats(newStats: Partial<StatsState>) {
+  function setStats(newStats: Partial<StatsState>): void {
     if (newStats.energy !== undefined) energy.value = clampStat(newStats.energy)
 
     if (newStats.health !== undefined) health.value = clampStat(newStats.health)
@@ -123,7 +100,7 @@ export const useStatsStore = defineStore('stats', () => {
     energy.value = clampStat(value)
   }
 
-  function restoreAll() {
+  function restoreAll(): void {
     energy.value = 100
     health.value = 100
     mood.value = 100
@@ -131,7 +108,7 @@ export const useStatsStore = defineStore('stats', () => {
     stress.value = 0
   }
 
-  function reset() {
+  function reset(): void {
     energy.value = INITIAL_STATS.energy
     health.value = INITIAL_STATS.health
     hunger.value = INITIAL_STATS.hunger

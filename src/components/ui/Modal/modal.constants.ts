@@ -1,11 +1,11 @@
+import { ModalSize } from './modal.types'
+
 /**
  * Константы размеров модальных окон
  */
-export const MODAL_SIZES = {
-  sm: '320px',
-  md: '420px',
-  lg: '560px',
-  xl: '720px',
-} as const
-
-export type ModalSize = keyof typeof MODAL_SIZES
+export const MODAL_SIZES: Record<ModalSize, string> = {
+  [ModalSize.Sm]: '320px',
+  [ModalSize.Md]: '420px',
+  [ModalSize.Lg]: '560px',
+  [ModalSize.Xl]: '720px',
+}

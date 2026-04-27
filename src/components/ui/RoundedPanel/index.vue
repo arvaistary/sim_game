@@ -1,13 +1,21 @@
 <template>
-  <div class="rounded-panel" :style="panelStyle">
+  <div
+    :style="panelStyle"
+    class="rounded-panel"
+    >
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
-
 import './style.scss'
 
+/**
+ * @prop {string} [color] - Цвет фона панели
+ * @prop {boolean} [shadow] - Показывать тень
+ * @prop {number} [radius] - Радиус скругления углов в пикселях
+ * @prop {string} [padding] - Внутренний отступ
+ */
 const props = withDefaults(defineProps<{
   color?: string
   shadow?: boolean

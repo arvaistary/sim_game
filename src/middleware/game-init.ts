@@ -1,5 +1,5 @@
-import { ROUTE_MAP } from '@/constants/navigation'
-import { createLocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
+import { ROUTE_MAP } from '@constants/navigation'
+import { createLocalStorageSaveRepository } from '@infrastructure/persistence/LocalStorageSaveRepository'
 
 const saveRepository = createLocalStorageSaveRepository()
 

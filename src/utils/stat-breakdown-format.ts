@@ -1,5 +1,7 @@
-import type { StatChangeBreakdownEntry } from '@/domain/balance/types'
-import { METRIC_LABELS } from '@/constants/metric-labels'
+import type { StatChangeBreakdownEntry } from '@domain/balance/types'
+import { METRIC_LABELS } from '@constants/metric-labels'
+
+import type { ActionResultStatLine } from './stat-breakdown-format.types'
 
 function formatSigned(value: number): string {
   const rounded = Math.round(value * 100) / 100
@@ -27,12 +29,6 @@ export function buildStatBreakdownExplanation(entry: StatChangeBreakdownEntry): 
   }
 
   return parts.join('; ')
-}
-
-export interface ActionResultStatLine {
-  label: string
-  text: string
-  explanation: string
 }
 
 /**

@@ -1,22 +1,51 @@
 
+import type {
+  QuitCareerResult,
+  CanExecuteActionResult,
+  TimeSnapshot,
+  StatsSnapshot,
+  WalletSnapshot,
+  EducationSnapshot,
+  HousingSnapshot,
+  CanApplyWorkShiftResult,
+  CareerTrackEntry,
+  ActionRequirements,
+  FinanceOverview,
+  StatsShortSnapshot,
+  FinanceSnapshot,
+} from './game.store.types'
+
+import type {
+  CanExecuteResult,
+  ActionResult as ActionExecutionResult,
+  GameAction,
+} from './actions-store/index.types'
+import type { JobSnapshot } from './career-store/index.types'
+import type { SkillEntry } from './skills-store/index.types'
+import type { GameEvent } from './events-store/index.types'
+import type { Investment } from './finance-store/index.types'
+import type { ActivityEntry } from './activity-store/index.types'
+
+import { useActionsStore } from './actions-store'
+import { useCareerStore } from './career-store'
+import { useSkillsStore } from './skills-store'
+import { useEducationStore } from './education-store'
+import { useHousingStore } from './housing-store'
+import { useEventsStore } from './events-store'
+import { useFinanceStore } from './finance-store'
+import { useActivityStore } from './activity-store'
+
 import { useTimeStore } from './time-store'
 import { useStatsStore } from './stats-store'
 import { useWalletStore } from './wallet-store'
-import { useSkillsStore } from './skills-store'
-import { useCareerStore } from './career-store'
-import { useEducationStore } from './education-store'
-import { useHousingStore } from './housing-store'
 import { usePlayerStore } from './player-store'
-import { useEventsStore } from './events-store'
-import { useActionsStore } from './actions-store'
-import { useFinanceStore } from './finance-store'
-import { useActivityStore } from './activity-store'
-import { getActionById, type BalanceAction } from '@/domain/balance/actions'
-import { appGameCommands } from '@/application/game/commands'
+
+import { getActionById, type BalanceAction } from '@domain/balance/actions'
+import { appGameCommands } from '@application/game/commands'
 
 export const useGameStore = defineStore('game', () => {
-  const worldVersion = ref(0)
-  const isInitialized = ref(true)
+  const worldVersion = ref<number>(0)
+  const isInitialized = ref<boolean>(true)
 
   const time = useTimeStore()
   const stats = useStatsStore()
@@ -31,7 +60,7 @@ export const useGameStore = defineStore('game', () => {
   const finance = useFinanceStore()
   const activity = useActivityStore()
 
-  const worldTick = computed(() => worldVersion.value)
+  const worldTick = computed<number>(() => worldVersion.value)
 
   // Еженедельный сброс рабочих часов при смене недели
   watch(() => time.gameWeeks, (newWeek, oldWeek) => {
@@ -40,8 +69,9 @@ export const useGameStore = defineStore('game', () => {
     }
   })
 
-  function initWorld() { worldVersion.value++ }
-  function save() {
+  function initWorld(): void { worldVersion.value++ }
+
+  function save(): Record<string, unknown> {
     return {
       player: player.save(),
       time: time.save(),
@@ -56,7 +86,8 @@ export const useGameStore = defineStore('game', () => {
       activity: activity.save ? activity.save() : {},
     }
   }
-  function load(data?: Record<string, unknown>) {
+
+  function load(data?: Record<string, unknown>): boolean {
     if (data?.player) player.load(data.player as Record<string, unknown>)
 
     if (data?.time) time.load(data.time as Record<string, unknown>)
@@ -82,12 +113,13 @@ export const useGameStore = defineStore('game', () => {
 
     return true
   }
-  function resetGame() {
+
+  function resetGame(): void {
     time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset()
     worldVersion.value++
   }
 
-  function canApplyWorkShift(hours: number) {
+  function canApplyWorkShift(hours: number): CanApplyWorkShiftResult {
     if (!career.isEmployed) return { canDo: false, reason: 'Нет работы' }
 
     if (stats.energy < hours * 3) return { canDo: false, reason: 'Недостаточно энергии' }
@@ -97,16 +129,17 @@ export const useGameStore = defineStore('game', () => {
     return { canDo: true }
   }
 
-  function applyWorkShift(hours: number) {
-    const check = canApplyWorkShift(hours)
-    if (!check.canDo) return check.reason
+  function applyWorkShift(hours: number): string {
+    const check: CanExecuteResult = canApplyWorkShift(hours)
 
-    const salary = hours * (career.currentJob?.salaryPerHour ?? 0)
+    if (!check.canDo) return check.reason ?? 'Ошибка'
+
+    const salary: number = hours * (career.currentJob?.salaryPerHour ?? 0)
     career.addWorkHours(hours)
     career.addPendingSalary(salary)
 
     // Собираем зарплату сразу в кошелёк
-    const actualSalary = career.collectSalary()
+    const actualSalary: number = career.collectSalary()
     wallet.earn(actualSalary)
 
     stats.applyStatChanges({ energy: -(hours * 3), hunger: +(hours * 2) })
@@ -117,33 +150,35 @@ export const useGameStore = defineStore('game', () => {
     return `Вы заработали ${actualSalary} ₽`
   }
 
-  function quitCareer() {
+  function quitCareer(): QuitCareerResult {
     career.endWork()
     worldVersion.value++
 
     return { success: true, message: 'Вы уволились' }
   }
 
-  function changeCareer(jobId: string) {
-    const result = appGameCommands.changeCareer(jobId)
+  function changeCareer(jobId: string): QuitCareerResult {
+    const result: QuitCareerResult = appGameCommands.changeCareer(jobId)
+
     if (result.success) worldVersion.value++
 
     return result
   }
 
-  function getCareerTrack(): { id: string; name: string; level: number; schedule: string; salaryPerHour: number }[] {
+  function getCareerTrack(): CareerTrackEntry[] {
     return career.currentJob ? [{ id: career.currentJob.id, name: career.currentJob.name, level: career.currentJob.level, schedule: career.currentJob.schedule, salaryPerHour: career.currentJob.salaryPerHour }] : []
   }
-  function getCareerSnapshot() { return career.currentJob }
-  function getFinanceSnapshot() { return { monthlyExpenses: finance.monthlyExpenses } }
-  function getFinanceActions() { return [] }
-  function getActivityLogEntries(count: number = 10) { return activity.getEntries(count) }
 
-  function getActionByIdFromBalance(actionId: string) {
+  function getCareerSnapshot(): JobSnapshot { return career.currentJob }
+  function getFinanceSnapshot(): FinanceSnapshot { return { monthlyExpenses: finance.monthlyExpenses } }
+  function getFinanceActions(): never[] { return [] }
+  function getActivityLogEntries(count: number = 10): ActivityEntry[] { return activity.getEntries(count) }
+
+  function getActionByIdFromBalance(actionId: string): BalanceAction | null {
     return getActionById(actionId)
   }
 
-  function toGameAction(action: BalanceAction) {
+  function toGameAction(action: BalanceAction): GameAction {
     return {
       id: action.id,
       title: action.title,
@@ -154,60 +189,67 @@ export const useGameStore = defineStore('game', () => {
       statChanges: action.statChanges as Record<string, number> | undefined,
       skillChanges: action.skillChanges,
       cooldown: action.cooldown,
-      requirements: action.requirements as { minAge?: number; minSkills?: Record<string, number> } | undefined,
+      requirements: action.requirements as ActionRequirements | undefined,
     }
   }
 
-  function canExecuteAction(actionId: string) {
-    const action = getActionByIdFromBalance(actionId)
+  function canExecuteAction(actionId: string): CanExecuteActionResult {
+    const action: BalanceAction | null = getActionByIdFromBalance(actionId)
+
     if (!action) return { canDo: false, canExecute: false, reason: 'Действие не найдено' }
-    const result = actions.canExecute(toGameAction(action))
+
+    const result: CanExecuteResult = actions.canExecute(toGameAction(action))
 
     return { canDo: result.canDo, canExecute: result.canDo, reason: result.reason }
   }
-  function executeAction(actionId: string) {
-    const action = getActionByIdFromBalance(actionId)
+
+  function executeAction(actionId: string): QuitCareerResult {
+    const action: BalanceAction | null = getActionByIdFromBalance(actionId)
+
     if (!action) return { success: false, message: 'Действие не найдено' }
-    const result = actions.executeAction(toGameAction(action))
+
+    const result: ActionExecutionResult = actions.executeAction(toGameAction(action))
 
     return { success: result.success, message: result.summary ?? (result.success ? 'Выполнено' : result.error ?? 'Ошибка') }
   }
 
-  function getNextEvent() { return events.currentEvent }
-  function applyEventChoice(eventId: string, choiceId: string) {
-    const success = events.applyChoice(choiceId)
+  function getNextEvent(): GameEvent | null { return events.currentEvent }
+
+  function applyEventChoice(eventId: string, choiceId: string): string {
+    const success: boolean = events.applyChoice(choiceId)
 
     return success ? 'Событие применено' : 'Ошибка'
   }
-  function getFinanceOverview() { return { balance: wallet.money, expenses: finance.totalExpense, income: wallet.totalEarned } }
-  function getInvestments() { return finance.investments }
-  function applyRecoveryAction(cardData: Record<string, unknown>) { return finance.applyAction(cardData) ? 'Выполнено' : '' }
-  function collectInvestment(investmentId: string) { return finance.divest(investmentId) > 0 ? 'Получено' : 'Ошибка' }
+
+  function getFinanceOverview(): FinanceOverview { return { balance: wallet.money, expenses: finance.totalExpense, income: wallet.totalEarned } }
+  function getInvestments(): Investment[] { return finance.investments }
+  function applyRecoveryAction(cardData: Record<string, unknown>): string { return finance.applyAction(cardData) ? 'Выполнено' : '' }
+  function collectInvestment(investmentId: string): string { return finance.divest(investmentId) > 0 ? 'Получено' : 'Ошибка' }
 
   return {
     worldVersion, worldTick, isInitialized,
-    playerName: computed(() => player.name),
-    welcomeScreenShown: computed(() => player.welcomeScreenShown),
-    money: computed(() => wallet.money),
-    energy: computed(() => stats.energy),
-    health: computed(() => stats.health),
-    hunger: computed(() => stats.hunger),
-    stress: computed(() => stats.stress),
-    mood: computed(() => stats.mood),
-    comfort: computed(() => housing.comfort),
-    age: computed(() => time.currentAge),
-    gameDays: computed(() => time.gameDays),
-    gameWeeks: computed(() => time.gameWeeks),
-    weekHoursRemaining: computed(() => time.weekHoursRemaining),
-    currentJobSnapshot: computed(() => career.currentJob),
-    time: computed(() => ({ totalHours: time.totalHours, gameDays: time.gameDays, gameWeeks: time.gameWeeks, currentAge: time.currentAge, sleepDebt: time.sleepDebt, weekHoursRemaining: time.weekHoursRemaining })),
-    stats: computed(() => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood, physical: stats.physical })),
-    wallet: computed(() => ({ money: wallet.money, reserveFund: wallet.reserveFund, totalEarned: wallet.totalEarned, totalSpent: wallet.totalSpent })),
-    skills: computed(() => skills.skills),
-    career: computed(() => career.currentJob),
-    education: computed(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
-    housing: computed(() => ({ level: housing.level, comfort: housing.comfort, furniture: housing.furniture })),
-    getCareerTrack, getCareerSnapshot, getFinanceSnapshot, getFinanceActions, getActivityLogEntries, getStats: () => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
+    playerName: computed<string>(() => player.name),
+    welcomeScreenShown: computed<boolean>(() => player.welcomeScreenShown),
+    money: computed<number>(() => wallet.money),
+    energy: computed<number>(() => stats.energy),
+    health: computed<number>(() => stats.health),
+    hunger: computed<number>(() => stats.hunger),
+    stress: computed<number>(() => stats.stress),
+    mood: computed<number>(() => stats.mood),
+    comfort: computed<number>(() => housing.comfort),
+    age: computed<number>(() => time.currentAge),
+    gameDays: computed<number>(() => time.gameDays),
+    gameWeeks: computed<number>(() => time.gameWeeks),
+    weekHoursRemaining: computed<number>(() => time.weekHoursRemaining),
+    currentJobSnapshot: computed<JobSnapshot>(() => career.currentJob),
+    time: computed<TimeSnapshot>(() => ({ totalHours: time.totalHours, gameDays: time.gameDays, gameWeeks: time.gameWeeks, currentAge: time.currentAge, sleepDebt: time.sleepDebt, weekHoursRemaining: time.weekHoursRemaining })),
+    stats: computed<StatsSnapshot>(() => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood, physical: stats.physical })),
+    wallet: computed<WalletSnapshot>(() => ({ money: wallet.money, reserveFund: wallet.reserveFund, totalEarned: wallet.totalEarned, totalSpent: wallet.totalSpent })),
+    skills: computed<Record<string, SkillEntry>>(() => skills.skills),
+    career: computed<JobSnapshot>(() => career.currentJob),
+    education: computed<EducationSnapshot>(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
+    housing: computed<HousingSnapshot>(() => ({ level: housing.level, comfort: housing.comfort, furniture: housing.furniture })),
+    getCareerTrack, getCareerSnapshot, getFinanceSnapshot, getFinanceActions, getActivityLogEntries, getStats: (): StatsShortSnapshot => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
     initWorld, save, load, resetGame,
     canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
     canExecuteAction, executeAction, getNextEvent, applyEventChoice, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment

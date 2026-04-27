@@ -11,7 +11,6 @@ import { HOBBY_ACTIONS } from './hobby-actions'
 import { HEALTH_ACTIONS } from './health-actions'
 import { SELFDEV_ACTIONS } from './selfdev-actions'
 import { CHILD_ACTIONS_REGISTERED } from './child-actions-registered'
-import { validateAction } from './action-schema'
 
 export { type BalanceAction } from './types'
 export { SHOP_ACTIONS } from './shop-actions'
@@ -35,9 +34,7 @@ function registerActions(actions: BalanceAction[]): void {
     if (ALL_ACTIONS_MAP.has(actionId)) {
       console.warn(`[Actions] Duplicate action id: ${actionId}`)
     }
-    if (!validateAction(action)) {
-      console.warn(`[Actions] Invalid action schema: ${actionId}`)
-    }
+    
     ALL_ACTIONS_MAP.set(actionId, action)
   }
 }

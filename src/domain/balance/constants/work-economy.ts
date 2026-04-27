@@ -1,4 +1,4 @@
-import type { StatChanges } from '@/domain/balance/types'
+import type { StatChanges } from '@domain/balance/types'
 
 export const WORK_PERIOD_RANDOM_EVENT_CHANCE = 0.15
 

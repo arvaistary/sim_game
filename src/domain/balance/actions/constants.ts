@@ -1,4 +1,4 @@
-import type { ActionCategoryDef } from '@/domain/balance/types'
+import type { ActionCategoryDef } from '@domain/balance/types'
 
 export const ACTION_CATEGORIES: ActionCategoryDef[] = [
   { id: 'shop', label: 'Магазин', icon: '🛒' },

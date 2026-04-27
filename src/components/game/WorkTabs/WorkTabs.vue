@@ -3,22 +3,34 @@
     <button
       v-for="type in types"
       :key="type.id"
-      class="work-tab"
       :class="{ 'work-tab--active': activeType === type.id }"
       @click="$emit('update:activeType', type.id)"
-    >
-      <span class="work-tab__icon">{{ type.icon }}</span>
+      class="work-tab"
+      >
+      <span class="work-tab__icon">
+        {{ type.icon }}
+      </span>
       <span class="work-tab__content">
-        <span class="work-tab__title">{{ type.label }}</span>
-        <span class="work-tab__desc">{{ type.subtitle }}</span>
+        <span class="work-tab__title">
+          {{ type.label }}
+        </span>
+        <span class="work-tab__desc">
+          {{ type.subtitle }}
+        </span>
       </span>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { WorkType } from '@/constants/work-categories'
+import './WorkTabs.scss'
 
+import type { WorkType } from '@constants/work-categories.types'
+
+/**
+ * @prop {WorkType[]} types - Список типов занятости для табов
+ * @prop {string} activeType - Идентификатор активного типа занятости
+ */
 defineProps<{
   types: WorkType[]
   activeType: string
@@ -28,99 +40,3 @@ defineEmits<{
   'update:activeType': [id: string]
 }>()
 </script>
-
-<style scoped lang="scss">
-@use '@/assets/scss/variables.scss' as *;
-@use '@/assets/scss/mixins.scss' as *;
-
-.work-tabs {
-  display: flex;
-  gap: $space-2;
-}
-
-.work-tab {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  gap: $space-2;
-  padding: $space-3;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl, 16px);
-  background: var(--color-bg-card);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-card);
-  text-align: left;
-
-  &:hover {
-    border-color: var(--color-accent);
-    background: var(--color-accent-soft);
-  }
-
-  &--active {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-
-    .work-tab__title {
-      color: var(--color-text-on-accent);
-    }
-
-    .work-tab__desc {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .work-tab__icon {
-      filter: brightness(0) invert(1);
-    }
-
-    &:hover {
-      background: var(--color-accent);
-      border-color: var(--color-accent);
-    }
-  }
-}
-
-.work-tab__icon {
-  font-size: $font-size-lg;
-  line-height: 1;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.work-tab__content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.work-tab__title {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--color-text-primary);
-  line-height: 1.2;
-}
-
-.work-tab__desc {
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  line-height: 1.3;
-}
-
-@include mobile {
-  .work-tab {
-    justify-content: center;
-    align-items: center;
-    padding: $space-3 $space-2;
-  }
-
-  .work-tab__content {
-    display: none;
-  }
-
-  .work-tab__icon {
-    margin-top: 0;
-    font-size: $font-size-xl;
-  }
-}
-</style>

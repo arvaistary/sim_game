@@ -1,8 +1,16 @@
 <template>
-  <RoundedPanel class="card home-preview" padding="16px">
-    <h3 class="card-title">Интерьер дома</h3>
+  <RoundedPanel
+    class="card home-preview"
+    padding="16px"
+    >
+    <h3 class="card-title">
+      Интерьер дома
+    </h3>
     <div class="home-preview-image">
-      <img src="/image/home_interier_0.gif" alt="Интерьер дома" />
+      <img
+        src="/image/home_interier_0.gif"
+        alt="Интерьер дома"
+        />
     </div>
   </RoundedPanel>
 </template>

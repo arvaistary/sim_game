@@ -1,5 +1,5 @@
-import type { SkillDef } from '@/domain/balance/types'
-import { EFFECT_LABELS } from '@/constants/metric-labels'
+import type { SkillDef } from '@domain/balance/types'
+import { EFFECT_LABELS } from '@constants/metric-labels'
 
 function humanizeKey(key: string): string {
   return key

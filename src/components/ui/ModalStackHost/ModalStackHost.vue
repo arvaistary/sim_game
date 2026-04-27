@@ -1,5 +1,8 @@
 <template>
-  <template v-for="entry in stack" :key="entry.id">
+  <template
+    v-for="entry in stack"
+    :key="entry.id"
+    >
     <component
       :is="entry.component"
       v-bind="getComponentProps(entry)"
@@ -19,6 +22,7 @@ const { stack, close } = useModalStack()
  */
 function getComponentProps(entry: ModalEntry): Record<string, any> {
   if (!entry.props) return {}
+
   const { onClose, ...rest } = entry.props
 
   return rest
@@ -27,6 +31,7 @@ function getComponentProps(entry: ModalEntry): Record<string, any> {
 function handleClose(entry: ModalEntry): void {
   // Вызываем onClose из пропсов (если есть)
   const onClose = entry.props?.onClose
+  
   if (typeof onClose === 'function') {
     try {
       onClose()

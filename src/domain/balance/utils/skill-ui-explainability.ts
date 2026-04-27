@@ -3,7 +3,7 @@
  * Показывает игроку, как навыки влияют на геймплей
  */
 
-import type { SkillDef, SkillModifiers } from '@/domain/balance/types'
+import type { SkillDef, SkillModifiers } from '@domain/balance/types'
 import { ALL_SKILLS, getSkillByKey } from '../constants/skills-constants'
 import { getSkillEffectsForUi } from '../constants/skill-effects-generator'
 import { getSkillProgressionConfig, isXpModelActive } from '../constants/skill-progression-config'

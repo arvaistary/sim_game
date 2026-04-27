@@ -1,67 +1,22 @@
 
-
-export interface CareerComponent {
-  id: string | null
-  name: string
-  schedule: string
-  employed: boolean
-  level: number
-  salaryPerHour: number
-  salaryPerDay: number
-  salaryPerWeek: number
-  requiredHoursPerWeek: number
-  workedHoursCurrentWeek: number
-  pendingSalaryWeek: number
-  totalWorkedHours: number
-  daysAtWork: number
-}
-
-export interface JobSnapshot {
-  id: string
-  name: string
-  schedule: string
-  employed: boolean
-  level: number
-  salaryPerHour: number
-  salaryPerDay: number
-  salaryPerWeek: number
-  requiredHoursPerWeek: number
-  workedHoursCurrentWeek: number
-  pendingSalaryWeek: number
-  totalWorkedHours: number
-  daysAtWork: number
-}
-
-const UNEMPLOYED: JobSnapshot = {
-  id: '',
-  name: 'Безработный',
-  schedule: '—',
-  employed: false,
-  level: 0,
-  salaryPerHour: 0,
-  salaryPerDay: 0,
-  salaryPerWeek: 0,
-  requiredHoursPerWeek: 0,
-  workedHoursCurrentWeek: 0,
-  pendingSalaryWeek: 0,
-  totalWorkedHours: 0,
-  daysAtWork: 0,
-}
+import type { JobSnapshot } from './index.types'
+import { UNEMPLOYED } from './index.constants'
 
 export const useCareerStore = defineStore('career', () => {
   const currentJob = ref<JobSnapshot>({ ...UNEMPLOYED })
   const jobHistory = ref<JobSnapshot[]>([])
-  const careerLevel = ref(0)
-  const promotions = ref(0)
+  const careerLevel = ref<number>(0)
+  const promotions = ref<number>(0)
 
-  const isEmployed = computed(() => currentJob.value.employed)
-  const canWork = computed(() => currentJob.value.employed)
-  const hasJob = computed(() => currentJob.value.id !== '')
+  const isEmployed = computed<boolean>(() => currentJob.value.employed)
+  const canWork = computed<boolean>(() => currentJob.value.employed)
+  const hasJob = computed<boolean>(() => currentJob.value.id !== '')
 
-  const totalWorkedHours = computed(() => currentJob.value.totalWorkedHours)
-  const pendingSalary = computed(() => currentJob.value.pendingSalaryWeek)
+  const totalWorkedHours = computed<number>(() => currentJob.value.totalWorkedHours)
+  const pendingSalary = computed<number>(() => currentJob.value.pendingSalaryWeek)
 
-  const weeklyHoursRemaining = computed(() => {
+  const weeklyHoursRemaining = computed<number>(() => {
+
     if (!currentJob.value.employed) return 0
 
     return Math.max(0, currentJob.value.requiredHoursPerWeek - currentJob.value.workedHoursCurrentWeek)
@@ -79,6 +34,7 @@ export const useCareerStore = defineStore('career', () => {
       workedHoursCurrentWeek: 0,
       pendingSalaryWeek: 0,
     }
+
     if (jobData.id) {
       jobHistory.value.push({ ...currentJob.value })
     }
@@ -90,6 +46,7 @@ export const useCareerStore = defineStore('career', () => {
 
   function addWorkHours(hours: number): void {
     if (!currentJob.value.employed) return
+
     currentJob.value.workedHoursCurrentWeek += hours
     currentJob.value.totalWorkedHours += hours
     currentJob.value.daysAtWork += 1
@@ -97,11 +54,12 @@ export const useCareerStore = defineStore('career', () => {
 
   function addPendingSalary(amount: number): void {
     if (!currentJob.value.employed) return
+
     currentJob.value.pendingSalaryWeek += amount
   }
 
   function collectSalary(): number {
-    const salary = currentJob.value.pendingSalaryWeek
+    const salary: number = currentJob.value.pendingSalaryWeek
     currentJob.value.pendingSalaryWeek = 0
 
     return salary
@@ -114,6 +72,7 @@ export const useCareerStore = defineStore('career', () => {
   function promote(newJob?: Partial<JobSnapshot>): void {
     careerLevel.value += 1
     promotions.value += 1
+
     if (newJob) {
       currentJob.value = { ...currentJob.value, ...newJob }
     }

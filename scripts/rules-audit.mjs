@@ -3,12 +3,13 @@ import { resolve, relative, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const repoRoot = process.cwd();
-const inputTarget = process.argv[2] ?? 'src';
-const targetPath = resolve(repoRoot, inputTarget);
+const inputTargetRaw = process.argv[2] ?? 'src';
+const inputTarget = inputTargetRaw.replace(/\\/g, '/');
+const targetPath = resolve(repoRoot, inputTargetRaw);
 const skippedDirectoryNames = new Set(['node_modules', '.nuxt', '.output', '.git']);
 
 if (!existsSync(targetPath)) {
-  console.error(`Target does not exist: ${inputTarget}`);
+  console.error(`Целевая директория не существует: ${inputTarget}`);
   process.exit(2);
 }
 
@@ -219,7 +220,7 @@ function runVueScriptBlockOrderHeuristics({ filePath, lines }) {
         pushFinding(
           'style/script-setup-block-order',
           filePath,
-          `Line ${lineNumber}: move "${blockName}" block earlier to keep <script setup> block order`,
+          `Line ${lineNumber}: переместите блок "${blockName}" раньше, чтобы соблюсти порядок блоков в <script setup>`,
         );
         break;
       }
@@ -241,7 +242,20 @@ function runVueScriptBlockOrderHeuristics({ filePath, lines }) {
       }
 
       const currentLineIndex = currentBlock.lineNumber - 1;
-      const previousLine = lines[currentLineIndex - 1] ?? '';
+      // Skip JSDoc comments and blank lines within them to find actual block boundary
+      let lookbackIndex = currentLineIndex - 1;
+      while (lookbackIndex >= 0) {
+        const lookbackTrimmed = lines[lookbackIndex].trim();
+        if (lookbackTrimmed === '') {
+          break;
+        }
+        if (lookbackTrimmed.startsWith('/**') || lookbackTrimmed.startsWith('*') || lookbackTrimmed.endsWith('*/')) {
+          lookbackIndex -= 1;
+          continue;
+        }
+        break;
+      }
+      const previousLine = lines[lookbackIndex] ?? '';
       const hasBlankLineBeforeCurrentBlock = previousLine.trim() === '';
 
       if (hasBlankLineBeforeCurrentBlock) {
@@ -251,7 +265,7 @@ function runVueScriptBlockOrderHeuristics({ filePath, lines }) {
       pushFinding(
         'style/script-setup-block-separation',
         filePath,
-        `Line ${currentBlock.lineNumber}: add an empty line between "${previousBlock.blockName}" and "${currentBlock.blockName}" blocks`,
+        `Line ${currentBlock.lineNumber}: добавьте пустую строку между блоками "${previousBlock.blockName}" и "${currentBlock.blockName}"`,
       );
     }
   }
@@ -299,7 +313,7 @@ function runPiniaStoreGroupSeparationHeuristics({ filePath, lines }) {
           pushFinding(
             'style/blank-line-after-store-block',
             filePath,
-            `Line ${chainEndLineIdx + 2}: add an empty line after the use*Store(...) block(s) before local derivations and state`,
+            `Line ${chainEndLineIdx + 2}: добавьте пустую строку после блока(ов) use*Store(...) перед локальными вычислениями и state`,
           );
         }
 
@@ -447,6 +461,175 @@ function countTopLevelFunctionParams(paramsText) {
   return paramsCount + 1;
 }
 
+// Проверяет обязательную аннотацию типа у локальных переменных в заданном диапазоне строк.
+function runExplicitVariableAnnotationHeuristics({ filePath, lines, startLine, endLine }) {
+  for (let index = startLine; index < endLine; index += 1) {
+    const trimmedLine = lines[index].trim();
+
+    // Skip declarations where explicit annotation is not applicable or ambiguous for regex heuristic.
+    if (!/^(const|let|var)\s+/.test(trimmedLine)) {
+      continue;
+    }
+    
+    if (trimmedLine.startsWith('const {') || trimmedLine.startsWith('let {') || trimmedLine.startsWith('var {')) {
+      continue;
+    }
+
+    if (trimmedLine.startsWith('const [') || trimmedLine.startsWith('let [') || trimmedLine.startsWith('var [')) {
+      continue;
+    }
+
+    if (!trimmedLine.includes('=')) {
+      continue;
+    }
+
+    const hasVariableAnnotation = /^(const|let|var)\s+[A-Za-z_$][\w$]*\s*:/.test(trimmedLine);
+    const hasInlineObjectVariableAnnotation = /^(const|let|var)\s+[A-Za-z_$][\w$]*\s*:\s*\{/.test(trimmedLine);
+    const isFunctionAssignment =
+      /=\s*(async\s*)?\([^)]*\)\s*(?::\s*[^=]+)?\s*=>/.test(trimmedLine) || /=\s*(async\s*)?function\b/.test(trimmedLine);
+    const hasInlineFunctionParamsAnnotation =
+      /=\s*(async\s*)?\([^)]*:\s*[^)]*\)\s*(?::\s*[^=]+)?\s*=>/.test(trimmedLine) ||
+      /=\s*(async\s*)?function\s*\([^)]*:\s*[^)]*\)\s*(?::\s*[^{=]+)?/.test(trimmedLine);
+    const hasInlineFunctionReturnAnnotation =
+      /=\s*(async\s*)?\([^)]*\)\s*:\s*[^=]+\s*=>/.test(trimmedLine) ||
+      /=\s*(async\s*)?function\s*\([^)]*\)\s*:\s*[^{=]+/.test(trimmedLine);
+    const hasInlineFunctionAnnotation = hasInlineFunctionParamsAnnotation || hasInlineFunctionReturnAnnotation;
+    const _nestedGeneric = '(?:[^<>]|<[^<>]*>)*';
+    const isRefInitializer = /=\s*ref(?:\s*<(?:[^<>]|<[^<>]*>)*>)?\s*\(/.test(trimmedLine);
+    const isComputedInitializer = /=\s*computed(?:\s*<(?:[^<>]|<[^<>]*>)*>)?\s*\(/.test(trimmedLine);
+    const isHookCallInitializer = /=\s*use[A-Z][A-Za-z0-9_]*(?:\s*<(?:[^<>]|<[^<>]*>)*>)?\s*\(/.test(trimmedLine);
+    const isVueMacroCall = /=\s*(withDefaults\s*\(\s*defineProps|defineProps\s*[<(]|defineEmits\s*[<(])/.test(trimmedLine);
+    // Detect multiline arrow function: const name = ( ...params on next lines... ) => {
+    const isMultilineArrowStart = /=\s*(async\s*)?\(\s*$/.test(trimmedLine);
+    let isMultilineArrowFunction = false;
+
+    if (isMultilineArrowStart) {
+      for (let j = index + 1; j < Math.min(index + 10, endLine); j += 1) {
+        if (/=>/.test(lines[j].trim())) {
+          isMultilineArrowFunction = true;
+          break;
+        }
+      }
+    }
+
+    const variableAnnotationMatch = trimmedLine.match(/^(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*:\s*([^=]+?)\s*=/);
+    const variableAnnotationRaw = variableAnnotationMatch?.[1]?.trim() ?? '';
+    const normalizedVariableAnnotation = variableAnnotationRaw.replace(/\s+/g, '');
+    const isScalarHookAnnotation = /^(string|number|boolean)(\|(string|number|boolean))*$/.test(normalizedVariableAnnotation);
+
+    if (hasInlineObjectVariableAnnotation) {
+      pushFinding(
+        'typing/no-inline-object-variable-type',
+        filePath,
+        `Line ${index + 1}: встраиваемый объектный тип в аннотации переменной запрещён; используйте именованный тип`,
+      );
+      continue;
+    }
+
+    if (isFunctionAssignment && hasVariableAnnotation && hasInlineFunctionAnnotation) {
+      pushFinding(
+        'typing/duplicate-function-typing',
+        filePath,
+        `Line ${index + 1}: избегайте дублирования типизации функции на переменной и в реализации`,
+      );
+      continue;
+    }
+
+    if (/^(const|let|var)\s+[A-Za-z_$][\w$]*\s*:\s*ReturnType\s*<\s*typeof\b/.test(trimmedLine)) {
+      pushFinding(
+        'typing/no-returntype-typeof-variable',
+        filePath,
+        `Line ${index + 1}: избегайте ReturnType<typeof ...> в аннотациях переменных; используйте прямые именованные типы`,
+      );
+      continue;
+    }
+
+    if (hasVariableAnnotation && isRefInitializer) {
+      pushFinding(
+        'typing/no-left-annotation-for-ref',
+        filePath,
+        `Line ${index + 1}: для ref(...) не используйте левую аннотацию типа; оставьте типизацию справа (ref<T>)`,
+      );
+      continue;
+    }
+
+    if (hasVariableAnnotation && isComputedInitializer) {
+      pushFinding(
+        'typing/no-left-annotation-for-computed',
+        filePath,
+        `Line ${index + 1}: для computed(...) не используйте левую аннотацию типа; оставьте типизацию справа (computed<T>) или выведите тип`,
+      );
+      continue;
+    }
+
+    if (hasVariableAnnotation && isVueMacroCall) {
+      const isDefineEmitsInitializer = /=\s*defineEmits\s*[<(]/.test(trimmedLine);
+      const isDefinePropsInitializer =
+        /=\s*defineProps\s*[<(]/.test(trimmedLine) || /=\s*withDefaults\s*\(\s*defineProps/.test(trimmedLine);
+
+      if (isDefineEmitsInitializer) {
+        pushFinding(
+          'typing/no-left-annotation-for-define-emits',
+          filePath,
+          `Line ${index + 1}: для defineEmits(...) не используйте левую аннотацию типа`,
+        );
+        continue;
+      }
+
+      if (isDefinePropsInitializer) {
+        pushFinding(
+          'typing/no-left-annotation-for-define-props',
+          filePath,
+          `Line ${index + 1}: для defineProps/withDefaults(defineProps(...)) не используйте левую аннотацию типа`,
+        );
+        continue;
+      }
+    }
+
+    const hasHookGenericOnRight = /=\s*use[A-Z][A-Za-z0-9_]*\s*<[^>]+>\s*\(/.test(trimmedLine);
+    if (hasVariableAnnotation && isHookCallInitializer && hasHookGenericOnRight && !isScalarHookAnnotation) {
+      pushFinding(
+        'typing/no-duplicate-hook-generic-typing',
+        filePath,
+        `Line ${index + 1}: избегайте дублирования типизации для хуков; оставьте тип слева от переменной и уберите generic из вызова хука`,
+      );
+      continue;
+    }
+
+    if (isHookCallInitializer && !hasVariableAnnotation) {
+      continue;
+    }
+
+    // ref<T>(...) и computed(...) без левой аннотации — допустимая форма
+    // согласно правилам: тип указывается через generic справа (ref<T>) или выводится (computed)
+    if ((isRefInitializer || isComputedInitializer) && !hasVariableAnnotation) {
+      continue;
+    }
+
+    if (hasVariableAnnotation) {
+      continue;
+    }
+
+    if (isFunctionAssignment && hasInlineFunctionAnnotation) {
+      continue;
+    }
+
+    if (isVueMacroCall) {
+      continue;
+    }
+
+    if (isMultilineArrowFunction) {
+      continue;
+    }
+
+    pushFinding(
+      'typing/explicit-variable-annotation',
+      filePath,
+      `Line ${index + 1}: локальная переменная должна иметь явную аннотацию типа`,
+    );
+  }
+}
+
 // Проверяет дополнительные локальные стилевые соглашения для Vue/Nuxt/Pinia.
 function runAdditionalStyleHeuristics({ content, filePath, lines }) {
   for (let index = 1; index < lines.length; index += 1) {
@@ -469,7 +652,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
       continue;
     }
 
-    pushFinding('style/blank-line-before-if', filePath, `Line ${index + 1}: keep an empty line before if blocks`);
+    pushFinding('style/blank-line-before-if', filePath, `Line ${index + 1}: оставьте пустую строку перед блоками if`);
   }
 
   for (let index = 1; index < lines.length; index += 1) {
@@ -483,7 +666,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/blank-line-between-consecutive-if',
       filePath,
-      `Line ${index + 1}: add an empty line between consecutive if statements`,
+      `Line ${index + 1}: добавьте пустую строку между последовательными операторами if`,
     );
   }
 
@@ -502,7 +685,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/blank-line-before-return',
       filePath,
-      `Line ${index + 1}: keep an empty line before return when it follows other expressions`,
+      `Line ${index + 1}: оставьте пустую строку перед return, если за ним следуют другие выражения`,
     );
   }
 
@@ -517,7 +700,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/no-void-fire-and-forget',
       filePath,
-      `Line ${index + 1}: avoid "void fn()"; use await/return or explicit error handling`,
+      `Line ${index + 1}: избегайте "void fn()"; используйте await/return или явную обработку ошибок`,
     );
   }
 
@@ -532,7 +715,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
         pushFinding(
           'style/blank-line-after-emits',
           filePath,
-          `Line ${index + 1}: add an empty line after defineEmits block before state/computed`,
+          `Line ${index + 1}: добавьте пустую строку после блока defineEmits перед state/computed`,
         );
       }
     }
@@ -548,7 +731,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
         pushFinding(
           'style/blank-line-between-store-and-state',
           filePath,
-          `Line ${index + 1}: keep an empty line between use*Store() and ref/reactive declarations`,
+          `Line ${index + 1}: оставьте пустую строку между use*Store() и объявлениями ref/reactive`,
         );
       }
     }
@@ -564,7 +747,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/async-tail-await-return',
       filePath,
-      `Line ${lineNumber}: replace tail await with explicit return and remove redundant async modifier`,
+      `Line ${lineNumber}: замените tail await на явный return и уберите лишний модификатор async`,
     );
   }
 
@@ -577,7 +760,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/async-tail-await-return',
       filePath,
-      `Line ${lineNumber}: replace tail await with explicit return and remove redundant async modifier`,
+      `Line ${lineNumber}: замените tail await на явный return и уберите лишний модификатор async`,
     );
   }
 
@@ -590,7 +773,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'typing/no-inline-object-function-params',
       filePath,
-      `Line ${lineNumber}: inline object type in function parameter is forbidden; move it to *.types.ts/types.ts`,
+      `Line ${lineNumber}: встраиваемый объектный тип в параметре функции запрещён; переместите его в *.types.ts/types.ts`,
     );
   }
 
@@ -602,7 +785,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'typing/no-inline-object-function-params',
       filePath,
-      `Line ${lineNumber}: inline object type in function parameter is forbidden; move it to *.types.ts/types.ts`,
+      `Line ${lineNumber}: встраиваемый объектный тип в параметре функции запрещён; переместите его в *.types.ts/types.ts`,
     );
   }
 
@@ -614,16 +797,21 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'typing/no-inline-object-function-params',
       filePath,
-      `Line ${lineNumber}: inline object type in function parameter is forbidden; move it to *.types.ts/types.ts`,
+      `Line ${lineNumber}: встраиваемый объектный тип в параметре функции запрещён; переместите его в *.types.ts/types.ts`,
     );
   }
 
   // Function params inline small arity
-  const multilineSmallArityFunctionPattern = /(export\s+)?(?:async\s+)?function\s+[A-Za-z_$][\w$]*\s*\(([\s\S]*?)\)\s*(?::\s*[\s\S]*?)?\s*\{/g;
+  const multilineSmallArityFunctionPattern = /(export\s+)?(?:async\s+)?function\s+[A-Za-z_$][\w$]*\s*\(([\s\S]*?)\)\s*(?::\s*[^\n]*?)?\s*\{/g;
   for (const functionMatch of content.matchAll(multilineSmallArityFunctionPattern)) {
     const [, , paramsTextRaw] = functionMatch;
     const paramsText = paramsTextRaw ?? '';
     if (!paramsText.includes('\n')) {
+      continue;
+    }
+
+    const newlineCount = (paramsText.match(/\n/g) ?? []).length;
+    if (newlineCount > 3) {
       continue;
     }
 
@@ -637,16 +825,22 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/function-params-inline-small-arity',
       filePath,
-      `Line ${lineNumber}: keep function params on one line for functions with 1-2 params`,
+      `Line ${lineNumber}: оставьте параметры функции на одной строке для функций с 1-2 параметрами`,
     );
   }
 
   const multilineSmallArityArrowPattern =
-    /(export\s+)?(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*(?::\s*[\s\S]*?)?=\s*(?:async\s*)?\(([\s\S]*?)\)\s*(?::\s*[\s\S]*?)?\s*=>/g;
+    /(export\s+)?(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*(?::\s*[^\n]*?)?=\s*(?:async\s*)?\(([\s\S]*?)\)\s*(?::\s*[^\n]*?)?\s*=>/g;
   for (const arrowMatch of content.matchAll(multilineSmallArityArrowPattern)) {
     const [, , paramsTextRaw] = arrowMatch;
     const paramsText = paramsTextRaw ?? '';
     if (!paramsText.includes('\n')) {
+      continue;
+    }
+
+    const newlineCount = (paramsText.match(/\n/g) ?? []).length;
+    
+    if (newlineCount > 3) {
       continue;
     }
 
@@ -660,7 +854,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/function-params-inline-small-arity',
       filePath,
-      `Line ${lineNumber}: keep function params on one line for functions with 1-2 params`,
+      `Line ${lineNumber}: оставьте параметры функции на одной строке для функций с 1-2 параметрами`,
     );
   }
 
@@ -682,7 +876,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
       pushFinding(
         'style/exported-function-tsdoc',
         filePath,
-        `Line ${index + 1}: add TSDoc comment (/** ... */) before exported function`,
+        `Line ${index + 1}: добавьте комментарий TSDoc (/** ... */) перед экспортируемой функцией`,
       );
       continue;
     }
@@ -694,7 +888,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
       pushFinding(
         'style/exported-function-tsdoc-format',
         filePath,
-        `Line ${index + 1}: use TSDoc format with @description and @return { Type }`,
+        `Line ${index + 1}: используйте формат TSDoc с @description и @return { Type }`,
       );
     }
   }
@@ -727,17 +921,113 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
       pushFinding(
         'style/vue-prefer-v-if',
         filePath,
-        `Line ${index + 1}: use v-if="condition" instead of {condition && <Component>} in Vue templates`,
+        `Line ${index + 1}: используйте v-if="condition" вместо {condition && <Component>} в Vue шаблонах`,
       );
     }
 
-    // Проверяем v-for без :key
-    if (/v-for\s*=/.test(trimmedLine) && !/:key\s*=/.test(trimmedLine)) {
-      pushFinding(
-        'style/v-for-requires-key',
-        filePath,
-        `Line ${index + 1}: v-for must have :key binding`,
-      );
+    // Проверяем v-for без :key с учетом многострочных тегов.
+    if (/<[A-Za-z]/.test(trimmedLine) && /v-for\s*=/.test(trimmedLine)) {
+      let tagBuffer = trimmedLine;
+      let scanIndex = index + 1;
+
+      while (scanIndex < lines.length && !/>/.test(tagBuffer)) {
+        tagBuffer = `${tagBuffer} ${lines[scanIndex].trim()}`;
+        scanIndex += 1;
+      }
+
+      if (!/:key\s*=/.test(tagBuffer)) {
+        pushFinding(
+          'style/v-for-requires-key',
+          filePath,
+          `Line ${index + 1}: V-for должен иметь привязку :key`,
+        );
+      }
+    }
+
+    // Проверяем многоатрибутные теги на одной строке (2+ атрибута должны быть на разных строках)
+    const singleLineOpeningTag = trimmedLine.match(/^<([a-zA-Z][a-zA-Z0-9-]*)((?:\s+[^>\/]+)*)\s*>/);
+
+    if (singleLineOpeningTag && !trimmedLine.startsWith('</')) {
+      const attrsPart = singleLineOpeningTag[2];
+      const attrMatches = attrsPart.match(/\s+[a-zA-Z@:][a-zA-Z0-9:._-]*(?:\s*=\s*(?:"[^"]*"|'[^']*'|`[^`]*`))?/g);
+      const attrCount = attrMatches ? attrMatches.length : 0;
+
+      if (attrCount >= 2) {
+        pushFinding(
+          'style/template-multi-attr-single-line',
+          filePath,
+          `Line ${index + 1}: разверните тег с ${attrCount} атрибутами в многострочный формат (каждый атрибут на новой строке)`,
+        );
+      }
+    }
+
+    // Проверяем инлайн-контент в элементах: <tag ...>content</tag> на одной строке
+    // Флагаем только элементы с 2+ атрибутами (1 атрибут — допустимо на одной строке)
+    const inlineContentMatch = trimmedLine.match(/<([a-zA-Z][a-zA-Z0-9-]*)(\s[^>]*)>([^<\n]{1,})<\/([a-zA-Z][a-zA-Z0-9]*)>/);
+
+    if (inlineContentMatch) {
+      const attrsPart = inlineContentMatch[2];
+      const content = inlineContentMatch[3].trim();
+
+      if (content.length > 0) {
+        const attrMatches = attrsPart && attrsPart.match(/\s+[a-zA-Z@:][a-zA-Z0-9:._-]*(?:\s*=\s*(?:"[^"]*"|'[^']*'|`[^`]*`))?/g);
+        const attrCount = attrMatches ? attrMatches.length : 0;
+
+        if (attrCount >= 2) {
+          pushFinding(
+            'style/template-inline-content',
+            filePath,
+            `Line ${index + 1}: разверните содержимое элемента в многострочный формат (контент на новой строке)`,
+          );
+        }
+      }
+    }
+
+    // Проверяем порядок атрибутов: директивы (v-*, @*, :*) должны идти перед статическими (class, id, placeholder)
+    // Ищем многострочные блоки атрибутов и проверяем порядок
+    if (/<[a-zA-Z]/.test(trimmedLine) && !trimmedLine.includes('/>')) {
+      // Собираем все атрибуты из текущего и последующих строк до >
+      let attrBlock = trimmedLine;
+      let scanIdx = index + 1;
+      while (scanIdx < lines.length && !/>/.test(attrBlock)) {
+        attrBlock += ' ' + lines[scanIdx].trim();
+        scanIdx += 1;
+      }
+
+      // Извлекаем атрибуты
+      const attrList = [];
+      const attrRegex = /^\s*([@:]?v?[a-zA-Z][a-zA-Z0-9:._-]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|`[^`]*`))?/gm;
+      let attrMatch;
+      const tagContent = attrBlock.replace(/^<[^>]+/, '').replace(/>.*$/, '');
+      // Re-extract from the full tag
+      const fullTagMatch = attrBlock.match(/^<([a-zA-Z][a-zA-Z0-9-]*)((?:\s+[^>]+)*)/);
+      if (fullTagMatch) {
+        const attrsPart = fullTagMatch[2];
+        const individualAttrs = attrsPart.match(/\s+([@:]?v?[a-zA-Z][a-zA-Z0-9:._-]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|`[^`]*`))?/g);
+        if (individualAttrs && individualAttrs.length >= 2) {
+          // Classify each attribute: directive (v-*, @*, :*) or static (class, id, etc.)
+          const isDirective = (attr) => /^\s*(v-|@|:)/.test(attr);
+          let lastDirectiveIdx = -1;
+          let firstStaticIdx = -1;
+
+          for (let ai = 0; ai < individualAttrs.length; ai++) {
+            if (isDirective(individualAttrs[ai])) {
+              lastDirectiveIdx = ai;
+            } else if (firstStaticIdx < 0) {
+              firstStaticIdx = ai;
+            }
+          }
+
+          // Violation: a static attribute appears before a directive
+          if (firstStaticIdx >= 0 && lastDirectiveIdx >= 0 && firstStaticIdx < lastDirectiveIdx) {
+            pushFinding(
+              'style/template-attr-order',
+              filePath,
+              `Line ${index + 1}: директивы (v-*, @*, :*) должны идти перед статическими атрибутами (class, id, placeholder)`,
+            );
+          }
+        }
+      }
     }
   }
 
@@ -761,7 +1051,7 @@ function runComposableHeuristics({ filePath, lines }) {
       pushFinding(
         'composables/export-const-required',
         filePath,
-        `Line ${index + 1}: export composables via const (export const useXxx = ...), not function declaration`,
+        `Line ${index + 1}: экспортируйте composables через const (export const useXxx = ...), не через объявление функции`,
       );
       continue;
     }
@@ -775,7 +1065,7 @@ function runComposableHeuristics({ filePath, lines }) {
       pushFinding(
         'composables/exported-jsdoc',
         filePath,
-        `Line ${index + 1}: add JSDoc/TSDoc comment (/** ... */) before exported composable`,
+        `Line ${index + 1}: добавьте комментарий JSDoc/TSDoc (/** ... */) перед экспортируемым composable`,
       );
       continue;
     }
@@ -784,25 +1074,163 @@ function runComposableHeuristics({ filePath, lines }) {
       pushFinding(
         'composables/exported-jsdoc-format',
         filePath,
-        `Line ${index + 1}: include @description in exported composable JSDoc/TSDoc`,
+        `Line ${index + 1}: включите @description в JSDoc/TSDoc экспортируемого composable`,
       );
     }
   }
 }
 
-// Проверяет подключение стилей Vue-компонента через import в начале <script setup>.
-function runVueStyleImportHeuristics({ content, filePath, lines }) {
-  const hasStyleSrcTag = /<style\b[^>]*\bsrc\s*=\s*["'][^"']+["'][^>]*><\/style>/.test(content);
-  const hasScriptStyleImport = /^\s*import\s+['"]\.\/[^'"]+\.(scss|sass|css|less|styl|pcss)['"]\s*;?\s*$/m.test(content);
-  if (hasStyleSrcTag) {
+// Проверяет, что импорты из одного логического источника не раздроблены на несколько строк.
+function runImportMergeHeuristics({ filePath, lines }) {
+  const importEntries = [];
+  const importFromPattern = /^\s*import\s+(type\s+)?(.+?)\s+from\s+['"]([^'"]+)['"]\s*;?\s*$/;
+  const sideEffectImportPattern = /^\s*import\s+['"][^'"]+['"]\s*;?\s*$/;
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index].trim();
+    if (!line.startsWith('import ')) {
+      continue;
+    }
+    if (sideEffectImportPattern.test(line)) {
+      continue;
+    }
+
+    const match = line.match(importFromPattern);
+    if (!match) {
+      continue;
+    }
+
+    const source = match[3];
+    importEntries.push({
+      source,
+      lineNumber: index + 1,
+    });
+  }
+
+  const byExactSource = new Map();
+  for (const entry of importEntries) {
+    const current = byExactSource.get(entry.source) ?? [];
+    current.push(entry);
+    byExactSource.set(entry.source, current);
+  }
+
+  for (const [source, entries] of byExactSource.entries()) {
+    if (entries.length < 2) {
+      continue;
+    }
+
+    const lineNumbers = entries.map((entry) => entry.lineNumber).join(', ');
     pushFinding(
-      'style/vue-style-import-in-script-setup',
+      'style/merge-imports-same-source',
       filePath,
-      'Use local style import in <script setup> instead of <style src="..."></style>',
+      `Lines ${lineNumbers}: объедините импорты из '${source}' в одну строку import`,
     );
   }
 
-  if (!hasStyleSrcTag && !hasScriptStyleImport) {
+  const normalizeLogicalImportSource = (source) => source.replace(/\/index\.types$/, '');
+  const byLogicalSource = new Map();
+
+  for (const entry of importEntries) {
+    const logicalSource = normalizeLogicalImportSource(entry.source);
+    const current = byLogicalSource.get(logicalSource) ?? [];
+    current.push(entry);
+    byLogicalSource.set(logicalSource, current);
+  }
+
+  for (const [logicalSource, entries] of byLogicalSource.entries()) {
+    if (entries.length < 2) {
+      continue;
+    }
+
+    const uniqueSources = [...new Set(entries.map((entry) => entry.source))];
+    if (uniqueSources.length < 2) {
+      continue;
+    }
+
+    const hasIndexTypesSource = uniqueSources.some((source) => /\/index\.types$/.test(source));
+    if (!hasIndexTypesSource) {
+      continue;
+    }
+
+    const lineNumbers = entries.map((entry) => entry.lineNumber).join(', ');
+    pushFinding(
+      'style/merge-imports-logical-source',
+      filePath,
+      `Lines ${lineNumbers}: объедините runtime/type импорты логического модуля '${logicalSource}' в один источник`,
+    );
+  }
+}
+
+// Проверяет, что в Vue SFC нет секции <style>, а стили подключены через import в начале <script setup>.
+function runVueStyleImportHeuristics({ content, filePath, lines }) {
+  const styleTagPattern = /<style\b[^>]*>/g;
+  const firstStyleTagMatch = styleTagPattern.exec(content);
+  if (firstStyleTagMatch) {
+    const styleLineNumber = getLineNumberByOffset(content, firstStyleTagMatch.index ?? 0);
+    pushFinding(
+      'style/vue-sfc-no-style-block',
+      filePath,
+      `Line ${styleLineNumber}: секция <style> запрещена; оставьте в .vue только <template> и <script setup lang="ts">`,
+    );
+  }
+
+  // Проверяем локальные константы в <script setup>, которые должны быть в *.constants.ts
+  // Ищем const SOMETHING = [...] или const SOMETHING: Type[] = [...] (не ref, не computed, не функцию)
+  const scriptSetupStart = lines.findIndex((line) => /^<script\s+setup\s+lang="ts"\s*>/.test(line.trim()));
+  if (scriptSetupStart >= 0) {
+    let scriptSetupEnd = -1;
+    for (let index = scriptSetupStart + 1; index < lines.length; index += 1) {
+      if (/^<\/script>/.test(lines[index].trim())) {
+        scriptSetupEnd = index;
+        break;
+      }
+    }
+
+    if (scriptSetupEnd >= 0) {
+      for (let index = scriptSetupStart + 1; index < scriptSetupEnd; index += 1) {
+        const line = lines[index];
+        // Ищем статические константы: const NAME = [...] или const NAME: Type[] = [...]
+        // Исключаем: ref(), computed(), reactive(), defineProps(), defineEmits(), use*(), функции, импорты
+        const fullLine = line.trim();
+
+        // Пропускаем импорты и директивы
+        if (fullLine.startsWith('import') || fullLine.startsWith('//') || fullLine.startsWith('/*')) {
+          continue;
+        }
+
+        // Пропускаем вызовы функций (ref, computed, reactive, use*, define*, navigateTo и т.д.)
+        if (/const\s+\w+\s*(?::\s*[^=]+)?\s*=\s*(ref|computed|reactive|defineProps|defineEmits|use\w+|navigateTo|openModal|withDefaults)\b/.test(fullLine)) {
+          continue;
+        }
+
+        // Ищем const name = [...] или const name: Type[] = [...] (массивные литералы)
+        const arrayConstMatch = fullLine.match(/^const\s+(\w+)\s*(?::\s*[^=]+)?\s*=\s*\[/);
+        if (arrayConstMatch) {
+          pushFinding(
+            'style/no-local-constants-in-vue',
+            filePath,
+            `Line ${index + 1}: локальную константу \`${arrayConstMatch[1]}\` вынесите в соседний *.constants.ts`,
+          );
+          continue;
+        }
+
+        // Ищем const NAME = "статическая строка" (UPPER_CASE только)
+        const stringConstMatch = fullLine.match(/^const\s+([A-Z][A-Z0-9_]*)\s*(?::\s*[^=]+)?\s*=\s*["']/);
+        if (stringConstMatch) {
+          pushFinding(
+            'style/no-local-constants-in-vue',
+            filePath,
+            `Line ${index + 1}: локальную константу \`${stringConstMatch[1]}\` вынесите в соседний *.constants.ts`,
+          );
+          continue;
+        }
+      }
+    }
+  }
+
+  const hasScriptStyleImport = /^\s*import\s+['"]\.\/[^'"]+\.(scss|sass|css|less|styl|pcss)['"]\s*;?\s*$/m.test(content);
+
+  if (!hasScriptStyleImport) {
     return;
   }
 
@@ -843,7 +1271,7 @@ function runVueStyleImportHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/vue-style-import-first',
       filePath,
-      `Line ${firstMeaningfulLineIndex + 1}: place local style import ('./*.scss') as the first statement in <script setup>`,
+      `Line ${firstMeaningfulLineIndex + 1}: разместите локальный импорт стилей ('./*.scss') как первый оператор в <script setup>`,
     );
     return;
   }
@@ -853,7 +1281,7 @@ function runVueStyleImportHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/vue-style-import-blank-line-after',
       filePath,
-      `Line ${firstMeaningfulLineIndex + 2}: add an empty line after local style import in <script setup>`,
+      `Line ${firstMeaningfulLineIndex + 2}: добавьте пустую строку после локального импорта стилей в <script setup>`,
     );
   }
 }
@@ -879,7 +1307,7 @@ function runNuxtHeuristics({ content, filePath, lines }) {
       pushFinding(
         'nuxt/server-client-boundary',
         filePath,
-        `Line ${index + 1}: do not import server-only modules into client layers (src/**)`,
+        `Line ${index + 1}: не импортируйте серверные модули в клиентские слои (src/**)`,
       );
     });
   }
@@ -890,7 +1318,7 @@ function runNuxtHeuristics({ content, filePath, lines }) {
     pushFinding(
       'nuxt/use-async-data-key',
       filePath,
-      `Line ${lineNumber}: provide explicit stable key in useAsyncData(key, handler, ...)`,
+      `Line ${lineNumber}: укажите явный стабильный ключ в useAsyncData(key, handler, ...)`,
     );
   }
 
@@ -905,7 +1333,7 @@ function runNuxtHeuristics({ content, filePath, lines }) {
     pushFinding(
       'nuxt/use-fetch-key',
       filePath,
-      `Line ${lineNumber}: add explicit key in useFetch(..., { key: '...' }) for stable cross-route caching`,
+      `Line ${lineNumber}: добавьте явный ключ в useFetch(..., { key: '...' }) для стабильного кэширования между маршрутами`,
     );
   }
 
@@ -917,7 +1345,7 @@ function runNuxtHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/alias-no-root-slash',
       filePath,
-      `Line ${index + 1}: replace '@/...' with '@catalog_name/...' alias format`,
+      `Line ${index + 1}: замените '@/...' на формат алиаса '@catalog_name/...'`,
     );
   });
 
@@ -929,7 +1357,7 @@ function runNuxtHeuristics({ content, filePath, lines }) {
     pushFinding(
       'style/alias-no-shared-hash',
       filePath,
-      `Line ${index + 1}: replace '#shared/...' with '@shared/...'`,
+      `Line ${index + 1}: замените '#shared/...' на '@shared/...'`,
     );
   });
 }
@@ -937,8 +1365,17 @@ function runNuxtHeuristics({ content, filePath, lines }) {
 // Запускает ESLint через `node node_modules/eslint/bin/eslint.js`, чтобы не зависеть от `.bin` шимов Windows (ENOENT/EINVAL).
 function runEslintAudit() {
   const eslintCli = resolve(repoRoot, 'node_modules/eslint/bin/eslint.js');
+  const hasEslintFlatConfig =
+    existsSync(resolve(repoRoot, 'eslint.config.js')) ||
+    existsSync(resolve(repoRoot, 'eslint.config.mjs')) ||
+    existsSync(resolve(repoRoot, 'eslint.config.cjs'));
+
   if (!existsSync(eslintCli)) {
     pushFinding('tooling/eslint-missing', resolve(repoRoot, 'package.json'), 'eslint binary is not installed');
+    return;
+  }
+
+  if (!hasEslintFlatConfig) {
     return;
   }
 
@@ -949,7 +1386,7 @@ function runEslintAudit() {
 
   if (eslintResult.status !== 0) {
     const output = `${eslintResult.stdout ?? ''}\n${eslintResult.stderr ?? ''}`.trim();
-    pushFinding('eslint', targetPath, output || 'eslint reported issues');
+    pushFinding('eslint', targetPath, output || 'ESLint сообщил о проблемах');
   }
 }
 
@@ -967,8 +1404,18 @@ function runRuleHeuristics() {
 
     if (filePath.endsWith('.scss')) {
       const normalizedPath = filePath.split(sep).join('/');
-      if (normalizedPath.includes('/src/') && !normalizedPath.endsWith('/src/assets/styles/global.scss')) {
-        pushFinding('styles/global-scss-location', filePath, 'Global styles should live only in src/assets/styles/global.scss');
+      const isGlobalScss = normalizedPath.includes('/src/assets/scss/');
+      const dir = normalizedPath.substring(0, normalizedPath.lastIndexOf('/'));
+      const hasVueSibling = filePaths.some((fp) => {
+        const np = fp.split(sep).join('/');
+
+        return np.startsWith(dir + '/') && np.endsWith('.vue');
+      });
+
+      const isComponentScss = hasVueSibling;
+      
+      if (!isGlobalScss && !isComponentScss) {
+        pushFinding('styles/global-scss-location', filePath, 'Global styles should live only in src/assets/scss/ or next to component');
       }
 
       if (/@import\s+['"]/.test(content)) {
@@ -989,7 +1436,7 @@ function runRuleHeuristics() {
           pushFinding(
             'style/blank-line-before-if',
             filePath,
-            `Line ${index + 1}: add a blank line between variable declarations and if-statement`,
+            `Line ${index + 1}: добавьте пустую строку между объявлениями переменных и оператором if`,
           );
         }
 
@@ -1001,7 +1448,7 @@ function runRuleHeuristics() {
             pushFinding(
               'style/if-guard-one-line-return',
               filePath,
-              `Line ${index + 1}: use single-line guard format "if (condition) return ...;" for simple returns`,
+              `Line ${index + 1}: используйте формат однострочного guard "if (condition) return ...;" для простых возвратов`,
             );
           }
         }
@@ -1013,7 +1460,7 @@ function runRuleHeuristics() {
             pushFinding(
               'style/if-guard-complex-return-multiline',
               filePath,
-              `Line ${index + 1}: keep complex return in multiline if-block, not one-line guard`,
+              `Line ${index + 1}: оставьте сложный return в многострочном блоке if, не используйте однострочный guard`,
             );
           }
         }
@@ -1027,7 +1474,7 @@ function runRuleHeuristics() {
           pushFinding(
             'style/chain-ladder-format',
             filePath,
-            `Line ${index + 1}: expand .map/.filter/... call into ladder multiline format`,
+            `Line ${index + 1}: разверните вызов .map/.filter/... в многострочный формат "лестницы"`,
           );
         }
 
@@ -1035,7 +1482,7 @@ function runRuleHeuristics() {
           pushFinding(
             'style/chain-callback-newline',
             filePath,
-            `Line ${index + 1}: start callback arguments on a new line after value.method(`,
+            `Line ${index + 1}: начните аргументы callback на новой строке после value.method(`,
           );
         }
 
@@ -1045,7 +1492,7 @@ function runRuleHeuristics() {
             pushFinding(
               'style/chain-closing-same-line',
               filePath,
-              `Line ${index + 1}: keep callback and method closing brackets on one line as "));"`,
+              `Line ${index + 1}: оставьте закрывающие скобки callback и метода на одной строке как "));"`,
             );
           }
         }
@@ -1060,7 +1507,7 @@ function runRuleHeuristics() {
             pushFinding(
               'style/chain-first-method-newline',
               filePath,
-              `Line ${index + 1}: for multi-method chains, move the first method to a new line`,
+              `Line ${index + 1}: для цепочек с несколькими методами переместите первый метод на новую строку`,
             );
           }
 
@@ -1092,15 +1539,17 @@ function runRuleHeuristics() {
             pushFinding(
               'style/chain-method-same-line',
               filePath,
-              `Line ${index + 1}: keep value and single method call on same line (value.method()...)`,
+              `Line ${index + 1}: оставьте значение и одиночный вызов метода на одной строке (value.method()...)`,
             );
           }
         }
       }
 
-      const hasLocalTypeDeclaration = /^\s*(?:export\s+)?(?:type|interface)\s+[A-Z]\w*/m.test(content);
+      const hasLocalTypeDeclaration = /^\s*(?:export\s+)?(?:type\s+[A-Z]\w*\s*(?:=|<)|interface\s+[A-Z]\w*\s*(?:\{|<))/m.test(content);
 
-      if (!/(\.types\.ts|[\\/]types\.ts)$/.test(filePath) && hasLocalTypeDeclaration) {
+      const isTypesFile = /(\.types\.ts|[\\/]types\.ts|[\\/]types[\\/]index\.ts|\.d\.ts)$/.test(filePath);
+      
+      if (!isTypesFile && hasLocalTypeDeclaration) {
         pushFinding('typing/types-location', filePath, 'Move type/interface declarations to *.types.ts or types.ts');
       }
 
@@ -1114,92 +1563,63 @@ function runRuleHeuristics() {
         );
       }
 
-      // Variable type annotation check (только для .ts файлов, не .vue)
-      if (filePath.endsWith('.ts')) {
-        lines.forEach((line, index) => {
-          const trimmedLine = line.trim();
-
-          // Skip declarations where explicit annotation is not applicable or ambiguous for regex heuristic.
-          if (!/^(const|let|var)\s+/.test(trimmedLine)) {
-            return;
-          }
-          if (trimmedLine.startsWith('const {') || trimmedLine.startsWith('let {') || trimmedLine.startsWith('var {')) {
-            return;
-          }
-          if (trimmedLine.startsWith('const [') || trimmedLine.startsWith('let [') || trimmedLine.startsWith('var [')) {
-            return;
-          }
-          if (!trimmedLine.includes('=')) {
-            return;
-          }
-          const hasVariableAnnotation = /^(const|let|var)\s+[A-Za-z_$][\w$]*\s*:/.test(trimmedLine);
-          const hasInlineObjectVariableAnnotation = /^(const|let|var)\s+[A-Za-z_$][\w$]*\s*:\s*\{/.test(trimmedLine);
-          const isFunctionAssignment =
-            /=\s*(async\s*)?\([^)]*\)\s*(?::\s*[^=]+)?\s*=>/.test(trimmedLine) || /=\s*(async\s*)?function\b/.test(trimmedLine);
-          const hasInlineFunctionParamsAnnotation =
-            /=\s*(async\s*)?\([^)]*:\s*[^)]*\)\s*(?::\s*[^=]+)?\s*=>/.test(trimmedLine) ||
-            /=\s*(async\s*)?function\s*\([^)]*:\s*[^)]*\)\s*(?::\s*[^{=]+)?/.test(trimmedLine);
-          const hasInlineFunctionReturnAnnotation =
-            /=\s*(async\s*)?\([^)]*\)\s*:\s*[^=]+\s*=>/.test(trimmedLine) ||
-            /=\s*(async\s*)?function\s*\([^)]*\)\s*:\s*[^{=]+/.test(trimmedLine);
-          const hasInlineFunctionAnnotation = hasInlineFunctionParamsAnnotation || hasInlineFunctionReturnAnnotation;
-          const isHookCallInitializer = /=\s*use[A-Z][A-Za-z0-9_]*(?:\s*<[^>]+>)?\s*\(/.test(trimmedLine);
-          const variableAnnotationMatch = trimmedLine.match(/^(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*:\s*([^=]+?)\s*=/);
-          const variableAnnotationRaw = variableAnnotationMatch?.[1]?.trim() ?? '';
-          const normalizedVariableAnnotation = variableAnnotationRaw.replace(/\s+/g, '');
-          const isScalarHookAnnotation = /^(string|number|boolean)(\|(string|number|boolean))*$/.test(normalizedVariableAnnotation);
-
-          if (hasInlineObjectVariableAnnotation) {
-            pushFinding(
-              'typing/no-inline-object-variable-type',
-              filePath,
-              `Line ${index + 1}: inline object type in variable annotation is forbidden; use named type`,
-            );
-            return;
-          }
-
-          if (isFunctionAssignment && hasVariableAnnotation && hasInlineFunctionAnnotation) {
-            pushFinding(
-              'typing/duplicate-function-typing',
-              filePath,
-              `Line ${index + 1}: avoid duplicate function typing on both variable and implementation`,
-            );
-            return;
-          }
-
-          if (/^(const|let|var)\s+[A-Za-z_$][\w$]*\s*:\s*ReturnType\s*<\s*typeof\b/.test(trimmedLine)) {
-            pushFinding(
-              'typing/no-returntype-typeof-variable',
-              filePath,
-              `Line ${index + 1}: avoid ReturnType<typeof ...> in variable annotations; use direct named types`,
-            );
-            return;
-          }
-
-          const hasHookGenericOnRight = /=\s*use[A-Z][A-Za-z0-9_]*\s*<[^>]+>\s*\(/.test(trimmedLine);
-
-          if (hasVariableAnnotation && isHookCallInitializer && hasHookGenericOnRight && !isScalarHookAnnotation) {
-            pushFinding(
-              'typing/no-duplicate-hook-generic-typing',
-              filePath,
-              `Line ${index + 1}: avoid duplicate typing for hooks; keep type on variable left side and remove generic from hook call`,
-            );
-            return;
-          }
-
-          if (hasVariableAnnotation) {
-            return;
-          }
-          if (isFunctionAssignment && hasInlineFunctionAnnotation) {
-            return;
-          }
-
+      const isTypesFileForReExportRule = /(\.types\.ts|[\\/]types\.ts|[\\/]types[\\/]index\.ts|\.d\.ts)$/.test(filePath);
+      if (!isTypesFileForReExportRule) {
+        for (const typeReExportMatch of content.matchAll(/^\s*export\s+type(?:\s+\*|\s+\{)[^\n]*$/gm)) {
+          const lineNumber = getLineNumberByOffset(content, typeReExportMatch.index ?? 0);
           pushFinding(
-            'typing/explicit-variable-annotation',
+            'typing/no-type-reexport-in-implementation-files',
             filePath,
-            `Line ${index + 1}: local variable should have an explicit type annotation`,
+            `Line ${lineNumber}: type-реэкспорт из файла реализации запрещён; импортируйте типы напрямую из *.types.ts`,
           );
+        }
+      }
+
+      const inlineObjectInArrayPattern = /:\s*Array<\{\s*[\s\S]*?\s*\}>/g;
+      for (const inlineArrayMatch of content.matchAll(inlineObjectInArrayPattern)) {
+        const lineNumber = getLineNumberByOffset(content, inlineArrayMatch.index ?? 0);
+        pushFinding(
+          'typing/no-inline-object-array-generic',
+          filePath,
+          `Line ${lineNumber}: замените Array<{ ... }> на именованный тип/interface`,
+        );
+      }
+
+      const inlineObjectInExportedReturnPattern =
+        /export\s+(?:async\s+)?function\s+[A-Za-z_$][\w$]*\s*\([^)]*\)\s*:\s*\{[\s\S]*?\}\s*\{/g;
+      for (const inlineReturnMatch of content.matchAll(inlineObjectInExportedReturnPattern)) {
+        const lineNumber = getLineNumberByOffset(content, inlineReturnMatch.index ?? 0);
+        pushFinding(
+          'typing/no-inline-object-exported-return',
+          filePath,
+          `Line ${lineNumber}: тип возврата экспортируемой функции должен использовать именованные типы вместо встроенного объекта`,
+        );
+      }
+
+      if (filePath.endsWith('.ts')) {
+        runExplicitVariableAnnotationHeuristics({
+          filePath,
+          lines,
+          startLine: 0,
+          endLine: lines.length,
         });
+      }
+
+      if (filePath.endsWith('.vue')) {
+        const scriptSetupStart = lines.findIndex((line) => /^<script\s+setup\s+lang="ts"\s*>/.test(line.trim()));
+        if (scriptSetupStart >= 0) {
+          const scriptSetupEnd = lines.findIndex(
+            (line, index) => index > scriptSetupStart && /^<\/script>/.test(line.trim()),
+          );
+          if (scriptSetupEnd > scriptSetupStart) {
+            runExplicitVariableAnnotationHeuristics({
+              filePath,
+              lines,
+              startLine: scriptSetupStart + 1,
+              endLine: scriptSetupEnd,
+            });
+          }
+        }
       }
 
       runAdditionalStyleHeuristics({
@@ -1216,6 +1636,10 @@ function runRuleHeuristics() {
         filePath,
         lines,
       });
+      runImportMergeHeuristics({
+        filePath,
+        lines,
+      });
       if (filePath.endsWith('.vue')) {
         runVueStyleImportHeuristics({
           content,
@@ -1229,7 +1653,7 @@ function runRuleHeuristics() {
 
 // Печатает итоговый отчет по найденным нарушениям, сгруппированный по имени правила.
 function printReport() {
-  console.log(`Rules audit target: ${inputTarget}`);
+  console.log(`Целевая директория для аудита правил: ${inputTarget}`);
   console.log('');
 
   if (!findings.length) {

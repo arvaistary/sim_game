@@ -1,5 +1,5 @@
-import type { StatChanges } from '@/domain/balance/types'
-import { STAT_LABELS_RU, STAT_KEY_ORDER } from '@/constants/metric-labels'
+import type { StatChanges } from '@domain/balance/types'
+import { STAT_LABELS_RU, STAT_KEY_ORDER } from '@constants/metric-labels'
 
 function formatStatLine(key: string, value: number): string {
   const label = STAT_LABELS_RU[key] ?? key

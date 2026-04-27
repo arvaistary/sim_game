@@ -1,11 +1,11 @@
 <template>
   <button
-    class="game-button"
     :class="{ 'game-button--disabled': disabled, 'game-button--small': small }"
     :style="buttonStyle"
     :disabled="disabled"
     @click="$emit('click', $event)"
-  >
+    class="game-button"
+    >
     <slot>{{ label }}</slot>
   </button>
 </template>
@@ -14,6 +14,13 @@
 
 import './style.scss'
 
+/**
+ * @prop {string} [label] - Текст кнопки
+ * @prop {string} [color] - Цвет фона кнопки
+ * @prop {string} [textColor] - Цвет текста кнопки
+ * @prop {boolean} [disabled] - Флаг отключённого состояния кнопки
+ * @prop {boolean} [small] - Уменьшенный размер кнопки
+ */
 const props = withDefaults(defineProps<{
   label?: string
   color?: string

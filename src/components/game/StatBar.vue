@@ -1,14 +1,29 @@
 <template>
   <div class="stat-bar">
     <div class="stat-bar__header">
-      <span class="stat-bar__label">{{ label }}</span>
-      <span class="stat-bar__value">{{ Math.round(value) }}</span>
+      <span class="stat-bar__label">
+        {{ label }}
+      </span>
+      <span class="stat-bar__value">
+        {{ Math.round(value) }}
+      </span>
     </div>
-    <ProgressBar :value="value" :color="barColor" :height="6" />
+    <ProgressBar
+      :value="value"
+      :color="barColor"
+      :height="6"
+      />
   </div>
 </template>
 
 <script setup lang="ts">
+import './StatBar.scss'
+
+/**
+ * @prop {string} label - Подпись показателя (например, «Здоровье»)
+ * @prop {number} value - Текущее числовое значение показателя
+ * @prop {string} [color] - Кастомный цвет полосы (переопределяет автоматический)
+ */
 const props = withDefaults(defineProps<{
   label: string
   value: number
@@ -17,7 +32,7 @@ const props = withDefaults(defineProps<{
   color: '',
 })
 
-const barColor = computed(() => {
+const barColor = computed<string>(() => {
   if (props.color) return props.color
 
   if (props.value > 60) return 'var(--color-sage)'
@@ -27,30 +42,4 @@ const barColor = computed(() => {
   return 'var(--color-danger)'
 })
 </script>
-
-<style scoped>
-.stat-bar {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.stat-bar__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stat-bar__label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.stat-bar__value {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-</style>
 

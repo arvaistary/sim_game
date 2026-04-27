@@ -1,12 +1,12 @@
 <template>
   <div class="filter-row">
     <button
-      v-for="f in filters"
+      v-for="f in ACTIVITY_FILTERS"
       :key="f.type ?? 'all'"
-      class="filter-btn"
       :class="{ active: modelValue === (f.type ?? 'all') }"
       @click="$emit('update:modelValue', f.type ?? 'all')"
-    >
+      class="filter-btn"
+      >
       {{ f.label }}
     </button>
   </div>
@@ -15,6 +15,11 @@
 <script setup lang="ts">
 import './ActivityFilter.scss'
 
+import { ACTIVITY_FILTERS } from './ActivityFilter.constants'
+
+/**
+ * @prop {string} modelValue - Текущее значение фильтра (v-model)
+ */
 defineProps<{
   modelValue: string
 }>()
@@ -22,15 +27,4 @@ defineProps<{
 defineEmits<{
   'update:modelValue': [value: string]
 }>()
-
-const filters = [
-  { label: 'Все', type: null },
-  { label: 'Действия', type: 'action' },
-  { label: 'События', type: 'event' },
-  { label: 'Финансы', type: 'finance' },
-  { label: 'Карьера', type: 'career' },
-  { label: 'Обучение', type: 'education' },
-  { label: 'Навыки', type: 'skill_change' },
-  { label: 'Время', type: 'time' },
-]
 </script>

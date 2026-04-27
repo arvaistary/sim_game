@@ -1,9 +1,4 @@
-export interface ActionCategory {
-  id: string
-  label: string
-  subtitle: string
-  icon: string
-}
+import type { ActionCategory } from './action-categories.types'
 
 export const ACTION_CATEGORIES: ActionCategory[] = [
   { id: 'fun', label: 'Развлечения', subtitle: 'Отдых, веселье и приятные занятия', icon: '🎭' },

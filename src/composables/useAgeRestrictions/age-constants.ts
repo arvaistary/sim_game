@@ -1,18 +1,11 @@
 /**
- * Единый источник истины для возрастных правил и ограничений.
+ * @description age-constants - Единый источник истины для возрастных правил и ограничений.
  * Используется useAgeRestrictions и age-unlocks.
  */
-import { AgeGroup } from '@/domain/balance/actions/types'
+import { AgeGroup } from '@domain/balance/actions/types'
+import type { AgeRestrictions } from './age-constants.types'
 
 export { AgeGroup }
-
-export interface AgeRestrictions {
-  hiddenTabs: string[]
-  hiddenStats: string[]
-  label: string
-  timeSpeed: number
-  minAgeGroup: AgeGroup
-}
 
 /** Правила для каждой возрастной группы */
 export const AGE_RULES: Record<AgeGroup, AgeRestrictions> = {
@@ -103,7 +96,9 @@ export const AGE_GROUP_RANGES: Record<AgeGroup, { min: number; max: number }> = 
 }
 
 /**
- * Определить возрастную группу по точному возрасту.
+ * @description age-constants - Определить возрастную группу по точному возрасту.
+ * @param {number} ageValue - Текущий возраст.
+ * @return {AgeGroup} Возрастная группа.
  */
 export function getAgeGroup(ageValue: number): AgeGroup {
   if (ageValue <= 3) return AgeGroup.INFANT

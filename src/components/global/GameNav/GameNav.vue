@@ -2,36 +2,49 @@
   <nav class="nav-wrapper">
     <div class="nav-grid">
       <button
-        class="nav-item"
         @click="goHome"
+        class="nav-item"
       >
         <span
-          class="nav-dot"
           :class="{ 'nav-dot--active': isHomePage }"
-        >🏠</span>
-        <span class="nav-label">Дом</span>
+          class="nav-dot"
+        >
+        <span class="nav-label">
+          Дом
+        </span>
+      </span>
       </button>
-      <template v-for="item in allNavItems" :key="item.id">
+      <template
+        v-for="item in allNavItems"
+        :key="item.id"
+        >
         <!-- Доступная вкладка -->
         <button
           v-if="item.visible"
-          class="nav-item"
           @click="handleNavClick(item)"
-        >
+          class="nav-item"
+          >
           <span
-            class="nav-dot"
             :class="{ 'nav-dot--active': item.id === activeItemId }"
-          >{{ item.icon }}</span>
-          <span class="nav-label">{{ item.label }}</span>
+            class="nav-dot"
+            >
+          <span class="nav-label">
+            {{ item.label }}
+          </span>
+        </span>
         </button>
         <!-- Заблокированная вкладка -->
         <button
           v-else
-          class="nav-item nav-item--locked"
           @click="handleLockedClick(item)"
-        >
-          <span class="nav-dot nav-dot--locked">🔒</span>
-          <span class="nav-label nav-label--locked">{{ item.label }}</span>
+          class="nav-item nav-item--locked"
+          >
+          <span class="nav-dot nav-dot--locked">
+            🔒
+          </span>
+          <span class="nav-label nav-label--locked">
+            {{ item.label }}
+          </span>
         </button>
       </template>
     </div>
@@ -41,18 +54,14 @@
 <script setup lang="ts">
 import './GameNav.scss'
 
-import { NAV_ITEMS, ROUTE_MAP } from '@/constants/navigation'
+import type { NavItem } from '@domain/balance/types'
+import type { NavItemClickPayload, NavItemWithState } from './GameNav.types'
 
-interface NavItemWithState {
-  id: string
-  icon: string
-  label: string
-  visible: boolean
-  unlockAge: number | null
-}
+import { NAV_ITEMS, ROUTE_MAP } from '@constants/navigation'
 
 const route = useRoute()
-const navItems = NAV_ITEMS
+
+const navItems: NavItem[] = NAV_ITEMS
 const { isTabVisible, age } = useAgeRestrictions()
 const toast = useToast()
 
@@ -66,11 +75,11 @@ const allNavItems = computed<NavItemWithState[]>(() =>
   }))
 )
 
-const isHomePage = computed(() => route.path === '/game')
+const isHomePage = computed<boolean>(() => route.path === '/game')
 
-const activeItemId = computed(() => {
-  const currentPath = route.path
-  const activeItem = navItems.find(
+const activeItemId = computed<string>(() => {
+  const currentPath: string = route.path
+  const activeItem: NavItem | undefined = navItems.find(
     (item) => ROUTE_MAP[item.id] === currentPath)
 
   return activeItem?.id ?? ''
@@ -80,15 +89,17 @@ function goHome(): void {
   navigateTo('/game')
 }
 
-function handleNavClick(item: { id: string }): void {
-  const targetRoute = ROUTE_MAP[item.id]
+function handleNavClick(item: NavItemClickPayload): void {
+  const targetRoute: string | undefined = ROUTE_MAP[item.id]
+
   if (targetRoute) {
     navigateTo(targetRoute)
   }
 }
 
 function handleLockedClick(item: NavItemWithState): void {
-  const currentAge = age.value
+  const currentAge: number = age.value
+
   if (item.unlockAge !== null && item.unlockAge > currentAge) {
     toast.showInfo(`🔒 ${item.label} станет доступно в ${item.unlockAge} лет. Подрастите ещё немного!`)
   } else {

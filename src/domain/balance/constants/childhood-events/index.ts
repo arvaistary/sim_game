@@ -3,8 +3,8 @@ import { PRESCHOOL_EVENTS } from './preschool-events'
 import { SCHOOL_EVENTS } from './school-events'
 import { TEEN_EVENTS } from './teen-events'
 import { YOUNG_EVENTS } from './young-events'
-import type { ChildhoodEventDef } from '@/domain/balance/types/childhood-event'
-import { AgeGroup } from '@/domain/balance/actions/types'
+import type { ChildhoodEventDef } from '@domain/balance/types/childhood-event'
+import { AgeGroup } from '@domain/balance/actions/types'
 
 /**
  * Все детские события (0-18 лет).

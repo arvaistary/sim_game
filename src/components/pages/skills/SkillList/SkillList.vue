@@ -3,16 +3,22 @@
     <!-- Табы-переключатели категорий -->
     <div class="skills-tabs">
       <button
-        v-for="tab in tabs"
+        v-for="tab in SKILL_TABS"
         :key="tab.id"
-        class="skills-tab"
         :class="{ 'skills-tab--active': activeTab === tab.id }"
         @click="activeTab = tab.id"
-      >
-        <span class="skills-tab__icon">{{ tab.icon }}</span>
+        class="skills-tab"
+        >
+        <span class="skills-tab__icon">
+          {{ tab.icon }}
+        </span>
         <span class="skills-tab__content">
-          <span class="skills-tab__title">{{ tab.title }}</span>
-          <span class="skills-tab__desc">{{ tab.shortDesc }}</span>
+          <span class="skills-tab__title">
+            {{ tab.title }}
+          </span>
+          <span class="skills-tab__desc">
+            {{ tab.shortDesc }}
+          </span>
         </span>
       </button>
     </div>
@@ -28,7 +34,9 @@
     </div>
 
     <RoundedPanel v-if="activeSkills.length === 0">
-      <p class="page-desc">Нет навыков</p>
+      <p class="page-desc">
+        Нет навыков
+      </p>
     </RoundedPanel>
   </div>
 </template>
@@ -37,22 +45,14 @@
 import './SkillList.scss'
 
 import {
-
   BASIC_SKILLS,
   PROFESSIONAL_SKILLS,
   SOCIAL_SKILLS,
   CREATIVE_SKILLS,
   NEGATIVE_SKILLS,
-} from '@/domain/balance/constants/skills-constants'
-import type { SkillDef } from '@/domain/balance/types'
-
-const tabs = [
-  { id: 'basic', icon: '🧩', title: 'Базовые', shortDesc: 'Общие навыки на каждый день' },
-  { id: 'professional', icon: '💼', title: 'Профессиональные', shortDesc: 'Навыки для карьеры' },
-  { id: 'social', icon: '🤝', title: 'Социальные', shortDesc: 'Общение и отношения' },
-  { id: 'creative', icon: '🎨', title: 'Творческие', shortDesc: 'Искусство и созидание' },
-  { id: 'negative', icon: '⚠️', title: 'Слабости', shortDesc: 'Черты, мешающие развитию' },
-] as const
+} from '@domain/balance/constants/skills-constants'
+import type { SkillDef } from '@domain/balance/types'
+import { SKILL_TABS } from './SkillList.constants'
 
 const activeTab = ref<string>('basic')
 

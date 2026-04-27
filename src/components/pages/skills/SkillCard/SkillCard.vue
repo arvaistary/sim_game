@@ -1,11 +1,20 @@
 <template>
-  <Tooltip :follow-cursor="true" :multiline="true">
+  <Tooltip
+    :follow-cursor="true"
+    :multiline="true"
+    >
     <RoundedPanel class="skill-card">
       <div class="skill-header">
-        <span class="skill-name">{{ skill.label }}</span>
-        <span class="skill-level">{{ level }} / {{ skill.maxLevel }}</span>
+        <span class="skill-name">
+          {{ skill.label }}
+        </span>
+        <span class="skill-level">
+          {{ level }} / {{ skill.maxLevel }}
+        </span>
       </div>
-      <p class="skill-desc">{{ skill.description }}</p>
+      <p class="skill-desc">
+        {{ skill.description }}
+      </p>
       <ProgressBar
         :value="level"
         :max="skill.maxLevel"
@@ -16,36 +25,55 @@
     <template #content>
       <div class="skill-tooltip">
         <div class="tooltip-header">
-          <span class="tooltip-title">{{ skill.label }}</span>
-          <span class="tooltip-level">Уровень {{ level }} / {{ skill.maxLevel }}</span>
+          <span class="tooltip-title">
+            {{ skill.label }}
+          </span>
+          <span class="tooltip-level">
+            Уровень {{ level }} / {{ skill.maxLevel }}
+          </span>
         </div>
 
-        <div v-if="currentEffects.length > 0" class="tooltip-section">
-          <div class="tooltip-section-title">Текущие эффекты (ур. {{ level }}):</div>
+        <div
+          v-if="currentEffects.length > 0"
+          class="tooltip-section"
+          >
+          <div class="tooltip-section-title">
+            Текущие эффекты (ур. {{ level }}):
+          </div>
           <div
             v-for="effect in currentEffects"
             :key="'cur-' + effect.effectKey"
-            class="tooltip-effect"
             :class="{ 'effect-positive': isPositiveEffect(effect.value, effect.modifierKey) }"
-          >
+            class="tooltip-effect"
+            >
             {{ effect.description }}
           </div>
         </div>
 
-        <div v-if="maxEffects.length > 0 && level < skill.maxLevel" class="tooltip-section">
-          <div class="tooltip-section-title">На максимальном уровне (ур. {{ skill.maxLevel }}):</div>
+        <div
+          v-if="maxEffects.length > 0 && level < skill.maxLevel"
+          class="tooltip-section"
+          >
+          <div class="tooltip-section-title">
+            На максимальном уровне (ур. {{ skill.maxLevel }}):
+          </div>
           <div
             v-for="effect in maxEffects"
             :key="'max-' + effect.effectKey"
-            class="tooltip-effect"
             :class="{ 'effect-positive': isPositiveEffect(effect.value, effect.modifierKey) }"
-          >
+            class="tooltip-effect"
+            >
             {{ effect.description }}
           </div>
         </div>
 
-        <div v-if="currentEffects.length === 0" class="tooltip-section">
-          <div class="tooltip-effect effect-neutral">Нет активных эффектов</div>
+        <div
+          v-if="currentEffects.length === 0"
+          class="tooltip-section"
+          >
+          <div class="tooltip-effect effect-neutral">
+            Нет активных эффектов
+          </div>
         </div>
       </div>
     </template>
@@ -56,21 +84,24 @@
 
 import './SkillCard.scss'
 
-import type { SkillDef } from '@/domain/balance/types'
+import type { SkillDef, SkillModifiers } from '@domain/balance/types'
+import { getSkillEffectsForUi } from '@domain/balance/constants/skill-effects-generator'
+import { MULTIPLICATIVE_MODIFIERS } from './SkillCard.constants'
 
-import type { SkillModifiers } from '@/domain/balance/types'
-import { getSkillEffectsForUi } from '@/domain/balance/constants/skill-effects-generator'
-
+/**
+ * @prop {SkillDef} skill - Определение навыка с метаданными
+ * @prop {number} level - Текущий уровень навыка
+ */
 const props = defineProps<{
   skill: SkillDef
   level: number
 }>()
 
-const currentEffects = computed(() => {
+const currentEffects = computed<ReturnType<typeof getSkillEffectsForUi>>(() => {
   return getSkillEffectsForUi(props.skill.key, props.level)
 })
 
-const maxEffects = computed(() => {
+const maxEffects = computed<ReturnType<typeof getSkillEffectsForUi>>(() => {
   return getSkillEffectsForUi(props.skill.key, props.skill.maxLevel)
 })
 
@@ -79,13 +110,8 @@ function skillColor(skill: SkillDef): string {
 }
 
 function isPositiveEffect(value: number, modifierKey: string): boolean {
-  const multiplicativeModifiers: (keyof SkillModifiers)[] = [
-    'hungerDrainMultiplier', 'energyDrainMultiplier', 'stressGainMultiplier',
-    'healthDecayMultiplier', 'shopPriceMultiplier', 'dailyExpenseMultiplier',
-    'agingSpeedMultiplier'
-  ]
-  
-  if (multiplicativeModifiers.includes(modifierKey as keyof SkillModifiers)) {
+
+  if (MULTIPLICATIVE_MODIFIERS.includes(modifierKey as keyof SkillModifiers)) {
     return value < 1
   }
   

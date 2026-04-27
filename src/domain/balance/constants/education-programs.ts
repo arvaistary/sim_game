@@ -1,5 +1,5 @@
-import type { EducationProgram } from '@/domain/balance/types'
-import { AgeGroup } from '@/domain/balance/actions/types'
+import type { EducationProgram } from '@domain/balance/types'
+import { AgeGroup } from '@domain/balance/actions/types'
 
 export const EDUCATION_PROGRAMS: EducationProgram[] = [
   {

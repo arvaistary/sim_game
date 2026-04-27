@@ -1,23 +1,46 @@
 <template>
-  <div ref="scrollRef" class="log-scroll" @scroll="onScroll">
+  <div
+    @scroll="onScroll"
+    ref="scrollRef"
+    class="log-scroll"
+    >
     <RoundedPanel
       v-for="entry in entries"
       :key="entry.day + '-' + entry.type + '-' + entry.title"
-      class="log-entry"
       :class="'log-entry--' + entry.type"
-    >
+      class="log-entry"
+      >
       <div class="entry-header">
-        <span class="entry-title">{{ entry.title }}</span>
-        <span class="entry-day">День {{ entry.day }}</span>
+        <span class="entry-title">
+          {{ entry.title }}
+        </span>
+        <span class="entry-day">
+          День {{ entry.day }}
+        </span>
       </div>
-      <p v-if="entry.description" class="entry-desc">{{ entry.description }}</p>
+      <p
+        v-if="entry.description"
+        class="entry-desc"
+        >
+        {{ entry.description }}
+      </p>
     </RoundedPanel>
 
-    <RoundedPanel v-if="entries.length === 0" class="empty-panel">
-      <p class="empty-text">Записей пока нет</p>
+    <RoundedPanel
+      v-if="entries.length === 0"
+      class="empty-panel"
+      >
+      <p class="empty-text">
+        Записей пока нет
+      </p>
     </RoundedPanel>
 
-    <div v-if="isLoading" class="loading">Загрузка…</div>
+    <div
+      v-if="isLoading"
+      class="loading"
+      >
+      Загрузка…
+    </div>
   </div>
 </template>
 

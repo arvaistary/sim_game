@@ -1,4 +1,4 @@
-import type { BalanceAction } from '@/domain/balance/actions/types'
+import type { BalanceAction } from '@domain/balance/actions/types'
 import {
   AgeGroup,
   AGE_RULES,
@@ -6,20 +6,23 @@ import {
   UNLOCK_MESSAGES,
   getAgeGroup,
 } from './age-constants'
-import type { AgeRestrictions } from './age-constants'
+import type { AgeRestrictions } from './age-constants.types'
 
-export { AgeGroup, TAB_UNLOCK_AGE }
-export type { AgeRestrictions }
+export { AgeGroup, TAB_UNLOCK_AGE, getAgeGroup }
 
 let lastKnownAge: number = 0
 let unlockedTabsCache: Set<string> = new Set()
 
+/**
+ * @description useAgeRestrictions - Composable для работы с возрастными ограничениями.
+ * @return {object} Объект с вычисляемыми свойствами и методами для проверки доступности.
+ */
 export const useAgeRestrictions = () => {
   const timeStore = useTimeStore()
 
   const toast = useToast()
 
-  const age = computed(() => timeStore.currentAge)
+  const age = computed<number>(() => timeStore.currentAge)
 
   const ageGroup = computed<AgeGroup>(() => {
     return getAgeGroup(age.value)
@@ -27,22 +30,22 @@ export const useAgeRestrictions = () => {
 
   const restrictions = computed<AgeRestrictions>(() => AGE_RULES[ageGroup.value])
 
-  const availableTabs = computed(() => {
+  const availableTabs = computed<string[]>(() => {
     return restrictions.value.hiddenTabs
   })
 
-  const hiddenStats = computed(() => {
+  const hiddenStats = computed<string[]>(() => {
     return restrictions.value.hiddenStats
   })
 
-  const ageGroupLabel = computed(() => restrictions.value.label)
-  const timeSpeedMultiplier = computed(() => restrictions.value.timeSpeed)
+  const ageGroupLabel = computed<string>(() => restrictions.value.label)
+  const timeSpeedMultiplier = computed<number>(() => restrictions.value.timeSpeed)
 
   function checkUnlocks(currentAge: number): void {
     if (currentAge <= lastKnownAge) return
 
-    const previousGroup = getAgeGroup(lastKnownAge)
-    const newGroup = getAgeGroup(currentAge)
+    const previousGroup: AgeGroup = getAgeGroup(lastKnownAge)
+    const newGroup: AgeGroup = getAgeGroup(currentAge)
 
     if (previousGroup === newGroup) {
       lastKnownAge = currentAge
@@ -50,12 +53,12 @@ export const useAgeRestrictions = () => {
       return
     }
 
-    const previousHidden = new Set(AGE_RULES[previousGroup].hiddenTabs)
-    const newHidden = new Set(AGE_RULES[newGroup].hiddenTabs)
+    const previousHidden: Set<string> = new Set(AGE_RULES[previousGroup].hiddenTabs)
+    const newHidden: Set<string> = new Set(AGE_RULES[newGroup].hiddenTabs)
 
-    const justUnlocked = [...previousHidden].filter(tab => !newHidden.has(tab))
+    const justUnlocked: string[] = [...previousHidden].filter((tab: string) => !newHidden.has(tab))
 
-    justUnlocked.forEach(tabId => {
+    justUnlocked.forEach((tabId: string) => {
       if (!unlockedTabsCache.has(tabId) && UNLOCK_MESSAGES[tabId]) {
         toast.showSuccess(UNLOCK_MESSAGES[tabId])
         unlockedTabsCache.add(tabId)
@@ -82,7 +85,7 @@ export const useAgeRestrictions = () => {
   }
 
   function filterActionsByAge(actions: BalanceAction[]): BalanceAction[] {
-    return actions.filter(action => isActionAvailable(action))
+    return actions.filter((action: BalanceAction) => isActionAvailable(action))
   }
 
   return {

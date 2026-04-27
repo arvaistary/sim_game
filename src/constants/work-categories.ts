@@ -1,10 +1,4 @@
-export interface WorkType {
-  id: 'full-time' | 'part-time'
-  label: string
-  subtitle: string
-  icon: string
-  scheduleFilter: string[]
-}
+import type { WorkType, Industry } from './work-categories.types'
 
 export const WORK_TYPES: WorkType[] = [
   {
@@ -22,12 +16,6 @@ export const WORK_TYPES: WorkType[] = [
     scheduleFilter: ['2/2', 'Свободный'],
   },
 ]
-
-export interface Industry {
-  id: string
-  label: string
-  icon: string
-}
 
 export const INDUSTRIES: Industry[] = [
   { id: 'all', label: 'Все отрасли', icon: '📋' },

@@ -1,21 +1,13 @@
 
-
-export interface PlayerState {
-  name: string
-  welcomeScreenShown: boolean
-}
-
-const INITIAL_STATE: PlayerState = {
-  name: 'Алексей',
-  welcomeScreenShown: false,
-}
+import type { PlayerState } from './index.types'
+import { INITIAL_STATE } from './index.constants'
 
 export const usePlayerStore = defineStore('player', () => {
-  const name = ref(INITIAL_STATE.name)
-  const welcomeScreenShown = ref(INITIAL_STATE.welcomeScreenShown)
-  const isInitialized = ref(false)
+  const name = ref<string>(INITIAL_STATE.name)
+  const welcomeScreenShown = ref<boolean>(INITIAL_STATE.welcomeScreenShown)
+  const isInitialized = ref<boolean>(false)
 
-  const isNewPlayer = computed(() => !welcomeScreenShown.value)
+  const isNewPlayer = computed<boolean>(() => !welcomeScreenShown.value)
 
   function setName(newName: string): void {
     name.value = newName
@@ -34,9 +26,9 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   function load(_saveData?: Record<string, unknown>): boolean {
-    if (_saveData?.name) name.value = _saveData.name as string
+    if (typeof _saveData?.name === 'string') name.value = _saveData.name
 
-    if (_saveData?.welcomeScreenShown) welcomeScreenShown.value = _saveData.welcomeScreenShown as boolean
+    if (typeof _saveData?.welcomeScreenShown === 'boolean') welcomeScreenShown.value = _saveData.welcomeScreenShown
     isInitialized.value = true
 
     return true

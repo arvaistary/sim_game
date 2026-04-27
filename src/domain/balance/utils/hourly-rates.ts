@@ -5,7 +5,7 @@ import type {
   StatChangeBreakdownEntry,
   StatChanges,
   StatKey,
-} from '@/domain/balance/types'
+} from '@domain/balance/types'
 
 /**
  * Исторические почасовые ставки (раньше умножались на длительность действия).

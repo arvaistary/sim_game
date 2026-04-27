@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useSkillsStore } from '@/stores/skills-store'
+import { useSkillsStore } from '@stores/skills-store'
 
 describe('skills-store', () => {
   beforeEach(() => {

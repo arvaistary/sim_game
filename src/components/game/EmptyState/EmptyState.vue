@@ -7,8 +7,10 @@
 <script setup lang="ts">
 import './EmptyState.scss'
 
+/**
+ * @prop {string} text - Текст сообщения для пустого состояния
+ */
 defineProps<{
-
   text: string
 }>()
 </script>

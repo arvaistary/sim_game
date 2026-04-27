@@ -1,4 +1,4 @@
-import { INITIAL_SAVE, INITIAL_TIME_TEMPLATE } from '@/domain/balance/constants/initial-save'
+import { INITIAL_SAVE, INITIAL_TIME_TEMPLATE } from '@domain/balance/constants/initial-save'
 
 /**
  * Полный сейв для тестового забега: персонаж сразу взрослый (25 лет)

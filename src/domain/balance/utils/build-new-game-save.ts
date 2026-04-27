@@ -1,5 +1,5 @@
-import { EDUCATION_PATHS } from '@/domain/balance/constants/education-paths'
-import { INITIAL_SAVE, INITIAL_TIME_TEMPLATE } from '@/domain/balance/constants/initial-save'
+import { EDUCATION_PATHS } from '@domain/balance/constants/education-paths'
+import { INITIAL_SAVE, INITIAL_TIME_TEMPLATE } from '@domain/balance/constants/initial-save'
 
 export type NewGamePathId = 'none' | 'school' | 'institute'
 

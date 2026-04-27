@@ -1,41 +1,6 @@
 
-
-export interface EventChoice {
-  id: string
-  text: string
-  effects?: Record<string, number>
-  outcome?: string
-}
-
-export interface EventQueueItem {
-  id: string
-  title: string
-  description: string
-  choices?: EventChoice[]
-}
-
-export interface GameEvent {
-  id: string
-  instanceId: string
-  type: string
-  title: string
-  description: string
-  choices?: EventChoice[]
-  data?: Record<string, unknown>
-  priority: string
-}
-
-export interface EventHistoryEntry {
-  instanceId: string
-  templateId: string
-  day: number
-  choiceId?: string
-  choiceText?: string
-  effects?: Record<string, number>
-}
-
-const MAX_QUEUE = 10
-const MAX_HISTORY = 50
+import type { GameEvent, EventHistoryEntry, EventChoice } from './index.types'
+import { MAX_QUEUE, MAX_HISTORY } from './index.constants'
 
 export const useEventsStore = defineStore('events', () => {
   const eventQueue = ref<GameEvent[]>([])
@@ -43,21 +8,23 @@ export const useEventsStore = defineStore('events', () => {
   const eventHistory = ref<EventHistoryEntry[]>([])
   const seenEventIds = ref<Set<string>>(new Set())
 
-  const hasEvent = computed(() => currentEvent.value !== null)
-  const queueLength = computed(() => eventQueue.value.length)
-  const historyCount = computed(() => eventHistory.value.length)
+  const hasEvent = computed<boolean>(() => currentEvent.value !== null)
+  const queueLength = computed<number>(() => eventQueue.value.length)
+  const historyCount = computed<number>(() => eventHistory.value.length)
 
-  const nextEvent = computed(() => eventQueue.value[0] ?? null)
+  const nextEvent = computed<GameEvent | null>(() => eventQueue.value[0] ?? null)
 
   function addToQueue(event: GameEvent): void {
     if (seenEventIds.value.has(event.instanceId)) return
 
     if (eventQueue.value.length >= MAX_QUEUE) return
+
     eventQueue.value.push(event)
   }
 
   function setCurrentEvent(event: GameEvent | null): void {
     currentEvent.value = event
+
     if (event) {
       seenEventIds.value.add(event.instanceId)
     }
@@ -73,6 +40,7 @@ export const useEventsStore = defineStore('events', () => {
 
   function resolveCurrentEvent(choiceId: string, choiceText: string, effects?: Record<string, number>): void {
     if (!currentEvent.value) return
+
     eventHistory.value.push({
       instanceId: currentEvent.value.instanceId,
       templateId: currentEvent.value.id,
@@ -81,6 +49,7 @@ export const useEventsStore = defineStore('events', () => {
       choiceText,
       effects,
     })
+
     if (eventHistory.value.length > MAX_HISTORY) {
       eventHistory.value = eventHistory.value.slice(-MAX_HISTORY)
     }
@@ -90,8 +59,11 @@ export const useEventsStore = defineStore('events', () => {
 
   function applyChoice(choiceId: string): boolean {
     if (!currentEvent.value) return false
-    const choice = currentEvent.value.choices?.find(c => c.id === choiceId)
+
+    const choice: EventChoice | undefined = currentEvent.value.choices?.find(c => c.id === choiceId)
+
     if (!choice) return false
+
     resolveCurrentEvent(choiceId, choice.text, choice.effects)
 
     return true

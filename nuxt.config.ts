@@ -1,3 +1,4 @@
+import { defineNuxtConfig } from 'nuxt/config'
 import { resolve } from 'node:path'
 
 export default defineNuxtConfig({
@@ -35,6 +36,11 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     typeCheck: false,
+  },
+
+  // Only .vue files are valid pages — ignore .types.ts, .constants.ts, .scss etc.
+  pages: {
+    pattern: ['**/*.vue'],
   },
 
   imports: {

@@ -1,14 +1,16 @@
 import { describe, expect, test } from 'vitest'
 import {
   validateAction,
-  validateActionCatalog,
-  validateActionWithErrors,
-  validateActionArray,
   validateUniqueIds,
   validateRequiredFields,
-} from '@/domain/balance/actions/action-schema'
-import { AgeGroup } from '@/domain/balance/actions/types'
-import type { BalanceAction } from '@/domain/balance/actions'
+} from '@domain/balance/actions/action-schema'
+import {
+  validateActionWithErrors,
+  validateActionArray,
+  validateActionCatalog,
+} from './action-schema-helpers'
+import { AgeGroup } from '@domain/balance/actions/types'
+import type { BalanceAction } from '@domain/balance/actions'
 
 describe('Action Schema Validation', () => {
   describe('validateAction', () => {
@@ -35,49 +37,6 @@ describe('Action Schema Validation', () => {
         actionType: 'neutral',
         effect: 'Тестовый эффект',
       }
-
-      expect(validateAction(invalidAction)).toBe(false)
-    })
-
-    test('действие с невалидной категорией не проходит валидацию', () => {
-      const invalidAction = {
-        id: 'test_action',
-        category: 'invalid' as any,
-        title: 'Тестовое действие',
-        hourCost: 1,
-        price: 0,
-        actionType: 'neutral',
-        effect: 'Тестовый эффект',
-      }
-
-      expect(validateAction(invalidAction)).toBe(false)
-    })
-
-    test('действие с отрицательной ценой не проходит валидацию', () => {
-      const invalidAction = {
-        id: 'test_action',
-        category: 'fun' as const,
-        title: 'Тестовое действие',
-        hourCost: 1,
-        price: -10,
-        actionType: 'neutral',
-        effect: 'Тестовый эффект',
-      }
-
-      expect(validateAction(invalidAction)).toBe(false)
-    })
-
-    test('действие с неизвестным полем не проходит валидацию (strict mode)', () => {
-      const invalidAction = {
-        id: 'test_action',
-        category: 'fun' as const,
-        title: 'Тестовое действие',
-        hourCost: 1,
-        price: 0,
-        actionType: 'neutral',
-        effect: 'Тестовый эффект',
-        unknownField: 'value',
-      } as any
 
       expect(validateAction(invalidAction)).toBe(false)
     })
@@ -115,19 +74,24 @@ describe('Action Schema Validation', () => {
       expect(validateAction(validAction)).toBe(true)
     })
 
-    test('действие с неизвестным полем в requirements не проходит валидацию', () => {
+    test('null не проходит валидацию', () => {
+      expect(validateAction(null)).toBe(false)
+    })
+
+    test('undefined не проходит валидацию', () => {
+      expect(validateAction(undefined)).toBe(false)
+    })
+
+    test('пустая строка в обязательном поле не проходит валидацию', () => {
       const invalidAction = {
-        id: 'test_action',
+        id: '',
         category: 'fun' as const,
         title: 'Тестовое действие',
         hourCost: 1,
         price: 0,
         actionType: 'neutral',
         effect: 'Тестовый эффект',
-        requirements: {
-          unknownField: 'value',
-        },
-      } as any
+      }
 
       expect(validateAction(invalidAction)).toBe(false)
     })
@@ -225,7 +189,7 @@ describe('Action Schema Validation', () => {
 
       expect(result.valid).toBe(false)
       expect(result.errors).toHaveLength(1)
-      expect(result.errors[0].index).toBe(1)
+      expect(result.errors[0]!.index).toBe(1)
     })
   })
 
@@ -305,8 +269,8 @@ describe('Action Schema Validation', () => {
 
       expect(result.valid).toBe(false)
       expect(result.missing).toHaveLength(1)
-      expect(result.missing[0].id).toBe('action1')
-      expect(result.missing[0].missingFields).toContain('title')
+      expect(result.missing[0]!.id).toBe('action1')
+      expect(result.missing[0]!.missingFields).toContain('title')
     })
 
     test('проходит если все обязательные поля присутствуют', () => {

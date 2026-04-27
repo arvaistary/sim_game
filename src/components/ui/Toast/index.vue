@@ -1,7 +1,11 @@
 <template>
   <Teleport to="body">
     <Transition name="toast">
-      <div v-if="visible" class="toast" :class="`toast--${type}`">
+      <div
+        v-if="visible"
+        :class="`toast--${type}`"
+        class="toast"
+        >
         <span class="toast__icon">{{ iconMap[type] }}</span>
         <span class="toast__message">{{ message }}</span>
       </div>
@@ -15,6 +19,12 @@ import './style.scss'
 
 import { TOAST_ICON_MAP } from './index.constants'
 
+/**
+ * @prop {string} message - Текст уведомления
+ * @prop {'info' | 'success' | 'warning' | 'error'} [type] - Тип уведомления для иконки и стиля
+ * @prop {number} [duration] - Длительность показа в миллисекундах
+ * @prop {boolean} [visible] - Флаг видимости уведомления
+ */
 const props = withDefaults(defineProps<{
   message: string
   type?: 'info' | 'success' | 'warning' | 'error'
@@ -30,7 +40,7 @@ const emit = defineEmits<{
   'update:visible': [value: boolean]
 }>()
 
-const iconMap = TOAST_ICON_MAP
+const iconMap: Record<string, string> = TOAST_ICON_MAP
 
 watch(() => props.visible, (val) => {
   if (val) {

@@ -1,43 +1,30 @@
 
-
-export interface WalletState {
-  money: number
-  reserveFund: number
-  totalEarned: number
-  totalSpent: number
-}
-
-const INITIAL_WALLET: WalletState = {
-  money: 5000,
-  reserveFund: 0,
-  totalEarned: 0,
-  totalSpent: 0,
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
+import type { WalletState } from './index.types'
+import { INITIAL_WALLET } from './index.constants'
+import { clamp } from '@utils/clamp'
 
 export const useWalletStore = defineStore('wallet', () => {
-  const money = ref(INITIAL_WALLET.money)
-  const reserveFund = ref(INITIAL_WALLET.reserveFund)
-  const totalEarned = ref(INITIAL_WALLET.totalEarned)
-  const totalSpent = ref(INITIAL_WALLET.totalSpent)
+  const money = ref<number>(INITIAL_WALLET.money)
+  const reserveFund = ref<number>(INITIAL_WALLET.reserveFund)
+  const totalEarned = ref<number>(INITIAL_WALLET.totalEarned)
+  const totalSpent = ref<number>(INITIAL_WALLET.totalSpent)
 
-  const netWorth = computed(() => money.value + reserveFund.value)
+  const netWorth = computed<number>(() => money.value + reserveFund.value)
 
   const canAfford = (amount: number): boolean => money.value >= amount
 
-  const earn = (amount: number, addToNetWorth = true): void => {
+  const earn = (amount: number, addToNetWorth: boolean = true): void => {
     money.value += amount
+
     if (addToNetWorth) {
       totalEarned.value += amount
     }
   }
 
-  const spend = (amount: number, addToNetWorth = true): number => {
-    const actualSpend = Math.min(amount, money.value)
+  const spend = (amount: number, addToNetWorth: boolean = true): number => {
+    const actualSpend: number = Math.min(amount, money.value)
     money.value -= actualSpend
+
     if (addToNetWorth) {
       totalSpent.value += actualSpend
     }
@@ -46,13 +33,13 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   const transferToReserve = (amount: number): void => {
-    const transfer = Math.min(amount, money.value)
+    const transfer: number = Math.min(amount, money.value)
     money.value -= transfer
     reserveFund.value += transfer
   }
 
   const transferFromReserve = (amount: number): void => {
-    const transfer = Math.min(amount, reserveFund.value)
+    const transfer: number = Math.min(amount, reserveFund.value)
     reserveFund.value -= transfer
     money.value += transfer
   }

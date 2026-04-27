@@ -3,19 +3,34 @@
     <Transition name="modal">
       <div
         v-if="isOpen"
-        class="modal-overlay"
         :style="overlayStyle"
         @click.self="handleOverlayClick"
-      >
-        <div class="modal-content" :style="contentStyle">
+        class="modal-overlay"
+        >
+        <div
+          :style="contentStyle"
+          class="modal-content"
+          >
           <div class="modal-header">
-            <h3 class="modal-title">{{ title }}</h3>
-            <button v-if="showClose" class="modal-close" @click="close" aria-label="Close dialog">x</button>
+            <h3 class="modal-title">
+              {{ title }}
+            </h3>
+            <button
+              v-if="showClose"
+              @click="close"
+              class="modal-close"
+              aria-label="Close dialog"
+              >
+              x
+            </button>
           </div>
           <div class="modal-body">
             <slot />
           </div>
-          <div v-if="$slots.actions" class="modal-actions">
+          <div
+            v-if="$slots.actions"
+            class="modal-actions"
+            >
             <slot name="actions" />
           </div>
         </div>
@@ -27,6 +42,15 @@
 <script setup lang="ts">
 import './style.scss'
 
+/**
+ * @prop {boolean} [isOpen] - Флаг видимости модального окна
+ * @prop {string} [title] - Заголовок модального окна
+ * @prop {boolean} [showClose] - Показывать кнопку закрытия
+ * @prop {string} [maxWidth] - Максимальная ширина модального окна
+ * @prop {boolean} [closeOnOverlay] - Закрывать по клику на оверлей
+ * @prop {boolean} [closeOnEscape] - Закрывать по нажатию Escape
+ * @prop {number} [zIndex] - Z-index модального окна
+ */
 const props = withDefaults(defineProps<{
   isOpen?: boolean
   title?: string
@@ -49,6 +73,14 @@ const emit = defineEmits<{
   close: []
 }>()
 
+const contentStyle = computed(() => ({
+  maxWidth: props.maxWidth,
+}))
+
+const overlayStyle = computed(() => ({
+  zIndex: props.zIndex,
+}))
+
 function close() {
   emit('close')
 }
@@ -65,14 +97,6 @@ function handleEscape(event: KeyboardEvent) {
     close()
   }
 }
-
-const contentStyle = computed(() => ({
-  maxWidth: props.maxWidth,
-}))
-
-const overlayStyle = computed(() => ({
-  zIndex: props.zIndex,
-}))
 
 onMounted(() => {
   if (props.closeOnEscape) {

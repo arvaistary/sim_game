@@ -1,4 +1,4 @@
-import type { StatDef } from '@/domain/balance/types'
+import type { StatDef } from '@domain/balance/types'
 
 export const STAT_DEFS: StatDef[] = [
   { key: 'hunger', label: 'Голод', startColor: '#FF9F6B', endColor: '#FF6B6B' },

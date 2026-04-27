@@ -1,52 +1,19 @@
 
+import type { ActivityEntry, ActivityType } from './index.types'
+import { MAX_ENTRIES, ACTIVITY_TYPES } from './index.constants'
 
-export interface ActivityLogEntry {
-  id: string
-  type: ActivityType
-  title: string
-  description: string
-  category?: string
-  timestamp: number
-  totalHours: number
-  age: number
-  day: number
-}
-
-const MAX_ENTRIES = 100
-
-export const ACTIVITY_TYPES = {
-  ACTION: 'action',
-  EVENT: 'event',
-  WORK: 'work',
-  EDUCATION: 'education',
-  RECOVERY: 'recovery',
-  SOCIAL: 'social',
-} as const
-
-export type ActivityType = typeof ACTIVITY_TYPES[keyof typeof ACTIVITY_TYPES]
-
-export interface ActivityEntry {
-  id: string
-  type: ActivityType
-  title: string
-  description: string
-  category?: string
-  timestamp: number
-  totalHours: number
-  age: number
-  day: number
-}
+export { ACTIVITY_TYPES } from './index.constants'
 
 export const useActivityStore = defineStore('activity', () => {
   const entries = ref<ActivityEntry[]>([])
-  const nextId = ref(0)
+  const nextId = ref<number>(0)
 
-  const count = computed(() => entries.value.length)
-  const isEmpty = computed(() => entries.value.length === 0)
+  const count = computed<number>(() => entries.value.length)
+  const isEmpty = computed<boolean>(() => entries.value.length === 0)
 
-  const recentEntries = computed(() => entries.value.slice(-10))
-  const workEntries = computed(() => entries.value.filter(e => e.type === 'work'))
-  const educationEntries = computed(() => entries.value.filter(e => e.type === 'education'))
+  const recentEntries = computed<ActivityEntry[]>(() => entries.value.slice(-10))
+  const workEntries = computed<ActivityEntry[]>(() => entries.value.filter((e: ActivityEntry) => e.type === 'work'))
+  const educationEntries = computed<ActivityEntry[]>(() => entries.value.filter((e: ActivityEntry) => e.type === 'education'))
 
   const addEntry = (entry: Omit<ActivityEntry, 'id'>): void => {
     const newEntry: ActivityEntry = {
@@ -69,7 +36,7 @@ export const useActivityStore = defineStore('activity', () => {
       type: 'action',
       title,
       description,
-      category: metadata?.category as string,
+      category: typeof metadata?.category === 'string' ? metadata.category : undefined,
       timestamp: Date.now(),
       totalHours: 0,
       age: 18,
@@ -93,10 +60,7 @@ export const useActivityStore = defineStore('activity', () => {
     })
   }
 
-  const addEducationEntry = (
-    title: string,
-    hours: number
-  ): void => {
+  const addEducationEntry = (title: string, hours: number): void => {
     addEntry({
       type: 'education',
       title,
@@ -125,11 +89,11 @@ export const useActivityStore = defineStore('activity', () => {
   }
 
   const getEntriesByType = (type: ActivityType): ActivityEntry[] => {
-    return entries.value.filter(e => e.type === type)
+    return entries.value.filter((e: ActivityEntry) => e.type === type)
   }
 
   const getEntriesByCategory = (category: string): ActivityEntry[] => {
-    return entries.value.filter(e => e.category === category)
+    return entries.value.filter((e: ActivityEntry) => e.category === category)
   }
 
   const getEntries = (count: number = 10): ActivityEntry[] => {

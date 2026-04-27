@@ -5,43 +5,84 @@
       <RoundedPanel
         v-for="job in careerTrack"
         :key="job.id"
-        class="job-card"
         :class="{ current: job.current, locked: !job.unlocked, clickable: job.unlocked && !job.current }"
         :clickable="job.unlocked && !job.current"
         @click="takeJob(job)"
-      >
+        class="job-card"
+        >
         <div class="job-header">
           <span class="job-title">{{ job.name }}</span>
-          <span v-if="job.current" class="badge current-badge">Текущая</span>
-          <span v-else-if="job.unlocked" class="badge unlock-badge">Доступна</span>
-          <span v-else class="badge lock-badge">🔒</span>
+          <span
+            v-if="job.current"
+            class="badge current-badge"
+            >
+            Текущая
+          </span>
+          <span
+            v-else-if="job.unlocked"
+            class="badge unlock-badge"
+            >
+            Доступна
+          </span>
+          <span
+            v-else
+            class="badge lock-badge"
+            >
+            🔒
+          </span>
         </div>
         <div class="job-details">
-          <span class="detail">Уровень: {{ job.level }}</span>
-          <span class="detail">График: {{ job.schedule }}</span>
-          <span class="detail">ЗП: {{ formatMoney(job.salaryPerHour) }} ₽/ч</span>
+          <span class="detail">
+            Уровень: {{ job.level }}
+          </span>
+          <span class="detail">
+            График: {{ job.schedule }}
+          </span>
+          <span class="detail">
+            ЗП: {{ formatMoney(job.salaryPerHour) }} ₽/ч
+          </span>
         </div>
-        <div v-if="!job.unlocked" class="job-reqs">
-          <span v-if="job.missingProfessionalism > 0" class="req">
+        <div
+          v-if="!job.unlocked"
+          class="job-reqs"
+          >
+          <span
+            v-if="job.missingProfessionalism > 0"
+            class="req"
+            >
             Профессионализм: ещё {{ job.missingProfessionalism }} ур.
           </span>
-          <span class="req">Образование: {{ job.educationRequiredLabel }}</span>
+          <span class="req">
+            Образование: {{ job.educationRequiredLabel }}
+          </span>
         </div>
-        <div v-else-if="job.unlocked && !job.current" class="job-action-hint">
+        <div
+          v-else-if="job.unlocked && !job.current"
+          class="job-action-hint"
+          >
           Кликните, чтобы устроиться
         </div>
       </RoundedPanel>
     </div>
-    <p v-if="message" class="career-message">{{ message }}</p>
+    <p
+      v-if="message"
+      class="career-message"
+      >
+      {{ message }}
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import './CareerTrack.scss'
 
-import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
+import type { CareerTrackJob } from './CareerTrack.types'
+import type { EducationLevel } from '@stores/education-store/index.types'
+import { RANK_LABELS } from '@stores/education-store/index.constants'
 
-import { formatMoney } from '@/utils/format'
+import { CAREER_JOBS } from '@domain/balance/constants/career-jobs'
+
+import { formatMoney } from '@utils/format'
 
 const store = useGameStore()
 const skillsStore = useSkillsStore()
@@ -50,34 +91,18 @@ const careerStore = useCareerStore()
 
 const message = ref('')
 
-interface CareerTrackJob {
-  id: string
-  name: string
-  level: number
-  schedule: string
-  salaryPerHour: number
-  current: boolean
-  unlocked: boolean
-  missingProfessionalism: number
-  educationRequiredLabel: string
-}
-
 const careerTrack = computed<CareerTrackJob[]>(() => {
-  void store.worldTick
-  void skillsStore.totalLevels
-  void educationStore.educationRank
-  
-  const currentJobId = careerStore.currentJob?.id ?? ''
-  const educationRank = educationStore.educationRank
-  const professionalism = skillsStore.skills?.professionalism ?? 0
+  const currentJobId: string = careerStore.currentJob?.id ?? ''
+  const educationRank: number = educationStore.educationRank
+  const professionalism: number = skillsStore.skills?.professionalism?.level ?? 0
 
   return CAREER_JOBS.map(job => {
-    const educationRequiredLabel = job.minEducationRank === -1 
-      ? 'Любое' 
-      : RANK_LABELS[job.minEducationRank as EducationLevel] ?? 'Неизвестно'
-    
-    const missing = job.minProfessionalism - professionalism
-    const unlocked = professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank
+    const educationRequiredLabel: string = job.minEducationRank === -1
+      ? 'Любое'
+      : RANK_LABELS[job.minEducationRank as unknown as EducationLevel] ?? 'Неизвестно'
+
+    const missing: number = job.minProfessionalism - professionalism
+    const unlocked: boolean = professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank
 
     return {
       id: job.id,
@@ -95,6 +120,7 @@ const careerTrack = computed<CareerTrackJob[]>(() => {
 
 function takeJob(job: CareerTrackJob): void {
   if (!job.unlocked || job.current) return
+
   careerStore.startWork({
     id: job.id,
     name: job.name,

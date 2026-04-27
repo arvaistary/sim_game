@@ -3,8 +3,9 @@ import { resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const repoRoot = process.cwd();
-const inputTarget = process.argv[2] ?? 'src';
-const targetPath = resolve(repoRoot, inputTarget);
+const inputTargetRaw = process.argv[2] ?? 'src';
+const inputTarget = inputTargetRaw.replace(/\\/g, '/');
+const targetPath = resolve(repoRoot, inputTargetRaw);
 const maxFixPassesPerFile = 5;
 const skippedDirectoryNames = new Set(['node_modules', '.nuxt', '.output', '.git']);
 const chainMethodsPattern = 'map|filter|forEach|find|reduce';
@@ -433,6 +434,31 @@ function fixBlankLineBeforeReturn(content) {
   return { fixedContent: lines.join('\n'), fixesCount };
 }
 
+// Добавляет пустую строку между объявлением переменной и следующим if.
+function fixBlankLineBeforeIf(content) {
+  const lines = content.split(/\r?\n/);
+  let fixesCount = 0;
+
+  for (let index = 1; index < lines.length; index += 1) {
+    const currentTrimmed = lines[index].trim();
+    const previousTrimmed = lines[index - 1].trim();
+
+    if (!/^if\s*\(/.test(currentTrimmed)) {
+      continue;
+    }
+
+    if (!/^(const|let|var)\b/.test(previousTrimmed)) {
+      continue;
+    }
+
+    lines.splice(index, 0, '');
+    fixesCount += 1;
+    index += 1;
+  }
+
+  return { fixedContent: lines.join('\n'), fixesCount };
+}
+
 // Переносит однострочные `useSomeStore((state) => state.value)` в многострочный формат,
 // ожидаемый проектными правилами для Pinia-сторов.
 function fixPiniaStoreSelectorFormatting(content) {
@@ -684,6 +710,13 @@ function fixVueStyleImportPlacement(content) {
   const styleSrcMatch = fixedContent.match(styleSrcTagPattern);
   const stylePathMatch = fixedContent.match(/<style\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*><\/style>/);
   const stylePath = stylePathMatch?.[1] ?? '';
+  const emptyStyleTagPattern = /<style\b[^>]*>\s*<\/style>\s*/g;
+  const emptyStyleTagMatches = fixedContent.match(emptyStyleTagPattern) ?? [];
+
+  if (emptyStyleTagMatches.length) {
+    fixedContent = fixedContent.replace(emptyStyleTagPattern, '');
+    fixesCount += emptyStyleTagMatches.length;
+  }
 
   if (!stylePath) {
     return { fixedContent, fixesCount };
@@ -821,12 +854,256 @@ function fixRootAliasToCatalogAlias(content) {
   return { fixedContent, fixesCount };
 }
 
+function toPascalCase(value) {
+  return value
+    .replace(/[-_]+/g, ' ')
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
+    .join('');
+}
+
+function toSingularName(value) {
+  if (value.endsWith('ies') && value.length > 3) {
+    return `${value.slice(0, -3)}y`;
+  }
+  if (value.endsWith('s') && value.length > 1) {
+    return value.slice(0, -1);
+  }
+  return value;
+}
+
+function insertTypeDeclarationNearTop(content, declarationText) {
+  const lines = content.split(/\r?\n/);
+  let insertIndex = 0;
+
+  while (insertIndex < lines.length) {
+    const trimmed = lines[insertIndex].trim();
+    if (trimmed.startsWith('import ') || trimmed.startsWith('export ') && trimmed.includes(' from ')) {
+      insertIndex += 1;
+      continue;
+    }
+    if (trimmed === '') {
+      insertIndex += 1;
+      continue;
+    }
+    break;
+  }
+
+  const block = declarationText.split('\n');
+  lines.splice(insertIndex, 0, ...block, '');
+  return lines.join('\n');
+}
+
+// Выносит inline Array<{ ... }> в именованный interface внутри текущего файла.
+function fixInlineArrayObjectTypes(content) {
+  let fixedContent = content;
+  let fixesCount = 0;
+
+  const propertyInlineArrayPattern = /(\b([A-Za-z_$][\w$]*)\s*:\s*)Array<\{\s*([\s\S]*?)\s*\}>/g;
+  const pendingDeclarations = [];
+
+  fixedContent = fixedContent.replace(propertyInlineArrayPattern, (fullMatch, prefix, propertyName, objectBodyRaw) => {
+    const objectBody = objectBodyRaw.trim();
+    if (!objectBody || !/:\s*/.test(objectBody)) {
+      return fullMatch;
+    }
+
+    const singularProperty = toSingularName(propertyName);
+    const typeBaseName = toPascalCase(singularProperty);
+    const interfaceName = `${typeBaseName || 'Inline'}Item`;
+
+    if (new RegExp(`\\b(?:interface|type)\\s+${interfaceName}\\b`).test(fixedContent)) {
+      fixesCount += 1;
+      return `${prefix}Array<${interfaceName}>`;
+    }
+
+    const normalizedFields = objectBody
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => `  ${line.replace(/;$/, '')}`)
+      .join('\n');
+
+    pendingDeclarations.push(`interface ${interfaceName} {\n${normalizedFields}\n}`);
+    fixesCount += 1;
+    return `${prefix}Array<${interfaceName}>`;
+  });
+
+  if (!pendingDeclarations.length) {
+    return { fixedContent, fixesCount };
+  }
+
+  const uniqueDeclarations = [...new Set(pendingDeclarations)];
+  for (const declaration of uniqueDeclarations) {
+    if (fixedContent.includes(declaration.split('\n')[0])) {
+      continue;
+    }
+    fixedContent = insertTypeDeclarationNearTop(fixedContent, declaration);
+  }
+
+  return { fixedContent, fixesCount };
+}
+
+// Выносит inline object return type у exported function в именованный type.
+// Пример:
+// export function validate(): { ok: boolean } { ... }
+// =>
+// type ValidateReturn = { ok: boolean };
+// export function validate(): ValidateReturn { ... }
+function fixInlineExportedReturnObjectTypes(content) {
+  let fixedContent = content;
+  let fixesCount = 0;
+
+  const exportedInlineReturnPattern =
+    /export\s+(async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*:\s*\{([\s\S]*?)\}\s*\{/g;
+  const pendingTypeDeclarations = [];
+
+  fixedContent = fixedContent.replace(
+    exportedInlineReturnPattern,
+    (fullMatch, asyncPrefix = '', functionName, params, returnObjectBody) => {
+      const returnBody = (returnObjectBody ?? '').trim();
+      if (!returnBody || !/:\s*/.test(returnBody)) {
+        return fullMatch;
+      }
+
+      const typeName = `${toPascalCase(functionName)}Return`;
+      const typeDeclaration = `type ${typeName} = {\n${returnBody
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => `  ${line.replace(/;$/, '')}`)
+        .join('\n')}\n};`;
+
+      if (!new RegExp(`\\b(?:type|interface)\\s+${typeName}\\b`).test(fixedContent)) {
+        pendingTypeDeclarations.push(typeDeclaration);
+      }
+
+      fixesCount += 1;
+      return `export ${asyncPrefix}function ${functionName}(${params}): ${typeName} {`;
+    },
+  );
+
+  if (!pendingTypeDeclarations.length) {
+    return { fixedContent, fixesCount };
+  }
+
+  const uniqueDeclarations = [...new Set(pendingTypeDeclarations)];
+  for (const declaration of uniqueDeclarations) {
+    if (fixedContent.includes(declaration.split('\n')[0])) {
+      continue;
+    }
+    fixedContent = insertTypeDeclarationNearTop(fixedContent, declaration);
+  }
+
+  return { fixedContent, fixesCount };
+}
+
+function inferSimpleVariableType(initializerRaw) {
+  const initializer = initializerRaw.trim();
+
+  if (/^computed\s*</.test(initializer) || /^computed\s*\(/.test(initializer)) {
+    return null;
+  }
+  if (initializer.includes('?') && initializer.includes(':')) {
+    return null;
+  }
+
+  if (/^['"`][\s\S]*['"`]$/.test(initializer)) {
+    return 'string';
+  }
+  if (/^-?\d+(?:\.\d+)?$/.test(initializer)) {
+    return 'number';
+  }
+  if (/^(true|false)$/.test(initializer)) {
+    return 'boolean';
+  }
+  if (/\?\?\s*['"`][\s\S]*['"`]\s*$/.test(initializer)) {
+    return 'string';
+  }
+  if (/\?\?\s*-?\d+(?:\.\d+)?\s*$/.test(initializer)) {
+    return 'number';
+  }
+  if (/\?\?\s*(true|false)\s*$/.test(initializer)) {
+    return 'boolean';
+  }
+  if (/^[^?:]*\s*(\|\||&&|!|===|!==|==|!=|>=|<=|>|<)\s*[^?:]*$/.test(initializer)) {
+    return 'boolean';
+  }
+  if (/^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\?.[A-Za-z_$][\w$]*|\[[^\]]+\])*\s*[-+*/]\s*.+$/.test(initializer)) {
+    return 'number';
+  }
+
+  return null;
+}
+
+// Добавляет явные аннотации для локальных переменных в безопасно-выводимых случаях.
+function fixExplicitVariableAnnotations(content) {
+  const lines = content.split(/\r?\n/);
+  let fixesCount = 0;
+  let inScriptSetup = !content.includes('<script');
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (/^<script\s+setup\s+lang="ts"\s*>/.test(trimmed)) {
+      inScriptSetup = true;
+      continue;
+    }
+    if (/^<\/script>/.test(trimmed)) {
+      inScriptSetup = false;
+      continue;
+    }
+    if (!inScriptSetup) {
+      continue;
+    }
+    if (!/^(const|let|var)\s+/.test(trimmed)) {
+      continue;
+    }
+    if (/^(const|let|var)\s+[{[]/.test(trimmed)) {
+      continue;
+    }
+    if (/^(const|let|var)\s+[A-Za-z_$][\w$]*\s*:/.test(trimmed)) {
+      continue;
+    }
+    if (/=\s*use[A-Z][A-Za-z0-9_]*(?:\s*<[^>]+>)?\s*\(/.test(trimmed)) {
+      continue;
+    }
+
+    const declarationMatch = line.match(/^(\s*)(const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(.+?)(;)?\s*$/);
+    if (!declarationMatch) {
+      continue;
+    }
+
+    const [, indent, declarationKind, variableName, initializer, semicolon] = declarationMatch;
+    const inferredType = inferSimpleVariableType(initializer);
+    if (!inferredType) {
+      continue;
+    }
+
+    lines[index] = `${indent}${declarationKind} ${variableName}: ${inferredType} = ${initializer}${semicolon ?? ''}`;
+    fixesCount += 1;
+  }
+
+  return {
+    fixedContent: lines.join('\n'),
+    fixesCount,
+  };
+}
+
 // Запускает `eslint --fix` и, если доступен, `prettier` для дочистки форматных правок.
 function runEslintFix() {
   const eslintCli = resolve(repoRoot, 'node_modules/eslint/bin/eslint.js');
+  const hasEslintFlatConfig =
+    existsSync(resolve(repoRoot, 'eslint.config.js')) ||
+    existsSync(resolve(repoRoot, 'eslint.config.mjs')) ||
+    existsSync(resolve(repoRoot, 'eslint.config.cjs'));
+  const isFileTarget = statSync(targetPath).isFile();
 
-  if (existsSync(eslintCli)) {
-    spawnSync(process.execPath, [eslintCli, '--fix', inputTarget], {
+  if (existsSync(eslintCli) && hasEslintFlatConfig) {
+    spawnSync(process.execPath, [eslintCli, '--fix', inputTargetRaw], {
       cwd: repoRoot,
       stdio: 'inherit',
     });
@@ -835,7 +1112,8 @@ function runEslintFix() {
   // Запускаем prettier, если он установлен
   const prettierCli = resolve(repoRoot, 'node_modules/prettier/bin/prettier.cjs');
   if (existsSync(prettierCli)) {
-    spawnSync(process.execPath, [prettierCli, '--write', `${inputTarget}/**/*.{ts,vue,js,json,css}`], {
+    const prettierTarget = isFileTarget ? inputTargetRaw : `${inputTarget}/**/*.{ts,vue,js,json,css}`;
+    spawnSync(process.execPath, [prettierCli, '--write', prettierTarget], {
       cwd: repoRoot,
       stdio: 'inherit',
     });
@@ -856,11 +1134,15 @@ const contentFixers = [
   fixVueLifecycleNamedFunction,
   fixAsyncSingleAwaitTailToReturn,
   fixVoidFireAndForgetCalls,
+  fixBlankLineBeforeIf,
   fixBlankLineBetweenConsecutiveIf,
   fixBlankLineBeforeReturn,
   fixVueStyleImportPlacement,
   fixVueStyleImportFirstAndSpacing,
   fixRootAliasToCatalogAlias,
+  fixInlineArrayObjectTypes,
+  fixInlineExportedReturnObjectTypes,
+  fixExplicitVariableAnnotations,
 ];
 
 for (const filePath of filePaths) {

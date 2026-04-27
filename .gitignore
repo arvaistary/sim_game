@@ -1,32 +1,54 @@
+# Dependencies
 node_modules/
-dist/
-.DS_Store
-*.log
-*.tsbuildinfo
 
+# Build output
+dist/
+*.tgz
+
+# Nuxt
 .nuxt/
 .output/
-_temp_test/
 
-.roo/
-.cursor/
-.kilo/
-.qwen/
-.venv/
-.mempalace/
-.tmp-mempalace/
-.aider*
-.nuxt
-.output
+# TypeScript
+*.tsbuildinfo
 
-opencode.json
+# Test & Coverage
+coverage/
 test-results.json
 test.html
 
-# Local tooling/temp directories
-_temp_test/
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# AI tooling
+.aider*
 .cursor/
-.nuxt/
-.output/
+.kilo/
 .qwen/
 .roo/
+
+# Local tooling
+.mempalace/
+.tmp-mempalace/
+.venv/
+opencode.json
+
+# Temp artifacts
+_temp_test/
+*.swp
+
+# Documentation & artifacts
+doc/
+docs/
+artifact/
+new_doc/
+plans/

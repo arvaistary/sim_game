@@ -1,0 +1,23 @@
+.stat-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-bar__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-bar__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.stat-bar__value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}

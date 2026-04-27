@@ -1,5 +1,5 @@
 ﻿/**
- * Утилита для отслеживания смены возрастных групп.
+ * @description age-unlocks - Утилита для отслеживания смены возрастных групп.
  * Вызывается при изменении возраста и показывает уведомления о разблокировке вкладок.
  *
  * Импортирует константы из age-constants.ts - единый источник истины.
@@ -10,23 +10,20 @@ import {
   UNLOCK_MESSAGES,
   getAgeGroup,
 } from './age-constants'
-import type { AgeRestrictions } from './age-constants'
 
-// Используем AgeGroup enum вместо числовых литералов
-const RULES = AGE_RULES as Record<AgeGroup, AgeRestrictions>
-
-let lastKnownAge = 0
-let unlockedTabsCache = new Set<string>()
+let lastKnownAge: number = 0
+let unlockedTabsCache: Set<string> = new Set()
 
 /**
- * Проверить разблокировку вкладок при смене возраста.
- * Вызывать при каждом изменении age.
+ * @description age-unlocks - Проверить разблокировку вкладок при смене возраста. Вызывать при каждом изменении age.
+ * @param {number} currentAge - Текущий возраст.
+ * @return {void}
  */
 export function checkAgeUnlocks(currentAge: number): void {
   if (currentAge <= lastKnownAge) return
 
-  const previousGroup = getAgeGroup(lastKnownAge)
-  const newGroup = getAgeGroup(currentAge)
+  const previousGroup: AgeGroup = getAgeGroup(lastKnownAge)
+  const newGroup: AgeGroup = getAgeGroup(currentAge)
 
   if (previousGroup === newGroup) {
     lastKnownAge = currentAge
@@ -34,13 +31,14 @@ export function checkAgeUnlocks(currentAge: number): void {
     return
   }
 
-  const previousHidden = new Set(RULES[previousGroup].hiddenTabs)
-  const newHidden = new Set(RULES[newGroup].hiddenTabs)
+  const previousHidden: Set<string> = new Set(AGE_RULES[previousGroup].hiddenTabs)
+  const newHidden: Set<string> = new Set(AGE_RULES[newGroup].hiddenTabs)
 
-  const justUnlocked = [...previousHidden].filter(tab => !newHidden.has(tab))
+  const justUnlocked: string[] = [...previousHidden].filter((tab: string) => !newHidden.has(tab))
 
   const toast = useToast()
-  justUnlocked.forEach(tabId => {
+  
+  justUnlocked.forEach((tabId: string) => {
     if (!unlockedTabsCache.has(tabId) && UNLOCK_MESSAGES[tabId]) {
       toast.showSuccess(UNLOCK_MESSAGES[tabId])
       unlockedTabsCache.add(tabId)
@@ -51,7 +49,8 @@ export function checkAgeUnlocks(currentAge: number): void {
 }
 
 /**
- * Сбросить состояние (для тестов или нового сохранения).
+ * @description age-unlocks - Сбросить состояние (для тестов или нового сохранения).
+ * @return {void}
  */
 export function resetAgeUnlocksState(): void {
   lastKnownAge = 0

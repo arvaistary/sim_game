@@ -4,25 +4,28 @@
       v-for="choice in choices"
       :key="choice.id"
       :label="choice.text"
+      @click="$emit('select', choice)"
       color="var(--color-accent)"
       text-color="#fff"
       class="choice-btn"
-      @click="$emit('select', choice)"
-    />
+      />
   </div>
 </template>
 
 <script setup lang="ts">
-
 import './EventChoices.scss'
 
-defineProps<{
+import type { ChoiceItem } from './EventChoices.types'
 
-  choices: Array<{ id: string; text: string }>
+/**
+ * @prop {ChoiceItem[]} choices - Список вариантов выбора для события
+ */
+defineProps<{
+  choices: ChoiceItem[]
 }>()
 
 defineEmits<{
-  select: [choice: { id: string; text: string }]
+  select: [choice: ChoiceItem]
 }>()
 </script>
 

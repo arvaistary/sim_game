@@ -1,7 +1,18 @@
 <template>
-  <div class="progress-bar" :style="containerStyle">
-    <div class="progress-bar__fill" :style="fillStyle" />
-    <span v-if="showValue" class="progress-bar__value">{{ Math.round(value) }}</span>
+  <div
+    :style="containerStyle"
+    class="progress-bar"
+    >
+    <div
+      :style="fillStyle"
+      class="progress-bar__fill"
+      />
+    <span
+      v-if="showValue"
+      class="progress-bar__value"
+      >
+      {{ Math.round(value) }}
+    </span>
   </div>
 </template>
 
@@ -9,6 +20,13 @@
 
 import './style.scss'
 
+/**
+ * @prop {number} value - Текущее значение прогресса
+ * @prop {number} [max] - Максимальное значение (знаменатель)
+ * @prop {string} [color] - Цвет заливки полосы
+ * @prop {number} [height] - Высота полосы в пикселях
+ * @prop {boolean} [showValue] - Показывать числовое значение внутри полосы
+ */
 const props = withDefaults(defineProps<{
   value: number
   max?: number
@@ -22,7 +40,7 @@ const props = withDefaults(defineProps<{
   showValue: false,
 })
 
-const percentage = computed(() => Math.min(100, Math.max(0, (props.value / props.max) * 100)))
+const percentage = computed<number>(() => Math.min(100, Math.max(0, (props.value / props.max) * 100)))
 
 const containerStyle = computed(() => ({
   height: `${props.height}px`,

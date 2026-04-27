@@ -1,38 +1,51 @@
+import type { GameEvent, EventChoice } from '@stores/events-store/index.types'
+
+/**
+ * @description [Composables] - Предоставляет функции для работы с событиями: загрузка следующего события, применение выбора игрока.
+ * @return { object } Объект с currentEvent, hasNextEvent, loadNextEvent, applyChoice.
+ */
 export const useEvents = () => {
   const eventsStore = useEventsStore()
   const timeStore = useTimeStore()
   const statsStore = useStatsStore()
   const activityStore = useActivityStore()
 
-  const currentEvent = ref<EventQueueItem | null>(null)
+  const currentEvent = ref<GameEvent | null>(null)
 
-  const hasNextEvent = computed(() => {
+  const hasNextEvent = computed<boolean>(() => {
     void timeStore.totalHours
 
     return eventsStore.hasEvent
   })
 
-  function loadNextEvent(): EventQueueItem | null {
-    eventsStore.showNextEvent()
-    const next = eventsStore.currentEvent
+  function loadNextEvent(): GameEvent | null {
+    if (!eventsStore.currentEvent) {
+      eventsStore.showNextEvent()
+    }
+
+    const next: GameEvent | null = eventsStore.currentEvent
+
     if (!next) {
       currentEvent.value = null
 
       return null
     }
-    currentEvent.value = next as unknown as EventQueueItem
+    currentEvent.value = next
 
     return currentEvent.value
   }
 
   function applyChoice(choiceId: string): boolean {
     if (!currentEvent.value?.choices) return false
-    const choice = currentEvent.value.choices.find(
-      (c: EventChoice) => c.id === choiceId) as EventChoice | undefined
+
+    const choice: EventChoice | undefined = currentEvent.value.choices.find(
+      (c: EventChoice) => c.id === choiceId,
+    )
+
     if (!choice) return false
 
     if (choice.effects) {
-      statsStore.applyStatChanges(choice.effects)
+      statsStore.applyStatChangesRaw(choice.effects)
     }
 
     eventsStore.resolveCurrentEvent(choiceId, choice.text, choice.effects)
@@ -40,7 +53,7 @@ export const useEvents = () => {
     activityStore.addEventEntry(
       currentEvent.value.title,
       choice.text,
-      choice.outcome
+      choice.outcome,
     )
 
     currentEvent.value = null

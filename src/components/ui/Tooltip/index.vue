@@ -1,7 +1,5 @@
 <template>
   <div
-    ref="wrapperRef"
-    class="tooltip-wrapper"
     :class="{
       'tooltip-wrapper--bottom': placement === 'bottom',
       'tooltip-wrapper--stretch': stretch,
@@ -11,21 +9,23 @@
     @mouseleave="onLeave"
     @mousemove="onMove"
     @click="onWrapperClick"
-  >
+    ref="wrapperRef"
+    class="tooltip-wrapper"
+    >
     <slot />
     <Teleport to="body">
       <Transition name="tooltip">
         <div
           v-if="show && text"
-          ref="tooltipEl"
-          class="tooltip"
           :class="{
             'tooltip--multiline': multiline,
             'tooltip--follow': followCursor,
             'tooltip--interactive': pinOnClick && pinned,
           }"
           :style="tooltipStyle"
-        >
+          ref="tooltipEl"
+          class="tooltip"
+          >
           {{ text }}
         </div>
       </Transition>
@@ -36,20 +36,20 @@
 <script setup lang="ts">
 import './style.scss'
 
+/**
+ * @prop {string} [text] - Текст подсказки
+ * @prop {boolean} [multiline] - Разрешить переносы строк и ограниченную ширину (длинные подсказки)
+ * @prop {'top' | 'bottom' | 'follow'} [placement] - Позиционирование: сверху, снизу или следование за курсором
+ * @prop {boolean} [stretch] - Растянуть на всю ширину родителя
+ * @prop {boolean} [followCursor] - Следовать за курсором мыши
+ * @prop {boolean} [pinOnClick] - Закреплять подсказку по клику на якорь
+ */
 const props = withDefaults(defineProps<{
   text?: string
-  /** Разрешить переносы строк и ограниченную ширину (длинные подсказки) */
   multiline?: boolean
-  /** Снизу от якоря — удобно в прокручиваемых контейнерах и модалках */
   placement?: 'top' | 'bottom' | 'follow'
-  /** На всю ширину родителя (строки списка) */
   stretch?: boolean
-  /** Следовать за курсором */
   followCursor?: boolean
-  /**
-   * Клик по якорю закрепляет подсказку (удобно без hover).
-   * Повторный клик по якорю или снаружи — закрывает.
-   */
   pinOnClick?: boolean
 }>(), {
   placement: 'top',
@@ -61,7 +61,8 @@ const wrapperRef = ref<HTMLElement | null>(null)
 const mouseX = ref(0)
 const mouseY = ref(0)
 
-const tooltipStyle = computed(() => {
+const tooltipStyle = computed<Record<string, string | undefined>>(() => {
+
   if (props.followCursor || props.placement === 'follow') {
     return {
       position: 'fixed' as const,
@@ -93,11 +94,14 @@ function onWrapperClick(e: MouseEvent) {
 
 function onDocPointerDown(e: MouseEvent) {
   if (!props.pinOnClick || !pinned.value) return
-  const t = e.target
+  const t: EventTarget | null = e.target
+
   if (!(t instanceof Node)) return
   // Подсказка в Teleport(body) — клик по тексту не должен считаться «снаружи»
+
   if (t instanceof Element && t.closest('.tooltip')) return
-  const root = wrapperRef.value
+  const root: HTMLElement | null = wrapperRef.value
+
   if (!root?.contains(t)) {
     pinned.value = false
     show.value = false

@@ -1,5 +1,5 @@
-import type { StatChanges } from '@/domain/balance/types'
-import { AgeGroup } from '@/domain/balance/actions/types'
+import type { StatChanges } from '@domain/balance/types'
+import { AgeGroup } from '@domain/balance/actions/types'
 
 /** Тип события по значимости */
 export type ChildhoodEventType = 'everyday' | 'formative' | 'fateful'

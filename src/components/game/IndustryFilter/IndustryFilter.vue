@@ -1,10 +1,10 @@
 <template>
   <div class="industry-filter">
     <select
-      class="industry-select"
       :value="activeIndustry"
       @change="$emit('update:activeIndustry', ($event.target as HTMLSelectElement).value)"
-    >
+      class="industry-select"
+      >
       <option
         v-for="industry in industries"
         :key="industry.id"
@@ -19,8 +19,12 @@
 <script setup lang="ts">
 import './IndustryFilter.scss'
 
-import type { Industry } from '@/constants/work-categories'
+import type { Industry } from '@constants/work-categories.types'
 
+/**
+ * @prop {Industry[]} industries - Список отраслей для фильтра
+ * @prop {string} activeIndustry - Идентификатор выбранной отрасли
+ */
 defineProps<{
   industries: Industry[]
   activeIndustry: string

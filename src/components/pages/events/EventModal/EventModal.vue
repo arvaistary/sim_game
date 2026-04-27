@@ -1,9 +1,9 @@
 <template>
   <Modal
+    @close="handleClose"
     title="Событие"
     max-width="480px"
-    @close="handleClose"
-  >
+    >
     <div class="event-modal">
       <EmptyState
         v-if="!currentEvent && !resultText"
@@ -12,7 +12,10 @@
 
       <template v-if="currentEvent && !resultText">
         <EventCard :event="currentEvent" />
-        <EventChoices :choices="currentEvent.choices ?? []" @select="selectChoice" />
+        <EventChoices
+          :choices="currentEvent.choices ?? []"
+          @select="selectChoice"
+          />
       </template>
 
       <EventResult
@@ -27,6 +30,11 @@
 </template>
 
 <script setup lang="ts">
+import './EventModal.scss'
+
+import type { EventChoice } from './EventModal.types'
+import type { EventQueueItem } from '@stores/events-store/index.types'
+
 import EventCard from '../EventCard/EventCard.vue'
 import EventChoices from '../EventChoices/EventChoices.vue'
 import EventResult from '../EventResult/EventResult.vue'
@@ -38,17 +46,18 @@ const emit = defineEmits<{
 const events = useEvents()
 const toast = useToast()
 
-const resultText = ref('')
+const resultText = ref<string>('')
 
-const currentEvent = computed(() => events.currentEvent.value)
-const hasNextEvent = computed(() => events.hasNextEvent.value)
+const currentEvent = computed<EventQueueItem | null>(() => events.currentEvent.value)
+const hasNextEvent = computed<boolean>(() => events.hasNextEvent.value)
 
 onMounted(() => {
   events.loadNextEvent()
 })
 
-function selectChoice(choice: { id: string; text: string }) {
-  const ok = events.applyChoice(choice.id)
+function selectChoice(choice: EventChoice): void {
+  const ok: boolean = events.applyChoice(choice.id)
+
   if (!ok) {
     toast.showError('Не удалось применить выбор')
 
@@ -58,24 +67,17 @@ function selectChoice(choice: { id: string; text: string }) {
   resultText.value = `Вы выбрали: ${choice.text}`
 }
 
-function proceedNext() {
+function proceedNext(): void {
   resultText.value = ''
-  const next = events.loadNextEvent()
+  const next: unknown = events.loadNextEvent()
+
   if (!next) {
     toast.showInfo('Больше нет событий')
     handleClose()
   }
 }
 
-function handleClose() {
+function handleClose(): void {
   emit('close')
 }
 </script>
-
-<style scoped lang="scss">
-.event-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-</style>

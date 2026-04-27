@@ -1,4 +1,4 @@
-import type { RecoveryTab, RecoveryCard } from '@/domain/balance/types'
+import type { RecoveryTab, RecoveryCard } from '@domain/balance/types'
 
 interface ExtendedRecoveryCard extends RecoveryCard {
   reserveDelta?: number

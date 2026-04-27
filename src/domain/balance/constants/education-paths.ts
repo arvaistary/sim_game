@@ -1,4 +1,4 @@
-import type { EducationPath } from '@/domain/balance/types'
+import type { EducationPath } from '@domain/balance/types'
 
 export const EDUCATION_PATHS: EducationPath[] = [
   {

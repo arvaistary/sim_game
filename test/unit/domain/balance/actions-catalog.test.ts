@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { getAllActions } from '@/domain/balance/actions'
+import { getAllActions } from '@domain/balance/actions'
 
 describe('domain/balance actions catalog', () => {
   test('returns non-empty action list', () => {

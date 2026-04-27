@@ -1,10 +1,10 @@
 <template>
   <Modal
     v-if="skillsWithProgress.length"
+    @close="handleClose"
     title="Мои навыки"
     max-width="520px"
-    @close="handleClose"
-  >
+    >
     <div class="skills-modal__scroll">
       <ul class="skills-list">
         <li
@@ -19,8 +19,12 @@
             stretch
           >
             <span class="skills-list__row">
-              <span class="skills-list__name">{{ skill.label }}</span>
-              <span class="skills-list__level">{{ level }} ур.</span>
+              <span class="skills-list__name">
+                {{ skill.label }}
+              </span>
+              <span class="skills-list__level">
+                {{ level }} ур.
+              </span>
             </span>
           </Tooltip>
         </li>
@@ -30,9 +34,12 @@
 </template>
 
 <script setup lang="ts">
-import { ALL_SKILLS } from '@/domain/balance/constants/skills-constants'
-import { buildSkillTooltipText } from '@/domain/balance/utils/skill-tooltip-content'
-import type { SkillDef } from '@/domain/balance/types'
+import './SkillsModal.scss'
+
+import { ALL_SKILLS } from '@domain/balance/constants/skills-constants'
+import { buildSkillTooltipText } from '@domain/balance/utils/skill-tooltip-content'
+import type { SkillDef } from '@domain/balance/types'
+import type { SkillWithProgress } from './SkillsModal.types'
 
 const emit = defineEmits<{
   close: []
@@ -44,7 +51,7 @@ function skillLevel(key: string): number {
   return skillsStore.getSkillLevel(key)
 }
 
-const skillsWithProgress = computed(() => {
+const skillsWithProgress = computed<SkillWithProgress[]>(() => {
   return ALL_SKILLS
     .map(skill => ({ skill, level: skillLevel(skill.key) }))
     .filter(({ level }) => level >= 1)
@@ -59,50 +66,3 @@ function handleClose() {
   emit('close')
 }
 </script>
-
-<style scoped lang="scss">
-.skills-modal__scroll {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.skills-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.skills-list__item {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--color-border);
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.skills-list__row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.skills-list__name {
-  font-size: 14px;
-  color: var(--color-text-primary);
-}
-
-.skills-list__level {
-  font-size: 13px;
-  color: var(--color-accent);
-  font-weight: 600;
-}
-
-.skills-list__empty {
-  text-align: center;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  margin: 20px 0;
-}
-</style>

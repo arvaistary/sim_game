@@ -1,19 +1,11 @@
-
-
-export interface ToastItem {
-  id: number
-  message: string
-  type: 'success' | 'error' | 'warning' | 'info'
-  visible: boolean
-}
+import type { ToastItem } from './index.types'
+import { DEFAULT_TIMEOUT } from './index.constants'
 
 const toasts = ref<ToastItem[]>([])
-let nextId = 0
-
-const DEFAULT_TIMEOUT = 3000
+let nextId: number = 0
 
 function addToast(message: string, type: ToastItem['type'], timeout = DEFAULT_TIMEOUT): void {
-  const id = nextId++
+  const id: number = nextId++
   const toast: ToastItem = { id, message, type, visible: true }
   toasts.value.push(toast)
 
@@ -21,16 +13,26 @@ function addToast(message: string, type: ToastItem['type'], timeout = DEFAULT_TI
 }
 
 function dismiss(id: number): void {
-  const idx = toasts.value.findIndex((t) => t.id === id)
+  const idx: number = toasts.value.findIndex((toast) => toast.id === id)
+
   if (idx !== -1) {
-    toasts.value[idx].visible = false
+    const toast: ToastItem | undefined = toasts.value[idx]
+
+    if (!toast) return
+
+    toast.visible = false
+
     setTimeout(() => {
-      toasts.value = toasts.value.filter((t) => t.id !== id)
+      toasts.value = toasts.value.filter((toast) => toast.id !== id)
     }, 300)
   }
 }
 
-export function useToast() {
+/**
+ * @description [Composable] - provides toast notifications and dismissal helpers.
+ * @return { ReturnType } toast collection and toast actions
+ */
+export const useToast = () => {
   function showSuccess(message: string): void {
     addToast(message, 'success')
   }
@@ -56,4 +58,3 @@ export function useToast() {
     dismiss,
   }
 }
-

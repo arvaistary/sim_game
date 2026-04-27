@@ -1,25 +1,30 @@
-import { getActionById } from '@/domain/balance/actions/index'
-import { getSkillByKey } from '@/domain/balance/constants/skills-constants'
-import { ACTION_ID_PATTERN, ACTION_ID_ALIASES } from '@/domain/balance/constants/activity-log'
-import { METRIC_LABELS } from '@/constants/metric-labels'
-import type { ActionMetadata, ActivityLogEntry } from '@/domain/balance/types/activity-log'
+import { ACTION_ID_ALIASES, ACTION_ID_PATTERN } from '@domain/balance/constants/activity-log'
+import { getActionById } from '@domain/balance/actions/index'
+import { getSkillByKey } from '@domain/balance/constants/skills-constants'
+import { METRIC_LABELS } from '@constants/metric-labels'
+import type { BalanceAction } from '@domain/balance/actions/types'
+import type { ActionMetadata, ActivityLogEntry } from '@domain/balance/types/activity-log'
+import type { SkillDef } from '@domain/balance/types'
 
 function normalizeActionId(actionId: unknown): string | null {
   if (typeof actionId !== 'string' || actionId.length === 0) return null
-  const normalized = actionId.trim().toLowerCase()
+
+  const normalized: string = actionId.trim().toLowerCase()
 
   return ACTION_ID_ALIASES[normalized] || normalized
 }
 
 function extractActionIdFromTitle(title: string): string | null {
   if (typeof title !== 'string' || title.length === 0) return null
-  const trimmed = title.trim()
+
+  const trimmed: string = title.trim()
 
   if (ACTION_ID_PATTERN.test(trimmed)) {
     return normalizeActionId(trimmed)
   }
 
-  const actionLogMatch = trimmed.match(/^📝\s+([a-z0-9]+(?:_[a-z0-9]+)+)$/i)
+  const actionLogMatch: RegExpMatchArray | null = trimmed.match(/^📝\s+([a-z0-9]+(?:_[a-z0-9]+)+)$/i)
+
   if (actionLogMatch) {
     return normalizeActionId(actionLogMatch[1])
   }
@@ -28,25 +33,27 @@ function extractActionIdFromTitle(title: string): string | null {
 }
 
 function formatNumber(value: number, fractionDigits = 1): string {
-  const rounded = Number(value.toFixed(fractionDigits))
+  const rounded: number = Number(value.toFixed(fractionDigits))
 
   return `${rounded}`
 }
 
 function resolveMetricLabel(metricKey: string): string {
-  const key = String(metricKey || '').trim()
+  const key: string = String(metricKey || '').trim()
+
   if (!key) return ''
 
   if (METRIC_LABELS[key]) return METRIC_LABELS[key]
 
-  const skill = getSkillByKey(key)
+  const skill: SkillDef | undefined = getSkillByKey(key)
+
   if (skill?.label) return skill.label
 
   return key
 }
 
 function formatSignedValue(value: number, fractionDigits = 1): string {
-  const sign = value > 0 ? '+' : ''
+  const sign: string = value > 0 ? '+' : ''
 
   return `${sign}${formatNumber(value, fractionDigits)}`
 }
@@ -55,14 +62,15 @@ function buildActionEffectsFromMetadata(metadata: ActionMetadata | null | undefi
   if (!metadata || typeof metadata !== 'object') return ''
 
   const parts: string[] = []
-  const statChanges = metadata.statChanges
-  const skillChanges = metadata.skillChanges
-  const moneyDelta = metadata.moneyDelta
-  const hoursSpent = metadata.hoursSpent
+  const statChanges: Record<string, number> | undefined = metadata.statChanges
+  const skillChanges: Record<string, number> | undefined = metadata.skillChanges
+  const moneyDelta: number | undefined = metadata.moneyDelta
+  const hoursSpent: number | undefined = metadata.hoursSpent
 
   if (statChanges && typeof statChanges === 'object') {
     for (const [key, value] of Object.entries(statChanges)) {
       if (typeof value !== 'number' || value === 0) continue
+
       parts.push(`${resolveMetricLabel(key)}: ${formatSignedValue(value, 1)}`)
     }
   }
@@ -70,6 +78,7 @@ function buildActionEffectsFromMetadata(metadata: ActionMetadata | null | undefi
   if (skillChanges && typeof skillChanges === 'object') {
     for (const [key, value] of Object.entries(skillChanges)) {
       if (typeof value !== 'number' || value === 0) continue
+
       parts.push(`${resolveMetricLabel(key)}: ${formatSignedValue(value, 1)}`)
     }
   }
@@ -84,52 +93,72 @@ function buildActionEffectsFromMetadata(metadata: ActionMetadata | null | undefi
 
   if (parts.length === 0) return ''
 
-  return parts.map((line) => `• ${line}`).join('\n')
+  return parts.map((line: string) => `• ${line}`).join('\n')
 }
 
 function translateRawEffectsText(rawText: unknown): string {
-  const raw = typeof rawText === 'string' ? rawText.trim() : ''
+  const raw: string = typeof rawText === 'string' ? rawText.trim() : ''
+
   if (!raw) return ''
 
-  const chunks = raw.split(',').map((chunk) => chunk.trim()).filter(Boolean)
+  const chunks: string[] = raw
+    .split(',')
+    .map((chunk: string): string => chunk.trim())
+    .filter(Boolean)
+
   if (chunks.length === 0) return raw
 
-  const translated = chunks.map(
-    (chunk) => {
-    const match = chunk.match(/^([a-z0-9_]+)\s*:\s*([+-]?\d+(?:\.\d+)?)$/i)
-    if (!match) return chunk
+  const translated: string[] = chunks.map(
+    (chunk: string): string => {
+      const match: RegExpMatchArray | null = chunk.match(/^([a-z0-9_]+)\s*:\s*([+-]?\d+(?:\.\d+)?)$/i)
 
-    const key = match[1]
-    const value = Number(match[2])
-    if (!Number.isFinite(value)) return chunk
+      if (!match) return chunk
 
-    return `${resolveMetricLabel(key)}: ${formatSignedValue(value, 1)}`
-  })
+      const key: string = match[1] ?? ''
+      const value: number = Number(match[2] ?? NaN)
 
-  return translated.map((line) => `• ${line}`).join('\n')
+      if (!Number.isFinite(value)) return chunk
+
+      return `${resolveMetricLabel(key)}: ${formatSignedValue(value, 1)}`
+    },
+  )
+
+  return translated.map((line: string) => `• ${line}`).join('\n')
 }
 
+/**
+ * @description [Activity log] - resolves a user-facing title for an activity log entry.
+ * @return { string } formatted title for display
+ */
 export function resolveActivityLogTitle(entry: ActivityLogEntry | null | undefined): string {
-  const rawTitle = entry?.title ? String(entry.title) : ''
+  const rawTitle: string = entry?.title ? String(entry.title) : ''
+
   if (!rawTitle) return 'Без заголовка'
 
-  const metadataActionId = normalizeActionId(entry?.metadata?.actionId)
-  const extractedActionId = extractActionIdFromTitle(rawTitle)
-  const actionId = metadataActionId || extractedActionId
+  const metadataActionId: string | null = normalizeActionId(entry?.metadata?.actionId)
+  const extractedActionId: string | null = extractActionIdFromTitle(rawTitle)
+  const actionId: string | null = metadataActionId || extractedActionId
 
   if (!actionId) return rawTitle
 
-  const action = getActionById(actionId)
+  const action: BalanceAction | null = getActionById(actionId)
+
   if (!action?.title) return rawTitle
 
   return rawTitle.startsWith('📝') ? `📝 ${action.title}` : action.title
 }
 
+/**
+ * @description [Activity log] - resolves a user-facing description for an activity log entry.
+ * @return { string } formatted description for display
+ */
 export function resolveActivityLogDescription(entry: ActivityLogEntry | null | undefined): string {
-  const rawDescription = entry?.description ? String(entry.description) : ''
+  const rawDescription: string = entry?.description ? String(entry.description) : ''
+
   if (entry?.type !== 'action') return rawDescription
 
-  const fromMetadata = buildActionEffectsFromMetadata(entry?.metadata)
+  const fromMetadata: string = buildActionEffectsFromMetadata(entry?.metadata)
+
   if (fromMetadata) return fromMetadata
 
   return translateRawEffectsText(rawDescription)

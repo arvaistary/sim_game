@@ -1,4 +1,4 @@
-import { AgeGroup } from '@/domain/balance/actions/types'
+import { AgeGroup } from '@domain/balance/actions/types'
 
 // ─── Таблица получения навыка за действие по возрасту ───────────────
 

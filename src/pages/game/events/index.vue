@@ -8,7 +8,10 @@
 
       <template v-if="currentEvent && !resultText">
         <EventCard :event="currentEvent" />
-        <EventChoices :choices="currentEvent.choices" @select="selectChoice" />
+        <EventChoices
+          :choices="currentEvent.choices ?? []"
+          @select="selectChoice"
+        />
       </template>
 
       <EventResult
@@ -23,23 +26,26 @@
 </template>
 
 <script setup lang="ts">
+import './index.scss'
+
+import type { EventChoiceParam } from './index.types'
+import type { GameEvent } from '@stores/events-store/index.types'
+
 definePageMeta({ middleware: 'game-init' })
+
+const router = useRouter()
 
 const events = useEvents()
 const toast = useToast()
-const router = useRouter()
 
-const resultText = ref('')
+const resultText = ref<string>('')
 
-const currentEvent = computed(() => events.currentEvent.value)
-const hasNextEvent = computed(() => events.hasNextEvent.value)
+const currentEvent = computed<GameEvent | null>(() => events.currentEvent.value)
+const hasNextEvent = computed<boolean>(() => events.hasNextEvent.value)
 
-onMounted(() => {
-  events.loadNextEvent()
-})
+function selectChoice(choice: EventChoiceParam) {
+  const ok: boolean = events.applyChoice(choice.id)
 
-function selectChoice(choice: { id: string; text: string }) {
-  const ok = events.applyChoice(choice.id)
   if (!ok) {
     toast.showError('Не удалось применить выбор')
 
@@ -51,7 +57,9 @@ function selectChoice(choice: { id: string; text: string }) {
 
 function proceedNext() {
   resultText.value = ''
-  const next = events.loadNextEvent()
+
+  const next: GameEvent | null = events.loadNextEvent()
+
   if (!next) {
     toast.showInfo('Больше нет событий')
     goBack()
@@ -61,12 +69,8 @@ function proceedNext() {
 function goBack() {
   router.back()
 }
-</script>
 
-<style scoped lang="scss">
-.event-page {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-</style>
+onMounted(() => {
+  events.loadNextEvent()
+})
+</script>

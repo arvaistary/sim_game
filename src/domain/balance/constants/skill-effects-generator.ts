@@ -3,7 +3,7 @@
  * Обеспечивает синхронизацию между skill definitions и фактическими эффектами
  */
 
-import type { SkillDef, SkillModifiers } from '@/domain/balance/types'
+import type { SkillDef, SkillModifiers } from '@domain/balance/types'
 import { ALL_SKILLS } from './skills-constants'
 import { isMultiplicativeModifier, createBaseSkillModifiers } from './skill-modifiers'
 

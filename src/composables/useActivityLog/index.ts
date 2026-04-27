@@ -1,31 +1,27 @@
-import { resolveActivityLogTitle, resolveActivityLogDescription } from './utils/activity-log-formatters'
+import type { DisplayLogEntry } from './index.types'
+import { PAGE_SIZE } from './index.constants'
+import { resolveActivityLogDescription, resolveActivityLogTitle } from './utils/activity-log-formatters'
+import type { ActivityEntry } from '@stores/activity-store/index.types'
 
-export function useActivityLog() {
+/**
+ * @description [Composable] - builds the activity log view state with filtering and pagination.
+ * @return { ReturnType } reactive activity log state and actions
+ */
+export const useActivityLog = () => {
   const activityStore = useActivityStore()
   const timeStore = useTimeStore()
 
-  const PAGE_SIZE = 8
-
-  interface DisplayLogEntry {
-    day: number
-    type: string
-    title: string
-    description: string
-    effects?: Record<string, number>
-    raw: Record<string, unknown>
-  }
-
   const activeFilter = ref<string>('all')
-  const visibleCount = ref(PAGE_SIZE)
+  const visibleCount = ref<number>(PAGE_SIZE)
 
   function fetchEntries(count: number): DisplayLogEntry[] {
-    const raw = activityStore.getEntries(count)
+    const rawEntries: ActivityEntry[] = activityStore.getEntries(count)
 
-    return raw.map((entry) => ({
+    return rawEntries.map((entry) => ({
       day: entry.day ?? 0,
       type: entry.type ?? 'unknown',
-      title: resolveActivityLogTitle(entry as unknown as Parameters<typeof resolveActivityLogTitle>[0]),
-      description: resolveActivityLogDescription(entry as unknown as Parameters<typeof resolveActivityLogDescription>[0]),
+      title: resolveActivityLogTitle(entry),
+      description: resolveActivityLogDescription(entry),
       effects: undefined,
       raw: entry as unknown as Record<string, unknown>,
     }))
@@ -33,10 +29,12 @@ export function useActivityLog() {
 
   const entries = computed<DisplayLogEntry[]>(() => {
     void timeStore.totalHours
-    const all = fetchEntries(visibleCount.value)
-    if (activeFilter.value === 'all') return all
 
-    return all.filter((e) => e.type === activeFilter.value)
+    const allEntries: DisplayLogEntry[] = fetchEntries(visibleCount.value)
+
+    if (activeFilter.value === 'all') return allEntries
+
+    return allEntries.filter((entry) => entry.type === activeFilter.value)
   })
 
   function setFilter(filter: string): void {

@@ -1,26 +1,15 @@
 
-
-export interface SkillsComponent {
-  [key: string]: SkillEntry
-}
-
-export interface SkillEntry {
-  level: number
-  xp: number
-}
-
-const MAX_LEVEL = 10
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
+import type { SkillEntry } from './index.types'
+import { MAX_LEVEL } from './index.constants'
+import { clamp } from '@utils/clamp'
 
 function xpForLevel(level: number): number {
   return level * 100
 }
 
 function levelFromXp(xp: number): number {
-  let level = 0
+  let level: number = 0
+
   while (xp >= xpForLevel(level + 1)) {
     level++
   }
@@ -31,13 +20,13 @@ function levelFromXp(xp: number): number {
 export const useSkillsStore = defineStore('skills', () => {
   const skills = ref<Record<string, SkillEntry>>({})
 
-  const skillList = computed(() => Object.entries(skills.value))
+  const skillList = computed<Array<[string, SkillEntry]>>(() => Object.entries(skills.value))
 
-  const totalLevels = computed(() => {
-    return Object.values(skills.value).reduce((sum, s) => sum + s.level, 0)
+  const totalLevels = computed<number>(() => {
+    return Object.values(skills.value).reduce((sum: number, s: SkillEntry) => sum + s.level, 0)
   })
 
-  const hasSkill = (key: string) => key in skills.value
+  const hasSkill = (key: string): boolean => key in skills.value
 
   const getSkillLevel = (key: string): number => {
     return skills.value[key]?.level ?? 0
@@ -47,31 +36,34 @@ export const useSkillsStore = defineStore('skills', () => {
     return skills.value[key]?.xp ?? 0
   }
 
-  function setSkillLevel(key: string, level: number) {
+  function setSkillLevel(key: string, level: number): void {
     if (!skills.value[key]) {
       skills.value[key] = { level: 0, xp: 0 }
     }
-    const clampedLevel = clamp(level, 0, MAX_LEVEL)
+
+    const clampedLevel: number = clamp(level, 0, MAX_LEVEL)
     skills.value[key].level = clampedLevel
     skills.value[key].xp = xpForLevel(clampedLevel)
   }
 
-  function addSkillXp(key: string, xp: number) {
+  function addSkillXp(key: string, xp: number): void {
     if (!skills.value[key]) {
       skills.value[key] = { level: 0, xp: 0 }
     }
-    const newXp = (skills.value[key].xp ?? 0) + xp
+
+    const newXp: number = (skills.value[key].xp ?? 0) + xp
     skills.value[key].xp = newXp
     skills.value[key].level = levelFromXp(newXp)
   }
 
-  function applySkillChanges(changes: Record<string, number>) {
+  function applySkillChanges(changes: Record<string, number>): void {
     for (const [key, delta] of Object.entries(changes)) {
       if (delta > 0) {
         addSkillXp(key, delta * 50)
       } else {
         if (!skills.value[key]) continue
-        const newXp = Math.max(0, (skills.value[key].xp ?? 0) + delta * 50)
+
+        const newXp: number = Math.max(0, (skills.value[key].xp ?? 0) + delta * 50)
         skills.value[key].xp = newXp
         skills.value[key].level = levelFromXp(newXp)
       }
@@ -82,13 +74,13 @@ export const useSkillsStore = defineStore('skills', () => {
     return getSkillLevel(key) >= requiredLevel
   }
 
-  function initializeSkills(initialSkills: Record<string, number>) {
+  function initializeSkills(initialSkills: Record<string, number>): void {
     for (const [key, level] of Object.entries(initialSkills)) {
       setSkillLevel(key, level)
     }
   }
 
-  function reset() {
+  function reset(): void {
     skills.value = {}
   }
 

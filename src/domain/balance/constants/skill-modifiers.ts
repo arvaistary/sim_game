@@ -1,4 +1,4 @@
-import type { SkillModifiers, SkillEffect } from '@/domain/balance/types'
+import type { SkillModifiers, SkillEffect } from '@domain/balance/types'
 import { ALL_SKILLS } from './skills-constants'
 import { generateModifiersFromSkillDefs } from './skill-effects-generator'
 

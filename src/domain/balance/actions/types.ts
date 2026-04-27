@@ -1,4 +1,4 @@
-import type { ActionCategory, StatChanges } from '@/domain/balance/types'
+import type { ActionCategory, StatChanges } from '@domain/balance/types'
 
 /**
  * Возрастная группа персонажа.

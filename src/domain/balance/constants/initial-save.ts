@@ -1,5 +1,5 @@
-import type { StatChanges } from '@/domain/balance/types'
-import { createBaseSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
+import type { StatChanges } from '@domain/balance/types'
+import { createBaseSkillModifiers } from '@domain/balance/constants/skill-modifiers'
 
 export interface InitialSaveData {
   version: string

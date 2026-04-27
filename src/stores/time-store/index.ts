@@ -1,73 +1,50 @@
 
-
-export interface TimeState {
-  totalHours: number
-  gameDays: number
-  gameWeeks: number
-  gameMonths: number
-  gameYears: number
-  currentAge: number
-  sleepDebt: number
-}
-
-const INITIAL_STATE: TimeState = {
-  totalHours: 0,
-  gameDays: 0,
-  gameWeeks: 0,
-  gameMonths: 0,
-  gameYears: 0,
-  currentAge: 18,
-  sleepDebt: 0,
-}
-
-const START_AGE = 18
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
+import type { TimeState } from './index.types'
+import { INITIAL_STATE, START_AGE } from './index.constants'
+import { clamp } from '@utils/clamp'
 
 export const useTimeStore = defineStore('time', () => {
-  const totalHours = ref(INITIAL_STATE.totalHours)
-  const sleepDebt = ref(INITIAL_STATE.sleepDebt)
-  const startAge = ref(START_AGE)
+  const totalHours = ref<number>(INITIAL_STATE.totalHours)
+  const sleepDebt = ref<number>(INITIAL_STATE.sleepDebt)
+  const startAge = ref<number>(START_AGE)
 
-  const gameDays = computed(() => Math.floor(totalHours.value / 24))
-  const gameWeeks = computed(() => Math.floor(gameDays.value / 7))
-  const gameMonths = computed(() => Math.floor(gameDays.value / 30))
-  const gameYears = computed(() => Math.floor(gameDays.value / 365))
-  const currentAge = computed(() => startAge.value + gameYears.value)
+  const gameDays = computed<number>(() => Math.floor(totalHours.value / 24))
+  const gameWeeks = computed<number>(() => Math.floor(gameDays.value / 7))
+  const gameMonths = computed<number>(() => Math.floor(gameDays.value / 30))
+  const gameYears = computed<number>(() => Math.floor(gameDays.value / 365))
+  const currentAge = computed<number>(() => startAge.value + gameYears.value)
 
-  const dayHour = computed(() => totalHours.value % 24)
-  const dayHoursRemaining = computed(() => 24 - dayHour.value)
+  const dayHour = computed<number>(() => totalHours.value % 24)
+  const dayHoursRemaining = computed<number>(() => 24 - dayHour.value)
 
-  const weekHour = computed(() => totalHours.value % (24 * 7))
-  const weekHoursRemaining = computed(() => 168 - weekHour.value)
+  const weekHour = computed<number>(() => totalHours.value % (24 * 7))
+  const weekHoursRemaining = computed<number>(() => 168 - weekHour.value)
 
-  const gameWeeksFloored = computed(() => Math.floor(totalHours.value / (24 * 7)))
+  const gameWeeksFloored = computed<number>(() => Math.floor(totalHours.value / (24 * 7)))
 
-  function advanceHours(hours: number, options?: { actionType?: 'sleep' | 'work' | 'default' }) {
+  function advanceHours(hours: number, options?: { actionType?: 'sleep' | 'work' | 'default' }): void {
     totalHours.value += hours
 
     if (options?.actionType !== 'sleep') {
-      const debtGain = hours * 0.5
+      const debtGain: number = hours * 0.5
       sleepDebt.value = clamp(sleepDebt.value + debtGain, 0, 100)
     }
   }
 
-  function advanceHoursWithSleep(hours: number, sleepHours: number) {
+  function advanceHoursWithSleep(hours: number, sleepHours: number): void {
     totalHours.value += hours
     sleepDebt.value = clamp(sleepDebt.value - sleepHours * 2, 0, 100)
   }
 
-  function reduceSleepDebt(amount: number) {
+  function reduceSleepDebt(amount: number): void {
     sleepDebt.value = clamp(sleepDebt.value - amount, 0, 100)
   }
 
-  function setTotalHours(hours: number) {
+  function setTotalHours(hours: number): void {
     totalHours.value = hours
   }
 
-  function reset() {
+  function reset(): void {
     totalHours.value = INITIAL_STATE.totalHours
     sleepDebt.value = INITIAL_STATE.sleepDebt
   }
