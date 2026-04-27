@@ -4,12 +4,16 @@ rooms:
   description: Files from artifact/
 - name: documentation
   description: Files from doc/
+- name: new_doc
+  description: Files from new_doc/
 - name: plans
   description: Files from plans/
 - name: public
   description: Files from public/
 - name: scripts
   description: Files from scripts/
+- name: shared
+  description: Files from shared/
 - name: src
   description: Files from src/
 - name: testing

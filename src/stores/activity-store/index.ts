@@ -143,3 +143,5 @@ export const useActivityStore = defineStore('activity', () => {
     load,
   }
 })
+
+export type * from './index.types'

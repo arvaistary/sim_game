@@ -57,4 +57,5 @@ export function resolveStudySessionHours(cognitive: number, energy: number, maxH
   return Math.floor(maxHours / 2)
 }
 
+export { COGNITIVE_LOAD_CONSTANTS, ENERGY_EXHAUSTION_THRESHOLD_STUDY, EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN, EDUCATION_LONG_PROGRAM_STEP_HOURS } from './index.constants'
 export type * from './index.types'

@@ -29,7 +29,7 @@
 import './index.scss'
 
 import type { EventChoiceParam } from './index.types'
-import type { GameEvent } from '@stores/events-store/index.types'
+import type { GameEvent } from '@stores/events-store'
 
 definePageMeta({ middleware: 'game-init' })
 

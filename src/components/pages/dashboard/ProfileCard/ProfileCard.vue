@@ -46,12 +46,13 @@ const walletStore = useWalletStore()
 const careerStore = useCareerStore()
 const housingStore = useHousingStore()
 const skillsStore = useSkillsStore()
+const playerStore = usePlayerStore()
 
 const { isStatVisible } = useAgeRestrictions()
 const isMoneyVisible = computed<boolean>(() => isStatVisible('money'))
 const hasAnySkills = computed<boolean>(() => skillsStore.totalLevels > 0)
 
-const playerName = ref('Алексей') // Можно вынести в отдельный store
+const playerName = computed<string>(() => playerStore.name)
 
 function openSkillsModal() {
   openModal(SkillsModal, {

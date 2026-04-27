@@ -23,7 +23,7 @@
 import './index.scss'
 
 import type { BalanceAction } from '@domain/balance/actions'
-import type { CanExecuteActionResult } from '@stores/game.store.types'
+import type { CanExecuteActionResult } from '@stores/game-store'
 
 definePageMeta({ middleware: 'game-init' })
 

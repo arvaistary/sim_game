@@ -34,7 +34,7 @@ import './ExpenseList.scss'
 import { formatMoney } from '@utils/format'
 
 import { EXPENSE_LABELS_RU } from '@constants/metric-labels'
-import type { MonthlyExpense } from '@stores/finance-store/index.types'
+import type { MonthlyExpense } from '@stores/finance-store'
 
 const financeStore = useFinanceStore()
 

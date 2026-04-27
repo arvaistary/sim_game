@@ -111,3 +111,5 @@ export const useActionsStore = defineStore('actions', () => {
     reset,
   }
 })
+
+export type * from './index.types'

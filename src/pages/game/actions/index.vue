@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { type BalanceAction, ACTION_CATEGORIES } from '@domain/balance/actions'
 import type { ActionCategory } from '@domain/balance/types'
-import type { CanExecuteActionResult } from '@stores/game.store.types'
+import type { CanExecuteActionResult } from '@stores/game-store'
 
 definePageMeta({ middleware: 'game-init' })
 

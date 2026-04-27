@@ -44,9 +44,14 @@ export const useTimeStore = defineStore('time', () => {
     totalHours.value = hours
   }
 
+  function setStartAge(startAgeIn: number): void {
+    startAge.value = clamp(startAgeIn, 0, 150)
+  }
+
   function reset(): void {
     totalHours.value = INITIAL_STATE.totalHours
     sleepDebt.value = INITIAL_STATE.sleepDebt
+    startAge.value = START_AGE
   }
 
   function save(): Record<string, unknown> {
@@ -83,8 +88,12 @@ export const useTimeStore = defineStore('time', () => {
     advanceHoursWithSleep,
     reduceSleepDebt,
     setTotalHours,
+    setStartAge,
     reset,
     save,
     load,
   }
 })
+
+export * from './index.constants'
+export type * from './index.types'

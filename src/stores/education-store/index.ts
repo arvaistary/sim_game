@@ -182,3 +182,6 @@ export const useEducationStore = defineStore('education', () => {
     load,
   }
 })
+
+export * from './index.constants'
+export type * from './index.types'

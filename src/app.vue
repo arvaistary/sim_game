@@ -69,7 +69,7 @@ const route = useRoute()
 const colorMode = useColorMode()
 const { $autoSave } = useNuxtApp()
 
-const playerStore = usePlayerStore()
+const gameStore = useGameStore()
 
 const isMenuOpen = ref<boolean>(false)
 
@@ -101,7 +101,7 @@ function handleToggleTheme(): void {
 function handleMenuAction(actionId: AppMenuActionId): void {
   if (actionId === 'newGame') {
     $autoSave.clear()
-    playerStore.reset()
+    gameStore.resetGame()
     handleCloseMenu()
     navigateTo('/')
   }

@@ -60,7 +60,7 @@ import './index.scss'
 
 import { PRACTICE_ACTION_IDS } from '@constants/education-tab-groups'
 import type { BalanceAction } from '@domain/balance/actions'
-import type { CanExecuteActionResult } from '@stores/game.store.types'
+import type { CanExecuteActionResult } from '@stores/game-store'
 import { tabs } from './index.constants'
 
 definePageMeta({ middleware: 'game-init' })

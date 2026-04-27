@@ -36,7 +36,7 @@
 import './ActivityLogCard.scss'
 
 import type { LogEntryDisplay } from './ActivityLogCard.types'
-import type { ActivityEntry } from '@stores/activity-store/index.types'
+import type { ActivityEntry } from '@stores/activity-store'
 
 const activityStore = useActivityStore()
 

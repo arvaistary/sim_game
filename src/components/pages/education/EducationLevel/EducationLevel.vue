@@ -300,11 +300,10 @@
 <script setup lang="ts">
 import './EducationLevel.scss'
 
-import Tooltip from '@components/ui/Tooltip/index.vue'
+import Tooltip from '@components/ui/Tooltip'
 import type { CourseTile, Needs, CognitiveLoadStatusObject } from './EducationLevel.types'
-import { type CanAddStudyHoursResult, type CognitiveLoadStatus, resolveStudySessionHours, canAddStudyHours, getCognitiveLoadStatus, getNeedsStateFromComponents } from '@domain/education'
-import type { ActiveCourse, CompletedProgramRecord, ProgramStep } from '@stores/education-store/index.types'
-import { COGNITIVE_LOAD_CONSTANTS, ENERGY_EXHAUSTION_THRESHOLD_STUDY, EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN, EDUCATION_LONG_PROGRAM_STEP_HOURS } from '@domain/education/index.constants'
+import { type CanAddStudyHoursResult, type CognitiveLoadStatus, resolveStudySessionHours, canAddStudyHours, getCognitiveLoadStatus, getNeedsStateFromComponents, COGNITIVE_LOAD_CONSTANTS, ENERGY_EXHAUSTION_THRESHOLD_STUDY, EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN, EDUCATION_LONG_PROGRAM_STEP_HOURS } from '@domain/education'
+import type { ActiveCourse, CompletedProgramRecord, ProgramStep } from '@stores/education-store'
 import { getAgeGroup, AgeGroup } from '@composables/useAgeRestrictions'
 
 const store = useGameStore()

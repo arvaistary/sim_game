@@ -1,5 +1,6 @@
 
 import type {
+  NewGameSeed,
   QuitCareerResult,
   CanExecuteActionResult,
   TimeSnapshot,
@@ -13,35 +14,38 @@ import type {
   FinanceOverview,
   StatsShortSnapshot,
   FinanceSnapshot,
-} from './game.store.types'
+} from './index.types'
 
 import type {
   CanExecuteResult,
   ActionResult as ActionExecutionResult,
   GameAction,
-} from './actions-store/index.types'
-import type { JobSnapshot } from './career-store/index.types'
-import type { SkillEntry } from './skills-store/index.types'
-import type { GameEvent } from './events-store/index.types'
-import type { Investment } from './finance-store/index.types'
-import type { ActivityEntry } from './activity-store/index.types'
+} from '../actions-store'
+import type { JobSnapshot } from '../career-store'
+import type { SkillEntry } from '../skills-store'
+import type { GameEvent } from '../events-store'
+import type { Investment } from '../finance-store'
+import type { ActivityEntry } from '../activity-store'
 
-import { useActionsStore } from './actions-store'
-import { useCareerStore } from './career-store'
-import { useSkillsStore } from './skills-store'
-import { useEducationStore } from './education-store'
-import { useHousingStore } from './housing-store'
-import { useEventsStore } from './events-store'
-import { useFinanceStore } from './finance-store'
-import { useActivityStore } from './activity-store'
+import { useActionsStore } from '../actions-store'
+import { useCareerStore } from '../career-store'
+import { useSkillsStore } from '../skills-store'
+import { useEducationStore } from '../education-store'
+import { useHousingStore } from '../housing-store'
+import { useEventsStore } from '../events-store'
+import { useFinanceStore } from '../finance-store'
+import { useActivityStore } from '../activity-store'
 
-import { useTimeStore } from './time-store'
-import { useStatsStore } from './stats-store'
-import { useWalletStore } from './wallet-store'
-import { usePlayerStore } from './player-store'
+import { useTimeStore } from '../time-store'
+import { useStatsStore } from '../stats-store'
+import { useWalletStore } from '../wallet-store'
+import { usePlayerStore } from '../player-store'
 
 import { getActionById, type BalanceAction } from '@domain/balance/actions'
-import { appGameCommands } from '@application/game/commands'
+import { CAREER_JOBS } from '@domain/balance/constants/career-jobs'
+import { EDUCATION_PROGRAMS } from '@domain/balance/constants/education-programs'
+import { changeCareer as resolveCareerChange } from '@application/game/commands'
+import { canStartEducationProgram as checkEducationAvailability } from '@application/game/queries'
 
 export const useGameStore = defineStore('game', () => {
   const worldVersion = ref<number>(0)
@@ -109,14 +113,37 @@ export const useGameStore = defineStore('game', () => {
     if (data?.finance) finance.load?.(data.finance as Record<string, unknown>)
 
     if (data?.activity) activity.load?.(data.activity as Record<string, unknown>)
-    isInitialized.value = true;
+    isInitialized.value = true
 
     return true
   }
 
   function resetGame(): void {
-    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset()
+    time.reset()
+    stats.reset()
+    wallet.reset()
+    skills.reset()
+    career.reset()
+    education.reset()
+    housing.reset()
+    events.reset()
+    finance.reset()
+    actions.reset()
+    activity.reset()
+    player.reset()
     worldVersion.value++
+  }
+
+  function startNewGame(seed: NewGameSeed): void {
+    const startAge: number = Number.isFinite(seed.startAge)
+      ? seed.startAge
+      : 0
+
+    resetGame()
+    player.setName(seed.playerName)
+    player.showWelcomeScreen()
+    time.setStartAge(startAge)
+    time.setTotalHours(0)
   }
 
   function canApplyWorkShift(hours: number): CanApplyWorkShiftResult {
@@ -127,6 +154,22 @@ export const useGameStore = defineStore('game', () => {
     if (time.weekHoursRemaining < hours) return { canDo: false, reason: 'Недостаточно часов в неделе' }
 
     return { canDo: true }
+  }
+
+  function getEducationRequirementLabel(minEducationRank: number): string {
+    return minEducationRank <= -1
+      ? 'Любое'
+      : minEducationRank === 0
+        ? 'Среднее'
+        : minEducationRank === 1
+          ? 'Высшее'
+          : minEducationRank === 2
+            ? 'Бакалавриат'
+            : minEducationRank === 3
+              ? 'Магистратура'
+              : minEducationRank === 4
+                ? 'MBA'
+                : 'Неизвестно'
   }
 
   function applyWorkShift(hours: number): string {
@@ -158,15 +201,70 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function changeCareer(jobId: string): QuitCareerResult {
-    const result: QuitCareerResult = appGameCommands.changeCareer(jobId)
+    const result: QuitCareerResult = resolveCareerChange(jobId, (skill: string) => skills.getSkillLevel(skill))
 
-    if (result.success) worldVersion.value++
+    if (result.success) {
+      const job = CAREER_JOBS.find(j => j.id === jobId)
+
+      if (job) {
+        career.startWork({
+          id: job.id,
+          name: job.name,
+          salaryPerHour: job.salaryPerHour,
+          requiredHoursPerWeek: job.requiredHoursPerWeek,
+          schedule: job.schedule,
+          employed: true,
+        })
+      }
+
+      worldVersion.value++
+    }
 
     return result
   }
 
+  function startEducationProgram(programId: string): string {
+    const check = checkEducationAvailability(career.currentJob.employed ? false : education.isStudying)
+
+    if (!check.ok) {
+      return check.reason ?? 'Нельзя начать программу'
+    }
+
+    const program = EDUCATION_PROGRAMS.find(p => p.id === programId)
+
+    if (!program) {
+      return 'Программа не найдена'
+    }
+
+    education.startProgramById(programId, program.title, program.hoursRequired)
+
+    return `Начато обучение: ${program.title}`
+  }
+
+  function canStartEducationProgramWithReason(programId: string): { ok: boolean; reason?: string } {
+    return checkEducationAvailability(education.isStudying)
+  }
+
   function getCareerTrack(): CareerTrackEntry[] {
-    return career.currentJob ? [{ id: career.currentJob.id, name: career.currentJob.name, level: career.currentJob.level, schedule: career.currentJob.schedule, salaryPerHour: career.currentJob.salaryPerHour }] : []
+    const currentJobId: string = career.currentJob?.id ?? ''
+    const professionalism: number = skills.getSkillLevel('professionalism')
+    const educationRank: number = education.educationRank ?? 0
+
+    return CAREER_JOBS.map((job) => {
+      const unlocked: boolean = professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank
+
+      return {
+        id: job.id,
+        name: job.name,
+        level: job.level,
+        schedule: job.schedule,
+        salaryPerHour: job.salaryPerHour,
+        current: job.id === currentJobId,
+        unlocked,
+        missingProfessionalism: Math.max(0, job.minProfessionalism - professionalism),
+        educationRequiredLabel: getEducationRequirementLabel(job.minEducationRank),
+      }
+    })
   }
 
   function getCareerSnapshot(): JobSnapshot { return career.currentJob }
@@ -250,8 +348,11 @@ export const useGameStore = defineStore('game', () => {
     education: computed<EducationSnapshot>(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
     housing: computed<HousingSnapshot>(() => ({ level: housing.level, comfort: housing.comfort, furniture: housing.furniture })),
     getCareerTrack, getCareerSnapshot, getFinanceSnapshot, getFinanceActions, getActivityLogEntries, getStats: (): StatsShortSnapshot => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
-    initWorld, save, load, resetGame,
+    initWorld, save, load, resetGame, startNewGame,
     canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
+    startEducationProgram, canStartEducationProgramWithReason,
     canExecuteAction, executeAction, getNextEvent, applyEventChoice, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment
   }
 })
+
+export type * from './index.types'

@@ -137,12 +137,10 @@ import './ProgramList.scss'
 import { EDUCATION_PROGRAMS } from '@domain/balance/constants/education-programs'
 
 import type { EducationProgram } from '@domain/balance/types'
-import type { ActiveCourse, CompletedProgramRecord } from '@stores/education-store/index.types'
+import type { ActiveCourse, CompletedProgramRecord } from '@stores/education-store'
 import type { ProgramCheckResult } from './ProgramList.types'
 import { formatMoney } from '@utils/format'
 import { getAgeGroup, AgeGroup } from '@composables/useAgeRestrictions'
-import { appGameQueries } from '@application/game/queries'
-import { appGameCommands } from '@application/game/commands'
 
 const store = useGameStore()
 const timeStore = useTimeStore()
@@ -247,7 +245,7 @@ function getLockReason(program: EducationProgram): string {
   }
 
   if (store.isInitialized) {
-    const check: ProgramCheckResult = appGameQueries.canStartEducationProgramWithReason(program.id)
+    const check: ProgramCheckResult = store.canStartEducationProgramWithReason(program.id)
 
     if (!check.ok) {
       return `🔒 ${check.reason ?? 'Программа недоступна'}`
@@ -307,7 +305,7 @@ function startProgram(program: EducationProgram): void {
     return
   }
 
-  const check: ProgramCheckResult = appGameQueries.canStartEducationProgramWithReason(program.id)
+  const check: ProgramCheckResult = store.canStartEducationProgramWithReason(program.id)
 
   if (!check.ok) {
     toast.showWarning(check.reason ?? 'Нельзя начать эту программу')
@@ -315,7 +313,7 @@ function startProgram(program: EducationProgram): void {
     return
   }
 
-  const result: string = appGameCommands.startEducationProgram(program.id)
+  const result: string = store.startEducationProgram(program.id)
 
   if (result && !result.startsWith('Мир не')) {
     // Передаём базовый эффект для расчёта модификаторов

@@ -1,6 +1,6 @@
-import type { EducationLevel, ActiveEducation, CompletedProgram } from './education-store/index.types'
-import type { FurnitureItem } from './housing-store/index.types'
-import type { MonthlyExpense } from './finance-store/index.types'
+import type { EducationLevel, ActiveEducation, CompletedProgram } from '../education-store'
+import type { FurnitureItem } from '../housing-store'
+import type { MonthlyExpense } from '../finance-store'
 
 export interface QuitCareerResult {
   success: boolean
@@ -69,6 +69,10 @@ export interface CareerTrackEntry {
   level: number
   schedule: string
   salaryPerHour: number
+  current?: boolean
+  unlocked?: boolean
+  missingProfessionalism?: number
+  educationRequiredLabel?: string
 }
 
 export interface ActionRequirements {
@@ -92,4 +96,9 @@ export interface StatsShortSnapshot {
 
 export interface FinanceSnapshot {
   monthlyExpenses: MonthlyExpense[]
+}
+
+export interface NewGameSeed {
+  playerName: string
+  startAge: number
 }

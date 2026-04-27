@@ -1,4 +1,4 @@
-import type { CognitiveLoadStatus } from '@stores/education-store/index.types'
+import type { CognitiveLoadStatus } from '@stores/education-store'
 import type { CognitiveLoadStatusObject } from './EducationLevel.types'
 
 export const COGNITIVE_STATUS_MAP: Record<CognitiveLoadStatus, CognitiveLoadStatusObject> = {

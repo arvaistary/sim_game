@@ -2,6 +2,19 @@ import { ROUTE_MAP } from '@constants/navigation'
 import { createLocalStorageSaveRepository } from '@infrastructure/persistence/LocalStorageSaveRepository'
 
 const saveRepository = createLocalStorageSaveRepository()
+const NEW_GAME_SESSION_KEY: string = 'gamelife:new-game'
+
+function takeFreshStartFlag(): boolean {
+  if (!import.meta.client) return false
+
+  const isFreshStart = sessionStorage.getItem(NEW_GAME_SESSION_KEY) === '1'
+
+  if (isFreshStart) {
+    sessionStorage.removeItem(NEW_GAME_SESSION_KEY)
+  }
+
+  return isFreshStart
+}
 
 export default defineNuxtRouteMiddleware((to) => {
   if (!to.path.startsWith('/game')) {
@@ -9,24 +22,22 @@ export default defineNuxtRouteMiddleware((to) => {
   }
 
   const playerStore = usePlayerStore()
-  const timeStore = useTimeStore()
-  const statsStore = useStatsStore()
-  const walletStore = useWalletStore()
-  const skillsStore = useSkillsStore()
-  const careerStore = useCareerStore()
-  const educationStore = useEducationStore()
-  const housingStore = useHousingStore()
-  const activityStore = useActivityStore()
   const gameStore = useGameStore()
 
   const { $autoSave } = useNuxtApp()
 
   if (!playerStore.isInitialized) {
-    const savedData = saveRepository.load()
-    if (savedData) {
-      gameStore.load(savedData)
-    } else {
+    const hasFreshStartFlag: boolean = takeFreshStartFlag()
+
+    if (hasFreshStartFlag) {
       playerStore.initialize()
+    } else {
+      const savedData = saveRepository.load()
+      if (savedData) {
+        gameStore.load(savedData)
+      } else {
+        playerStore.initialize()
+      }
     }
     // Включаем автосохранение после первой инициализации
     $autoSave.enable()

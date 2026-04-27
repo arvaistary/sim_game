@@ -46,8 +46,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     if (!playerStore.isInitialized) return
 
     const gameStore = useGameStore()
-
-    saveRepository.save(gameStore.save())
+    const payload: Record<string, unknown> = gameStore.save()
+    saveRepository.save(payload)
   }
 
   /**

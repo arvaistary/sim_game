@@ -31,7 +31,7 @@ import './EventCard.scss'
 
 import { formatStatChangesBulletListRu } from '@domain/balance/utils/stat-changes-format'
 
-import type { EventQueueItem } from '@stores/events-store/index.types'
+import type { EventQueueItem } from '@stores/events-store'
 
 /**
  * @prop {EventQueueItem} event - Данные события для отображения

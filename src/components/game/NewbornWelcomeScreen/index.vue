@@ -30,8 +30,10 @@
 import './index.scss'
 
 const visible = ref(false)
-const playerName = ref('Алексей')
+const playerStore = usePlayerStore()
 const welcomeScreenShown = ref(false)
+
+const playerName = computed<string>(() => playerStore.name)
 
 onMounted(() => {
   setTimeout(() => {

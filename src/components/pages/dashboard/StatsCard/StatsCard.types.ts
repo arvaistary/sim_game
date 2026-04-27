@@ -1,4 +1,4 @@
-import type { StatsState } from '@stores/stats-store/index.types'
+import type { StatsState } from '@stores/stats-store'
 
 export interface StatDef {
   key: keyof StatsState

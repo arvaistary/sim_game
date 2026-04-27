@@ -1,4 +1,4 @@
-import type { GameEvent, EventChoice } from '@stores/events-store/index.types'
+import type { GameEvent, EventChoice } from '@stores/events-store'
 
 /**
  * @description [Composables] - Предоставляет функции для работы с событиями: загрузка следующего события, применение выбора игрока.

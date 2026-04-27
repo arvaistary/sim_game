@@ -1,3 +1,5 @@
+export type IndustryId = 'all' | 'office' | 'production' | 'management' | 'analytics' | 'freelance' | 'executive'
+
 export interface WorkType {
   id: 'full-time' | 'part-time'
   label: string
@@ -7,7 +9,7 @@ export interface WorkType {
 }
 
 export interface Industry {
-  id: string
+  id: IndustryId
   label: string
   icon: string
 }

@@ -15,7 +15,11 @@ export default defineNuxtConfig({
 
   modules: [
     '@pinia/nuxt',
-    '@nuxtjs/color-mode',
+    ['@nuxtjs/color-mode', {
+      preference: 'light',
+      dataValue: 'theme',
+      classSuffix: '',
+    }],
   ],
 
   // Components auto-import: short names without directory prefixes
@@ -26,12 +30,6 @@ export default defineNuxtConfig({
     { path: '~/components/layout', pathPrefix: false },
     { path: '~/components/pages', pathPrefix: false },
   ],
-
-  colorMode: {
-    preference: 'light',
-    dataValue: 'theme',
-    classSuffix: '',
-  },
 
   typescript: {
     strict: true,

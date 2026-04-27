@@ -26,6 +26,7 @@ export interface TimeStore {
   advanceHoursWithSleep: (hours: number, sleepHours: number) => void
   reduceSleepDebt: (amount: number) => void
   setTotalHours: (hours: number) => void
+  setStartAge: (startAge: number) => void
   reset: () => void
   save: () => Record<string, unknown>
   load: (data: Record<string, unknown>) => void

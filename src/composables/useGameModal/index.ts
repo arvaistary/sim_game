@@ -17,7 +17,7 @@ import type {
  * @return { ReturnType } reactive game modal state and actions
  */
 export const useGameModal = () => {
-  const state = ref<GameModalState>({
+  const state = useState<GameModalState>('game-modal-state', () => ({
     isOpen: false,
     title: '',
     message: '',
@@ -26,7 +26,7 @@ export const useGameModal = () => {
     actionResultMeta: '',
     actionResultLines: [],
     buttons: [],
-  })
+  }))
 
   function show(options: GameModalOptions): void {
     state.value = {

@@ -6,7 +6,7 @@ import { BASE_Z_INDEX, Z_INDEX_STEP } from './index.constants'
  * @return { ReturnType } modal stack state and stack actions
  */
 export const useModalStack = () => {
-  const stack = ref<ModalEntry[]>([])
+  const stack = useState<ModalEntry[]>('modal-stack', () => [])
 
   function open(component: Component, props?: Record<string, unknown>): symbol {
     const id: symbol = Symbol('modal')

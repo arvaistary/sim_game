@@ -1564,8 +1564,18 @@ function runRuleHeuristics() {
       }
 
       const isTypesFileForReExportRule = /(\.types\.ts|[\\/]types\.ts|[\\/]types[\\/]index\.ts|\.d\.ts)$/.test(filePath);
+      const isBarrelIndexFileForTypeReExportRule = /[\\/]index\.ts$/.test(filePath);
       if (!isTypesFileForReExportRule) {
         for (const typeReExportMatch of content.matchAll(/^\s*export\s+type(?:\s+\*|\s+\{)[^\n]*$/gm)) {
+          const typeReExportLine = typeReExportMatch[0] ?? '';
+          const isAllowedBarrelTypeStarReExport =
+            isBarrelIndexFileForTypeReExportRule &&
+            /^\s*export\s+type\s+\*\s+from\s+['"][^'"]+\.types['"]\s*;?\s*$/.test(typeReExportLine);
+
+          if (isAllowedBarrelTypeStarReExport) {
+            continue;
+          }
+
           const lineNumber = getLineNumberByOffset(content, typeReExportMatch.index ?? 0);
           pushFinding(
             'typing/no-type-reexport-in-implementation-files',
