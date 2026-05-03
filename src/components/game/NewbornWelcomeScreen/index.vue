@@ -31,6 +31,7 @@ import './index.scss'
 
 const visible = ref(false)
 const playerStore = usePlayerStore()
+
 const welcomeScreenShown = ref(false)
 
 const playerName = computed<string>(() => playerStore.name)

@@ -16,7 +16,7 @@ import './style.scss'
  * @prop {number} [radius] - Радиус скругления углов в пикселях
  * @prop {string} [padding] - Внутренний отступ
  */
-const props = withDefaults(defineProps<{
+const props: boolean = withDefaults(defineProps<{
   color?: string
   shadow?: boolean
   radius?: number

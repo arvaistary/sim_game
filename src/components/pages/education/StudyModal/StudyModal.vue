@@ -121,11 +121,11 @@ import { STUDY_PAGE_CONTENTS } from './StudyModal.constants'
  * @prop {boolean} canFinish - Доступна ли кнопка «Завершить»
  * @prop {string | null} [resourceWarning] - Предупреждение о нехватке ресурса
  */
-const props = withDefaults(defineProps<StudyModalProps>(), {
+const props: boolean = withDefaults(defineProps<StudyModalProps>(), {
   resourceWarning: null
 })
 
-const emit = defineEmits<{
+const emit: boolean = defineEmits<{
   (e: 'read'): void
   (e: 'finish'): void
   (e: 'close'): void
@@ -135,6 +135,7 @@ const isFlipping = ref(false)
 const isFlipped = ref(false)
 
 const bookLabel = computed<string>(() => {
+
   if (props.currentStep === 0) return 'Начать чтение'
 
   if (props.currentStep >= props.totalSteps - 1) return 'Последняя страница'
@@ -147,6 +148,7 @@ const currentPageContent = computed<string | undefined>(() => {
 })
 
 const readButtonText = computed<string>(() => {
+
   if (!props.canContinue) {
     const warning: string = (props.resourceWarning ?? '').toLowerCase()
 

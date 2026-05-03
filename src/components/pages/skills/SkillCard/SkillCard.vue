@@ -92,7 +92,7 @@ import { MULTIPLICATIVE_MODIFIERS } from './SkillCard.constants'
  * @prop {SkillDef} skill - Определение навыка с метаданными
  * @prop {number} level - Текущий уровень навыка
  */
-const props = defineProps<{
+const props: boolean = defineProps<{
   skill: SkillDef
   level: number
 }>()

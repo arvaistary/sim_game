@@ -1,3 +1,15 @@
+interface EffectItem {
+  description: string
+  value: string
+  source?: string
+}
+
+interface FactorItem {
+  factor: string
+  multiplier: number
+  description: string
+}
+
 /**
  * Утилиты для объяснения эффектов навыков в UI
  * Показывает игроку, как навыки влияют на геймплей
@@ -21,11 +33,7 @@ export interface SkillGrowthExplanation {
   skillName: string
   xpGained: number
   levelChange: number
-  factors: Array<{
-    factor: string
-    multiplier: number
-    description: string
-  }>
+  factors: Array<FactorItem>
   totalMultiplier: number
 }
 
@@ -39,7 +47,8 @@ export function getSkillContributionsToModifier(
   const contributions: SkillContribution[] = []
   
   for (const skill of ALL_SKILLS) {
-    const level = skillLevels[skill.key] || 0
+    const level: boolean = skillLevels[skill.key] || 0
+
     if (level <= 0 || !skill.effects) continue
     
     const effects = getSkillEffectsForUi(skill.key, level)
@@ -80,17 +89,14 @@ export function explainSkillGrowth(
   const skill = getSkillByKey(skillKey)
   const config = getSkillProgressionConfig()
   
-  const factors: Array<{
-    factor: string
-    multiplier: number
-    description: string
-  }> = []
+  const factors: Array<FactorItem> = []
   
-  let totalMultiplier = 1.0
+  let totalMultiplier: number = 1.0
   
   // Возрастной множитель
   if (config.enableAgeMultipliers && context.age !== undefined) {
     const ageMultiplier = getAgeLearningMultiplier(context.age)
+
     if (ageMultiplier !== 1.0) {
       factors.push({
         factor: 'Возраст',
@@ -104,6 +110,7 @@ export function explainSkillGrowth(
   // Метод обучения
   if (context.method) {
     const methodMultiplier = getLearningMethodMultiplier(context.method as any)
+
     if (methodMultiplier !== 1.0) {
       factors.push({
         factor: 'Метод обучения',
@@ -117,6 +124,7 @@ export function explainSkillGrowth(
   // Зона комфорта (повторение одного и того же)
   if (config.enableBurnout && context.consecutiveUses !== undefined) {
     const comfortMultiplier = getComfortZoneMultiplier(context.consecutiveUses)
+
     if (comfortMultiplier !== 1.0) {
       factors.push({
         factor: 'Зона комфорта',
@@ -130,6 +138,7 @@ export function explainSkillGrowth(
   // Перегорание
   if (config.enableBurnout && context.weeklyLearningHours !== undefined) {
     const burnoutMultiplier = getBurnoutMultiplier(context.weeklyLearningHours).multiplier
+
     if (burnoutMultiplier !== 1.0) {
       factors.push({
         factor: 'Перегорание',
@@ -153,6 +162,7 @@ export function explainSkillGrowth(
   // Нелинейная сложность (diminishing returns)
   if (isXpModelActive()) {
     const difficultyMultiplier = getDifficultyMultiplier(baseXpGain, finalXpGain)
+
     if (difficultyMultiplier !== 1.0) {
       factors.push({
         factor: 'Сложность уровня',
@@ -183,11 +193,7 @@ export function getPlayerActiveEffects(
   skillModifiers: SkillModifiers
 ): Array<{
   category: string
-  effects: Array<{
-    description: string
-    value: string
-    source?: string
-  }>
+  effects: Array<EffectItem>
 }> {
   const categories: Record<string, Array<{
     description: string
@@ -197,7 +203,8 @@ export function getPlayerActiveEffects(
   
   // Эффекты от навыков
   for (const skill of ALL_SKILLS) {
-    const level = skillLevels[skill.key] || 0
+    const level: boolean = skillLevels[skill.key] || 0
+
     if (level <= 0) continue
     
     const effects = getSkillEffectsForUi(skill.key, level)
@@ -208,6 +215,7 @@ export function getPlayerActiveEffects(
       }
       
       const category = getModifierCategory(effect.modifierKey)
+
       if (!categories[category]) {
         categories[category] = []
       }
@@ -302,7 +310,7 @@ function getMethodMultiplierDescription(method: string, multiplier: number): str
     videos: 'Видео'
   }
   
-  const name = methodNames[method] || method
+  const name: boolean = methodNames[method] || method
   const percent = (multiplier - 1) * 100
   const sign = percent > 0 ? '+' : ''
   
@@ -331,8 +339,8 @@ function getBurnoutMultiplier(weeklyHours: number): { multiplier: number; stress
 
   if (weeklyHours >= 50) return { multiplier: 0, stressBonus: 0.15 }
   
-  const extraHours = weeklyHours - 30
-  const penalty = extraHours * 0.05
+  const extraHours: number = weeklyHours - 30
+  const penalty: number = extraHours * 0.05
 
   return {
     multiplier: Math.max(0, 1 - penalty),

@@ -7,17 +7,6 @@ export interface QuitCareerResult {
   message: string
 }
 
-export interface CanStartProgramResult {
-  ok: boolean
-  reason?: string
-}
-
-export interface CanExecuteActionResult {
-  canDo: boolean
-  canExecute: boolean
-  reason: string | undefined
-}
-
 export interface TimeSnapshot {
   totalHours: number
   gameDays: number
@@ -75,17 +64,6 @@ export interface CareerTrackEntry {
   educationRequiredLabel?: string
 }
 
-export interface ActionRequirements {
-  minAge?: number
-  minSkills?: Record<string, number>
-}
-
-export interface FinanceOverview {
-  balance: number
-  expenses: number
-  income: number
-}
-
 export interface StatsShortSnapshot {
   energy: number
   health: number
@@ -102,3 +80,5 @@ export interface NewGameSeed {
   playerName: string
   startAge: number
 }
+
+export type { GameSessionSnapshot } from '@application/game'

@@ -1,101 +1,101 @@
-import { getActionsByCategory, getActionById, type BalanceAction } from '@domain/balance/actions'
-import type { ActionCategory, StatChangeBreakdownEntry, StatChanges } from '@domain/balance/types'
+import { getActionsByCategory, type BalanceAction } from '@domain/balance/actions'
+import type { ActionCategory } from '@domain/balance/types'
+import {
+  canExecuteAction as checkActionAvailability,
+  executeActionWithContext,
+  type ActionExecutionResult,
+} from '@application/game'
+import { filterActionsByAge, useAgeRestrictions } from '@composables/useAgeRestrictions'
 
-/**
- * @description [Composables] - Предоставляет функции для работы с действиями: проверка доступности, выполнение, фильтрация по категории и возрасту.
- * @return { object } Объект с методами canExecute, executeAction, getActionsByCategory, allCategories, actionsEmptyHint.
- */
-export const useActions = () => {
+export interface UseActionsResult {
+  canExecute: (actionId: string) => boolean
+  getCanExecuteReason: (actionId: string) => string | null
+  executeAction: (actionId: string) => ActionExecutionResult
+  getActionsByCategory: (category: ActionCategory) => BalanceAction[]
+  allCategories: ActionCategory[]
+  actionsEmptyHint: string
+}
+
+export const useActions = (): UseActionsResult => {
   const timeStore = useTimeStore()
   const statsStore = useStatsStore()
   const walletStore = useWalletStore()
-  const activityStore = useActivityStore()
+  const skillsStore = useSkillsStore()
 
-  const toast = useToast()
-  const { filterActionsByAge, ageGroupLabel } = useAgeRestrictions()
+  const { ageGroupLabel, ageGroup } = useAgeRestrictions()
 
   const actionsEmptyHint = computed<string>(
     () =>
       `Для этапа «${ageGroupLabel.value}» сейчас нет доступных действий в этом разделе. Часть активностей откроется в следующих возрастных группах.`,
   )
 
+  function buildContext() {
+    return {
+      money: walletStore.money,
+      weekHoursRemaining: timeStore.weekHoursRemaining,
+      currentAge: timeStore.currentAge,
+      getSkillLevel: (skill: string) => skillsStore.getSkillLevel(skill),
+    }
+  }
+
   function canExecute(actionId: string): boolean {
-    const action: BalanceAction | null = getActionById(actionId)
-
-    if (!action) return false
-
-    if (walletStore.money < action.price) return false
-
-    if (timeStore.weekHoursRemaining < action.hourCost) return false
-
-    return true
+    return checkActionAvailability(actionId, buildContext()).canExecute
   }
 
   function getCanExecuteReason(actionId: string): string | null {
-    const action: BalanceAction | null = getActionById(actionId)
+    const result = checkActionAvailability(actionId, buildContext())
 
-    if (!action) return 'Действие не найдено'
-
-    if (walletStore.money < action.price) return 'Недостаточно денег'
-
-    if (timeStore.weekHoursRemaining < action.hourCost) return 'Недостаточно времени'
-
-    return null
+    return result.canExecute ? null : result.reason ?? null
   }
 
-  function executeAction(actionId: string): boolean {
-    const action: BalanceAction | null = getActionById(actionId)
+  function executeAction(actionId: string): ActionExecutionResult {
+    const context = buildContext()
+    const result = executeActionWithContext(actionId, context)
 
-    if (!action) {
-      toast.showError(`Действие не найдено: ${actionId}`)
-
-      return false
+    if (!result.success) {
+      return result
     }
 
-    const reason: string | null = getCanExecuteReason(actionId)
+    if (result.effect) {
+      const { price, hourCost, actionType, statChanges, skillChanges } = result.effect
 
-    if (reason) {
-      toast.showError(reason)
+      if (price > 0) {
+        walletStore.spend(price)
+      }
 
-      return false
+      if (hourCost > 0) {
+        timeStore.advanceHours(hourCost, { actionType: actionType as 'work' | 'sleep' | 'default' })
+      }
+
+      if (statChanges) {
+        statsStore.applyStatChanges(statChanges)
+      }
+
+      if (skillChanges) {
+        skillsStore.applySkillChanges(skillChanges)
+      }
     }
 
-    walletStore.spend(action.price)
-    timeStore.advanceHours(action.hourCost, { actionType: action.actionType as 'work' | 'sleep' | 'default' })
-    statsStore.applyStatChanges(action.statChanges ?? {})
-
-    const statBreakdown: StatChanges | undefined = action.statChanges
-    const message: string = action.effect || 'Действие выполнено'
-
-    activityStore.addActionEntry(action.title, message, { category: action.category })
-
-    showGameResultModal(action.title, message, {
-      statBreakdown: statBreakdown as unknown as StatChangeBreakdownEntry[] | undefined,
-      hourCost: action.hourCost,
-      price: action.price,
-    })
-
-    return true
+    return result
   }
 
   function getActions(category: ActionCategory): BalanceAction[] {
     const actions: BalanceAction[] = getActionsByCategory(category)
 
-    return filterActionsByAge(actions)
+    return filterActionsByAge(actions, ageGroup.value)
   }
 
-  const allCategories = computed<ActionCategory[]>(() => {
-    return [
-      'shop', 'fun', 'home', 'social', 'education',
-      'finance', 'career', 'hobby', 'health', 'selfdev',
-    ] as ActionCategory[]
-  })
+  const allCategories: ActionCategory[] = [
+    'shop', 'fun', 'home', 'social', 'education',
+    'finance', 'career', 'hobby', 'health', 'selfdev',
+  ]
 
   return {
     canExecute,
     executeAction,
     getActionsByCategory: getActions,
     allCategories,
-    actionsEmptyHint,
+    actionsEmptyHint: actionsEmptyHint.value,
+    getCanExecuteReason,
   }
 }

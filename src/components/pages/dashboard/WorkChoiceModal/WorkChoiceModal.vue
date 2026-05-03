@@ -55,9 +55,9 @@ import type { WorkChoiceModalProps } from './WorkChoiceModal.types'
  * @prop {boolean} canStartFullShift - Доступна ли полная смена
  * @prop {(hours: number) => void} [onRunShift] - Callback запуска рабочей смены
  */
-const props = defineProps<WorkChoiceModalProps>()
+const props: boolean = defineProps<WorkChoiceModalProps>()
 
-const emit = defineEmits<{
+const emit: boolean = defineEmits<{
   close: []
 }>()
 

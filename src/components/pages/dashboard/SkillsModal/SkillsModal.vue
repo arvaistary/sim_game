@@ -41,7 +41,7 @@ import { buildSkillTooltipText } from '@domain/balance/utils/skill-tooltip-conte
 import type { SkillDef } from '@domain/balance/types'
 import type { SkillWithProgress } from './SkillsModal.types'
 
-const emit = defineEmits<{
+const emit: boolean = defineEmits<{
   close: []
 }>()
 

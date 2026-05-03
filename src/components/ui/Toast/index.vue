@@ -25,7 +25,7 @@ import { TOAST_ICON_MAP } from './index.constants'
  * @prop {number} [duration] - Длительность показа в миллисекундах
  * @prop {boolean} [visible] - Флаг видимости уведомления
  */
-const props = withDefaults(defineProps<{
+const props: boolean = withDefaults(defineProps<{
   message: string
   type?: 'info' | 'success' | 'warning' | 'error'
   duration?: number
@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<{
   visible: false,
 })
 
-const emit = defineEmits<{
+const emit: boolean = defineEmits<{
   'update:visible': [value: boolean]
 }>()
 

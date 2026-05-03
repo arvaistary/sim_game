@@ -118,6 +118,7 @@ import type { StartMode } from './index.types.ts'
 const NEW_GAME_SESSION_KEY: string = 'gamelife:new-game'
 
 const gameStore = useGameStore()
+
 const { $autoSave } = useNuxtApp()
 
 const playerName = ref<string>('')

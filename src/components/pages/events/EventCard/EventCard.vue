@@ -36,11 +36,12 @@ import type { EventQueueItem } from '@stores/events-store'
 /**
  * @prop {EventQueueItem} event - Данные события для отображения
  */
-const props = defineProps<{
+const props: boolean = defineProps<{
   event: EventQueueItem
 }>()
 
 const impactText = computed<string>(() => {
+
   if (!props.event?.data?.statImpact) return ''
 
   return formatStatChangesBulletListRu(props.event.data.statImpact as any)

@@ -2,6 +2,10 @@ import type { SkillModifiers, SkillEffect } from '@domain/balance/types'
 import { ALL_SKILLS } from './skills-constants'
 import { generateModifiersFromSkillDefs } from './skill-effects-generator'
 
+interface AchievedItem {
+  threshold: number; description: string
+}
+
 export function createBaseSkillModifiers(): SkillModifiers {
   return {
     hungerDrainMultiplier: 1.0,
@@ -51,6 +55,7 @@ export function recalculateSkillModifiers(skillLevels: Record<string, number | {
   // Комбинируем с базовыми модификаторами
   for (const [key, value] of Object.entries(generatedModifiers)) {
     const modifierKey = key as keyof SkillModifiers
+
     if (isMultiplicativeModifier(modifierKey)) {
       modifiers[modifierKey] = (modifiers[modifierKey] as number) * (value as number)
     } else {
@@ -128,11 +133,12 @@ export function getSkillMilestones(
   skillKey: string,
   skillLevels: Record<string, number>,
 ): Array<{ threshold: number; description: string }> {
-  const level = skillLevels?.[skillKey] ?? 0
-  const skill = ALL_SKILLS.find(s => s.key === skillKey)
+  const level: number = skillLevels?.[skillKey] ?? 0
+  const skill: boolean = ALL_SKILLS.find(s => s.key === skillKey)
+
   if (!skill || !skill.milestones) return []
 
-  const achieved: Array<{ threshold: number; description: string }> = []
+  const achieved: Array<AchievedItem> = []
   for (const [threshold, data] of Object.entries(skill.milestones)) {
     if (level >= parseInt(threshold, 10)) {
       achieved.push({ threshold: parseInt(threshold, 10), ...data })

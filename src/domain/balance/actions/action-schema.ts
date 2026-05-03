@@ -1,15 +1,26 @@
 import type { BalanceAction } from './types'
 
+type ValidateRequiredFieldsReturn = {
+  valid: boolean
+  missing: Array<MissingItem>
+};
+
+type ValidateUniqueIdsReturn = {
+  valid: boolean
+  duplicates: string[]
+};
+
+interface MissingItem {
+  id: string; missingFields: string[]
+}
+
 /**
  * Проверяет, что все действия имеют уникальные ID
  * @param actions - Массив действий
  * @returns Объект с результатом проверки
  */
-export function validateUniqueIds(actions: BalanceAction[]): {
-  valid: boolean
-  duplicates: string[]
-} {
-  const idMap = new Map<string, number[]>()
+export function validateUniqueIds(actions: BalanceAction[]): ValidateUniqueIdsReturn {
+  const idMap: boolean = new Map<string, number[]>()
 
   actions.forEach((action, index) => {
     if (!idMap.has(action.id)) {
@@ -36,11 +47,8 @@ export function validateUniqueIds(actions: BalanceAction[]): {
  * @param actions - Массив действий
  * @returns Объект с результатом проверки
  */
-export function validateRequiredFields(actions: BalanceAction[]): {
-  valid: boolean
-  missing: Array<{ id: string; missingFields: string[] }>
-} {
-  const missing: Array<{ id: string; missingFields: string[] }> = []
+export function validateRequiredFields(actions: BalanceAction[]): ValidateRequiredFieldsReturn {
+  const missing: Array<MissingItem> = []
   const requiredFields: (keyof BalanceAction)[] = ['id', 'category', 'title', 'hourCost', 'price', 'actionType', 'effect']
 
   actions.forEach((action) => {

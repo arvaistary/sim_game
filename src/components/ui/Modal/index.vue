@@ -51,7 +51,7 @@ import './style.scss'
  * @prop {boolean} [closeOnEscape] - Закрывать по нажатию Escape
  * @prop {number} [zIndex] - Z-index модального окна
  */
-const props = withDefaults(defineProps<{
+const props: boolean = withDefaults(defineProps<{
   isOpen?: boolean
   title?: string
   showClose?: boolean
@@ -69,7 +69,7 @@ const props = withDefaults(defineProps<{
   zIndex: 1000,
 })
 
-const emit = defineEmits<{
+const emit: boolean = defineEmits<{
   close: []
 }>()
 

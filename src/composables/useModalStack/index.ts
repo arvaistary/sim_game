@@ -1,6 +1,8 @@
 import type { ModalEntry } from './index.types'
 import { BASE_Z_INDEX, Z_INDEX_STEP } from './index.constants'
 
+export type { ModalEntry } from './index.types'
+
 /**
  * @description [Composable] - manages a shared modal stack and z-index ordering.
  * @return { ReturnType } modal stack state and stack actions

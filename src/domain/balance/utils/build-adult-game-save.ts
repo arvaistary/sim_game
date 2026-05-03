@@ -7,8 +7,8 @@ import { INITIAL_SAVE, INITIAL_TIME_TEMPLATE } from '@domain/balance/constants/i
 export function buildAdultGameSavePayload(input: {
   playerName: string
 }): Record<string, unknown> {
-  const age = 25
-  const base = structuredClone(INITIAL_SAVE) as unknown as Record<string, unknown>
+  const age: number = 25
+  const base: boolean = structuredClone(INITIAL_SAVE) as unknown as Record<string, unknown>
 
   // Базовые навыки на среднем уровне
   const skills: Record<string, number> = {
@@ -27,7 +27,7 @@ export function buildAdultGameSavePayload(input: {
   }
 
   // Стартовые деньги для тестового забега
-  const money = 50000
+  const money: number = 50000
   
   const lifetimeStats = {
     ...(base.lifetimeStats as Record<string, unknown>),

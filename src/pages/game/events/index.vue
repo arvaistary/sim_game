@@ -44,10 +44,10 @@ const currentEvent = computed<GameEvent | null>(() => events.currentEvent.value)
 const hasNextEvent = computed<boolean>(() => events.hasNextEvent.value)
 
 function selectChoice(choice: EventChoiceParam) {
-  const ok: boolean = events.applyChoice(choice.id)
+  const result = events.applyChoice(choice.id)
 
-  if (!ok) {
-    toast.showError('Не удалось применить выбор')
+  if (!result.success) {
+    toast.showError(result.message)
 
     return
   }

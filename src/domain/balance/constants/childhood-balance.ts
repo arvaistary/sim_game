@@ -1,5 +1,13 @@
 import { AgeGroup } from '@domain/balance/actions/types'
 
+type GetAgeRangeForGroupReturn = {
+  min: number; max: number
+};
+
+type GetSkillGainForAgeReturn = {
+  smallSuccess: number; bigSuccess: number; bigFail: number
+};
+
 // ─── Таблица получения навыка за действие по возрасту ───────────────
 
 /**
@@ -79,14 +87,14 @@ export const DELAYED_EFFECT_PARAMS = {
 /**
  * Получить множитель получения навыка для текущей возрастной группы.
  */
-export function getSkillGainForAge(ageGroup: AgeGroup): { smallSuccess: number; bigSuccess: number; bigFail: number } {
+export function getSkillGainForAge(ageGroup: AgeGroup): GetSkillGainForAgeReturn {
   return SKILL_GAIN_BY_AGE[ageGroup] ?? SKILL_GAIN_BY_AGE[AgeGroup.ADULT]
 }
 
 /**
  * Получить диапазон возрастов для возрастной группы.
  */
-export function getAgeRangeForGroup(ageGroup: AgeGroup): { min: number; max: number } {
+export function getAgeRangeForGroup(ageGroup: AgeGroup): GetAgeRangeForGroupReturn {
   return AGE_GROUP_RANGES[ageGroup] ?? { min: 0, max: 100 }
 }
 

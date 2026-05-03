@@ -54,8 +54,10 @@ const isLoading = ref(false)
 
 function onScroll() {
   const el = scrollRef.value
+
   if (!el) return
-  const threshold = 200
+  const threshold: number = 200
+
   if (el.scrollHeight - el.scrollTop - el.clientHeight < threshold) {
     isLoading.value = true
     loadMore()

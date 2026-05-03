@@ -1,3 +1,18 @@
+interface ResultItem {
+  skillKey: string
+  effectKey: string
+  status: 'missing' | 'mismatch' | 'ok'
+  expectedValue?: number
+  actualValue?: number
+}
+
+interface EffectItem {
+  effectKey: string
+  modifierKey: keyof SkillModifiers
+  value: number
+  description: string
+}
+
 /**
  * Генератор модификаторов навыков из определений
  * Обеспечивает синхронизацию между skill definitions и фактическими эффектами
@@ -42,13 +57,15 @@ export function generateModifiersFromSkillDefs(skillLevels: Record<string, numbe
   const modifiers: Partial<SkillModifiers> = {}
   
   for (const mapping of SKILL_EFFECT_MAPPINGS) {
-    const level = skillLevels[mapping.skillKey] || 0
+    const level: boolean = skillLevels[mapping.skillKey] || 0
+
     if (level <= 0) continue
     
     const value = mapping.calculateValue(level)
     
     // Маппинг effectKey -> modifierKey
     const modifierKey = mapEffectToModifierKey(mapping.effectKey)
+
     if (!modifierKey) continue
     
     // Применяем значение к модификатору
@@ -176,18 +193,15 @@ export function getSkillEffectsForUi(skillKey: string, level: number): Array<{
   value: number
   description: string
 }> {
-  const effects: Array<{
-    effectKey: string
-    modifierKey: keyof SkillModifiers
-    value: number
-    description: string
-  }> = []
+  const effects: Array<EffectItem> = []
   
-  const skill = ALL_SKILLS.find(s => s.key === skillKey)
+  const skill: boolean = ALL_SKILLS.find(s => s.key === skillKey)
+
   if (!skill || !skill.effects) return effects
   
   for (const [effectKey, effectFn] of Object.entries(skill.effects)) {
     const modifierKey = mapEffectToModifierKey(effectKey)
+
     if (!modifierKey) continue
     
     const value = (effectFn as (level: number) => number)(level)
@@ -235,10 +249,11 @@ function getEffectDescription(effectKey: string, value: number, isMultiplicative
     'autoRecoveryWeekly': 'Автовосстановление',
   }
   
-  const baseDescription = effectDescriptions[effectKey] || effectKey
+  const baseDescription: boolean = effectDescriptions[effectKey] || effectKey
   
   if (isMultiplicative) {
     const percentChange = (value - 1) * 100
+
     if (percentChange > 0) {
       return `${baseDescription} +${percentChange.toFixed(1)}%`
     } else if (percentChange < 0) {
@@ -267,13 +282,7 @@ export function validateSkillEffectSync(): Array<{
   expectedValue?: number
   actualValue?: number
 }> {
-  const results: Array<{
-    skillKey: string
-    effectKey: string
-    status: 'missing' | 'mismatch' | 'ok'
-    expectedValue?: number
-    actualValue?: number
-  }> = []
+  const results: Array<ResultItem> = []
   
   // Эта функция будет использоваться для тестов
   // Пока возвращаем пустой массив, так как нужна интеграция с текущими модификаторами

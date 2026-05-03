@@ -2,7 +2,6 @@
 import type {
   NewGameSeed,
   QuitCareerResult,
-  CanExecuteActionResult,
   TimeSnapshot,
   StatsSnapshot,
   WalletSnapshot,
@@ -10,24 +9,13 @@ import type {
   HousingSnapshot,
   CanApplyWorkShiftResult,
   CareerTrackEntry,
-  ActionRequirements,
-  FinanceOverview,
   StatsShortSnapshot,
-  FinanceSnapshot,
+  GameSessionSnapshot,
 } from './index.types'
 
-import type {
-  CanExecuteResult,
-  ActionResult as ActionExecutionResult,
-  GameAction,
-} from '../actions-store'
 import type { JobSnapshot } from '../career-store'
 import type { SkillEntry } from '../skills-store'
-import type { GameEvent } from '../events-store'
-import type { Investment } from '../finance-store'
-import type { ActivityEntry } from '../activity-store'
 
-import { useActionsStore } from '../actions-store'
 import { useCareerStore } from '../career-store'
 import { useSkillsStore } from '../skills-store'
 import { useEducationStore } from '../education-store'
@@ -35,17 +23,15 @@ import { useHousingStore } from '../housing-store'
 import { useEventsStore } from '../events-store'
 import { useFinanceStore } from '../finance-store'
 import { useActivityStore } from '../activity-store'
+import { useActionsStore } from '../actions-store'
 
 import { useTimeStore } from '../time-store'
 import { useStatsStore } from '../stats-store'
 import { useWalletStore } from '../wallet-store'
 import { usePlayerStore } from '../player-store'
 
-import { getActionById, type BalanceAction } from '@domain/balance/actions'
-import { CAREER_JOBS } from '@domain/balance/constants/career-jobs'
-import { EDUCATION_PROGRAMS } from '@domain/balance/constants/education-programs'
-import { changeCareer as resolveCareerChange } from '@application/game/commands'
-import { canStartEducationProgram as checkEducationAvailability } from '@application/game/queries'
+import { changeCareer as resolveCareerChange, checkWorkShift as validateWorkShift, executeWorkShift as performWorkShift, getCareerTrack as buildCareerTrack, getEducationRequirementLabel as formatEducationLabel, startEducationProgram as beginEducation, buildSaveSnapshot as buildVersionedPayload } from '@application/game'
+import { canStartEducationProgram as checkEducationAvailability } from '@application/game'
 
 export const useGameStore = defineStore('game', () => {
   const worldVersion = ref<number>(0)
@@ -66,7 +52,6 @@ export const useGameStore = defineStore('game', () => {
 
   const worldTick = computed<number>(() => worldVersion.value)
 
-  // Еженедельный сброс рабочих часов при смене недели
   watch(() => time.gameWeeks, (newWeek, oldWeek) => {
     if (newWeek !== oldWeek && oldWeek !== undefined) {
       career.resetWeek()
@@ -75,7 +60,7 @@ export const useGameStore = defineStore('game', () => {
 
   function initWorld(): void { worldVersion.value++ }
 
-  function save(): Record<string, unknown> {
+  function collectSnapshot(): GameSessionSnapshot {
     return {
       player: player.save(),
       time: time.save(),
@@ -89,6 +74,13 @@ export const useGameStore = defineStore('game', () => {
       finance: finance.save ? finance.save() : {},
       activity: activity.save ? activity.save() : {},
     }
+  }
+
+  function save(): Record<string, unknown> {
+    const snapshot = collectSnapshot()
+    const result = buildVersionedPayload(snapshot)
+
+    return result.payload as unknown as Record<string, unknown>
   }
 
   function load(data?: Record<string, unknown>): boolean {
@@ -147,50 +139,41 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function canApplyWorkShift(hours: number): CanApplyWorkShiftResult {
-    if (!career.isEmployed) return { canDo: false, reason: 'Нет работы' }
+    const result = validateWorkShift(hours, {
+      isEmployed: career.isEmployed,
+      energy: stats.energy,
+      weekHoursRemaining: time.weekHoursRemaining,
+      salaryPerHour: career.currentJob?.salaryPerHour ?? 0,
+    })
 
-    if (stats.energy < hours * 3) return { canDo: false, reason: 'Недостаточно энергии' }
-
-    if (time.weekHoursRemaining < hours) return { canDo: false, reason: 'Недостаточно часов в неделе' }
-
-    return { canDo: true }
+    return { canDo: result.canDo, reason: result.reason }
   }
 
   function getEducationRequirementLabel(minEducationRank: number): string {
-    return minEducationRank <= -1
-      ? 'Любое'
-      : minEducationRank === 0
-        ? 'Среднее'
-        : minEducationRank === 1
-          ? 'Высшее'
-          : minEducationRank === 2
-            ? 'Бакалавриат'
-            : minEducationRank === 3
-              ? 'Магистратура'
-              : minEducationRank === 4
-                ? 'MBA'
-                : 'Неизвестно'
+    return formatEducationLabel(minEducationRank)
   }
 
   function applyWorkShift(hours: number): string {
-    const check: CanExecuteResult = canApplyWorkShift(hours)
+    const result = performWorkShift(hours, {
+      isEmployed: career.isEmployed,
+      energy: stats.energy,
+      weekHoursRemaining: time.weekHoursRemaining,
+      salaryPerHour: career.currentJob?.salaryPerHour ?? 0,
+    })
 
-    if (!check.canDo) return check.reason ?? 'Ошибка'
+    if (!result.success) return result.message
 
-    const salary: number = hours * (career.currentJob?.salaryPerHour ?? 0)
     career.addWorkHours(hours)
-    career.addPendingSalary(salary)
-
-    // Собираем зарплату сразу в кошелёк
-    const actualSalary: number = career.collectSalary()
+    career.addPendingSalary(result.salary)
+    const actualSalary = career.collectSalary()
     wallet.earn(actualSalary)
 
-    stats.applyStatChanges({ energy: -(hours * 3), hunger: +(hours * 2) })
-    time.advanceHours(hours)
+    stats.applyStatChanges(result.statChanges)
+    time.advanceHours(result.hourCost)
     worldVersion.value++
     activity.addWorkEntry('Работа', hours, actualSalary)
 
-    return `Вы заработали ${actualSalary} ₽`
+    return result.message
   }
 
   function quitCareer(): QuitCareerResult {
@@ -201,48 +184,46 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function changeCareer(jobId: string): QuitCareerResult {
-    const result: QuitCareerResult = resolveCareerChange(jobId, (skill: string) => skills.getSkillLevel(skill))
+    const result = resolveCareerChange(jobId, (skill: string) => skills.getSkillLevel(skill))
 
-    if (result.success) {
-      const job = CAREER_JOBS.find(j => j.id === jobId)
-
-      if (job) {
-        career.startWork({
-          id: job.id,
-          name: job.name,
-          salaryPerHour: job.salaryPerHour,
-          requiredHoursPerWeek: job.requiredHoursPerWeek,
-          schedule: job.schedule,
-          employed: true,
-        })
-      }
+    if (result.success && result.job) {
+      career.startWork({
+        id: result.job.id,
+        name: result.job.name,
+        salaryPerHour: result.job.salaryPerHour,
+        requiredHoursPerWeek: result.job.requiredHoursPerWeek,
+        schedule: result.job.schedule,
+        employed: true,
+      })
 
       worldVersion.value++
     }
 
-    return result
+    return { success: result.success, message: result.message }
   }
 
   function startEducationProgram(programId: string): string {
-    const check = checkEducationAvailability(career.currentJob.employed ? false : education.isStudying)
+    const result = beginEducation(programId, {
+      isEmployed: career.currentJob?.employed ?? false,
+      hasActiveProgram: education.isStudying,
+    })
 
-    if (!check.ok) {
-      return check.reason ?? 'Нельзя начать программу'
+    if (!result.success) {
+      return result.message
     }
 
-    const program = EDUCATION_PROGRAMS.find(p => p.id === programId)
-
-    if (!program) {
-      return 'Программа не найдена'
+    if (result.programId && result.programName && result.hoursRequired !== undefined) {
+      education.startProgramById(result.programId, result.programName, result.hoursRequired)
     }
 
-    education.startProgramById(programId, program.title, program.hoursRequired)
-
-    return `Начато обучение: ${program.title}`
+    return result.message
   }
 
-  function canStartEducationProgramWithReason(programId: string): { ok: boolean; reason?: string } {
-    return checkEducationAvailability(education.isStudying)
+  function canStartEducationProgramWithReason(_programId: string): { ok: boolean; reason?: string } {
+    const isEmployed: boolean = career.currentJob?.employed ?? false
+    const hasActiveProgram = education.isStudying
+
+    return checkEducationAvailability(isEmployed, hasActiveProgram)
   }
 
   function getCareerTrack(): CareerTrackEntry[] {
@@ -250,79 +231,8 @@ export const useGameStore = defineStore('game', () => {
     const professionalism: number = skills.getSkillLevel('professionalism')
     const educationRank: number = education.educationRank ?? 0
 
-    return CAREER_JOBS.map((job) => {
-      const unlocked: boolean = professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank
-
-      return {
-        id: job.id,
-        name: job.name,
-        level: job.level,
-        schedule: job.schedule,
-        salaryPerHour: job.salaryPerHour,
-        current: job.id === currentJobId,
-        unlocked,
-        missingProfessionalism: Math.max(0, job.minProfessionalism - professionalism),
-        educationRequiredLabel: getEducationRequirementLabel(job.minEducationRank),
-      }
-    })
+    return buildCareerTrack(currentJobId, professionalism, educationRank)
   }
-
-  function getCareerSnapshot(): JobSnapshot { return career.currentJob }
-  function getFinanceSnapshot(): FinanceSnapshot { return { monthlyExpenses: finance.monthlyExpenses } }
-  function getFinanceActions(): never[] { return [] }
-  function getActivityLogEntries(count: number = 10): ActivityEntry[] { return activity.getEntries(count) }
-
-  function getActionByIdFromBalance(actionId: string): BalanceAction | null {
-    return getActionById(actionId)
-  }
-
-  function toGameAction(action: BalanceAction): GameAction {
-    return {
-      id: action.id,
-      title: action.title,
-      category: action.category as string,
-      actionType: action.actionType,
-      hourCost: action.hourCost,
-      price: action.price,
-      statChanges: action.statChanges as Record<string, number> | undefined,
-      skillChanges: action.skillChanges,
-      cooldown: action.cooldown,
-      requirements: action.requirements as ActionRequirements | undefined,
-    }
-  }
-
-  function canExecuteAction(actionId: string): CanExecuteActionResult {
-    const action: BalanceAction | null = getActionByIdFromBalance(actionId)
-
-    if (!action) return { canDo: false, canExecute: false, reason: 'Действие не найдено' }
-
-    const result: CanExecuteResult = actions.canExecute(toGameAction(action))
-
-    return { canDo: result.canDo, canExecute: result.canDo, reason: result.reason }
-  }
-
-  function executeAction(actionId: string): QuitCareerResult {
-    const action: BalanceAction | null = getActionByIdFromBalance(actionId)
-
-    if (!action) return { success: false, message: 'Действие не найдено' }
-
-    const result: ActionExecutionResult = actions.executeAction(toGameAction(action))
-
-    return { success: result.success, message: result.summary ?? (result.success ? 'Выполнено' : result.error ?? 'Ошибка') }
-  }
-
-  function getNextEvent(): GameEvent | null { return events.currentEvent }
-
-  function applyEventChoice(eventId: string, choiceId: string): string {
-    const success: boolean = events.applyChoice(choiceId)
-
-    return success ? 'Событие применено' : 'Ошибка'
-  }
-
-  function getFinanceOverview(): FinanceOverview { return { balance: wallet.money, expenses: finance.totalExpense, income: wallet.totalEarned } }
-  function getInvestments(): Investment[] { return finance.investments }
-  function applyRecoveryAction(cardData: Record<string, unknown>): string { return finance.applyAction(cardData) ? 'Выполнено' : '' }
-  function collectInvestment(investmentId: string): string { return finance.divest(investmentId) > 0 ? 'Получено' : 'Ошибка' }
 
   return {
     worldVersion, worldTick, isInitialized,
@@ -347,11 +257,11 @@ export const useGameStore = defineStore('game', () => {
     career: computed<JobSnapshot>(() => career.currentJob),
     education: computed<EducationSnapshot>(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
     housing: computed<HousingSnapshot>(() => ({ level: housing.level, comfort: housing.comfort, furniture: housing.furniture })),
-    getCareerTrack, getCareerSnapshot, getFinanceSnapshot, getFinanceActions, getActivityLogEntries, getStats: (): StatsShortSnapshot => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
-    initWorld, save, load, resetGame, startNewGame,
+    getCareerTrack,
+    getStats: (): StatsShortSnapshot => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
+    initWorld, save, load, resetGame, startNewGame, collectSnapshot,
     canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
     startEducationProgram, canStartEducationProgramWithReason,
-    canExecuteAction, executeAction, getNextEvent, applyEventChoice, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment
   }
 })
 

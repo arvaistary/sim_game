@@ -107,6 +107,7 @@ export function getMaxProficiencyScore(): number {
  */
 export function proficiencyScoreToDisplayLevel(score: number): number {
   const config = getSkillProgressionConfig()
+
   if (!config.useTwoCircuitModel) {
     return Math.min(getMaxSkillLevel(), Math.max(0, Math.floor(score)))
   }
@@ -123,6 +124,7 @@ export function proficiencyScoreToDisplayLevel(score: number): number {
  */
 export function displayLevelToProficiencyScore(level: number): number {
   const config = getSkillProgressionConfig()
+
   if (!config.useTwoCircuitModel) {
     return Math.min(getMaxSkillLevel(), Math.max(0, level))
   }

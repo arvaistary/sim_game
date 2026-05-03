@@ -29,7 +29,7 @@
         <ActionCardList
           :actions="sortedFoodActions"
           :empty-text="actionsEmptyHint"
-          :is-disabled="(a: any) => !canExecute(a.id)"
+          :is-disabled="isActionDisabled"
           :get-disabled-reason="getDisabledReason"
           :show-price-when-zero="true"
           :use-format-effect="true"
@@ -43,7 +43,7 @@
         <ActionCardList
           :actions="sortedLearningActions"
           :empty-text="actionsEmptyHint"
-          :is-disabled="(a: any) => !canExecute(a.id)"
+          :is-disabled="isActionDisabled"
           :get-disabled-reason="getDisabledReason"
           :show-price-when-zero="true"
           :use-format-effect="true"
@@ -57,7 +57,7 @@
         <ActionCardList
           :actions="sortedThingsActions"
           :empty-text="actionsEmptyHint"
-          :is-disabled="(a: any) => !canExecute(a.id)"
+          :is-disabled="isActionDisabled"
           :get-disabled-reason="getDisabledReason"
           :show-price-when-zero="true"
           :use-format-effect="true"
@@ -71,7 +71,7 @@
         <ActionCardList
           :actions="sortedHomeActions"
           :empty-text="actionsEmptyHint"
-          :is-disabled="(a: any) => !canExecute(a.id)"
+          :is-disabled="isActionDisabled"
           :get-disabled-reason="getDisabledReason"
           :show-price-when-zero="true"
           :use-format-effect="true"
@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import './index.scss'
 
-import { getActionById, type BalanceAction } from '@domain/balance/actions'
+import type { BalanceAction } from '@domain/balance/actions'
 import { FOOD_ACTION_IDS, LEARNING_ACTION_IDS, THINGS_ACTION_IDS, HOME_ACTION_IDS } from '@constants/shop-tab-groups'
 import { tabs } from './index.constants'
 
@@ -95,12 +95,11 @@ definePageMeta({ middleware: 'game-init' })
 const route = useRoute()
 
 const timeStore = useTimeStore()
-const walletStore = useWalletStore()
 
-const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
+const { getActionsByCategory, canExecute, executeAction, getCanExecuteReason, actionsEmptyHint } = useActions()
 
 const availableTabIds: string[] = tabs.map(tab => tab.id)
-const allShopActions: BalanceAction[] = getActionsByCategory('shop' as any)
+const allShopActions: BalanceAction[] = getActionsByCategory('shop')
 
 const activeTab = ref<string>(normalizeTab(route.query.tab))
 
@@ -108,28 +107,28 @@ const activeTab = ref<string>(normalizeTab(route.query.tab))
 const foodActions = computed<BalanceAction[]>(() => {
   void timeStore.totalHours
 
-  return allShopActions.filter((a: any) => FOOD_ACTION_IDS.has(a.id))
+  return allShopActions.filter((a: BalanceAction) => FOOD_ACTION_IDS.has(a.id))
 })
 
 // Обучение
 const learningActions = computed<BalanceAction[]>(() => {
   void timeStore.totalHours
 
-  return allShopActions.filter((a: any) => LEARNING_ACTION_IDS.has(a.id))
+  return allShopActions.filter((a: BalanceAction) => LEARNING_ACTION_IDS.has(a.id))
 })
 
 // Вещи
 const thingsActions = computed<BalanceAction[]>(() => {
   void timeStore.totalHours
 
-  return allShopActions.filter((a: any) => THINGS_ACTION_IDS.has(a.id))
+  return allShopActions.filter((a: BalanceAction) => THINGS_ACTION_IDS.has(a.id))
 })
 
 // Дом
 const homeActions = computed<BalanceAction[]>(() => {
   void timeStore.totalHours
 
-  return allShopActions.filter((a: any) => HOME_ACTION_IDS.has(a.id))
+  return allShopActions.filter((a: BalanceAction) => HOME_ACTION_IDS.has(a.id))
 })
 
 const sortedFoodActions = computed<BalanceAction[]>(() => sortByAvailability(foodActions.value))
@@ -137,16 +136,14 @@ const sortedLearningActions = computed<BalanceAction[]>(() => sortByAvailability
 const sortedThingsActions = computed<BalanceAction[]>(() => sortByAvailability(thingsActions.value))
 const sortedHomeActions = computed<BalanceAction[]>(() => sortByAvailability(homeActions.value))
 
-/** Нормализация значения таба из query-параметра */
 function normalizeTab(rawValue: unknown): string {
   const value: string = typeof rawValue === 'string' ? rawValue : ''
 
   return availableTabIds.includes(value as (typeof tabs)[number]['id']) ? value : 'food'
 }
 
-/** Сортировка: доступные действия первыми */
-function sortByAvailability(actions: any[]): any[] {
-  return [...actions].sort((a, b) => {
+function sortByAvailability(actions: BalanceAction[]): BalanceAction[] {
+  return [...actions].sort((a: BalanceAction, b: BalanceAction) => {
     const aOk: number = canExecute(a.id) ? 0 : 1
     const bOk: number = canExecute(b.id) ? 0 : 1
 
@@ -154,17 +151,12 @@ function sortByAvailability(actions: any[]): any[] {
   })
 }
 
-/** Получить причину недоступности действия */
-function getDisabledReason(action: any): string {
-  const result: BalanceAction | null = getActionById(action.id)
+function isActionDisabled(action: BalanceAction): boolean {
+  return !canExecute(action.id)
+}
 
-  if (!result) return 'Действие не найдено'
-
-  if (walletStore.money < result.price) return 'Недостаточно денег'
-
-  if (timeStore.weekHoursRemaining < result.hourCost) return 'Недостаточно времени'
-
-  return 'Действие недоступно'
+function getDisabledReason(action: BalanceAction): string {
+  return getCanExecuteReason(action.id) ?? 'Действие недоступно'
 }
 
 watch(

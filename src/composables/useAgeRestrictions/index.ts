@@ -10,6 +10,16 @@ import type { AgeRestrictions } from './age-constants.types'
 
 export { AgeGroup, TAB_UNLOCK_AGE, getAgeGroup }
 
+export function filterActionsByAge(actions: BalanceAction[], ageGroupValue: AgeGroup): BalanceAction[] {
+  return actions.filter((action: BalanceAction) => {
+    if (action.ageGroup !== undefined && action.ageGroup > ageGroupValue) return false
+
+    if (action.maxAgeGroup !== undefined && ageGroupValue > action.maxAgeGroup) return false
+
+    return true
+  })
+}
+
 let lastKnownAge: number = 0
 let unlockedTabsCache: Set<string> = new Set()
 
@@ -84,8 +94,8 @@ export const useAgeRestrictions = () => {
     return true
   }
 
-  function filterActionsByAge(actions: BalanceAction[]): BalanceAction[] {
-    return actions.filter((action: BalanceAction) => isActionAvailable(action))
+  function filterActionsByAgeComposed(actions: BalanceAction[]): BalanceAction[] {
+    return filterActionsByAge(actions, ageGroup.value)
   }
 
   return {
@@ -96,7 +106,7 @@ export const useAgeRestrictions = () => {
     isTabVisible,
     isStatVisible,
     isActionAvailable,
-    filterActionsByAge,
+    filterActionsByAge: filterActionsByAgeComposed,
     checkUnlocks,
     availableTabs
   }

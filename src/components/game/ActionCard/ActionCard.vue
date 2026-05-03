@@ -66,7 +66,7 @@ import type { BalanceAction } from '@domain/balance/actions/types'
  * @prop {boolean} [showPriceWhenZero] - Показывать цену даже если она равна 0
  * @prop {boolean} [useFormatEffect] - Использовать форматирование эффекта через formatEffect
  */
-const props = withDefaults(defineProps<{
+const props: boolean = withDefaults(defineProps<{
   action: BalanceAction
   disabled?: boolean
   disabledReason?: string
@@ -81,13 +81,14 @@ const props = withDefaults(defineProps<{
   useFormatEffect: false,
 })
 
-const emit = defineEmits<{
+const emit: boolean = defineEmits<{
   execute: [id: string]
 }>()
 
 const toast = useToast()
 
 const displayEffect = computed<string>(() => {
+
   if (props.useFormatEffect) return formatEffect(props.action.effect)
 
   return props.action.effect

@@ -42,7 +42,7 @@ import type { WorkResultModalProps } from './WorkResultModal.types'
  */
 defineProps<WorkResultModalProps>()
 
-const emit = defineEmits<{
+const emit: boolean = defineEmits<{
   close: []
 }>()
 

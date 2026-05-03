@@ -35,7 +35,7 @@
         <ActionCardList
           :actions="sortedStudyActions"
           :empty-text="actionsEmptyHint"
-          :is-disabled="(a: any) => !canExecute(a.id)"
+          :is-disabled="isActionDisabled"
           :get-disabled-reason="getDisabledReason"
           @execute="executeAction"
         />
@@ -46,7 +46,7 @@
         <ActionCardList
           :actions="sortedPracticeActions"
           :empty-text="actionsEmptyHint"
-          :is-disabled="(a: any) => !canExecute(a.id)"
+          :is-disabled="isActionDisabled"
           :get-disabled-reason="getDisabledReason"
           @execute="executeAction"
         />
@@ -60,7 +60,6 @@ import './index.scss'
 
 import { PRACTICE_ACTION_IDS } from '@constants/education-tab-groups'
 import type { BalanceAction } from '@domain/balance/actions'
-import type { CanExecuteActionResult } from '@stores/game-store'
 import { tabs } from './index.constants'
 
 definePageMeta({ middleware: 'game-init' })
@@ -69,7 +68,7 @@ const route = useRoute()
 
 const store = useGameStore()
 
-const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
+const { getActionsByCategory, canExecute, executeAction, getCanExecuteReason, actionsEmptyHint } = useActions()
 
 const availableTabIds: string[] = tabs.map(tab => tab.id)
 const educationActions: BalanceAction[] = getActionsByCategory('education')
@@ -103,9 +102,8 @@ function normalizeTab(rawValue: unknown): string {
   return availableTabIds.includes(value as (typeof tabs)[number]['id']) ? value : 'programs'
 }
 
-/** Сортировка: доступные действия первыми */
 function sortByAvailability(actions: BalanceAction[]): BalanceAction[] {
-  return [...actions].sort((a, b) => {
+  return [...actions].sort((a: BalanceAction, b: BalanceAction) => {
     const aOk: number = canExecute(a.id) ? 0 : 1
     const bOk: number = canExecute(b.id) ? 0 : 1
 
@@ -113,11 +111,12 @@ function sortByAvailability(actions: BalanceAction[]): BalanceAction[] {
   })
 }
 
-/** Получить причину недоступности действия */
-function getDisabledReason(action: BalanceAction): string {
-  const result: CanExecuteActionResult = store.canExecuteAction(action.id)
+function isActionDisabled(action: BalanceAction): boolean {
+  return !canExecute(action.id)
+}
 
-  return result.reason ?? 'Действие недоступно'
+function getDisabledReason(action: BalanceAction): string {
+  return getCanExecuteReason(action.id) ?? 'Действие недоступно'
 }
 
 watch(

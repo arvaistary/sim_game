@@ -61,6 +61,7 @@
 import './GameModalHost.scss'
 
 import type { ResultItem } from './GameModalHost.types'
+import type { GameModalButton } from '@composables/useGameModal/modal.types'
 import { RUSSIAN_TO_KEY, STAT_CHANGE_LINE_RE } from './GameModalHost.constants'
 
 const { state, close } = useGameModal()

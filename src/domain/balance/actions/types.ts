@@ -14,6 +14,16 @@ export enum AgeGroup {
   ADULT = 6,    // 19+ лет
 }
 
+export interface ActionRequirements {
+  requiresRelationship?: boolean
+  housingLevel?: number
+  requiresItem?: string
+  minSkills?: Record<string, number>
+  minAge?: number
+  hasMortgage?: boolean
+  hasDebt?: boolean
+}
+
 export interface BalanceAction {
   id: string
   category: ActionCategory
@@ -30,7 +40,7 @@ export interface BalanceAction {
   oneTime?: boolean
   furnitureId?: string
   housingUpgradeLevel?: number
-  requirements?: Record<string, unknown>
+  requirements?: ActionRequirements
   cooldown?: { hours: number }
   subscription?: {
     monthlyCost: number

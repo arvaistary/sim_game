@@ -13,14 +13,11 @@
 </template>
 
 <script setup lang="ts">
+import type { ModalEntry } from '@composables/useModalStack'
+
 const { stack, close } = useModalStack()
 
-/**
- * Извлекает props для передачи в компонент через v-bind,
- * исключая onClose — он обрабатывается в handleClose.
- * Это avoids конфликт Vue3 между on*-пропами и @close event listener.
- */
-function getComponentProps(entry: ModalEntry): Record<string, any> {
+function getComponentProps(entry: ModalEntry): Record<string, unknown> {
   if (!entry.props) return {}
 
   const { onClose, ...rest } = entry.props
@@ -29,17 +26,16 @@ function getComponentProps(entry: ModalEntry): Record<string, any> {
 }
 
 function handleClose(entry: ModalEntry): void {
-  // Вызываем onClose из пропсов (если есть)
   const onClose = entry.props?.onClose
-  
+
   if (typeof onClose === 'function') {
     try {
       onClose()
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('[ModalStackHost] Error in onClose callback:', error)
     }
   }
-  // Закрываем модалку в стеке
+
   close(entry.id)
 }
 </script>

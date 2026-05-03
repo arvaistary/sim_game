@@ -81,7 +81,7 @@ function computeStatLine(
   valueAfterAging: number
   roundedBeforeSleepDebt: number
 } {
-  const baseFromAction = flatStatChanges[stat] ?? 0
+  const baseFromAction: number = flatStatChanges[stat] ?? 0
   let value = baseFromAction
 
   if (modifiers[stat] !== undefined) {
@@ -90,7 +90,8 @@ function computeStatLine(
 
   const valueAfterPerStatModifier = value
 
-  let agingApplied = false
+  let agingApplied: boolean = false
+
   if (value < 0) {
     agingApplied = true
     value *= agingMultiplier
@@ -178,7 +179,8 @@ export function calculateStatChangesWithBreakdown(
 
   for (const stat of STATS) {
     const line = computeStatLine(stat, flatStatChanges, modifiers, agingMultiplier)
-    let sleepDebtDelta = 0
+    let sleepDebtDelta: number = 0
+
     if (stat === 'energy') {
       sleepDebtDelta = sleepPenalty.energyPenalty
     } else if (stat === 'stress') {

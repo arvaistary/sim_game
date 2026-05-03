@@ -14,10 +14,12 @@ function formatSigned(value: number): string {
  */
 export function buildStatBreakdownExplanation(entry: StatChangeBreakdownEntry): string {
   const parts: string[] = []
+
   if (entry.baseFromAction !== 0) {
     parts.push(`база действия ${formatSigned(entry.baseFromAction)}`)
   }
-  const modExtra = entry.valueAfterPerStatModifier - entry.baseFromAction
+  const modExtra: number = entry.valueAfterPerStatModifier - entry.baseFromAction
+
   if (Math.abs(modExtra) > 0.001) {
     parts.push(`модификаторы ${formatSigned(modExtra)}`)
   }

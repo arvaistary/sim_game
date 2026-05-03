@@ -24,7 +24,7 @@ import './StatBar.scss'
  * @prop {number} value - Текущее числовое значение показателя
  * @prop {string} [color] - Кастомный цвет полосы (переопределяет автоматический)
  */
-const props = withDefaults(defineProps<{
+const props: boolean = withDefaults(defineProps<{
   label: string
   value: number
   color?: string
@@ -33,6 +33,7 @@ const props = withDefaults(defineProps<{
 })
 
 const barColor = computed<string>(() => {
+
   if (props.color) return props.color
 
   if (props.value > 60) return 'var(--color-sage)'

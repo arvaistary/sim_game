@@ -135,11 +135,11 @@ import { WORK_TYPES, INDUSTRIES, resolveJobIndustry } from '@constants/work-cate
 
 import { formatMoney } from '@utils/format'
 
-const emit = defineEmits<{
+const emit: boolean = defineEmits<{
   apply: [job: CareerTrackJob]
 }>()
 
-const props = defineProps<{
+const props: boolean = defineProps<{
   jobs?: CareerTrackJob[]
 }>()
 
@@ -154,6 +154,7 @@ const activeWorkType = ref<string>('full-time')
 const activeIndustry = ref<IndustryId>('all')
 
 const careerTrack = computed<CareerTrackJob[]>(() => {
+
   if (props.jobs !== undefined) {
     return props.jobs
   }
@@ -190,7 +191,7 @@ const currentWorkType = computed<WorkType>(() =>
 )
 
 const filteredJobs = computed<CareerTrackJob[]>(() => {
-  const jobOrder = new Map<string, number>()
+  const jobOrder: boolean = new Map<string, number>()
 
   careerTrack.value.forEach((job: CareerTrackJob, index: number) => {
     jobOrder.set(job.id, index)

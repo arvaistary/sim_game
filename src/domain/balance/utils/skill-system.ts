@@ -1,3 +1,7 @@
+type GetBurnoutMultiplierReturn = {
+  multiplier: number; stressBonus: number
+};
+
 /**
  * Реалистичная система развития навыков с XP, возрастными множителями, деградацией и эффективностью обучения
  * Все механики добавлены как множители поверх существующей системы, обратная совместимость сохранена
@@ -96,13 +100,13 @@ export function getComfortZoneMultiplier(consecutiveUses: number): number {
 /**
  * Рассчитывает множитель Перегорания
  */
-export function getBurnoutMultiplier(weeklyHours: number): { multiplier: number; stressBonus: number } {
+export function getBurnoutMultiplier(weeklyHours: number): GetBurnoutMultiplierReturn {
   if (weeklyHours <= 30) return { multiplier: 1.0, stressBonus: 0 }
 
   if (weeklyHours >= 50) return { multiplier: 0, stressBonus: 0.15 }
 
-  const extraHours = weeklyHours - 30
-  const penalty = extraHours * 0.05
+  const extraHours: number = weeklyHours - 30
+  const penalty: number = extraHours * 0.05
 
   return {
     multiplier: Math.max(0, 1 - penalty),
@@ -114,7 +118,7 @@ export function getBurnoutMultiplier(weeklyHours: number): { multiplier: number;
  * Проверяет и сбрасывает зону комфорта если прошло достаточно времени
  */
 function updateConsecutiveUses(state: SkillState, currentTimestamp: number): number {
-  const daysSinceLastAction = currentTimestamp - state.lastActionAt
+  const daysSinceLastAction: number = currentTimestamp - state.lastActionAt
 
   if (daysSinceLastAction >= 7) {
     return 1
@@ -148,8 +152,8 @@ export function addSkillXp(
   const comfortZoneMultiplier = getComfortZoneMultiplier(consecutiveUses)
   const { multiplier: burnoutMultiplier, stressBonus } = getBurnoutMultiplier(activityState.weeklyLearningHours)
 
-  const totalMultiplier = ageMultiplier * methodMultiplier * comfortZoneMultiplier * burnoutMultiplier * additionalMultipliers
-  const gainedXp = baseXp * totalMultiplier
+  const totalMultiplier: number = ageMultiplier * methodMultiplier * comfortZoneMultiplier * burnoutMultiplier * additionalMultipliers
+  const gainedXp: number = baseXp * totalMultiplier
 
   const newXp = Math.min(MAX_XP, currentState.xp + gainedXp)
   const newLevel = calculateLevelFromXp(newXp)
@@ -171,22 +175,23 @@ export function addSkillXp(
  * @param currentTimestamp текущий таймстемп в днях
  */
 export function applySkillDecay(currentState: SkillState, currentTimestamp: number): SkillState {
-  const daysSinceUsed = currentTimestamp - currentState.lastUsedAt
+  const daysSinceUsed: number = currentTimestamp - currentState.lastUsedAt
 
   if (daysSinceUsed <= 30) {
     return currentState
   }
 
-  const decayDays = daysSinceUsed - 30
+  const decayDays: number = daysSinceUsed - 30
   const decayRatePerDay = 0.005 // 0.5% в день
 
-  const maxAllowedXp = currentState.peakXp * 0.7
-  const theoreticalDecayedXp = currentState.xp * Math.pow(1 - decayRatePerDay, decayDays)
+  const maxAllowedXp: number = currentState.peakXp * 0.7
+  const theoreticalDecayedXp: number = currentState.xp * Math.pow(1 - decayRatePerDay, decayDays)
 
   let newXp = Math.max(theoreticalDecayedXp, maxAllowedXp)
 
   // Навыки выше 7 уровня никогда не падают ниже 3 уровня
   const currentLevel = calculateLevelFromXp(currentState.peakXp)
+
   if (currentLevel >= 7) {
     const minXpForLevel3 = getXpForLevel(3)
     newXp = Math.max(newXp, minXpForLevel3)
@@ -240,7 +245,8 @@ export function updateActivityState(
   hoursSpent: number,
   currentTimestamp: number
 ): PlayerActivityState {
-  const daysSinceWeekStart = currentTimestamp - state.weekStartTimestamp
+  const daysSinceWeekStart: number = currentTimestamp - state.weekStartTimestamp
+
   if (daysSinceWeekStart >= 7) {
     return {
       ...state,
@@ -249,7 +255,8 @@ export function updateActivityState(
     }
   }
 
-  const daysSinceBurnout = currentTimestamp - state.burnoutRecoveryStart
+  const daysSinceBurnout: number = currentTimestamp - state.burnoutRecoveryStart
+
   if (daysSinceBurnout >= 10) {
     return {
       ...state,

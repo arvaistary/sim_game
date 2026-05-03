@@ -11,11 +11,11 @@
 import type { Pinia } from 'pinia'
 import { createLocalStorageSaveRepository } from '@infrastructure/persistence/LocalStorageSaveRepository'
 import { DEFAULT_SAVE_KEY } from '@infrastructure/persistence/constants'
+import { persistSave, clearSave } from '@application/game'
 
-const DEBOUNCE_MS = 300
+const DEBOUNCE_MS: number = 300
 const PERIODIC_MS = 30_000
 
-/** ID stores, которые относятся к игре (подписываемся на их изменения) */
 const GAME_STORE_IDS = new Set([
   'game', 'time', 'stats', 'wallet', 'skills', 'career',
   'education', 'housing', 'player', 'events', 'actions',
@@ -28,12 +28,12 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   let saveTimer: ReturnType<typeof setTimeout> | null = null
   let periodicTimer: ReturnType<typeof setInterval> | null = null
-  let saveEnabled = false
+  let saveEnabled: boolean = false
 
   /**
    * Немедленное сохранение текущего состояния игры.
    */
-  function flushSave(): void {
+  async function flushSave(): Promise<void> {
     if (!saveEnabled) return
 
     if (saveTimer) {
@@ -46,8 +46,10 @@ export default defineNuxtPlugin((nuxtApp) => {
     if (!playerStore.isInitialized) return
 
     const gameStore = useGameStore()
-    const payload: Record<string, unknown> = gameStore.save()
-    saveRepository.save(payload)
+
+    const snapshot = gameStore.collectSnapshot()
+
+    await persistSave(saveRepository, snapshot)
   }
 
   /**
@@ -57,7 +59,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     if (!saveEnabled) return
 
     if (saveTimer) clearTimeout(saveTimer)
-    saveTimer = setTimeout(flushSave, DEBOUNCE_MS)
+    saveTimer = setTimeout(() => void flushSave(), DEBOUNCE_MS)
   }
 
   /**
@@ -70,13 +72,14 @@ export default defineNuxtPlugin((nuxtApp) => {
   /**
    * Очистить сохранение и отключить автосохранение (новая игра).
    */
-  function clearSave(): void {
+  async function clearAndReset(): Promise<void> {
     saveEnabled = false
     if (saveTimer) {
       clearTimeout(saveTimer)
       saveTimer = null
     }
-    saveRepository.clear()
+
+    await clearSave(saveRepository)
   }
 
   // --- Pinia plugin: подписка на изменения game stores ---
@@ -91,22 +94,22 @@ export default defineNuxtPlugin((nuxtApp) => {
   // --- visibilitychange: immediate save при скрытии вкладки ---
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-      flushSave()
+      void flushSave()
     }
   })
 
   // --- Periodic save: safety net каждые 30 секунд ---
-  periodicTimer = setInterval(flushSave, PERIODIC_MS)
+  periodicTimer = setInterval(() => void flushSave(), PERIODIC_MS)
 
   // --- beforeunload: гарантированное сохранение при уходе со страницы ---
-  window.addEventListener('beforeunload', flushSave)
+  window.addEventListener('beforeunload', () => void flushSave())
 
   return {
     provide: {
       autoSave: {
         enable: enableSave,
         flush: flushSave,
-        clear: clearSave,
+        clear: clearAndReset,
       },
     },
   }

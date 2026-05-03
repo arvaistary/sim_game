@@ -387,6 +387,7 @@ const hoursRemaining = computed<number>(() => {
 })
 
 const studySessionHours = computed<number>(() => {
+
   if (!currentStep.value) return EDUCATION_LONG_PROGRAM_STEP_HOURS
 
   return resolveStudySessionHours(educationStore.cognitiveLoad, store.energy ?? 0, currentStep.value.hoursRequired)
@@ -474,6 +475,7 @@ const cognitiveLoadStatus = computed<CognitiveLoadStatusObject | null>(() => {
 })
 
 const canStudy = computed<boolean>(() => {
+
   if (!activeCourse.value) return false
 
   if (!currentStep.value) return false
@@ -488,6 +490,7 @@ const canStudy = computed<boolean>(() => {
 })
 
 const studyStatusTone = computed<string>(() => {
+
   if (!activeCourse.value || !currentStep.value) return 'idle'
 
   if (canStudy.value) return 'active'
@@ -498,6 +501,7 @@ const studyStatusTone = computed<string>(() => {
 })
 
 const studyStatusLabel = computed<string>(() => {
+
   if (!activeCourse.value || !currentStep.value) return 'Нет активного обучения'
 
   if (canStudy.value) return isBookCourse.value ? 'Можно читать' : 'Можно продолжить'
@@ -506,6 +510,7 @@ const studyStatusLabel = computed<string>(() => {
 })
 
 const studyStatusHint = computed<string>(() => {
+
   if (!activeCourse.value || !currentStep.value) return 'Выберите программу ниже'
 
   if (canStudy.value) {
@@ -526,6 +531,7 @@ const studyStatusHint = computed<string>(() => {
 })
 
 const studyButtonText = computed<string>(() => {
+
   if (!activeCourse.value) return 'Выбрать курс'
 
   if (!currentStep.value) return 'Ожидание шагов программы'
@@ -544,12 +550,14 @@ const studyButtonText = computed<string>(() => {
 const isStudyModalOpen = ref<boolean>(false)
 
 const activeCourseDescription = computed<string>(() => {
+
   if (!activeCourse.value) return ''
 
   return 'Погрузитесь в материал и развивайте свои навыки. Каждая страница приближает вас к новым знаниям.'
 })
 
 const canContinueStudy = computed<boolean>(() => {
+
   if (!activeCourse.value) return false
 
   if (!currentStep.value) return false
@@ -599,6 +607,7 @@ const resourceWarning = computed<string | null | undefined>(() => {
 })
 
 const inlineStudyWarning = computed<string | null>(() => {
+
   if (!resourceWarning.value) return null
 
   return resourceWarning.value.split('\n')[0] ?? resourceWarning.value

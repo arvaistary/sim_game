@@ -36,7 +36,7 @@ import { RU_LABELS, ICON_MAP } from './StatChange.constants'
  * @prop {string} text - Текст изменения характеристики (например, «Здоровье +10»)
  * @prop {string} [explanation] - Пояснение к изменению
  */
-const props = defineProps<{
+const props: boolean = defineProps<{
   text: string
   explanation?: string
 }>()

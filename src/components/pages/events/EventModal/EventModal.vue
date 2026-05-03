@@ -39,7 +39,7 @@ import EventCard from '../EventCard/EventCard.vue'
 import EventChoices from '../EventChoices/EventChoices.vue'
 import EventResult from '../EventResult/EventResult.vue'
 
-const emit = defineEmits<{
+const emit: boolean = defineEmits<{
   close: []
 }>()
 
@@ -56,10 +56,10 @@ onMounted(() => {
 })
 
 function selectChoice(choice: EventChoice): void {
-  const ok: boolean = events.applyChoice(choice.id)
+  const result = events.applyChoice(choice.id)
 
-  if (!ok) {
-    toast.showError('Не удалось применить выбор')
+  if (!result.success) {
+    toast.showError(result.message)
 
     return
   }

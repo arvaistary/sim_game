@@ -3,38 +3,94 @@ import type {
   CanStartEducationQueryResult,
   FinanceOverviewQueryResult,
   FinanceSnapshotQueryResult,
+  InvestmentSnapshot,
   MonthlyExpenseEntry,
+  ActionInput,
+  ActionRequirementsInput,
+  ActionExecutionContext,
 } from './index.types'
 
 import { getActionById, type BalanceAction } from '@domain/balance/actions'
 
-/**
- * @description [Application/Game] - проверяет, может ли игрок выполнить действие по цене и времени
- * @return { CanExecuteActionQueryResult } результат проверки
- */
-export function canExecuteAction(actionId: string, money: number, weekHoursRemaining: number): CanExecuteActionQueryResult {
+function validateActionRequirements(
+  requirements: ActionRequirementsInput | undefined,
+  context: ActionExecutionContext
+): string | null {
+  if (!requirements) return null
+
+  if (requirements.minAge !== undefined && context.currentAge < requirements.minAge) {
+    return `Требуется возраст ${requirements.minAge}+`
+  }
+
+  if (requirements.minSkills) {
+    for (const [skill, level] of Object.entries(requirements.minSkills)) {
+      if (context.getSkillLevel(skill) < level) {
+        return `Требуется навык ${skill} уровня ${level}`
+      }
+    }
+  }
+
+  return null
+}
+
+export function canExecuteAction(
+  actionId: string,
+  context: ActionExecutionContext
+): CanExecuteActionQueryResult {
   const action: BalanceAction | null = getActionById(actionId)
 
   if (!action) {
     return { canExecute: false, reason: 'Действие не найдено' }
   }
 
-  if (money < action.price) {
+  if (context.money < action.price) {
     return { canExecute: false, reason: 'Недостаточно денег' }
   }
 
-  if (weekHoursRemaining < action.hourCost) {
+  if (context.weekHoursRemaining < action.hourCost) {
     return { canExecute: false, reason: 'Недостаточно времени' }
+  }
+
+  const requirementError = validateActionRequirements(
+    action.requirements as ActionRequirementsInput | undefined,
+    context
+  )
+
+  if (requirementError) {
+    return { canExecute: false, reason: requirementError }
   }
 
   return { canExecute: true }
 }
 
-/**
- * @description [Application/Game] - проверяет, можно ли начать образовательную программу
- * @return { CanStartEducationQueryResult } результат проверки
- */
-export function canStartEducationProgram(hasActiveProgram: boolean): CanStartEducationQueryResult {
+export function canExecuteActionWithAction(
+  action: ActionInput,
+  context: ActionExecutionContext
+): CanExecuteActionQueryResult {
+  if (context.money < action.price) {
+    return { canExecute: false, reason: 'Недостаточно денег' }
+  }
+
+  if (context.weekHoursRemaining < action.hourCost) {
+    return { canExecute: false, reason: 'Недостаточно времени' }
+  }
+
+  const requirementError = validateActionRequirements(
+    action.requirements,
+    context
+  )
+
+  if (requirementError) {
+    return { canExecute: false, reason: requirementError }
+  }
+
+  return { canExecute: true }
+}
+
+export function canStartEducationProgram(isEmployed: boolean, hasActiveProgram: boolean): CanStartEducationQueryResult {
+  if (isEmployed) {
+    return { ok: false, reason: 'Сначала нужно уволиться' }
+  }
   if (hasActiveProgram) {
     return { ok: false, reason: 'У вас уже есть активная программа обучения' }
   }
@@ -63,7 +119,7 @@ export function getFinanceSnapshot(
   reserveFund: number,
   totalEarned: number,
   monthlyExpenses: MonthlyExpenseEntry[],
-  investments: unknown[],
+  investments: InvestmentSnapshot[],
 ): FinanceSnapshotQueryResult {
   return {
     money,
@@ -81,4 +137,30 @@ export function getFinanceSnapshot(
     deposits: [],
     portfolios: investments,
   }
+}
+
+export interface InvestmentInfo {
+  id: string
+  type: string
+  amount: number
+  returnRate: number
+  monthlyReturn: number
+  startDate: number
+}
+
+export function getInvestmentsOverview(
+  investments: { id: string; type: string; amount: number; returnRate: number; startDate: number }[]
+): InvestmentInfo[] {
+  return investments.map(inv => ({
+    ...inv,
+    monthlyReturn: Math.round(inv.amount * (inv.returnRate / 100 / 12)),
+  }))
+}
+
+export function getTotalMonthlyInvestmentReturn(
+  investments: { amount: number; returnRate: number }[]
+): number {
+  return investments.reduce((sum, inv) => {
+    return sum + Math.round(inv.amount * (inv.returnRate / 100 / 12))
+  }, 0)
 }

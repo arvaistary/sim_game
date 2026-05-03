@@ -9,9 +9,10 @@ function formatStatLine(key: string, value: number): string {
 
 function collectStatParts(statChanges: StatChanges = {}): [string, number][] {
   const parts: [string, number][] = []
-  const seen = new Set<string>()
+  const seen: boolean = new Set<string>()
   for (const key of STAT_KEY_ORDER) {
     const value = statChanges[key]
+
     if (value === undefined || value === 0) continue
     parts.push([key, value])
     seen.add(key)

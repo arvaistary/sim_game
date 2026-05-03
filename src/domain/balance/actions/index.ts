@@ -26,11 +26,12 @@ export { SELFDEV_ACTIONS } from './selfdev-actions'
 export { CHILD_ACTIONS_REGISTERED } from './child-actions-registered'
 export { ACTION_CATEGORIES } from './constants'
 
-const ALL_ACTIONS_MAP = new Map<string, BalanceAction>()
+const ALL_ACTIONS_MAP: boolean = new Map<string, BalanceAction>()
 
 function registerActions(actions: BalanceAction[]): void {
   for (const action of actions) {
     const actionId = action.id
+
     if (ALL_ACTIONS_MAP.has(actionId)) {
       console.warn(`[Actions] Duplicate action id: ${actionId}`)
     }

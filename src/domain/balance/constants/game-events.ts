@@ -97,7 +97,7 @@ export function buildMicroQueuedEvent(
   actionType: string,
   totalHours: number,
 ) {
-  const instanceId = `${def.id}_${totalHours}`
+  const instanceId: string = `${def.id}_${totalHours}`
   const choiceSource =
     MICRO_EVENT_CHOICES_BY_ID[def.id] ?? MICRO_EVENT_CHOICES_BY_ID.__default
 
