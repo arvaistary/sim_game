@@ -1,5 +1,4 @@
 import type { WorkStatDefinition } from './WorkButton.types'
-
 export const STAT_DEFINITIONS: WorkStatDefinition[] = [
   { 
     key: 'money', 

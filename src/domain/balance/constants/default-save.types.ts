@@ -1,5 +1,4 @@
 import type { CharacterTag } from '../types'
-
 export interface SaveData {
   version: string
   playerName: string

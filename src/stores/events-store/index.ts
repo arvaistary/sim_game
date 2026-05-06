@@ -1,7 +1,7 @@
 
-import type { GameEvent, EventHistoryEntry, EventChoice } from './index.types'
+import type { GameEvent, EventHistoryEntry } from './index.types'
+import type { EventChoice } from './index.types'
 import { MAX_QUEUE, MAX_HISTORY } from './index.constants'
-
 export const useEventsStore = defineStore('events', () => {
   const eventQueue = ref<GameEvent[]>([])
   const currentEvent = ref<GameEvent | null>(null)

@@ -3,7 +3,8 @@ import type { ActionResultStatLine } from '@utils/stat-breakdown-format.types'
 import type { StatChangeBreakdownEntry } from '@domain/balance/types'
 
 import { useModalStack } from '../useModalStack'
-import { DEFAULT_OK_BUTTON, RU_STAT_TO_KEY_MAP, STAT_VALUE_PATTERN } from './index.constants'
+import { RU_STAT_TO_KEY_MAP, STAT_VALUE_PATTERN } from './index.constants'
+import { DEFAULT_OK_BUTTON } from './index.constants'
 import type {
   GameModalOptions,
   GameModalState,

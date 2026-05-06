@@ -1,5 +1,4 @@
 import type { EducationRank } from '@domain/balance/types'
-
 export const EDUCATION_LEVEL_TO_RANK: Record<string, EducationRank> = {
   'Нет': -1,
   'Среднее': 0,

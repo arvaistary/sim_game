@@ -1,5 +1,4 @@
 import type { StatDef } from './StatsCard.types'
-
 export const INVERTED_STATS = new Set(['hunger', 'stress'])
 
 export const statDefs: StatDef[] = [

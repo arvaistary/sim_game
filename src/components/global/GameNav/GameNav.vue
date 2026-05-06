@@ -55,10 +55,10 @@
 import './GameNav.scss'
 
 import type { NavItem } from '@domain/balance/types'
-import type { NavItemClickPayload, NavItemWithState } from './GameNav.types'
-
-import { NAV_ITEMS, ROUTE_MAP } from '@constants/navigation'
-
+import type { NavItemWithState } from './GameNav.types'
+import type { NavItemClickPayload } from './GameNav.types'
+import { ROUTE_MAP } from '@constants/navigation'
+import { NAV_ITEMS } from '@constants/navigation'
 const route = useRoute()
 
 const navItems: NavItem[] = NAV_ITEMS

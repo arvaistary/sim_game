@@ -134,7 +134,7 @@ export function getSkillMilestones(
   skillLevels: Record<string, number>,
 ): Array<{ threshold: number; description: string }> {
   const level: number = skillLevels?.[skillKey] ?? 0
-  const skill: boolean = ALL_SKILLS.find(s => s.key === skillKey)
+  const skill= ALL_SKILLS.find(s => s.key === skillKey)
 
   if (!skill || !skill.milestones) return []
 

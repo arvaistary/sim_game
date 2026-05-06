@@ -1,5 +1,6 @@
 
-import type { EducationLevel, ActiveEducation, CompletedProgram } from './index.types'
+import type { CompletedProgram } from './index.types'
+import type { EducationLevel, ActiveEducation } from './index.types'
 import { EDUCATION_RANK, RANK_LABELS } from './index.constants'
 
 export const useEducationStore = defineStore('education', () => {

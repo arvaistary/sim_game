@@ -1,5 +1,5 @@
-import type { HousingLevel, FurnitureItem } from './index.types'
-
+import type { HousingLevel } from './index.types'
+import type { FurnitureItem } from './index.types'
 export const HOUSING_LEVELS: HousingLevel[] = [
   { level: 0, name: 'Комната', comfort: 20, rent: 5000 },
   { level: 1, name: 'Студия', comfort: 35, rent: 8000 },

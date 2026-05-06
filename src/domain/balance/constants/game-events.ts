@@ -1,5 +1,6 @@
-import type { MicroEvent, MicroEventChoice, StatChanges } from '@domain/balance/types'
-
+import type { MicroEventChoice } from '@domain/balance/types'
+import type { MicroEvent } from '@domain/balance/types'
+import type { StatChanges } from '@domain/balance/types'
 function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value))
 }

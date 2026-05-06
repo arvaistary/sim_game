@@ -1,5 +1,4 @@
 import type { NavItem } from '@domain/balance/types'
-
 export const NAV_ITEMS: NavItem[] = [
   { id: 'home', icon: 'H', label: 'Недвижимость' },
   { id: 'shop', icon: 'М', label: 'Магазин' },

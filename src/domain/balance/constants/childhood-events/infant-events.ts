@@ -1,6 +1,5 @@
 import { AgeGroup } from '../../actions/types'
 import type { ChildhoodEventDef } from '../../types/childhood-event'
-
 /**
  * Детские события: 0-3 года (Младенчество)
  * Автоматические события, игрок только наблюдает.

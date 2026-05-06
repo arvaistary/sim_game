@@ -14,7 +14,6 @@
 
 <script setup lang="ts">
 import type { ModalEntry } from '@composables/useModalStack'
-
 const { stack, close } = useModalStack()
 
 function getComponentProps(entry: ModalEntry): Record<string, unknown> {

@@ -1,6 +1,5 @@
-import type { BalanceAction } from './types'
 import { AgeGroup } from './types'
-
+import type { BalanceAction } from './types'
 export const SELFDEV_ACTIONS: BalanceAction[] = [
   {
     id: 'self_morning_routine',

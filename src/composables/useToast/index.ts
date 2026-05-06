@@ -1,6 +1,5 @@
 import type { ToastItem } from './index.types'
 import { DEFAULT_TIMEOUT } from './index.constants'
-
 const toasts = ref<ToastItem[]>([])
 let nextId: number = 0
 

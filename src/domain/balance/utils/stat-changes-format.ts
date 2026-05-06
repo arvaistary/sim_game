@@ -1,6 +1,6 @@
 import type { StatChanges } from '@domain/balance/types'
-import { STAT_LABELS_RU, STAT_KEY_ORDER } from '@constants/metric-labels'
-
+import { STAT_LABELS_RU } from '@constants/metric-labels'
+import { STAT_KEY_ORDER } from '@constants/metric-labels'
 function formatStatLine(key: string, value: number): string {
   const label = STAT_LABELS_RU[key] ?? key
 
@@ -9,7 +9,7 @@ function formatStatLine(key: string, value: number): string {
 
 function collectStatParts(statChanges: StatChanges = {}): [string, number][] {
   const parts: [string, number][] = []
-  const seen: boolean = new Set<string>()
+  const seen = new Set<string>()
   for (const key of STAT_KEY_ORDER) {
     const value = statChanges[key]
 

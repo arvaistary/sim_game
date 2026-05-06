@@ -47,7 +47,6 @@
 import './WorkChoiceModal.scss'
 
 import type { WorkChoiceModalProps } from './WorkChoiceModal.types'
-
 /**
  * @prop {WorkOptions | null} workOptions - Доступные опции работы или null
  * @prop {boolean} isWorkInProgress - Флаг выполнения рабочей смены
@@ -55,9 +54,9 @@ import type { WorkChoiceModalProps } from './WorkChoiceModal.types'
  * @prop {boolean} canStartFullShift - Доступна ли полная смена
  * @prop {(hours: number) => void} [onRunShift] - Callback запуска рабочей смены
  */
-const props: boolean = defineProps<WorkChoiceModalProps>()
+const props = defineProps<WorkChoiceModalProps>()
 
-const emit: boolean = defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 

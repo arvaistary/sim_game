@@ -1,5 +1,5 @@
-import type { StatChanges, StatChangeBreakdownEntry } from '@domain/balance/types'
-
+import type { StatChangeBreakdownEntry } from '@domain/balance/types'
+import type { StatChanges } from '@domain/balance/types'
 export interface ComputeStatLineResult {
   baseFromAction: number
   valueAfterPerStatModifier: number

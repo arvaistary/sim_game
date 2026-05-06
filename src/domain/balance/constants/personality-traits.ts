@@ -1,6 +1,5 @@
-import type { PersonalityTraitDef } from '../types/personality'
 import { PersonalityAxis } from '../types/personality'
-
+import type { PersonalityTraitDef } from '../types/personality'
 /**
  * 41 черта характера, формируемая в детстве.
  * Каждая имеет компромисс: положительные + отрицательные эффекты.

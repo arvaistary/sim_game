@@ -1,5 +1,4 @@
 import type { BalanceAction } from './types'
-
 type ValidateRequiredFieldsReturn = {
   valid: boolean
   missing: Array<MissingItem>
@@ -20,7 +19,7 @@ interface MissingItem {
  * @returns Объект с результатом проверки
  */
 export function validateUniqueIds(actions: BalanceAction[]): ValidateUniqueIdsReturn {
-  const idMap: boolean = new Map<string, number[]>()
+  const idMap = new Map<string, number[]>()
 
   actions.forEach((action, index) => {
     if (!idMap.has(action.id)) {

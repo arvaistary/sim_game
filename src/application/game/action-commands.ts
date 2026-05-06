@@ -4,19 +4,15 @@ import type {
   ActionEffectPayload,
 } from './index.types'
 
-import type { BalanceAction } from '@domain/balance/actions'
-
 import { getActionById } from '@domain/balance/actions'
+import type { BalanceAction } from '@domain/balance/actions'
 import { canExecuteAction } from './queries'
 
 /**
  * @description [Application/Game] - выполняет действие по ID с проверкой контекста
  * @return { ActionExecutionResult } результат выполнения действия
  */
-export function executeActionWithContext(
-  actionId: string,
-  context: ActionExecutionContext
-): ActionExecutionResult {
+export function executeActionWithContext(actionId: string, context: ActionExecutionContext): ActionExecutionResult {
   const action: BalanceAction | null = getActionById(actionId)
 
   if (!action) {

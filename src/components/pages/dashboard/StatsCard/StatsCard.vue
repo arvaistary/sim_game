@@ -21,8 +21,8 @@
 <script setup lang="ts">
 import './StatsCard.scss'
 
-import { INVERTED_STATS, statDefs } from './StatsCard.constants'
-
+import { INVERTED_STATS } from './StatsCard.constants'
+import { statDefs } from './StatsCard.constants'
 const statsStore = useStatsStore()
 
 const statValues = computed<Record<string, number>>(() => ({

@@ -1,6 +1,6 @@
 import type { ModalEntry } from './index.types'
-import { BASE_Z_INDEX, Z_INDEX_STEP } from './index.constants'
-
+import { BASE_Z_INDEX } from './index.constants'
+import { Z_INDEX_STEP } from './index.constants'
 export type { ModalEntry } from './index.types'
 
 /**

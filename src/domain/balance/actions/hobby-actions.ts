@@ -1,6 +1,5 @@
-import type { BalanceAction } from './types'
 import { AgeGroup } from './types'
-
+import type { BalanceAction } from './types'
 export const HOBBY_ACTIONS: BalanceAction[] = [
   {
     id: 'hob_drawing',

@@ -1,6 +1,5 @@
-import type { BalanceAction } from './types'
 import { AgeGroup } from './types'
-
+import type { BalanceAction } from './types'
 export const EDUCATION_ACTIONS: BalanceAction[] = [
   {
     id: 'edu_read_textbook',

@@ -1,5 +1,4 @@
 import type { WorkResultTier } from '@domain/balance/types'
-
 export const WORK_RESULT_TIERS: WorkResultTier[] = [
   {
     minClicks: 58,

@@ -1,7 +1,6 @@
-import type { EducationLevel, ActiveEducation, CompletedProgram } from '../education-store'
+import type { ActiveEducation, CompletedProgram } from '../education-store'
+import type { EducationLevel } from '../education-store'
 import type { FurnitureItem } from '../housing-store'
-import type { MonthlyExpense } from '../finance-store'
-
 export interface QuitCareerResult {
   success: boolean
   message: string
@@ -50,30 +49,6 @@ export interface HousingSnapshot {
 export interface CanApplyWorkShiftResult {
   canDo: boolean
   reason?: string
-}
-
-export interface CareerTrackEntry {
-  id: string
-  name: string
-  level: number
-  schedule: string
-  salaryPerHour: number
-  current?: boolean
-  unlocked?: boolean
-  missingProfessionalism?: number
-  educationRequiredLabel?: string
-}
-
-export interface StatsShortSnapshot {
-  energy: number
-  health: number
-  hunger: number
-  stress: number
-  mood: number
-}
-
-export interface FinanceSnapshot {
-  monthlyExpenses: MonthlyExpense[]
 }
 
 export interface NewGameSeed {

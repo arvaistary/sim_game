@@ -1,6 +1,5 @@
 import type { SaveRepository } from '@application/game/ports/SaveRepository.types'
 import { DEFAULT_SAVE_KEY } from './constants'
-
 export function createLocalStorageSaveRepository(
   saveKey: string = DEFAULT_SAVE_KEY
 ): SaveRepository {

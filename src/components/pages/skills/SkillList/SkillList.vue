@@ -44,16 +44,9 @@
 <script setup lang="ts">
 import './SkillList.scss'
 
-import {
-  BASIC_SKILLS,
-  PROFESSIONAL_SKILLS,
-  SOCIAL_SKILLS,
-  CREATIVE_SKILLS,
-  NEGATIVE_SKILLS,
-} from '@domain/balance/constants/skills-constants'
+import { BASIC_SKILLS, PROFESSIONAL_SKILLS, SOCIAL_SKILLS, CREATIVE_SKILLS, NEGATIVE_SKILLS } from '@domain/balance/constants/skills-constants'
 import type { SkillDef } from '@domain/balance/types'
 import { SKILL_TABS } from './SkillList.constants'
-
 const activeTab = ref<string>('basic')
 
 const skillsStore = useSkillsStore()

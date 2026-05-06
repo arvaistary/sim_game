@@ -1,5 +1,4 @@
 import type { BalanceAction } from './types'
-
 import { SHOP_ACTIONS } from './shop-actions'
 import { FUN_ACTIONS } from './fun-actions'
 import { HOME_ACTIONS } from './home-actions'
@@ -11,7 +10,6 @@ import { HOBBY_ACTIONS } from './hobby-actions'
 import { HEALTH_ACTIONS } from './health-actions'
 import { SELFDEV_ACTIONS } from './selfdev-actions'
 import { CHILD_ACTIONS_REGISTERED } from './child-actions-registered'
-
 export { type BalanceAction } from './types'
 export { SHOP_ACTIONS } from './shop-actions'
 export { FUN_ACTIONS } from './fun-actions'
@@ -26,7 +24,7 @@ export { SELFDEV_ACTIONS } from './selfdev-actions'
 export { CHILD_ACTIONS_REGISTERED } from './child-actions-registered'
 export { ACTION_CATEGORIES } from './constants'
 
-const ALL_ACTIONS_MAP: boolean = new Map<string, BalanceAction>()
+const ALL_ACTIONS_MAP = new Map<string, BalanceAction>()
 
 function registerActions(actions: BalanceAction[]): void {
   for (const action of actions) {

@@ -1,11 +1,6 @@
 import type { BalanceAction } from '@domain/balance/actions/types'
-import {
-  AgeGroup,
-  AGE_RULES,
-  TAB_UNLOCK_AGE,
-  UNLOCK_MESSAGES,
-  getAgeGroup,
-} from './age-constants'
+import { AGE_RULES, UNLOCK_MESSAGES, getAgeGroup } from './age-constants'
+import { AgeGroup, TAB_UNLOCK_AGE } from './age-constants'
 import type { AgeRestrictions } from './age-constants.types'
 
 export { AgeGroup, TAB_UNLOCK_AGE, getAgeGroup }

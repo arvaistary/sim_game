@@ -1,5 +1,4 @@
 import type { HousingLevel } from '@domain/balance/types'
-
 export const HOUSING_LEVELS: HousingLevel[] = [
   {
     level: 1,

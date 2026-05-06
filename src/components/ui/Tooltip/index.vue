@@ -44,7 +44,7 @@ import './style.scss'
  * @prop {boolean} [followCursor] - Следовать за курсором мыши
  * @prop {boolean} [pinOnClick] - Закреплять подсказку по клику на якорь
  */
-const props: boolean = withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   text?: string
   multiline?: boolean
   placement?: 'top' | 'bottom' | 'follow'

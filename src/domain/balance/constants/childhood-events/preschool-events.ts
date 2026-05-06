@@ -1,6 +1,5 @@
 import { AgeGroup } from '../../actions/types'
 import type { ChildhoodEventDef } from '../../types/childhood-event'
-
 /**
  * Детские события: 4-7 лет (Детский сад)
  * Первые осознанные выборы. Мир начинает открываться.

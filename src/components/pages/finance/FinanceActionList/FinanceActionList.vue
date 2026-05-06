@@ -45,7 +45,6 @@
 import './FinanceActionList.scss'
 
 import type { FinanceActionItem } from './FinanceActionList.types'
-
 import { formatMoney } from '@utils/format'
 
 const walletStore = useWalletStore()
@@ -80,7 +79,7 @@ function handleAction(action: FinanceActionItem): void {
     return
   }
 
-  const result: boolean = walletStore.canAfford(action.amount ?? 0)
+  const result = walletStore.canAfford(action.amount ?? 0)
 
   if (!result) {
     toast.showError('Недостаточно средств')

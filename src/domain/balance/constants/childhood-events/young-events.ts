@@ -1,6 +1,5 @@
 import { AgeGroup } from '../../actions/types'
 import type { ChildhoodEventDef } from '../../types/childhood-event'
-
 /**
  * Детские события: 16-18 лет (Старшая школа)
  * Последний шаг во взрослую жизнь. Все выборы имеют постоянные последствия.

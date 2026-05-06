@@ -62,9 +62,7 @@
 import './App.scss'
 
 import type { AppMenuActionId } from '@shared/types'
-
 import { MENU_ITEMS } from './app.constants'
-
 const route = useRoute()
 const colorMode = useColorMode()
 const { $autoSave } = useNuxtApp()

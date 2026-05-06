@@ -1,6 +1,6 @@
 import type { CanAddStudyHoursResult, NeedsState, CognitiveLoadStatus } from './index.types'
-import { COGNITIVE_LOAD_CONSTANTS, ENERGY_EXHAUSTION_THRESHOLD_STUDY } from './index.constants'
-
+import { COGNITIVE_LOAD_CONSTANTS } from './index.constants'
+import { ENERGY_EXHAUSTION_THRESHOLD_STUDY } from './index.constants'
 /**
  * @description Domain/Education - извлекает состояние потребностей из компонентов статов
  * @return { NeedsState } состояние потребностей (energy, hunger, stress)

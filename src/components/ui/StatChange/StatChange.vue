@@ -30,13 +30,13 @@
 import './StatChange.scss'
 
 import type { StatChange } from './StatChange.types'
-import { RU_LABELS, ICON_MAP } from './StatChange.constants'
-
+import { RU_LABELS } from './StatChange.constants'
+import { ICON_MAP } from './StatChange.constants'
 /**
  * @prop {string} text - Текст изменения характеристики (например, «Здоровье +10»)
  * @prop {string} [explanation] - Пояснение к изменению
  */
-const props: boolean = defineProps<{
+const props = defineProps<{
   text: string
   explanation?: string
 }>()

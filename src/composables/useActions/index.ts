@@ -1,10 +1,9 @@
-import { getActionsByCategory, type BalanceAction } from '@domain/balance/actions'
+import { getActionsByCategory } from '@domain/balance/actions'
+import type {  BalanceAction  } from '@domain/balance/actions'
 import type { ActionCategory } from '@domain/balance/types'
-import {
-  canExecuteAction as checkActionAvailability,
-  executeActionWithContext,
-  type ActionExecutionResult,
-} from '@application/game'
+import { executeActionWithContext } from '@application/game'
+import { canExecuteAction as checkActionAvailability } from '@application/game'
+import type {  ActionExecutionResult  } from '@application/game'
 import { filterActionsByAge, useAgeRestrictions } from '@composables/useAgeRestrictions'
 
 export interface UseActionsResult {

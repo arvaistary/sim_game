@@ -135,7 +135,6 @@
 import './ProgramList.scss'
 
 import { EDUCATION_PROGRAMS } from '@domain/balance/constants/education-programs'
-
 import type { EducationProgram } from '@domain/balance/types'
 import type { ActiveCourse, CompletedProgramRecord } from '@stores/education-store'
 import type { ProgramCheckResult } from './ProgramList.types'
@@ -245,7 +244,7 @@ function getLockReason(program: EducationProgram): string {
   }
 
   if (store.isInitialized) {
-    const check: ProgramCheckResult = store.canStartEducationProgramWithReason(program.id)
+    const check: ProgramCheckResult = store.canStartEducationWithReason()
 
     if (!check.ok) {
       return `🔒 ${check.reason ?? 'Программа недоступна'}`
@@ -305,7 +304,7 @@ function startProgram(program: EducationProgram): void {
     return
   }
 
-  const check: ProgramCheckResult = store.canStartEducationProgramWithReason(program.id)
+  const check: ProgramCheckResult = store.canStartEducationWithReason()
 
   if (!check.ok) {
     toast.showWarning(check.reason ?? 'Нельзя начать эту программу')

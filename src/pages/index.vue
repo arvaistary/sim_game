@@ -111,12 +111,9 @@
 <script setup lang="ts">
 import './index.scss'
 
+import { NEW_GAME_SESSION_KEY } from './index.constants'
 import { ADULT_AGE_MAX, ADULT_AGE_MIN } from './index.constants'
-
-import type { StartMode } from './index.types.ts'
-
-const NEW_GAME_SESSION_KEY: string = 'gamelife:new-game'
-
+import type { StartMode } from './index.types'
 const gameStore = useGameStore()
 
 const { $autoSave } = useNuxtApp()
@@ -144,6 +141,7 @@ function startGame() {
   const startAge: number = startMode.value === 'infancy' ? 0 : adultAge.value
   const normalizedPlayerName: string = playerName.value.trim()
   $autoSave.clear()
+
   if (import.meta.client) {
     sessionStorage.setItem(NEW_GAME_SESSION_KEY, '1')
   }

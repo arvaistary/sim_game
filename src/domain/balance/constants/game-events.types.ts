@@ -1,5 +1,5 @@
-import type { MicroEvent, MicroEventChoice, StatChanges } from '@domain/balance/types'
-
+import type { MicroEventChoice } from '@domain/balance/types'
+import type { MicroEvent, StatChanges } from '@domain/balance/types'
 export interface CreateWeeklyJobDismissalParams {
   jobName: string
   worked: number

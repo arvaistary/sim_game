@@ -23,8 +23,8 @@ import './WorkButton.scss'
 import WorkChoiceModal from '../WorkChoiceModal/WorkChoiceModal.vue'
 
 import WorkResultModal from '../WorkResultModal/WorkResultModal.vue'
-import type { WorkStatDiff, WorkSnapshot, WorkOptions, WorkStatSnapshot } from './WorkButton.types'
-
+import type { WorkStatDiff } from './WorkButton.types'
+import type { WorkSnapshot, WorkOptions, WorkStatSnapshot } from './WorkButton.types'
 import { STAT_DEFINITIONS } from './WorkButton.constants'
 
 const careerStore = useCareerStore()

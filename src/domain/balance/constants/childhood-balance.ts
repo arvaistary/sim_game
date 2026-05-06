@@ -88,7 +88,7 @@ export const DELAYED_EFFECT_PARAMS = {
  * Получить множитель получения навыка для текущей возрастной группы.
  */
 export function getSkillGainForAge(ageGroup: AgeGroup): GetSkillGainForAgeReturn {
-  return SKILL_GAIN_BY_AGE[ageGroup] ?? SKILL_GAIN_BY_AGE[AgeGroup.ADULT]
+  return SKILL_GAIN_BY_AGE[ageGroup] ?? SKILL_GAIN_BY_AGE[AgeGroup.ADULT]!
 }
 
 /**

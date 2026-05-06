@@ -18,14 +18,13 @@
 import './style.scss'
 
 import { TOAST_ICON_MAP } from './index.constants'
-
 /**
  * @prop {string} message - Текст уведомления
  * @prop {'info' | 'success' | 'warning' | 'error'} [type] - Тип уведомления для иконки и стиля
  * @prop {number} [duration] - Длительность показа в миллисекундах
  * @prop {boolean} [visible] - Флаг видимости уведомления
  */
-const props: boolean = withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   message: string
   type?: 'info' | 'success' | 'warning' | 'error'
   duration?: number
@@ -36,7 +35,7 @@ const props: boolean = withDefaults(defineProps<{
   visible: false,
 })
 
-const emit: boolean = defineEmits<{
+const emit = defineEmits<{
   'update:visible': [value: boolean]
 }>()
 

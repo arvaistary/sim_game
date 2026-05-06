@@ -1,9 +1,5 @@
-import type {
-  GameSessionSnapshot,
-  SaveResult,
-  LoadResult,
-} from './index.types'
-
+import type { GameSessionSnapshot } from './index.types'
+import type { SaveResult, LoadResult } from './index.types'
 import type { SaveRepository } from './ports/SaveRepository.types'
 
 /**
@@ -40,9 +36,7 @@ export async function persistSave(
  * @description [Application/Game] - восстанавливает сохранение из репозитория
  * @return { Promise<LoadResult> } результат восстановления
  */
-export async function restoreSave(
-  repository: SaveRepository,
-): Promise<LoadResult> {
+export async function restoreSave(repository: SaveRepository): Promise<LoadResult> {
   const raw: Record<string, unknown> | null = await repository.load()
 
   if (!raw) {
@@ -54,8 +48,8 @@ export async function restoreSave(
   }
 
   const legacy: Record<string, unknown> = raw as Record<string, unknown>
-  const hasPlayer: boolean = typeof legacy.player === 'object'
-  const hasTime: boolean = typeof legacy.time === 'object'
+  const hasPlayer= typeof legacy.player === 'object'
+  const hasTime= typeof legacy.time === 'object'
 
   if (hasPlayer && hasTime) {
     return { success: true, data: legacy as unknown as GameSessionSnapshot, isNewGame: false }

@@ -57,7 +57,7 @@ export function generateModifiersFromSkillDefs(skillLevels: Record<string, numbe
   const modifiers: Partial<SkillModifiers> = {}
   
   for (const mapping of SKILL_EFFECT_MAPPINGS) {
-    const level: boolean = skillLevels[mapping.skillKey] || 0
+    const level = skillLevels[mapping.skillKey] || 0
 
     if (level <= 0) continue
     
@@ -195,7 +195,7 @@ export function getSkillEffectsForUi(skillKey: string, level: number): Array<{
 }> {
   const effects: Array<EffectItem> = []
   
-  const skill: boolean = ALL_SKILLS.find(s => s.key === skillKey)
+  const skill= ALL_SKILLS.find(s => s.key === skillKey)
 
   if (!skill || !skill.effects) return effects
   
@@ -249,8 +249,8 @@ function getEffectDescription(effectKey: string, value: number, isMultiplicative
     'autoRecoveryWeekly': 'Автовосстановление',
   }
   
-  const baseDescription: boolean = effectDescriptions[effectKey] || effectKey
-  
+  const baseDescription = effectDescriptions[effectKey] || effectKey
+
   if (isMultiplicative) {
     const percentChange = (value - 1) * 100
 

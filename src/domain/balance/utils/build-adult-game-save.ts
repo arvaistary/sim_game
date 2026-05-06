@@ -1,5 +1,4 @@
 import { INITIAL_SAVE, INITIAL_TIME_TEMPLATE } from '@domain/balance/constants/initial-save'
-
 /**
  * Полный сейв для тестового забега: персонаж сразу взрослый (25 лет)
  * с базовыми деньгами, навыками и работой.
@@ -8,7 +7,7 @@ export function buildAdultGameSavePayload(input: {
   playerName: string
 }): Record<string, unknown> {
   const age: number = 25
-  const base: boolean = structuredClone(INITIAL_SAVE) as unknown as Record<string, unknown>
+  const base= structuredClone(INITIAL_SAVE) as unknown as Record<string, unknown>
 
   // Базовые навыки на среднем уровне
   const skills: Record<string, number> = {

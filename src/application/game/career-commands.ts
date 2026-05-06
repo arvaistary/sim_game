@@ -1,12 +1,6 @@
 import type { CareerJob } from '@domain/balance/types'
-import type {
-  ChangeCareerResult,
-  WorkShiftContext,
-  WorkShiftCheckResult,
-  WorkShiftExecutionResult,
-  CareerTrackEntry,
-} from './index.types'
-
+import type { CareerTrackEntry } from './index.types'
+import type { ChangeCareerResult, WorkShiftContext, WorkShiftCheckResult, WorkShiftExecutionResult } from './index.types'
 import { CAREER_JOBS } from '@domain/balance/constants/career-jobs'
 
 /**

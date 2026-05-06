@@ -16,7 +16,8 @@ interface FactorItem {
  */
 
 import type { SkillDef, SkillModifiers } from '@domain/balance/types'
-import { ALL_SKILLS, getSkillByKey } from '../constants/skills-constants'
+import { getSkillByKey } from '../constants/skills-constants'
+import { ALL_SKILLS } from '../constants/skills-constants'
 import { getSkillEffectsForUi } from '../constants/skill-effects-generator'
 import { getSkillProgressionConfig, isXpModelActive } from '../constants/skill-progression-config'
 
@@ -47,7 +48,7 @@ export function getSkillContributionsToModifier(
   const contributions: SkillContribution[] = []
   
   for (const skill of ALL_SKILLS) {
-    const level: boolean = skillLevels[skill.key] || 0
+    const level = skillLevels[skill.key] || 0
 
     if (level <= 0 || !skill.effects) continue
     
@@ -203,7 +204,7 @@ export function getPlayerActiveEffects(
   
   // Эффекты от навыков
   for (const skill of ALL_SKILLS) {
-    const level: boolean = skillLevels[skill.key] || 0
+    const level = skillLevels[skill.key] || 0
 
     if (level <= 0) continue
     
@@ -310,7 +311,7 @@ function getMethodMultiplierDescription(method: string, multiplier: number): str
     videos: 'Видео'
   }
   
-  const name: boolean = methodNames[method] || method
+  const name = methodNames[method] || method
   const percent = (multiplier - 1) * 100
   const sign = percent > 0 ? '+' : ''
   
@@ -361,7 +362,7 @@ function getBurnoutDescription(weeklyHours: number, multiplier: number): string 
 function getDifficultyMultiplier(baseXp: number, finalXp: number): number {
   const baseLevel = Math.floor(baseXp / 10)
   const finalLevel = Math.floor(finalXp / 10)
-  
+
   if (finalLevel <= 3) return 1.0
 
   if (finalLevel <= 6) return 1.35

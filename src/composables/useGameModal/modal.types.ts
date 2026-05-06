@@ -1,8 +1,6 @@
 import type { Component } from 'vue'
-
 import type { StatChangeBreakdownEntry } from '@domain/balance/types'
 import type { ActionResultStatLine } from '@utils/stat-breakdown-format.types'
-
 /**
  * Унифицированный интерфейс для модальных окон
  */

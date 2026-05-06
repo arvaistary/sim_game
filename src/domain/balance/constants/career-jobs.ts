@@ -1,5 +1,4 @@
 import type { CareerJob } from '@domain/balance/types'
-
 /**
  * Реалистичные карьеры для РФ (2024)
  *

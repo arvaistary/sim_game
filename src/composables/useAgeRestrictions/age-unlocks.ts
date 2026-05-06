@@ -4,13 +4,8 @@
  *
  * Импортирует константы из age-constants.ts - единый источник истины.
  */
-import {
-  AgeGroup,
-  AGE_RULES,
-  UNLOCK_MESSAGES,
-  getAgeGroup,
-} from './age-constants'
-
+import { AGE_RULES, UNLOCK_MESSAGES, getAgeGroup } from './age-constants'
+import type { AgeGroup } from './age-constants'
 let lastKnownAge: number = 0
 let unlockedTabsCache: Set<string> = new Set()
 

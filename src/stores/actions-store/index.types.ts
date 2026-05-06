@@ -1,5 +1,0 @@
-export interface ActionResult {
-  success: boolean
-  error?: string
-  summary?: string
-}

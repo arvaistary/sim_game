@@ -1,6 +1,7 @@
 
 import type { TimeState } from './index.types'
-import { INITIAL_STATE, START_AGE } from './index.constants'
+import { INITIAL_STATE } from './index.constants'
+import { START_AGE } from './index.constants'
 import { clamp } from '@utils/clamp'
 
 export const useTimeStore = defineStore('time', () => {

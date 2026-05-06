@@ -655,6 +655,30 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
     pushFinding('style/blank-line-before-if', filePath, `Line ${index + 1}: оставьте пустую строку перед блоками if`);
   }
 
+  // Проверяет, что перед if ровно одна пустая строка, а не 2+.
+  for (let index = 1; index < lines.length; index += 1) {
+    const currentTrimmedLine = lines[index].trim();
+
+    if (!/^if\s*\(/.test(currentTrimmedLine)) {
+      continue;
+    }
+
+    let blankCount = 0;
+    let scanIdx = index - 1;
+    while (scanIdx >= 0 && lines[scanIdx].trim() === '') {
+      blankCount += 1;
+      scanIdx -= 1;
+    }
+
+    if (blankCount >= 2) {
+      pushFinding(
+        'style/extra-blank-lines-before-if',
+        filePath,
+        `Line ${index + 1}: перед if должна быть ровно одна пустая строка, найдено: ${blankCount}`,
+      );
+    }
+  }
+
   for (let index = 1; index < lines.length; index += 1) {
     const currentTrimmedLine = lines[index].trim();
     const previousTrimmedLine = lines[index - 1].trim();

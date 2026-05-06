@@ -1,38 +1,23 @@
 
-import type {
-  NewGameSeed,
-  QuitCareerResult,
-  TimeSnapshot,
-  StatsSnapshot,
-  WalletSnapshot,
-  EducationSnapshot,
-  HousingSnapshot,
-  CanApplyWorkShiftResult,
-  CareerTrackEntry,
-  StatsShortSnapshot,
-  GameSessionSnapshot,
-} from './index.types'
-
-import type { JobSnapshot } from '../career-store'
-import type { SkillEntry } from '../skills-store'
-
+import type { CareerTrackEntry } from '@application/game'
+import type { NewGameSeed, QuitCareerResult, TimeSnapshot, StatsSnapshot, WalletSnapshot, EducationSnapshot, HousingSnapshot, CanApplyWorkShiftResult, GameSessionSnapshot } from './index.types'
 import { useCareerStore } from '../career-store'
+import type { JobSnapshot } from '../career-store'
 import { useSkillsStore } from '../skills-store'
+import type { SkillEntry } from '../skills-store'
 import { useEducationStore } from '../education-store'
 import { useHousingStore } from '../housing-store'
 import { useEventsStore } from '../events-store'
 import { useFinanceStore } from '../finance-store'
 import { useActivityStore } from '../activity-store'
-import { useActionsStore } from '../actions-store'
 
 import { useTimeStore } from '../time-store'
 import { useStatsStore } from '../stats-store'
 import { useWalletStore } from '../wallet-store'
 import { usePlayerStore } from '../player-store'
 
-import { changeCareer as resolveCareerChange, checkWorkShift as validateWorkShift, executeWorkShift as performWorkShift, getCareerTrack as buildCareerTrack, getEducationRequirementLabel as formatEducationLabel, startEducationProgram as beginEducation, buildSaveSnapshot as buildVersionedPayload } from '@application/game'
-import { canStartEducationProgram as checkEducationAvailability } from '@application/game'
-
+import { changeCareer as resolveCareerChange, getCareerTrack as buildCareerTrack, startEducationProgram as beginEducation } from '@application/game'
+import { buildSaveSnapshot as buildVersionedPayload, canStartEducationProgram as checkEducationAvailability, checkWorkShift as validateWorkShift, executeWorkShift as performWorkShift } from '@application/game'
 export const useGameStore = defineStore('game', () => {
   const worldVersion = ref<number>(0)
   const isInitialized = ref<boolean>(true)
@@ -46,7 +31,6 @@ export const useGameStore = defineStore('game', () => {
   const housing = useHousingStore()
   const player = usePlayerStore()
   const events = useEventsStore()
-  const actions = useActionsStore()
   const finance = useFinanceStore()
   const activity = useActivityStore()
 
@@ -120,7 +104,6 @@ export const useGameStore = defineStore('game', () => {
     housing.reset()
     events.reset()
     finance.reset()
-    actions.reset()
     activity.reset()
     player.reset()
     worldVersion.value++
@@ -147,10 +130,6 @@ export const useGameStore = defineStore('game', () => {
     })
 
     return { canDo: result.canDo, reason: result.reason }
-  }
-
-  function getEducationRequirementLabel(minEducationRank: number): string {
-    return formatEducationLabel(minEducationRank)
   }
 
   function applyWorkShift(hours: number): string {
@@ -219,8 +198,8 @@ export const useGameStore = defineStore('game', () => {
     return result.message
   }
 
-  function canStartEducationProgramWithReason(_programId: string): { ok: boolean; reason?: string } {
-    const isEmployed: boolean = career.currentJob?.employed ?? false
+  function canStartEducationWithReason(): { ok: boolean; reason?: string } {
+    const isEmployed= career.currentJob?.employed ?? false
     const hasActiveProgram = education.isStudying
 
     return checkEducationAvailability(isEmployed, hasActiveProgram)
@@ -258,10 +237,9 @@ export const useGameStore = defineStore('game', () => {
     education: computed<EducationSnapshot>(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
     housing: computed<HousingSnapshot>(() => ({ level: housing.level, comfort: housing.comfort, furniture: housing.furniture })),
     getCareerTrack,
-    getStats: (): StatsShortSnapshot => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
     initWorld, save, load, resetGame, startNewGame, collectSnapshot,
     canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
-    startEducationProgram, canStartEducationProgramWithReason,
+    startEducationProgram, canStartEducationWithReason,
   }
 })
 

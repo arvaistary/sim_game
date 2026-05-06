@@ -300,9 +300,13 @@
 <script setup lang="ts">
 import './EducationLevel.scss'
 
-import Tooltip from '@components/ui/Tooltip'
-import type { CourseTile, Needs, CognitiveLoadStatusObject } from './EducationLevel.types'
-import { type CanAddStudyHoursResult, type CognitiveLoadStatus, resolveStudySessionHours, canAddStudyHours, getCognitiveLoadStatus, getNeedsStateFromComponents, COGNITIVE_LOAD_CONSTANTS, ENERGY_EXHAUSTION_THRESHOLD_STUDY, EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN, EDUCATION_LONG_PROGRAM_STEP_HOURS } from '@domain/education'
+import type { CourseTile } from './EducationLevel.types'
+import type { CognitiveLoadStatusObject } from './EducationLevel.types'
+import type { Needs } from './EducationLevel.types'
+import { resolveStudySessionHours, canAddStudyHours, getCognitiveLoadStatus, getNeedsStateFromComponents, COGNITIVE_LOAD_CONSTANTS } from '@domain/education'
+import { ENERGY_EXHAUSTION_THRESHOLD_STUDY, EDUCATION_LONG_PROGRAM_STEP_HOURS } from '@domain/education'
+import { EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN } from '@domain/education'
+import type {  CanAddStudyHoursResult, CognitiveLoadStatus  } from '@domain/education'
 import type { ActiveCourse, CompletedProgramRecord, ProgramStep } from '@stores/education-store'
 import { getAgeGroup, AgeGroup } from '@composables/useAgeRestrictions'
 

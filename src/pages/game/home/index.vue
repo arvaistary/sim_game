@@ -19,7 +19,6 @@
 
 <script setup lang="ts">
 import type { BalanceAction } from '@domain/balance/actions'
-
 definePageMeta({ middleware: 'game-init' })
 
 const timeStore = useTimeStore()

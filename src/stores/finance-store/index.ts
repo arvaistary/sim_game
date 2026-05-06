@@ -1,7 +1,7 @@
 
-import type { Investment, MonthlyExpense } from './index.types'
+import type { Investment } from './index.types'
+import type { MonthlyExpense } from './index.types'
 import { DEFAULT_EXPENSES } from './index.constants'
-
 export const useFinanceStore = defineStore('finance', () => {
   const investments = ref<Investment[]>([])
   const monthlyExpenses = ref<MonthlyExpense[]>([...DEFAULT_EXPENSES])

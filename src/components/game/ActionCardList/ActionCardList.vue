@@ -22,7 +22,6 @@
 import './ActionCardList.scss'
 
 import type { BalanceAction } from '@domain/balance/actions/types'
-
 /**
  * @prop {BalanceAction[]} actions - Список действий для отображения
  * @prop {(action: BalanceAction) => boolean} isDisabled - Функция проверки недоступности действия

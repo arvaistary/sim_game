@@ -42,7 +42,7 @@ function formatEffectValue(key: string, value: number | ((...args: unknown[]) =>
 }
 
 function formatEffectLine([key, effect]: [string, ((level: number) => number) | unknown], maxLevel: number): string {
-  const label: boolean = EFFECT_LABELS[key] || humanizeKey(key)
+  const label = EFFECT_LABELS[key] || humanizeKey(key)
   const value = typeof effect === 'function' ? (effect as (level: number) => number)(maxLevel) : effect
 
   return `• ${label}: ${formatEffectValue(key, value as number)}`
@@ -53,7 +53,7 @@ export function buildSkillTooltipText(skill: SkillDef | null | undefined): strin
 
   const maxLevel: number = skill.maxLevel ?? 10
   const effectLines = Object.entries(skill.effects || {}).map((entry) => formatEffectLine(entry as [string, (level: number) => number], maxLevel))
-  const milestoneLines: boolean = Object.entries(skill.milestones || {}).map(
+  const milestoneLines = Object.entries(skill.milestones || {}).map(
     ([level, milestone]) => `• ${level} ур.: ${(milestone as { description: string }).description}`,
   )
 

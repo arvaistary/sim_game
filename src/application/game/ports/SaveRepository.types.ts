@@ -37,7 +37,7 @@ export function createSavePayload(data: GameSessionSnapshot): VersionedSavePaylo
 export function isVersionedPayload(raw: unknown): raw is VersionedSavePayload {
   if (!raw || typeof raw !== 'object') return false
 
-  const payload: boolean = raw as Record<string, unknown>
+  const payload= raw as Record<string, unknown>
 
   return typeof payload.version === 'number' && typeof payload.data === 'object'
 }
@@ -49,9 +49,9 @@ export function extractSaveData(raw: unknown): GameSessionSnapshot | null {
     return raw.data
   }
 
-  const legacy: boolean = raw as Record<string, unknown>
-  const hasPlayer: boolean = typeof legacy.player === 'object'
-  const hasTime: boolean = typeof legacy.time === 'object'
+  const legacy= raw as Record<string, unknown>
+  const hasPlayer= typeof legacy.player === 'object'
+  const hasTime= typeof legacy.time === 'object'
 
   if (hasPlayer && hasTime) {
     return legacy as unknown as GameSessionSnapshot

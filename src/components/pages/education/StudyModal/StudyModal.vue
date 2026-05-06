@@ -107,7 +107,6 @@
 import './StudyModal.scss'
 
 import type { StudyModalProps } from './StudyModal.types'
-
 import { STUDY_PAGE_CONTENTS } from './StudyModal.constants'
 
 /**
@@ -121,11 +120,11 @@ import { STUDY_PAGE_CONTENTS } from './StudyModal.constants'
  * @prop {boolean} canFinish - Доступна ли кнопка «Завершить»
  * @prop {string | null} [resourceWarning] - Предупреждение о нехватке ресурса
  */
-const props: boolean = withDefaults(defineProps<StudyModalProps>(), {
+const props = withDefaults(defineProps<StudyModalProps>(), {
   resourceWarning: null
 })
 
-const emit: boolean = defineEmits<{
+const emit = defineEmits<{
   (e: 'read'): void
   (e: 'finish'): void
   (e: 'close'): void

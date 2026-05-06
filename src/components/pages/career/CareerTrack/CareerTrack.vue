@@ -126,20 +126,20 @@
 import './CareerTrack.scss'
 
 import type { CareerTrackJob } from './CareerTrack.types'
-import type { EducationLevel } from '@stores/education-store'
-import type { Industry, IndustryId, WorkType } from '@constants/work-categories.types'
 import { RANK_LABELS } from '@stores/education-store'
-
+import type { EducationLevel } from '@stores/education-store'
+import type { Industry, WorkType } from '@constants/work-categories.types'
+import type { IndustryId } from '@constants/work-categories.types'
 import { CAREER_JOBS } from '@domain/balance/constants/career-jobs'
-import { WORK_TYPES, INDUSTRIES, resolveJobIndustry } from '@constants/work-categories'
-
+import { WORK_TYPES, resolveJobIndustry } from '@constants/work-categories'
+import { INDUSTRIES } from '@constants/work-categories'
 import { formatMoney } from '@utils/format'
 
-const emit: boolean = defineEmits<{
+const emit = defineEmits<{
   apply: [job: CareerTrackJob]
 }>()
 
-const props: boolean = defineProps<{
+const props = defineProps<{
   jobs?: CareerTrackJob[]
 }>()
 
@@ -191,7 +191,7 @@ const currentWorkType = computed<WorkType>(() =>
 )
 
 const filteredJobs = computed<CareerTrackJob[]>(() => {
-  const jobOrder: boolean = new Map<string, number>()
+  const jobOrder = new Map<string, number>()
 
   careerTrack.value.forEach((job: CareerTrackJob, index: number) => {
     jobOrder.set(job.id, index)
@@ -199,7 +199,7 @@ const filteredJobs = computed<CareerTrackJob[]>(() => {
 
   return careerTrack.value
     .filter(job => {
-      const scheduleMatches: boolean = currentWorkType.value.scheduleFilter.includes(job.schedule)
+      const scheduleMatches = currentWorkType.value.scheduleFilter.includes(job.schedule)
       const industryId: IndustryId = resolveJobIndustry(job.id)
       const industryMatches: boolean = activeIndustry.value === 'all' || industryId === activeIndustry.value
 

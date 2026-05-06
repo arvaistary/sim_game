@@ -1,5 +1,4 @@
 import type { MonthlyExpense } from './index.types'
-
 export const DEFAULT_EXPENSES: MonthlyExpense[] = [
   { category: 'rent', amount: 15000 },
   { category: 'food', amount: 15000 },

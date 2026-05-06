@@ -16,7 +16,6 @@
 import './EventChoices.scss'
 
 import type { ChoiceItem } from './EventChoices.types'
-
 /**
  * @prop {ChoiceItem[]} choices - Список вариантов выбора для события
  */

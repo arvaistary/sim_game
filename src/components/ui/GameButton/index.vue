@@ -21,7 +21,7 @@ import './style.scss'
  * @prop {boolean} [disabled] - Флаг отключённого состояния кнопки
  * @prop {boolean} [small] - Уменьшенный размер кнопки
  */
-const props: boolean = withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   label?: string
   color?: string
   textColor?: string

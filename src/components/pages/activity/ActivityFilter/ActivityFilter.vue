@@ -16,7 +16,6 @@
 import './ActivityFilter.scss'
 
 import { ACTIVITY_FILTERS } from './ActivityFilter.constants'
-
 /**
  * @prop {string} modelValue - Текущее значение фильтра (v-model)
  */

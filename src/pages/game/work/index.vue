@@ -7,9 +7,8 @@
 </template>
 
 <script setup lang="ts">
-import type { CareerTrackJob } from '@components/pages/career/CareerTrack'
+import type { CareerTrackJob } from '@components/pages/career/CareerTrack/CareerTrack.types'
 import type { QuitCareerResult } from '@stores/game-store'
-
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()

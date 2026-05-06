@@ -57,7 +57,6 @@ import './ActionCard.scss'
 import { formatMoney, formatEffect } from '@utils/format'
 
 import type { BalanceAction } from '@domain/balance/actions/types'
-
 /**
  * @prop {BalanceAction} action - Данные действия для отображения
  * @prop {boolean} [disabled] - Флаг отключённого (недоступного) действия
@@ -66,7 +65,7 @@ import type { BalanceAction } from '@domain/balance/actions/types'
  * @prop {boolean} [showPriceWhenZero] - Показывать цену даже если она равна 0
  * @prop {boolean} [useFormatEffect] - Использовать форматирование эффекта через formatEffect
  */
-const props: boolean = withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   action: BalanceAction
   disabled?: boolean
   disabledReason?: string
@@ -81,7 +80,7 @@ const props: boolean = withDefaults(defineProps<{
   useFormatEffect: false,
 })
 
-const emit: boolean = defineEmits<{
+const emit = defineEmits<{
   execute: [id: string]
 }>()
 

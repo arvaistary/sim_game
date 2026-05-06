@@ -1,5 +1,4 @@
 import { STAT_LABELS_RU, METRIC_LABELS } from '@constants/metric-labels'
-
 /** Объединяем все русские названия */
 export const RU_LABELS: Record<string, string> = {
   ...STAT_LABELS_RU,

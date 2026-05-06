@@ -4,7 +4,6 @@
  */
 import { AgeGroup } from '@domain/balance/actions/types'
 import type { AgeRestrictions } from './age-constants.types'
-
 export { AgeGroup }
 
 /** Правила для каждой возрастной группы */

@@ -1,6 +1,5 @@
 import { AgeGroup } from '../../actions/types'
 import type { ChildhoodEventDef } from '../../types/childhood-event'
-
 /**
  * Детские события: 8-12 лет (Младшая школа)
  * Пик любознательности. Самый важный возраст для формирования навыков.

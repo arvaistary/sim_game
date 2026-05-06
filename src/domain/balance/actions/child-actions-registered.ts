@@ -1,6 +1,5 @@
-import type { BalanceAction } from './types'
 import { AgeGroup } from './types'
-
+import type { BalanceAction } from './types'
 /**
  * Child actions, адаптированные под тип BalanceAction для интеграции в runtime.
  * Оригинальный файл child-actions.ts содержит действия с другой структурой (description вместо effect).

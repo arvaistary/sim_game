@@ -1,7 +1,6 @@
 
 import type { JobSnapshot } from './index.types'
 import { UNEMPLOYED } from './index.constants'
-
 export const useCareerStore = defineStore('career', () => {
   const currentJob = ref<JobSnapshot>({ ...UNEMPLOYED })
   const jobHistory = ref<JobSnapshot[]>([])

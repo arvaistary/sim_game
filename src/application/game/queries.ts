@@ -1,17 +1,8 @@
-import type {
-  CanExecuteActionQueryResult,
-  CanStartEducationQueryResult,
-  FinanceOverviewQueryResult,
-  FinanceSnapshotQueryResult,
-  InvestmentSnapshot,
-  MonthlyExpenseEntry,
-  ActionInput,
-  ActionRequirementsInput,
-  ActionExecutionContext,
-} from './index.types'
-
-import { getActionById, type BalanceAction } from '@domain/balance/actions'
-
+import type { InvestmentSnapshot, MonthlyExpenseEntry } from './index.types'
+import type { ActionRequirementsInput } from './index.types'
+import type { CanExecuteActionQueryResult, CanStartEducationQueryResult, FinanceOverviewQueryResult, FinanceSnapshotQueryResult, ActionInput, ActionExecutionContext } from './index.types'
+import { getActionById } from '@domain/balance/actions'
+import type {  BalanceAction  } from '@domain/balance/actions'
 function validateActionRequirements(
   requirements: ActionRequirementsInput | undefined,
   context: ActionExecutionContext
@@ -33,10 +24,7 @@ function validateActionRequirements(
   return null
 }
 
-export function canExecuteAction(
-  actionId: string,
-  context: ActionExecutionContext
-): CanExecuteActionQueryResult {
+export function canExecuteAction(actionId: string, context: ActionExecutionContext): CanExecuteActionQueryResult {
   const action: BalanceAction | null = getActionById(actionId)
 
   if (!action) {
@@ -63,10 +51,7 @@ export function canExecuteAction(
   return { canExecute: true }
 }
 
-export function canExecuteActionWithAction(
-  action: ActionInput,
-  context: ActionExecutionContext
-): CanExecuteActionQueryResult {
+export function canExecuteActionWithAction(action: ActionInput, context: ActionExecutionContext): CanExecuteActionQueryResult {
   if (context.money < action.price) {
     return { canExecute: false, reason: 'Недостаточно денег' }
   }
@@ -91,6 +76,7 @@ export function canStartEducationProgram(isEmployed: boolean, hasActiveProgram: 
   if (isEmployed) {
     return { ok: false, reason: 'Сначала нужно уволиться' }
   }
+
   if (hasActiveProgram) {
     return { ok: false, reason: 'У вас уже есть активная программа обучения' }
   }

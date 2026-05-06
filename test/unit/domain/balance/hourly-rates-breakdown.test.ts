@@ -7,8 +7,8 @@ import {
 describe('calculateStatChangesWithBreakdown', () => {
   it('matches calculateStatChanges for every stat (sleep fixture: база только из statChanges)', () => {
     const flat = { energy: 32, mood: 6, stress: -9, health: -3, hunger: -3.6, physical: 0.6 }
-    const plain = calculateStatChanges({ actionType: 'sleep', hours: 6, flatStatChanges: flat })
-    const { statChanges, breakdown } = calculateStatChangesWithBreakdown({ actionType: 'sleep', hours: 6, flatStatChanges: flat })
+    const plain = calculateStatChanges('sleep', 6, flat)
+    const { statChanges, breakdown } = calculateStatChangesWithBreakdown('sleep', 6, flat)
 
     expect(statChanges).toEqual(plain)
 
@@ -20,8 +20,8 @@ describe('calculateStatChangesWithBreakdown', () => {
   it('matches with sleep debt (stress gets sleep penalty on sleep action)', () => {
     const flat = { energy: 32, mood: 6, stress: -9, health: -3 }
     const sleepDebt = 4
-    const plain = calculateStatChanges({ actionType: 'sleep', hours: 6, flatStatChanges: flat, sleepDebt })
-    const { statChanges, breakdown } = calculateStatChangesWithBreakdown({ actionType: 'sleep', hours: 6, flatStatChanges: flat, sleepDebt })
+    const plain = calculateStatChanges('sleep', 6, flat, {}, 25, sleepDebt)
+    const { statChanges, breakdown } = calculateStatChangesWithBreakdown('sleep', 6, flat, {}, 25, sleepDebt)
 
     expect(statChanges).toEqual(plain)
     for (const row of breakdown) {
@@ -37,8 +37,8 @@ describe('calculateStatChangesWithBreakdown', () => {
   it('matches with per-stat modifier', () => {
     const modifiers = { mood: 0.1 }
     const flat = { mood: 10 }
-    const plain = calculateStatChanges({ actionType: 'neutral', hours: 2, flatStatChanges: flat, modifiers })
-    const { statChanges, breakdown } = calculateStatChangesWithBreakdown({ actionType: 'neutral', hours: 2, flatStatChanges: flat, modifiers })
+    const plain = calculateStatChanges('neutral', 2, flat, modifiers)
+    const { statChanges, breakdown } = calculateStatChangesWithBreakdown('neutral', 2, flat, modifiers)
 
     expect(statChanges).toEqual(plain)
     for (const row of breakdown) {
@@ -49,8 +49,8 @@ describe('calculateStatChangesWithBreakdown', () => {
   it('matches aging on negative deltas', () => {
     const flat = { hunger: -5 }
     const age = 50
-    const plain = calculateStatChanges({ actionType: 'neutral', hours: 1, flatStatChanges: flat, currentAge: age })
-    const { statChanges, breakdown } = calculateStatChangesWithBreakdown({ actionType: 'neutral', hours: 1, flatStatChanges: flat, currentAge: age })
+    const plain = calculateStatChanges('neutral', 1, flat, {}, age)
+    const { statChanges, breakdown } = calculateStatChangesWithBreakdown('neutral', 1, flat, {}, age)
 
     expect(statChanges).toEqual(plain)
     const hunger = breakdown.find(b => b.stat === 'hunger')
@@ -60,8 +60,8 @@ describe('calculateStatChangesWithBreakdown', () => {
 
   it('длительность (hours) не меняет дельты — только база из statChanges', () => {
     const flat = { energy: 10 }
-    const a = calculateStatChanges({ actionType: 'neutral', hours: 1, flatStatChanges: flat })
-    const b = calculateStatChanges({ actionType: 'neutral', hours: 8, flatStatChanges: flat })
+    const a = calculateStatChanges('neutral', 1, flat)
+    const b = calculateStatChanges('neutral', 8, flat)
     expect(a).toEqual(b)
   })
 })

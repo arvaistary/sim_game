@@ -34,12 +34,11 @@ import './EventModal.scss'
 
 import type { EventChoice } from './EventModal.types'
 import type { EventQueueItem } from '@stores/events-store'
-
 import EventCard from '../EventCard/EventCard.vue'
 import EventChoices from '../EventChoices/EventChoices.vue'
 import EventResult from '../EventResult/EventResult.vue'
 
-const emit: boolean = defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 

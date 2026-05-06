@@ -1,5 +1,4 @@
 import type { ActivityFilterItem } from './ActivityFilter.types'
-
 export const ACTIVITY_FILTERS: ActivityFilterItem[] = [
   { label: 'Все', type: null },
   { label: 'Действия', type: 'action' },

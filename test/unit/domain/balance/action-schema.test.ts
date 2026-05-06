@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest'
 import {
-  validateAction,
   validateUniqueIds,
   validateRequiredFields,
 } from '@domain/balance/actions/action-schema'
@@ -9,6 +8,10 @@ import {
   validateActionArray,
   validateActionCatalog,
 } from './action-schema-helpers'
+
+function validateAction(action: unknown): boolean {
+  return validateActionWithErrors(action).valid
+}
 import { AgeGroup } from '@domain/balance/actions/types'
 import type { BalanceAction } from '@domain/balance/actions'
 

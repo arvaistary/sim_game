@@ -1,5 +1,4 @@
 import type { StatDef } from '@domain/balance/types'
-
 export const STAT_DEFS: StatDef[] = [
   { key: 'hunger', label: 'Голод', startColor: '#FF9F6B', endColor: '#FF6B6B' },
   { key: 'energy', label: 'Энергия', startColor: '#6D9DC5', endColor: '#4A7C9E' },

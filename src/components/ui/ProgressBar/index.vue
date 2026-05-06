@@ -27,7 +27,7 @@ import './style.scss'
  * @prop {number} [height] - Высота полосы в пикселях
  * @prop {boolean} [showValue] - Показывать числовое значение внутри полосы
  */
-const props: boolean = withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   value: number
   max?: number
   color?: string

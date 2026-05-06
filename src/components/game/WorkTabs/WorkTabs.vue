@@ -26,7 +26,6 @@
 import './WorkTabs.scss'
 
 import type { WorkType } from '@constants/work-categories.types'
-
 /**
  * @prop {WorkType[]} types - Список типов занятости для табов
  * @prop {string} activeType - Идентификатор активного типа занятости

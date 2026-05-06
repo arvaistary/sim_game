@@ -72,7 +72,7 @@ export function calculateLevelFromXp(xp: number): number {
   const boundedXp = Math.max(0, Math.min(xp, MAX_XP))
 
   for (let level = MAX_LEVEL; level >= 0; level--) {
-    if (boundedXp >= SKILL_XP_TABLE[level]) {
+    if (boundedXp >= SKILL_XP_TABLE[level]!) {
       return level
     }
   }
@@ -84,7 +84,7 @@ export function calculateLevelFromXp(xp: number): number {
  * Рассчитывает XP необходимый для достижения указанного уровня
  */
 export function getXpForLevel(level: number): number {
-  return SKILL_XP_TABLE[Math.max(0, Math.min(Math.floor(level), MAX_LEVEL))]
+  return SKILL_XP_TABLE[Math.max(0, Math.min(Math.floor(level), MAX_LEVEL))]!
 }
 
 /**

@@ -1,7 +1,8 @@
 
-import type { ActivityEntry, ActivityType } from './index.types'
-import { MAX_ENTRIES, ACTIVITY_TYPES } from './index.constants'
-
+import type { ActivityEntry } from './index.types'
+import type { ActivityType } from './index.types'
+import { ACTIVITY_TYPES } from './index.constants'
+import { MAX_ENTRIES } from './index.constants'
 export { ACTIVITY_TYPES } from './index.constants'
 
 export const useActivityStore = defineStore('activity', () => {

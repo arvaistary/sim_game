@@ -2,7 +2,6 @@ import type { StatChangeBreakdownEntry } from '@domain/balance/types'
 import { METRIC_LABELS } from '@constants/metric-labels'
 
 import type { ActionResultStatLine } from './stat-breakdown-format.types'
-
 function formatSigned(value: number): string {
   const rounded = Math.round(value * 100) / 100
 
@@ -23,9 +22,11 @@ export function buildStatBreakdownExplanation(entry: StatChangeBreakdownEntry): 
   if (Math.abs(modExtra) > 0.001) {
     parts.push(`модификаторы ${formatSigned(modExtra)}`)
   }
+
   if (entry.agingApplied) {
     parts.push(`возраст ×${entry.agingMultiplier.toFixed(2)} к негативу`)
   }
+
   if (entry.sleepDebtDelta !== 0) {
     parts.push(`долг сна ${formatSigned(entry.sleepDebtDelta)}`)
   }

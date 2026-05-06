@@ -1,12 +1,7 @@
-import type {
-  BalanceConstants,
-  HourlyRateSet,
-  SleepDebtPenalty,
-  StatChangeBreakdownEntry,
-  StatChanges,
-  StatKey,
-} from '@domain/balance/types'
-
+import type { StatChangeBreakdownEntry, StatKey } from '@domain/balance/types'
+import type { HourlyRateSet } from '@domain/balance/types'
+import type { StatChanges } from '@domain/balance/types'
+import type { BalanceConstants, SleepDebtPenalty } from '@domain/balance/types'
 /**
  * Исторические почасовые ставки (раньше умножались на длительность действия).
  * Сейчас дельты по статам задаются целиком в `statChanges` действия; таблица оставлена

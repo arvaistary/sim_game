@@ -32,11 +32,10 @@ import './EventCard.scss'
 import { formatStatChangesBulletListRu } from '@domain/balance/utils/stat-changes-format'
 
 import type { EventQueueItem } from '@stores/events-store'
-
 /**
  * @prop {EventQueueItem} event - Данные события для отображения
  */
-const props: boolean = defineProps<{
+const props = defineProps<{
   event: EventQueueItem
 }>()
 

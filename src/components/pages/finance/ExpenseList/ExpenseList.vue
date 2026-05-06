@@ -35,7 +35,6 @@ import { formatMoney } from '@utils/format'
 
 import { EXPENSE_LABELS_RU } from '@constants/metric-labels'
 import type { MonthlyExpense } from '@stores/finance-store'
-
 const financeStore = useFinanceStore()
 
 const expenseLabels: Record<string, string> = EXPENSE_LABELS_RU

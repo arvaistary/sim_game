@@ -15,9 +15,9 @@
 </template>
 
 <script setup lang="ts">
-import { type BalanceAction, ACTION_CATEGORIES } from '@domain/balance/actions'
+import { ACTION_CATEGORIES } from '@domain/balance/actions'
+import type { BalanceAction } from '@domain/balance/actions'
 import type { ActionCategory } from '@domain/balance/types'
-
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()

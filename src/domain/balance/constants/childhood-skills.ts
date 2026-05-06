@@ -1,5 +1,4 @@
 import type { ChildhoodSkillDef } from '../types/childhood-skill'
-
 /**
  * 27 детских навыков, каждый прокачивается только в определённом возрасте.
  *

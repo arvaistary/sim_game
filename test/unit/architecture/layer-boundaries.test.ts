@@ -137,18 +137,23 @@ describe('Layer boundaries - application-first model', () => {
     ]
 
     const importMatches = source.match(/from\s+['"][^'"]+['"]/g) || []
+    const violations: string[] = []
+
     for (const match of importMatches) {
       const module = match.replace(/from\s+['"]|['"]/g, '')
-      const moduleName = module.split('/').pop()
-      if (moduleName && !validExports.includes(moduleName)) {
-        expect(module).toBeDefined()
+      const moduleName = module.split('/').pop() ?? ''
+      const isValid = validExports.some((validExport) => moduleName === validExport || moduleName.endsWith(`-${validExport}`))
+      if (moduleName && !isValid) {
+        violations.push(`Invalid import in index.ts: '${module}' (module name: '${moduleName}')`)
       }
     }
+
+    expect(violations).toEqual([])
   })
 
   it('stores do not use Pinia internals in other layers', async () => {
-    const storesDir = path.resolve(process.cwd(), 'src/stores')
-    const files = await collectFiles(storesDir, '.ts')
+    const srcDir = path.resolve(process.cwd(), 'src')
+    const files = await collectFiles(srcDir, '.ts')
     const violations: string[] = []
 
     for (const file of files) {
@@ -157,6 +162,44 @@ describe('Layer boundaries - application-first model', () => {
 
       if (fileName.includes('.constants.ts') || fileName.includes('.types.ts')) {
         continue
+      }
+
+      if (fileName.includes(path.join('src', 'stores') + path.sep)) {
+        continue
+      }
+
+      if (/defineStore\(/.test(source)) {
+        violations.push(fileName)
+      }
+    }
+
+    expect(violations).toEqual([])
+  })
+
+  it('pages and components do not call game-store canExecuteAction/executeAction', async () => {
+    const dirs = [
+      path.resolve(process.cwd(), 'src/pages'),
+      path.resolve(process.cwd(), 'src/components'),
+    ]
+
+    const violations: string[] = []
+
+    for (const dir of dirs) {
+      const vueFiles = await collectFiles(dir, '.vue')
+      const tsFiles = await collectFiles(dir, '.ts')
+      const allFiles = [...vueFiles, ...tsFiles]
+
+      for (const file of allFiles) {
+        const source = await readFile(file, 'utf8')
+        const fileName = path.relative(process.cwd(), file)
+
+        if (fileName.includes('.types.ts') || fileName.includes('.constants.ts')) {
+          continue
+        }
+
+        if (/store\.canExecuteAction|store\.executeAction/.test(source)) {
+          violations.push(fileName)
+        }
       }
     }
 

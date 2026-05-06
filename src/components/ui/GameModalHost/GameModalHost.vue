@@ -62,8 +62,8 @@ import './GameModalHost.scss'
 
 import type { ResultItem } from './GameModalHost.types'
 import type { GameModalButton } from '@composables/useGameModal/modal.types'
-import { RUSSIAN_TO_KEY, STAT_CHANGE_LINE_RE } from './GameModalHost.constants'
-
+import { RUSSIAN_TO_KEY } from './GameModalHost.constants'
+import { STAT_CHANGE_LINE_RE } from './GameModalHost.constants'
 const { state, close } = useGameModal()
 
 function handleButtonClick(btn: GameModalButton): void {

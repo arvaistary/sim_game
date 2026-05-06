@@ -40,8 +40,7 @@ import { ALL_SKILLS } from '@domain/balance/constants/skills-constants'
 import { buildSkillTooltipText } from '@domain/balance/utils/skill-tooltip-content'
 import type { SkillDef } from '@domain/balance/types'
 import type { SkillWithProgress } from './SkillsModal.types'
-
-const emit: boolean = defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 

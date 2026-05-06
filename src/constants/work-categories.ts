@@ -1,5 +1,5 @@
-import type { Industry, IndustryId, WorkType } from './work-categories.types'
-
+import type { Industry, WorkType } from './work-categories.types'
+import type { IndustryId } from './work-categories.types'
 export const WORK_TYPES: WorkType[] = [
   {
     id: 'full-time',

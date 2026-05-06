@@ -8,7 +8,7 @@ const NEW_GAME_SESSION_KEY: string = 'gamelife:new-game'
 function takeFreshStartFlag(): boolean {
   if (!import.meta.client) return false
 
-  const isFreshStart: boolean = sessionStorage.getItem(NEW_GAME_SESSION_KEY) === '1'
+  const isFreshStart= sessionStorage.getItem(NEW_GAME_SESSION_KEY) === '1'
 
   if (isFreshStart) {
     sessionStorage.removeItem(NEW_GAME_SESSION_KEY)
@@ -28,7 +28,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const { $autoSave } = useNuxtApp()
 
   if (!playerStore.isInitialized) {
-    const hasFreshStartFlag: boolean = takeFreshStartFlag()
+    const hasFreshStartFlag = takeFreshStartFlag()
 
     if (hasFreshStartFlag) {
       playerStore.initialize()
@@ -47,7 +47,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const { isTabVisible } = useAgeRestrictions()
 
-  const routeEntry: boolean = Object.entries(ROUTE_MAP).find(([_, path]) => path === to.path)
+  const routeEntry= Object.entries(ROUTE_MAP).find(([_, path]) => path === to.path)
 
   if (routeEntry) {
     const [tabId] = routeEntry

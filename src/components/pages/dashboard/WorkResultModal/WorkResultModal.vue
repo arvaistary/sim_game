@@ -35,14 +35,13 @@
 import './WorkResultModal.scss'
 
 import type { WorkResultModalProps } from './WorkResultModal.types'
-
 /**
  * @prop {string} workSummary - Текстовое описание результата работы
  * @prop {WorkStatDiff[]} statDiffs - Массив изменений характеристик
  */
 defineProps<WorkResultModalProps>()
 
-const emit: boolean = defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 

@@ -20,7 +20,6 @@
 import './IndustryFilter.scss'
 
 import type { Industry } from '@constants/work-categories.types'
-
 /**
  * @prop {Industry[]} industries - Список отраслей для фильтра
  * @prop {string} activeIndustry - Идентификатор выбранной отрасли

@@ -1,6 +1,5 @@
 import type { GameModalButton } from './modal.types'
 import { STAT_LABELS_RU, METRIC_LABELS } from '@constants/metric-labels'
-
 /**
  * Кнопка по умолчанию для модалки результата
  */

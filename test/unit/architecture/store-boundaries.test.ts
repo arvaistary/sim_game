@@ -87,7 +87,7 @@ describe('Architecture boundaries for stores - application-first model', () => {
     const storeFiles = await collectTsFiles(STORES_DIR)
     const storesWithoutSaveLoad: string[] = []
 
-    const excludedStores = ['game-store', 'actions-store']
+    const excludedStores = ['game-store']
 
     for (const file of storeFiles) {
       const source = await readFile(file, 'utf8')

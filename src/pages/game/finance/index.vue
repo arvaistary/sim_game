@@ -23,7 +23,6 @@
 import './index.scss'
 
 import type { BalanceAction } from '@domain/balance/actions'
-
 definePageMeta({ middleware: 'game-init' })
 
 const { getActionsByCategory, canExecute, executeAction, getCanExecuteReason, actionsEmptyHint } = useActions()

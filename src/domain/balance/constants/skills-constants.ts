@@ -1,5 +1,6 @@
-import type { SkillDef, SkillTab, SkillCategory } from '@domain/balance/types'
-
+import type { SkillDef } from '@domain/balance/types'
+import type { SkillTab } from '@domain/balance/types'
+import type { SkillCategory } from '@domain/balance/types'
 export const SKILLS_TABS: SkillTab[] = [
   { id: 'basic', label: 'Базовые' },
   { id: 'professional', label: 'Профессиональные' },

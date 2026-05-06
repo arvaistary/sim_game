@@ -434,6 +434,37 @@ function fixBlankLineBeforeReturn(content) {
   return { fixedContent: lines.join('\n'), fixesCount };
 }
 
+// Схлопывает 2+ пустых строк перед if до ровно одной.
+function fixCollapseExtraBlankLinesBeforeIf(content) {
+  const lines = content.split(/\r?\n/);
+  let fixesCount = 0;
+
+  // Обходим с конца, чтобы корректно удалять строки без смещения индексов.
+  for (let index = lines.length - 1; index >= 1; index -= 1) {
+    const currentTrimmed = lines[index].trim();
+
+    if (!/^if\s*\(/.test(currentTrimmed)) {
+      continue;
+    }
+
+    let blankCount = 0;
+    let scanIdx = index - 1;
+    while (scanIdx >= 0 && lines[scanIdx].trim() === '') {
+      blankCount += 1;
+      scanIdx -= 1;
+    }
+
+    if (blankCount >= 2) {
+      const removeCount = blankCount - 1;
+      // Удаляем лишние пустые строки, оставляя ровно одну (scanIdx + 1).
+      lines.splice(scanIdx + 2, removeCount);
+      fixesCount += removeCount;
+    }
+  }
+
+  return { fixedContent: lines.join('\n'), fixesCount };
+}
+
 // Добавляет пустую строку между объявлением переменной и следующим if.
 function fixBlankLineBeforeIf(content) {
   const lines = content.split(/\r?\n/);
@@ -1010,6 +1041,14 @@ function inferSimpleVariableType(initializerRaw) {
     return null;
   }
 
+  // Пропускаем выражения с generic-параметрами — они не являются простыми типами.
+  if (/\b(?:ref|computed|reactive|shallowRef|shallowReactive|readonly|toRef|toRefs|defineProps|defineEmits|withDefaults|customRef|triggerRef)\s*[<(]/.test(initializer)) {
+    return null;
+  }
+  if (/\bnew\s+(?:Map|Set|WeakMap|WeakSet|Array|Promise|ReadonlyMap|ReadonlySet|Record)\s*</.test(initializer)) {
+    return null;
+  }
+
   if (/^['"`][\s\S]*['"`]$/.test(initializer)) {
     return 'string';
   }
@@ -1028,7 +1067,8 @@ function inferSimpleVariableType(initializerRaw) {
   if (/\?\?\s*(true|false)\s*$/.test(initializer)) {
     return 'boolean';
   }
-  if (/^[^?:]*\s*(\|\||&&|!|===|!==|==|!=|>=|<=|>|<)\s*[^?:]*$/.test(initializer)) {
+  // Примечание: || и && НЕ включены, т.к. они не всегда возвращают boolean.
+  if (/^[^?:]*\s*(!|===|!==|==|!=|>=|<=|>|<)\s*[^?:]*$/.test(initializer)) {
     return 'boolean';
   }
   if (/^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\?.[A-Za-z_$][\w$]*|\[[^\]]+\])*\s*[-+*/]\s*.+$/.test(initializer)) {
@@ -1036,6 +1076,136 @@ function inferSimpleVariableType(initializerRaw) {
   }
 
   return null;
+}
+
+// Удаляет ошибочные аннотации `: boolean` у переменных, чей инициализатор
+// содержит generic-параметры (ref<T>, defineProps<T>, new Map<K,V> и т.д.),
+// а также выражения с || и &&, которые не всегда возвращают boolean.
+function fixRemoveIncorrectBooleanAnnotations(content) {
+  const lines = content.split(/\r?\n/);
+  let fixesCount = 0;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const match = line.match(/^(\s*(?:const|let|var)\s+[A-Za-z_$][\w$]*): boolean = (.+)$/);
+
+    if (!match) {
+      continue;
+    }
+
+    const [, prefix, initializer] = match;
+    const initTrimmed = initializer.trim().replace(/;.*$/, '').trim();
+
+    // Сохраняем корректные аннотации для простых булевых литералов.
+    if (initTrimmed === 'true' || initTrimmed === 'false') {
+      continue;
+    }
+
+    // Сохраняем корректные аннотации для простых сравнений без вызовов методов.
+    if (/^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\s*(===|!==|==|!=|>=|<=|>|<)\s/.test(initTrimmed) && !initTrimmed.includes('<')) {
+      continue;
+    }
+
+    // Сохраняем корректные аннотации для унарного отрицания.
+    if (/^![A-Za-z(]/.test(initTrimmed) && !initTrimmed.includes('.')) {
+      continue;
+    }
+
+    // Удаляем : boolean — аннотация ошибочна для всех остальных случаев.
+    lines[i] = `${prefix} = ${initializer}`;
+    fixesCount += 1;
+  }
+
+  return { fixedContent: lines.join('\n'), fixesCount };
+}
+
+// Проверяет, используется ли идентификатор как значение в коде (не в типе).
+function isIdentifierUsedAsValue(name, content) {
+  // Убираем BOM если есть
+  const cleanContent = content.replace(/^\uFEFF/, '');
+
+  // Вызовы функций: Name(
+  if (new RegExp(`\\b${name}\\s*\\(`).test(cleanContent)) return true;
+
+  // Доступ к члену enum: Name.Member (но не Name[] — это тип массива)
+  if (new RegExp(`\\b${name}\\s*\\.(?:\\s*[A-Za-z_$])`).test(cleanContent)) return true;
+
+  // Индексный доступ с содержимым: Name[expr] (но не Name[] — тип массива)
+  if (new RegExp(`\\b${name}\\s*\\[\\s*[^\\s\\]]`).test(cleanContent)) return true;
+
+  // Использование в сравнении: === Name, !== Name, == Name, != Name
+  if (new RegExp(`[!=]==?\\s*${name}\\b`).test(cleanContent)) return true;
+
+  // Использование в присваивании: = Name (но не == или != или <= или >=)
+  if (new RegExp(`[^!=<>]=\\s*${name}\\b`).test(cleanContent)) return true;
+
+  // Использование как return: return Name
+  if (new RegExp(`return\\s+${name}\\b`).test(cleanContent)) return true;
+
+  // Использование как аргумент функции: (Name или , Name)
+  if (new RegExp(`[,(]\\s*${name}\\b`).test(cleanContent)) return true;
+
+  // Использование в spread: ...Name
+  if (new RegExp(`\\.\\.\\.\\s*${name}\\b`).test(cleanContent)) return true;
+
+  // Использование в template literal: ${Name}
+  if (new RegExp(`\\$\\{[^}]*\\b${name}\\b`).test(cleanContent)) return true;
+
+  // Использование в экспорте: export { Name }
+  if (new RegExp(`export\\s+\\{[^}]*\\b${name}\\b`).test(cleanContent)) return true;
+
+  // Использование в массиве/объекте: [Name, или { Name, или Name:
+  if (new RegExp(`\\[\\s*${name}\\b`).test(cleanContent)) return true;
+  if (new RegExp(`\\{\\s*${name}\\s*[:,]`).test(cleanContent)) return true;
+
+  return false;
+}
+
+// Исправляет `import type { X }` → `import { X }` для идентификаторов,
+// которые используются как значения (вызовы функций, доступ к членам enum).
+// Также исправляет обратный случай: `import { TypeOnly }` → `import type { TypeOnly }`.
+function fixImportTypeForValues(content) {
+  // Убираем BOM для корректной работы regex.
+  const bom = content.startsWith('\uFEFF') ? '\uFEFF' : '';
+  let fixedContent = bom ? content.slice(1) : content;
+  let fixesCount = 0;
+
+  // Проход 1: import type { ... } → разделяем value и type идентификаторы.
+  const importTypeRegex = /^import type \{([^}]+)\} from ['"]([^'"]+)['"];?\s*$/gm;
+
+  fixedContent = fixedContent.replace(importTypeRegex, (fullMatch, identifiersStr, modulePath) => {
+    const identifiers = identifiersStr.split(',').map((s) => s.trim()).filter(Boolean);
+    const valueIds = [];
+    const typeIds = [];
+
+    const contentWithoutImport = fixedContent.replace(fullMatch, '');
+
+    for (const id of identifiers) {
+      const name = id.trim();
+
+      if (isIdentifierUsedAsValue(name, contentWithoutImport)) {
+        valueIds.push(name);
+      } else {
+        typeIds.push(name);
+      }
+    }
+
+    if (valueIds.length === 0) {
+      return fullMatch;
+    }
+
+    fixesCount += 1;
+
+    let result = `import { ${valueIds.join(', ')} } from '${modulePath}'`;
+
+    if (typeIds.length > 0) {
+      result += `\nimport type { ${typeIds.join(', ')} } from '${modulePath}'`;
+    }
+
+    return result;
+  });
+
+  return { fixedContent: bom + fixedContent, fixesCount };
 }
 
 // Добавляет явные аннотации для локальных переменных в безопасно-выводимых случаях.
@@ -1134,6 +1304,7 @@ const contentFixers = [
   fixVueLifecycleNamedFunction,
   fixAsyncSingleAwaitTailToReturn,
   fixVoidFireAndForgetCalls,
+  fixCollapseExtraBlankLinesBeforeIf,
   fixBlankLineBeforeIf,
   fixBlankLineBetweenConsecutiveIf,
   fixBlankLineBeforeReturn,
@@ -1142,6 +1313,8 @@ const contentFixers = [
   fixRootAliasToCatalogAlias,
   fixInlineArrayObjectTypes,
   fixInlineExportedReturnObjectTypes,
+  fixRemoveIncorrectBooleanAnnotations,
+  fixImportTypeForValues,
   fixExplicitVariableAnnotations,
 ];
 

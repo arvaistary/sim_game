@@ -1,5 +1,6 @@
 
-import type { FurnitureItem, HousingLevel, CatalogFurnitureItem } from './index.types'
+import type { FurnitureItem } from './index.types'
+import type { HousingLevel, CatalogFurnitureItem } from './index.types'
 import { HOUSING_LEVELS, FURNITURE_CATALOG } from './index.constants'
 
 function isFurnitureItemArray(value: unknown): value is FurnitureItem[] {

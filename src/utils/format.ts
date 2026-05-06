@@ -3,7 +3,7 @@ export function formatMoney(value: number): string {
 }
 
 export function formatEffect(effect: string): string {
-  const raw: boolean = (effect || '').trim()
+  const raw = (effect || '').trim()
 
   if (!raw) return ''
 

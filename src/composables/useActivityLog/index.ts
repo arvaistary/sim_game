@@ -2,7 +2,6 @@ import type { DisplayLogEntry } from './index.types'
 import { PAGE_SIZE } from './index.constants'
 import { resolveActivityLogDescription, resolveActivityLogTitle } from './utils/activity-log-formatters'
 import type { ActivityEntry } from '@stores/activity-store'
-
 /**
  * @description [Composable] - builds the activity log view state with filtering and pagination.
  * @return { ReturnType } reactive activity log state and actions

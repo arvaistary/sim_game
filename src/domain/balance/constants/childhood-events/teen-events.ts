@@ -1,6 +1,5 @@
 import { AgeGroup } from '../../actions/types'
 import type { ChildhoodEventDef } from '../../types/childhood-event'
-
 /**
  * Детские события: 13-15 лет (Средняя школа)
  * Гормональный взрыв. Формируется характер и социальный статус.

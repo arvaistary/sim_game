@@ -1,5 +1,4 @@
 import type { GameSessionSnapshot, VersionedSavePayload } from './ports/SaveRepository.types'
-
 export interface ActionRequirementsInput {
   minAge?: number
   minSkills?: Record<string, number>

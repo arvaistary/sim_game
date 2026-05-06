@@ -1,5 +1,4 @@
 import type { AppMenuActionItem } from '@shared/types'
-
 export const MENU_ITEMS: AppMenuActionItem[] = [
   {
     id: 'save',

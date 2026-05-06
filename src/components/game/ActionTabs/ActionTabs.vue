@@ -26,7 +26,6 @@
 import './ActionTabs.scss'
 
 import type { ActionCategory } from '@constants/action-categories.types'
-
 /**
  * @prop {ActionCategory[]} categories - Список категорий для табов
  * @prop {string} activeCategory - Идентификатор активной категории

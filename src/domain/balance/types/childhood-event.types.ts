@@ -1,6 +1,5 @@
 import type { StatChanges } from '@domain/balance/types'
-import { AgeGroup } from '@domain/balance/actions/types'
-
+import type { AgeGroup } from '@domain/balance/actions/types'
 export type ChildhoodEventType = 'everyday' | 'formative' | 'fateful'
 
 export interface DelayedConsequence {

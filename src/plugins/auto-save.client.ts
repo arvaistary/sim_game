@@ -26,8 +26,8 @@ export default defineNuxtPlugin((nuxtApp) => {
   const pinia = nuxtApp.$pinia as Pinia
   const saveRepository = createLocalStorageSaveRepository(DEFAULT_SAVE_KEY)
 
-  let saveTimer: ReturnType<typeof setTimeout> | null = null
-  let periodicTimer: ReturnType<typeof setInterval> | null = null
+  let saveTimer: NodeJS.Timeout | null = null
+  let periodicTimer: NodeJS.Timeout | null = null
   let saveEnabled: boolean = false
 
   /**
@@ -74,6 +74,7 @@ export default defineNuxtPlugin((nuxtApp) => {
    */
   async function clearAndReset(): Promise<void> {
     saveEnabled = false
+
     if (saveTimer) {
       clearTimeout(saveTimer)
       saveTimer = null
