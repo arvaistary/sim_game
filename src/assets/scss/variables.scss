@@ -1,32 +1,42 @@
 // ===== Nexus UI Design Tokens =====
 // Based on 8pt grid system
 // Architecture: Primitive → Semantic → Component
+// v2: Linear-эстетика — slate palette + emerald accent
 
 // ===== Colors: Primitive =====
 
 // Brand / Accent
-$color-brand-primary: #00B2FF;     // бирюзово-голубой (Health+, Alutem, MagicHeal)
-$color-brand-accent: #FF6B6B;      // кораллово-оранжевый (Eduhouse, Lordbank)
-$color-brand-secondary: #7B61FF;    // фиолетовый (Clarity, YourEducation)
+$color-brand-primary: #00C896;     // яркий emerald (сочный акцент)
+$color-brand-primary-hover: #00B386; // hover — чуть темнее
+$color-brand-primary-active: #009E73; // active — ещё темнее для press-эффекта
+$color-brand-accent: #FF6B6B;      // кораллово-оранжевый (вторичный акцент)
+$color-brand-secondary: #7B61FF;    // фиолетовый (тертиарный акцент)
 
-// Neutral scale
+// Neutral scale (slate)
 $color-neutral-0: #FFFFFF;
-$color-neutral-50: #F8F7F4;        // бежевый фон (Eduhouse)
-$color-neutral-100: #F1F0EB;
-$color-neutral-200: #E2E8F0;
-$color-neutral-300: #CBD5E1;
-$color-neutral-400: #94A3B8;
-$color-neutral-500: #64748B;
-$color-neutral-600: #475569;
-$color-neutral-700: #334155;
-$color-neutral-800: #1F2A44;       // основной текст
-$color-neutral-900: #0F172A;
+$color-neutral-50: #F8FAFC;        // slate-50 — фон страницы
+$color-neutral-100: #F1F5F9;       // slate-100
+$color-neutral-200: #E2E8F0;       // slate-200
+$color-neutral-300: #CBD5E1;       // slate-300
+$color-neutral-400: #94A3B8;       // slate-400
+$color-neutral-500: #64748B;       // slate-500
+$color-neutral-600: #475569;       // slate-600
+$color-neutral-700: #334155;       // slate-700
+$color-neutral-800: #1E293B;       // slate-800 — основной текст
+$color-neutral-900: #0F172A;       // slate-900
 
 // Semantic colors
 $color-success: #22C55E;
+$color-success-strong: #16A34A;   // насыщенный mid-tone для текста на pastel (light)
+$color-success-bright: #4ADE80;   // brighter shade for text on dark bg
 $color-warning: #F59E0B;
+$color-warning-strong: #D97706;   // amber-600 — насыщеннее
+$color-warning-bright: #FBBF24;
 $color-danger: #EF4444;
+$color-danger-strong: #DC2626;    // red-600 — насыщеннее, лучше читается
+$color-danger-bright: #F87171;
 $color-info: #3B82F6;
+$color-brand-primary-bright: #2DD4BF; // emerald-300, ярче для dark bg акцентов
 
 // Pastel accents (for cards and badges)
 $color-pastel-purple: #EDE9FE;
@@ -45,8 +55,10 @@ $color-pastel-teal-strong: #134E4A;
 // ===== Colors: Semantic (Light theme) =====
 
 // Background
+$color-bg-app: $color-neutral-50;       // корневой фон приложения
 $color-bg-page: $color-neutral-50;
-$color-bg-surface: $color-neutral-0;
+$color-bg-surface: $color-neutral-0;    // карточки/панели
+$color-bg-surface-2: $color-neutral-100; // вложенные поверхности
 $color-bg-card: $color-neutral-0;
 $color-bg-sidebar: $color-neutral-0;
 $color-bg-header: $color-neutral-0;
@@ -65,25 +77,33 @@ $color-border-subtle: $color-neutral-100;
 
 // Interactive
 $color-action-primary: $color-brand-primary;
-$color-action-primary-hover: #0099E0;
-$color-action-primary-active: #0080C0;
+$color-action-primary-hover: $color-brand-primary-hover;
+$color-action-primary-active: $color-brand-primary-active;
 $color-action-secondary: $color-brand-secondary;
 $color-action-danger: $color-danger;
 
 // Status
 $color-status-success: $color-success;
+$color-status-success-strong: $color-success-strong;
+$color-status-success-bright: $color-success-bright;
 $color-status-warning: $color-warning;
+$color-status-warning-strong: $color-warning-strong;
+$color-status-warning-bright: $color-warning-bright;
 $color-status-danger: $color-danger;
+$color-status-danger-strong: $color-danger-strong;
+$color-status-danger-bright: $color-danger-bright;
 $color-status-info: $color-brand-primary;
 
-// ===== Colors: Dark theme =====
+// ===== Colors: Dark theme (slate-900/800 base) =====
 
 // Background
+$color-dark-bg-app: $color-neutral-900;
 $color-dark-bg-page: $color-neutral-900;
-$color-dark-bg-surface: #1E2937;
-$color-dark-bg-card: #1E2937;
+$color-dark-bg-surface: #1E293B;        // slate-800
+$color-dark-bg-surface-2: #242836;
+$color-dark-bg-card: #1E293B;
 $color-dark-bg-sidebar: $color-neutral-900;
-$color-dark-bg-header: #1E2937;
+$color-dark-bg-header: #1E293B;
 $color-dark-bg-elevated: #242836;
 
 // Text - improved contrast for dark backgrounds
@@ -95,12 +115,12 @@ $color-dark-text-tertiary: #94A3B8;
 $color-dark-border: #475569;
 $color-dark-border-subtle: #334155;
 
-// Interactive - muted for better visual balance
-$color-dark-action-primary: #26A6CC;
-$color-dark-action-primary-hover: #33C4FF;
-$color-dark-action-primary-active: #1A8CAF;
+// Interactive - emerald stays consistent, slight brighten for dark
+$color-dark-action-primary: #2DD4BF;     // emerald-300, ярче для dark bg
+$color-dark-action-primary-hover: #00C896; // яркий emerald base
+$color-dark-action-primary-active: #00B386; // hover base
 $color-dark-action-secondary: #7B68D1;
-$color-dark-action-danger: #DC6E6E;
+$color-dark-action-danger: #F87171;      // red-400 — ярче для dark bg
 
 // ===== Typography =====
 
@@ -163,6 +183,11 @@ $size-sidebar-collapsed: 72px;
 $size-header-height: 72px;
 $size-content-max-width: 1440px;
 
+// v2: dashboard shell layout
+$sidebar-width: 240px;
+$bottomnav-height: 64px;
+$topbar-height: 56px;
+
 // ===== Border Radius =====
 
 $radius-xs: 4px;
@@ -184,7 +209,7 @@ $shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.10);
 // Semantic shadows
 $shadow-card: $shadow-lg;
 $shadow-popover: $shadow-xl;
-$shadow-button-hover: 0 4px 12px rgba(0, 178, 255, 0.25);
+$shadow-button-hover: 0 6px 16px rgba(0, 200, 150, 0.30); // сочный emerald glow на hover
 
 // ===== Z-indices =====
 
@@ -228,8 +253,8 @@ $button-font-size: $font-size-base;
 $button-font-weight: $font-weight-semibold;
 
 // Card
-$card-radius: $radius-2xl;
-$card-padding: $space-6;
+$card-radius: $radius-xl;       // 20px (Linear-эстетика)
+$card-padding: $space-5;        // 20px — было $space-6 (32px)
 $card-shadow: $shadow-card;
 
 // Input
@@ -259,3 +284,15 @@ $badge-padding-x: $space-2;
 $badge-padding-y: $space-1;
 $badge-font-size: $font-size-xs;
 $badge-font-weight: $font-weight-medium;
+
+// ===== v2: Density variants =====
+// Used by html[data-density="compact"] override in global.scss
+
+$card-padding-compact: 12px;
+$card-radius-compact: $radius-lg; // 16px
+$element-gap-compact: $space-2;   // 8px
+$component-padding-compact: $space-4; // 16px
+
+// Emerald-soft для бейджей/active-фонов
+$color-emerald-soft: #ECFDF5;
+$color-emerald-soft-dark: rgba(0, 200, 150, 0.18);

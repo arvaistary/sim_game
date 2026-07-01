@@ -1,59 +1,76 @@
-.card {
-  position: relative;
-}
-
-.log-card-wrapper {
-  cursor: pointer;
-}
+@use '../../../../assets/scss/variables' as *;
+@use '../../../../assets/scss/mixins' as *;
 
 .log-card {
   display: flex;
   flex-direction: column;
   height: 100%;
+  cursor: default;
 }
 
-.card-title {
-  font-size: $font-size-base;
-  font-weight: $font-weight-bold;
-  color: var(--color-text-primary);
-  margin-bottom: $space-2;
-}
-
-.log-entries {
+.log-card__entries {
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: $space-1;
+  gap: $space-2;
+  overflow: hidden;
 }
 
-.log-empty {
+.log-card__empty {
+  margin: 0;
+  padding: $space-4 0;
+  text-align: center;
   font-size: $font-size-sm;
   color: var(--color-text-tertiary);
   font-style: italic;
 }
 
-.log-entry {
+.log-card__entry {
+  display: flex;
+  align-items: baseline;
+  gap: $space-2;
   font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
+  line-height: 1.4;
+}
+
+.log-card__day {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  background: var(--color-bg-surface-2);
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-tertiary);
+}
+
+.log-card__text {
+  flex: 1;
   color: var(--color-text-primary);
-  line-height: 1.5;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.log-hint {
+.log-card__link {
+  align-self: flex-start;
+  margin-top: $space-3;
+  padding: $space-2 $space-3;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: $font-family-sans;
   font-size: $font-size-xs;
-  font-weight: $font-weight-regular;
-  color: var(--color-text-tertiary);
-  text-align: center;
-  margin-top: auto;
-  padding-top: $space-1;
-}
+  font-weight: $font-weight-semibold;
+  color: var(--color-action-primary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
 
-@media (max-width: $breakpoint-lg) {
-  .log-card-wrapper {
-    width: calc(50% - 6px);
+  &:hover {
+    background: var(--color-pastel-green);
+    border-color: var(--color-action-primary);
+
+    @include dark-theme {
+      background: rgba(45, 212, 191, 0.20);
+    }
   }
 }

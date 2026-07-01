@@ -1,3 +1,6 @@
+@use '../../../assets/scss/variables' as *;
+@use '../../../assets/scss/mixins' as *;
+
 .tooltip-wrapper {
   position: relative;
   display: inline-flex;
@@ -14,17 +17,21 @@
 }
 
 .tooltip {
-  padding: 6px 10px;
-  background: var(--color-bg-elevated);
-  color: var(--color-text-primary);
-  font-size: 12px;
+  padding: $space-1 $space-2;
+  background: $color-neutral-900; // slate-900 on light
+  color: $color-neutral-0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
   line-height: 1.4;
-  border-radius: var(--radius-sm);
+  border-radius: $radius-sm;
   white-space: nowrap;
   z-index: 1100;
   pointer-events: none;
-  box-shadow: var(--shadow-card);
-  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-popover);
+
+  @include dark-theme {
+    background: $color-neutral-700; // slate-700 on dark
+  }
 
   /* Default (non-follow) positioning */
   &:not(.tooltip--follow) {
@@ -54,7 +61,7 @@
 
 .tooltip-enter-active,
 .tooltip-leave-active {
-  transition: opacity 0.15s ease;
+  transition: opacity $transition-fast;
 }
 
 .tooltip-enter-from,

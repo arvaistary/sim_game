@@ -23,6 +23,7 @@
 </template>
 
 <script setup lang="ts">
+import './events.scss'
 import type { ComputedRef } from 'vue'
 import type { EventChoice, GameEvent } from '@/stores/events-store'
 
@@ -66,11 +67,3 @@ function goBack() {
   router.back()
 }
 </script>
-
-<style scoped lang="scss">
-.event-page {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-</style>

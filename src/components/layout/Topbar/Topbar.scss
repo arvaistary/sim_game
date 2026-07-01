@@ -1,0 +1,143 @@
+@use '../../../assets/scss/variables' as *;
+@use '../../../assets/scss/mixins' as *;
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  width: 100%;
+  height: 100%;
+  padding: 0 $space-5;
+}
+
+// ===== Left side =====
+.topbar__left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.topbar__title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  letter-spacing: $tracking-heading;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ===== Right side =====
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+// Profile chip
+.topbar__profile {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-1 $space-3 $space-1 $space-1;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.topbar__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.topbar__profile-name {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-primary);
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Icon buttons
+.topbar__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  height: 36px;
+  min-width: 36px;
+  padding: 0 $space-2;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+
+  &:hover {
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-subtle);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 1px;
+  }
+}
+
+.topbar__btn-icon {
+  font-size: $font-size-base;
+  line-height: 1;
+}
+
+// Command palette trigger with hint
+.topbar__btn--cmd {
+  padding: 0 $space-2 0 $space-3;
+}
+
+.topbar__cmd-hint {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-tertiary);
+  padding: 2px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+// ===== Mobile (compact) =====
+@include respond-to-max('md') {
+  .topbar {
+    padding: 0 $space-3;
+  }
+
+  .topbar__profile {
+    // hide name, keep avatar only
+    padding: $space-1;
+  }
+
+  .topbar__profile-name {
+    display: none;
+  }
+
+  .topbar__cmd-hint {
+    display: none;
+  }
+
+  .topbar__btn--cmd {
+    padding: 0 $space-2;
+  }
+}

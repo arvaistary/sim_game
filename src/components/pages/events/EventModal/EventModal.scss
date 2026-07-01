@@ -1,0 +1,7 @@
+@use '../../../../assets/scss/variables' as *;
+
+.event-modal {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}

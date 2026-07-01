@@ -8,16 +8,9 @@
 </template>
 
 <script setup lang="ts">
+import './activity.scss'
+
 definePageMeta({ middleware: 'game-init' })
 
 const activeFilter = ref('all')
 </script>
-
-<style scoped lang="scss">
-.activity-page {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 100%;
-}
-</style>

@@ -1,0 +1,25 @@
+@use '../../../assets/scss/variables' as *;
+
+.stat-bar {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.stat-bar__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-bar__label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-secondary);
+}
+
+.stat-bar__value {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+}

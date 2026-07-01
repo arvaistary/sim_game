@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+import './EventModal.scss'
 import type { ComputedRef } from 'vue'
 import EventCard from '../EventCard/EventCard.vue'
 import EventChoices from '../EventChoices/EventChoices.vue'
@@ -74,11 +75,3 @@ function handleClose() {
   emit('close')
 }
 </script>
-
-<style scoped lang="scss">
-.event-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-</style>

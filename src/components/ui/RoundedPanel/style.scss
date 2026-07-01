@@ -1,3 +1,28 @@
+@use '../../../assets/scss/variables' as *;
+
 .rounded-panel {
   position: relative;
+  border: 1px solid var(--color-border-subtle);
+}
+
+.rounded-panel--no-shadow {
+  box-shadow: none;
+}
+
+// Accent decorative stripe (emerald 3px on the left)
+.rounded-panel--accent::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-action-primary);
+  border-radius: var(--radius-full);
+}
+
+.rounded-panel__header {
+  margin-bottom: var(--space-element-gap);
+  padding-bottom: $space-3;
+  border-bottom: 1px solid var(--color-border-subtle);
 }

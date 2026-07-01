@@ -1,0 +1,196 @@
+@use '../../../assets/scss/variables' as *;
+@use '../../../assets/scss/mixins' as *;
+
+.settings-drawer__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: $z-index-modal;
+}
+
+.settings-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 100vw);
+  background: var(--color-bg-card);
+  border-left: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-popover);
+  z-index: $z-index-modal + 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-4 $space-5;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.settings-drawer__title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  letter-spacing: $tracking-heading;
+}
+
+.settings-drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: $font-size-xl;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+  }
+}
+
+.settings-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-4 $space-5 $space-6;
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+
+  @include scrollbar-thin;
+}
+
+// ===== Sections =====
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.settings-section__title {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.settings-section__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.settings-section__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-section__label {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-primary);
+}
+
+.settings-section__hint {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+}
+
+.settings-section__link {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--color-action-primary);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--color-action-primary-hover);
+    text-decoration: underline;
+  }
+}
+
+// ===== Segmented control (theme / density) =====
+.segmented {
+  display: inline-flex;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+
+.segmented__btn {
+  padding: $space-1 $space-3;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    color: var(--color-text-primary);
+  }
+
+  &.segmented__btn--active {
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    box-shadow: $shadow-xs;
+  }
+}
+
+// ===== Switch (sidebar) =====
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 44px;
+  height: 26px;
+  padding: 3px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+
+  &.switch--on {
+    background: var(--color-action-primary);
+  }
+}
+
+.switch__thumb {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-card);
+  box-shadow: $shadow-sm;
+  transition: transform var(--transition-fast);
+}
+
+.switch--on .switch__thumb {
+  transform: translateX(18px);
+}

@@ -1,29 +1,92 @@
+@use '../../../assets/scss/variables' as *;
+@use '../../../assets/scss/mixins' as *;
+@use 'sass:color';
+
 .game-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: var(--radius-md);
-  font-family: var(--font-family-sans);
-  font-size: 16px;
-  font-weight: 600;
+  min-height: $button-height;
+  padding: 0 $button-padding-x;
+  border: 1px solid transparent;
+  border-radius: $button-radius;
+  font-family: $font-family-sans;
+  font-size: $button-font-size;
+  font-weight: $button-font-weight;
   cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  box-shadow: var(--shadow-sm);
   user-select: none;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 
   &:hover:not(.game-button--disabled) {
     transform: translateY(-1px);
-    box-shadow: var(--shadow-button-hover);
   }
 
   &:active:not(.game-button--disabled) {
     transform: translateY(0);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 2px;
+  }
 }
 
+// ===== Primary (emerald accent) =====
+.game-button--primary {
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  box-shadow: $shadow-sm;
+
+  &:hover:not(.game-button--disabled) {
+    background: var(--color-action-primary-hover);
+    box-shadow: $shadow-button-hover;
+  }
+
+  &:active:not(.game-button--disabled) {
+    background: var(--color-action-primary-active);
+  }
+}
+
+// ===== Secondary (ghost-bordered) =====
+.game-button--secondary {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+
+  &:hover:not(.game-button--disabled) {
+    background: var(--color-bg-surface-2);
+    border-color: var(--color-border-strong, var(--color-border));
+  }
+}
+
+// ===== Danger =====
+.game-button--danger {
+  background: var(--color-action-danger);
+  color: var(--color-text-on-primary);
+  box-shadow: $shadow-sm;
+
+  &:hover:not(.game-button--disabled) {
+    background: color.adjust($color-action-danger, $lightness: -6%);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+
+    @include dark-theme {
+      background: color.adjust($color-dark-action-danger, $lightness: -4%);
+    }
+  }
+}
+
+// ===== Ghost (text-only) =====
+.game-button--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+
+  &:hover:not(.game-button--disabled) {
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+  }
+}
+
+// ===== States =====
 .game-button--disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -31,6 +94,6 @@
 
 .game-button--small {
   min-height: 40px;
-  padding: 8px 14px;
-  font-size: 14px;
+  padding: 0 $space-4;
+  font-size: $font-size-sm;
 }

@@ -39,8 +39,7 @@
     "pinia": "3.0.4",
     "swiper": "12.1.3",
     "vue": "3.5.32",
-    "vue-tsc": "3.2.6",
-    "vue3-toastify": "0.2.8"
+    "vue-tsc": "3.2.6"
   },
   "devDependencies": {
     "@types/lodash.debounce": "4.0.9",

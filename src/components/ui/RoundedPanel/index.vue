@@ -1,30 +1,42 @@
 <template>
-  <div class="rounded-panel" :style="panelStyle">
+  <div
+    class="rounded-panel"
+    :class="{
+      'rounded-panel--accent': accent,
+      'rounded-panel--no-shadow': !shadow,
+    }"
+    :style="panelStyle"
+  >
+    <div v-if="$slots.header" class="rounded-panel__header">
+      <slot name="header" />
+    </div>
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
-
 import './style.scss'
 
-const props = withDefaults(defineProps<{
+interface RoundedPanelProps {
   color?: string
   shadow?: boolean
   radius?: number
   padding?: string
-}>(), {
+  /** Декоративная emerald-полоса слева 3px */
+  accent?: boolean
+}
+
+const props = withDefaults(defineProps<RoundedPanelProps>(), {
   color: 'var(--color-bg-card)',
   shadow: true,
-  radius: 24,
-  padding: '24px',
+  radius: 20,
+  padding: 'var(--space-card-padding)',
 })
 
 const panelStyle = computed(() => ({
   backgroundColor: props.color,
   borderRadius: `${props.radius}px`,
   boxShadow: props.shadow ? 'var(--shadow-card)' : 'none',
-  border: `1px solid var(--color-border)`,
   padding: props.padding,
 }))
 </script>

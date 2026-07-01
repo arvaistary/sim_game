@@ -1,45 +1,31 @@
+@use '../../assets/scss/variables' as *;
+@use '../../assets/scss/mixins' as *;
+
 .main-page {
-  width: 100vw;
-  height: 100vh;
   display: flex;
   flex-direction: column;
-  max-width: $size-content-max-width;
-  padding: $space-4;
-  gap: $space-4;
-  margin: 0 auto;
-  overflow: hidden;
+  gap: var(--space-element-gap);
+  width: 100%;
 }
 
+// Top KPI row: 3 равные колонки (ProfileCard шире — 2 col на mobile)
 .top-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: $space-4;
-  flex-shrink: 0;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: var(--space-element-gap);
+
+  @include respond-to-max('md') {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @include respond-to-max('sm') {
+    grid-template-columns: 1fr;
+  }
 }
 
-@media (max-width: $breakpoint-lg) {
-  .main-page {
-    overflow-y: auto;
-    padding: $space-3;
-    gap: $space-3;
-    max-width: 1200px;
-  }
-
-  .top-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $space-3;
-  }
-
-  .top-row__profile {
-    width: 100%;
-  }
-
-  .top-row__log {
-    width: calc(50% - 6px);
-  }
-
-  .top-row__stats {
-    width: calc(50% - 6px);
+.top-row__profile {
+  // ProfileCard занимает всю верхнюю строку на mobile
+  @include respond-to-max('md') {
+    grid-column: 1 / -1;
   }
 }

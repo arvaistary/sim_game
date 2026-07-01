@@ -1,14 +1,30 @@
 <template>
-  <div class="main-page">
-    <div class="top-row">
-      <ProfileCard class="top-row__profile" />      
-      <StatsCard class="top-row__stats" />
-      <ActivityLogCard class="top-row__log" />
+  <DashboardLayout>
+    <template #sidebar>
+      <GameNav mode="sidebar" />
+    </template>
+
+    <template #topbar>
+      <Topbar title="Главная" />
+    </template>
+
+    <template #bottomnav>
+      <GameNav mode="bottom" />
+    </template>
+
+    <div class="main-page">
+      <div class="top-row">
+        <ProfileCard
+          class="top-row__profile"
+          data-tour="profile"
+        />
+        <StatsCard class="top-row__stats" />
+        <ActivityLogCard class="top-row__log" />
+      </div>
+      <HomePreview />
+      <WorkButton />
     </div>
-    <HomePreview />
-    <WorkButton />
-    <GameNav />
-  </div>
+  </DashboardLayout>
 </template>
 
 <script setup lang="ts">

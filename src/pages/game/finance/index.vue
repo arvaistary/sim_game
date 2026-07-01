@@ -17,6 +17,8 @@
 </template>
 
 <script setup lang="ts">
+import './finance.scss'
+
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()
@@ -34,11 +36,3 @@ const sortedActions = computed(() => {
   return [...actions].sort((a, b) => (canExecute(a.id) ? 0 : 1) - (canExecute(b.id) ? 0 : 1))
 })
 </script>
-
-<style scoped lang="scss">
-.finance-page {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-</style>

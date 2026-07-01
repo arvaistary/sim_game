@@ -1,0 +1,44 @@
+@use './assets/scss/variables' as *;
+@use './assets/scss/mixins' as *;
+
+.escape-menu {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.escape-menu__item {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  width: 100%;
+  padding: $space-4;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-action-primary);
+    background: var(--color-bg-elevated);
+    transform: translateY(-1px);
+  }
+}
+
+.escape-menu__item--disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.escape-menu__item-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+}
+
+.escape-menu__item-description {
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+}

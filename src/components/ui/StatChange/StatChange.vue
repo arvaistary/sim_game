@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import './StatChange.scss'
 import type { ComputedRef } from 'vue'
 import { STAT_LABELS_RU, METRIC_LABELS } from '@/constants/metric-labels'
 import type { StatChangeDisplay, StatChangeProps } from './StatChange.types'
@@ -34,7 +35,6 @@ const RU_LABELS: Record<string, string> = {
 
 // Маппинг названий характеристик на иконки (русские и английские)
 const ICON_MAP: Record<string, string> = {
-  // Русские названия
   'здоровье': '❤️',
   'стресс': '😌',
   'настроение': '😊',
@@ -68,8 +68,6 @@ const ICON_MAP: Record<string, string> = {
   'сон': '😴',
   'время': '⏱️',
   'час': '⏱️',
-  
-  // Английские названия
   'health': '❤️',
   'stress': '😌',
   'mood': '😊',
@@ -133,7 +131,7 @@ const change = computed<StatChangeDisplay>(() => {
       break
     }
   }
-  
+
   return {
     icon,
     name: displayName,
@@ -146,69 +144,3 @@ const explanationText: ComputedRef<string> = computed(() => {
   return props.explanation ?? ''
 })
 </script>
-
-<style scoped lang="scss">
-.stat-change {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 0;
-  // background: rgba(255, 255, 255, 0.05);
-  // border-radius: 8px;
-  // border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.2s ease;
-  width: 100%;
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    // border-color: rgba(255, 255, 255, 0.15);
-  }
-}
-
-.stat-change__main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stat-change__icon {
-  font-size: 18px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.stat-change__name {
-  font-size: 14px;
-  color: var(--color-text, #e0e0e0);
-  line-height: 1.4;
-  flex: 1;
-}
-
-.stat-change__value {
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1;
-  padding: 3px 8px;
-  border-radius: 6px;
-  margin-left: auto;
-  flex-shrink: 0;
-  
-  &--positive {
-    color: #4ade80;
-    background: rgba(74, 222, 128, 0.15);
-  }
-  
-  &--negative {
-    color: #f87171;
-    background: rgba(248, 113, 113, 0.15);
-  }
-}
-
-.stat-change__explanation {
-  font-size: 11px;
-  color: var(--color-text-muted, #888);
-  line-height: 1.3;
-  padding-left: 26px;
-  font-style: italic;
-}
-</style>

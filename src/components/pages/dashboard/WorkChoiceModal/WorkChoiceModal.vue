@@ -29,6 +29,7 @@
 </template>
 
 <script setup lang="ts">
+import './WorkChoiceModal.scss'
 import type { WorkChoiceModalEmits, WorkChoiceModalProps } from './WorkChoiceModal.types'
 
 const props = defineProps<WorkChoiceModalProps>()
@@ -47,18 +48,3 @@ function handleFullShift() {
   props.onRunShift?.(props.workOptions?.fullShiftHours ?? 0)
 }
 </script>
-
-<style scoped lang="scss">
-.work-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.work-modal__line {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--color-text-primary);
-}
-</style>

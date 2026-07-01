@@ -32,8 +32,14 @@
   --color-action-danger: #{$color-action-danger};
 
   --color-status-success: #{$color-status-success};
+  --color-status-success-strong: #{$color-status-success-strong};
+  --color-status-success-bright: #{$color-status-success-bright};
   --color-status-warning: #{$color-status-warning};
+  --color-status-warning-strong: #{$color-status-warning-strong};
+  --color-status-warning-bright: #{$color-status-warning-bright};
   --color-status-danger: #{$color-status-danger};
+  --color-status-danger-strong: #{$color-status-danger-strong};
+  --color-status-danger-bright: #{$color-status-danger-bright};
   --color-status-info: #{$color-status-info};
   --color-pastel-purple: #{$color-pastel-purple};
   --color-pastel-orange: #{$color-pastel-orange};
@@ -60,6 +66,7 @@
   --shadow-button: #{$shadow-sm};
 
   // Radius
+  --radius-xs: #{$radius-xs};
   --radius-sm: #{$radius-sm};
   --radius-md: #{$radius-md};
   --radius-lg: #{$radius-lg};
@@ -68,13 +75,26 @@
   --radius-full: #{$radius-full};
 
   // Spacing
+  --space-0: #{$space-0};
   --space-1: #{$space-1};
   --space-2: #{$space-2};
   --space-3: #{$space-3};
   --space-4: #{$space-4};
   --space-5: #{$space-5};
   --space-6: #{$space-6};
+  --space-7: #{$space-7};
   --space-8: #{$space-8};
+  --space-9: #{$space-9};
+  --space-10: #{$space-10};
+  --space-12: #{$space-12};
+  --space-16: #{$space-16};
+
+  // Semantic spacing (density-aware)
+  --space-component-padding: #{$space-component-padding};
+  --space-card-padding: #{$card-padding};
+  --space-section-gap: #{$space-section-gap};
+  --space-element-gap: #{$space-element-gap};
+  --space-inline-gap: #{$space-inline-gap};
 
   // Typography
   --font-family-sans: #{$font-family-sans};
@@ -83,6 +103,19 @@
   --size-sidebar: #{$size-sidebar};
   --size-sidebar-collapsed: #{$size-sidebar-collapsed};
   --size-header-height: #{$size-header-height};
+  --size-content-max-width: #{$size-content-max-width};
+
+  // v2: dashboard shell
+  --sidebar-width: #{$sidebar-width};
+  --bottomnav-height: #{$bottomnav-height};
+  --topbar-height: #{$topbar-height};
+
+  // v2: app surfaces
+  --color-bg-app: #{$color-bg-app};
+  --color-bg-surface-2: #{$color-bg-surface-2};
+
+  // Component tokens (density-aware)
+  --radius-card: #{$card-radius};
 
   // Transitions
   --transition-fast: #{$transition-fast};
@@ -110,8 +143,10 @@
 
 // Dark theme overrides
 html[data-theme="dark"] {
+  --color-bg-app: #{$color-dark-bg-app};
   --color-bg-page: #{$color-dark-bg-page};
   --color-bg-surface: #{$color-dark-bg-surface};
+  --color-bg-surface-2: #{$color-dark-bg-surface-2};
   --color-bg-card: #{$color-dark-bg-card};
   --color-bg-sidebar: #{$color-dark-bg-sidebar};
   --color-bg-header: #{$color-dark-bg-header};
@@ -145,6 +180,19 @@ html[data-theme="dark"] {
   --color-pastel-green-strong: #4ADE80;
   --color-pastel-pink-strong: #F472B6;
   --color-pastel-teal-strong: #2DD4BF;
+
+  // Status strong → bright variants for icon/text contrast on dark
+  --color-status-success-strong: #{$color-status-success-bright};
+  --color-status-warning-strong: #{$color-status-warning-bright};
+  --color-status-danger-strong: #{$color-status-danger-bright};
+}
+
+// Density: compact overrides (v2)
+html[data-density="compact"] {
+  --space-component-padding: #{$component-padding-compact};
+  --space-card-padding: #{$card-padding-compact};
+  --space-element-gap: #{$element-gap-compact};
+  --radius-card: #{$card-radius-compact};
 }
 
 // ===== Base elements =====
@@ -165,15 +213,15 @@ body {
   margin: 0;
   color: var(--color-text-primary);
   background:
-    radial-gradient(circle at top right, rgba(0, 178, 255, 0.12), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(255, 107, 107, 0.10), transparent 32%),
+    radial-gradient(circle at top right, rgba(0, 200, 150, 0.12), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(123, 97, 255, 0.08), transparent 32%),
     linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-page) 100%);
 }
 
 html[data-theme="dark"] body {
   background:
-    radial-gradient(circle at top right, rgba(51, 196, 255, 0.18), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(123, 97, 255, 0.14), transparent 34%),
+    radial-gradient(circle at top right, rgba(45, 212, 191, 0.18), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(123, 97, 255, 0.12), transparent 34%),
     linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-page) 100%);
 }
 
@@ -237,10 +285,10 @@ img {
   @include scrollbar-thin;
 }
 
-// Dashboard grid
+// Dashboard grid (12-col on desktop)
 .dashboard-grid {
   display: grid;
-  gap: $space-5;
+  gap: var(--space-element-gap);
   grid-template-columns: 1fr;
 
   @include respond-to('md') {
@@ -248,11 +296,116 @@ img {
   }
 
   @include respond-to('lg') {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+// Span helpers for 12-col dashboard-grid
+.col-span-6 { grid-column: span 6; }
+.col-span-4 { grid-column: span 4; }
+.col-span-3 { grid-column: span 3; }
+.col-span-8 { grid-column: span 8; }
+.col-span-12 { grid-column: span 12; }
+
+@include respond-to-max('md') {
+  .col-span-6,
+  .col-span-4,
+  .col-span-3,
+  .col-span-8,
+  .col-span-12 { grid-column: 1 / -1; }
+}
+
+// KPI grid (3-4 equal columns, collapses to 1 on mobile)
+.kpi-grid {
+  display: grid;
+  gap: var(--space-element-gap);
+  grid-template-columns: 1fr;
+
+  @include respond-to('sm') {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  @include respond-to('xl') {
+  @include respond-to('lg') {
     grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// Widget (card-like container for dashboard)
+.widget {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-card-padding);
+  box-shadow: var(--shadow-card);
+}
+
+.widget__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-element-gap);
+}
+
+.widget__title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  letter-spacing: $tracking-heading;
+}
+
+.widget__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-element-gap);
+}
+
+// Badges (status pills)
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $badge-padding-y $badge-padding-x;
+  border-radius: $badge-radius;
+  font-size: $badge-font-size;
+  font-weight: $badge-font-weight;
+  line-height: 1;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
+}
+
+.badge--success {
+  background: rgba(34, 197, 94, 0.20);
+  color: var(--color-status-success-strong);
+
+  @include dark-theme {
+    background: rgba(74, 222, 128, 0.24);
+  }
+}
+
+.badge--warning {
+  background: rgba(245, 158, 11, 0.20);
+  color: var(--color-status-warning-strong);
+
+  @include dark-theme {
+    background: rgba(251, 191, 36, 0.24);
+  }
+}
+
+.badge--danger {
+  background: rgba(239, 68, 68, 0.20);
+  color: var(--color-status-danger-strong);
+
+  @include dark-theme {
+    background: rgba(248, 113, 113, 0.24);
+  }
+}
+
+.badge--info {
+  background: rgba(0, 200, 150, 0.20);
+  color: var(--color-action-primary);
+
+  @include dark-theme {
+    background: rgba(45, 212, 191, 0.24);
   }
 }
 
@@ -282,6 +435,10 @@ img {
 .text-2xl { font-size: $font-size-2xl; }
 .text-3xl { font-size: $font-size-3xl; }
 .text-4xl { font-size: $font-size-4xl; }
+
+// Numeric metrics — Inter with tabular figures
+.tabular-nums { font-variant-numeric: tabular-nums; }
+.metric { font-variant-numeric: tabular-nums; letter-spacing: $tracking-heading; }
 
 // Flex
 .flex { display: flex; }

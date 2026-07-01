@@ -1,28 +1,18 @@
-.card {
-  position: relative;
-}
+@use '../../../../assets/scss/variables' as *;
+@use '../../../../assets/scss/mixins' as *;
 
-.scales-card {
+.stats-card {
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
-.card-title {
-  font-size: $font-size-base;
-  font-weight: $font-weight-bold;
-  color: var(--color-text-primary);
-  margin-bottom: $space-2;
-}
+.stats-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-3;
 
-.stat-bars {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-  flex: 1;
-}
-
-@media (max-width: $breakpoint-lg) {
-  .scales-card {
-    width: calc(50% - 6px);
+  @include respond-to-max('sm') {
+    grid-template-columns: 1fr;
   }
 }

@@ -1,21 +1,10 @@
 <template>
   <div class="skills-list-wrapper">
     <!-- Табы-переключатели категорий -->
-    <div class="skills-tabs">
-      <button
-        v-for="tab in tabs"
-        :key="tab.id"
-        class="skills-tab"
-        :class="{ 'skills-tab--active': activeTab === tab.id }"
-        @click="activeTab = tab.id"
-      >
-        <span class="skills-tab__icon">{{ tab.icon }}</span>
-        <span class="skills-tab__content">
-          <span class="skills-tab__title">{{ tab.title }}</span>
-          <span class="skills-tab__desc">{{ tab.shortDesc }}</span>
-        </span>
-      </button>
-    </div>
+    <Tabs
+      v-model="activeTab"
+      :items="tabItems"
+    />
 
     <!-- Контент активного таба -->
     <div class="skills-list">
@@ -34,6 +23,7 @@
 </template>
 
 <script setup lang="ts">
+import './SkillList.scss'
 import {
   BASIC_SKILLS,
   PROFESSIONAL_SKILLS,
@@ -50,6 +40,14 @@ const tabs = [
   { id: 'creative', icon: '🎨', title: 'Творческие', shortDesc: 'Искусство и созидание' },
   { id: 'negative', icon: '⚠️', title: 'Слабости', shortDesc: 'Черты, мешающие развитию' },
 ] as const
+
+// Map tabs to Tabs.vue API
+const tabItems = computed(() => tabs.map(t => ({
+  id: t.id,
+  icon: t.icon,
+  label: t.title,
+  subtitle: t.shortDesc,
+})))
 
 const activeTab = ref<string>('basic')
 
@@ -71,5 +69,3 @@ function getSkillLevel(key: string): number {
   return skillsStore.getSkillLevel(key)
 }
 </script>
-
-<style scoped lang="scss" src="./SkillList.scss"></style>

@@ -47,7 +47,8 @@
         v-for="job in filteredJobs"
         :key="job.id"
         class="action-card"
-        :class="{ disabled: !job.unlocked }"
+        :class="{ 'action-card--disabled': !job.unlocked }"
+        padding="var(--space-card-padding)"
       >
         <div class="card-header">
           <span class="card-title">{{ job.name }}</span>
@@ -73,8 +74,7 @@
           <GameButton
             v-if="job.unlocked && !job.current"
             label="Устроиться"
-            color="var(--color-accent)"
-            text-color="#fff"
+            variant="primary"
             small
             @click="applyForJob(job)"
           />
@@ -87,6 +87,7 @@
 </template>
 
 <script setup lang="ts">
+import './work.scss'
 import type { ComputedRef } from 'vue'
 import { formatMoney } from '@/utils/format'
 import { WORK_TYPES, INDUSTRIES, JOB_INDUSTRY_MAP } from '@/config/work-categories'
@@ -112,7 +113,7 @@ const careerTrack = computed<CareerTrackJobItem[]>(() => {
 })
 
 const currentWorkType: ComputedRef<typeof WORK_TYPES[number]> = computed(() =>
-  WORK_TYPES.find(t => t.id === activeWorkType.value) ?? WORK_TYPES[0]!
+  WORK_TYPES.find(t => t.id === activeWorkType.value) ?? WORK_TYPES[0]!,
 )
 
 const filteredJobs = computed<CareerTrackJobItem[]>(() => {
@@ -122,7 +123,7 @@ const filteredJobs = computed<CareerTrackJobItem[]>(() => {
       const industryId: string = JOB_INDUSTRY_MAP[job.id] ?? 'all'
       const industryMatches: boolean = activeIndustry.value === 'all' || industryId === activeIndustry.value
       return scheduleMatches && industryMatches
-    }
+    },
   )
 })
 
@@ -136,186 +137,3 @@ function applyForJob(job: CareerTrackJobItem): void {
   }
 }
 </script>
-
-<style scoped lang="scss">
-@use '@/assets/scss/variables.scss' as *;
-@use '@/assets/scss/mixins.scss' as *;
-
-/* ───── Filter bar: chips + select ───── */
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  flex-wrap: wrap;
-}
-
-.filter-bar__chips {
-  display: flex;
-  gap: $space-1;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-1;
-  padding: $space-1 $space-3;
-  border: 1px solid var(--color-border);
-  border-radius: 100px;
-  background: var(--color-bg-card);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-size: $font-size-xs;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-
-  &:hover {
-    border-color: var(--color-accent);
-    color: var(--color-text-primary);
-  }
-
-  &--active {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-    color: var(--color-text-on-accent);
-    font-weight: $font-weight-medium;
-
-    &:hover {
-      background: var(--color-accent);
-      border-color: var(--color-accent);
-    }
-  }
-}
-
-.chip__icon {
-  font-size: $font-size-sm;
-  line-height: 1;
-}
-
-.chip__label {
-  line-height: 1;
-}
-
-/* ───── Custom select ───── */
-.filter-bar__select-wrap {
-  position: relative;
-  margin-left: auto;
-}
-
-.filter-bar__select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding: $space-1 $space-8 $space-1 $space-3;
-  border: 1px solid var(--color-border);
-  border-radius: 100px;
-  background: var(--color-bg-card);
-  color: var(--color-text-primary);
-  font-size: $font-size-xs;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  line-height: 1.4;
-
-  &:hover {
-    border-color: var(--color-accent);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px var(--color-accent-alpha);
-  }
-}
-
-.filter-bar__arrow {
-  position: absolute;
-  right: $space-3;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  transition: transform var(--transition-fast);
-}
-
-/* ───── Card grid (same as ActionCardList) ───── */
-.action-card-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $space-3;
-
-  @include respond-to('md') {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @include respond-to('lg') {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* ───── Card (same as ActionCard) ───── */
-.action-card {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  gap: $space-1;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-
-  &.disabled {
-    opacity: 0.5;
-  }
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-title {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-}
-
-.card-price {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--color-brand-accent);
-}
-
-.card-effect {
-  font-size: $font-size-xs;
-  color: var(--color-text-secondary);
-  margin: $space-1 0;
-  white-space: pre-line;
-  line-height: $line-height-base;
-}
-
-.card-meta {
-  display: flex;
-  gap: $space-2;
-  margin-top: 2px;
-}
-
-.meta-tag {
-  font-size: 10px;
-  background: var(--color-bg-elevated);
-  padding: 2px $space-2;
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-
-  &--current {
-    background: var(--color-success);
-    color: white;
-  }
-
-  &--req {
-    color: var(--color-warning);
-  }
-}
-
-.card-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 6px;
-}
-</style>

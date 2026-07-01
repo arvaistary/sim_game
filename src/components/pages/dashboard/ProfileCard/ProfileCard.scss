@@ -1,92 +1,133 @@
-.card {
-  position: relative;
-}
+@use '../../../../assets/scss/variables' as *;
+@use '../../../../assets/scss/mixins' as *;
 
 .profile-card {
   display: flex;
   flex-direction: column;
-  gap: $space-1;
+  gap: $space-4;
+  height: 100%;
 }
 
-.profile-name {
-  font-size: $font-size-3xl;
+// ===== Header =====
+.profile-card__header {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.profile-card__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $avatar-size-lg;
+  height: $avatar-size-lg;
+  border-radius: var(--radius-full);
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  font-size: $font-size-xl;
   font-weight: $font-weight-bold;
+  box-shadow: 0 0 0 3px var(--color-pastel-green);
+}
+
+.profile-card__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-card__name {
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  letter-spacing: $tracking-heading;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-card__job {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ===== KPI grid =====
+.profile-card__kpis {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-3;
+
+  @include respond-to('sm') {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.profile-card__kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: $space-2 $space-3;
+  background: var(--color-bg-surface-2);
+  border-radius: var(--radius-md);
+}
+
+.profile-card__kpi-label {
+  font-size: $font-size-xs;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.profile-card__kpi-value {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
   color: var(--color-text-primary);
   line-height: 1.2;
 }
 
-.profile-job {
+.profile-card__kpi-unit {
+  margin-left: 4px;
   font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  color: var(--color-text-secondary);
-  line-height: 1.3;
-}
-
-.profile-money {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
-  color: var(--color-text-primary);
-  margin-top: $space-1;
-}
-
-.profile-time {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  color: var(--color-text-secondary);
-  line-height: 1.4;
-}
-
-.profile-comfort {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
+  font-weight: $font-weight-regular;
   color: var(--color-text-secondary);
 }
 
-.profile-buttons {
+// ===== Footer =====
+.profile-card__footer {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: $space-3;
   margin-top: auto;
-  padding-top: $space-2;
+  padding-top: $space-3;
+  border-top: 1px solid var(--color-border-subtle);
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+.profile-card__time {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: $breakpoint-lg) {
-  .profile-card {
-    width: 100%;
+// Mobile collapse
+@include respond-to-max('sm') {
+  .profile-card__kpi-value {
+    font-size: $font-size-lg;
   }
 
-  .profile-name {
-    font-size: $font-size-2xl;
+  .profile-card__avatar {
+    width: $avatar-size-md;
+    height: $avatar-size-md;
+    font-size: $font-size-lg;
   }
 
-  .profile-money {
-    font-size: $font-size-xl;
-  }
-
-  .profile-job {
-    font-size: $font-size-xs;
-  }
-
-  .profile-time {
-    font-size: $font-size-xs;
-  }
-
-  .profile-comfort {
-    font-size: $font-size-xs;
-  }
-
-  .profile-buttons {
-    padding-top: $space-1;
+  .profile-card__name {
+    font-size: $font-size-lg;
   }
 }

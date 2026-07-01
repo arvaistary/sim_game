@@ -1,19 +1,26 @@
 <template>
-  <div class="game-layout">
-    <header v-if="showHeader" class="game-layout__header">
-      <h1 class="page-title">{{ title }}</h1>
-      <div class="header-spacer" />
-    </header>
-    <main class="game-layout__content">
-      <slot />
-    </main>
-    <GameNav v-if="showNav" />
-  </div>
+  <DashboardLayout>
+    <!-- Desktop sidebar -->
+    <template v-if="showNav" #sidebar>
+      <GameNav mode="sidebar" />
+    </template>
+
+    <!-- Topbar with page title -->
+    <template v-if="showHeader" #topbar>
+      <Topbar :title="title" />
+    </template>
+
+    <!-- Page content -->
+    <slot />
+
+    <!-- Mobile bottom nav -->
+    <template v-if="showNav" #bottomnav>
+      <GameNav mode="bottom" />
+    </template>
+  </DashboardLayout>
 </template>
 
 <script setup lang="ts">
-import './GameLayout.scss'
-
 withDefaults(defineProps<{
   title?: string
   showHeader?: boolean

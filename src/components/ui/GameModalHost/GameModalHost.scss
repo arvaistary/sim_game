@@ -1,0 +1,26 @@
+@use '../../../assets/scss/variables' as *;
+
+.game-modal-host {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.game-modal-host__message {
+  margin: 0;
+  font-size: $font-size-sm;
+  line-height: $line-height-base;
+  color: var(--color-text-primary);
+}
+
+.game-modal-host__meta {
+  margin: 0;
+  font-size: $font-size-xs;
+  line-height: 1.4;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-modal-host__line {
+  padding: $space-1 0;
+}

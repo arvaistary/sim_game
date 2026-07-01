@@ -90,12 +90,12 @@
 }
 
 .course-tile--active-course {
-  border-color: rgba(16, 185, 129, 0.42);
+  border-color: rgba(0, 200, 150, 0.48);
   background:
     linear-gradient(180deg, rgba(220, 252, 231, 0.5) 0%, rgba(255, 255, 255, 0) 42%),
     var(--color-bg-card);
   box-shadow:
-    0 0 0 1px rgba(16, 185, 129, 0.12),
+    0 0 0 1px rgba(0, 200, 150, 0.16),
     var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.08));
 }
 
@@ -121,9 +121,9 @@
 }
 
 .course-tile__badge--course {
-  background: rgba(16, 185, 129, 0.14);
-  color: #047857;
-  border: 1px solid rgba(16, 185, 129, 0.22);
+  background: rgba(0, 200, 150, 0.20);
+  color: var(--color-action-primary);
+  border: 1px solid rgba(0, 200, 150, 0.30);
 }
 
 .course-tile__badge--done {

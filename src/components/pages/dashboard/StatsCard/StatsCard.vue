@@ -1,7 +1,12 @@
 <template>
-  <RoundedPanel class="card scales-card" padding="16px">
-    <h3 class="card-title">Состояние персонажа</h3>
-    <div class="stat-bars">
+  <RoundedPanel
+    class="stats-card"
+    padding="var(--space-card-padding)"
+  >
+    <div class="widget__header">
+      <h3 class="widget__title">Состояние персонажа</h3>
+    </div>
+    <div class="stats-card__grid">
       <StatBar
         v-for="stat in statDefs"
         :key="stat.key"
@@ -14,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import './StatsCard.scss'
 import { STAT_DEFS } from '@/domain/balance/constants/stat-defs'
 
 const statsStore = useStatsStore()
@@ -29,12 +35,10 @@ const statValues = computed<Record<string, number>>(() => ({
   physical: statsStore.physical,
 }))
 
-const INVERTED_STATS = new Set(['hunger', 'stress'])
+const INVERTED_STATS: Set<string> = new Set(['hunger', 'stress'])
 
 function getStatValue(key: string): number {
   const raw = statValues.value[key] ?? 50
   return INVERTED_STATS.has(key) ? 100 - raw : raw
 }
 </script>
-
-<style scoped lang="scss" src="./StatsCard.scss"></style>

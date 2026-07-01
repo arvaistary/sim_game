@@ -30,6 +30,7 @@
 </template>
 
 <script setup lang="ts">
+import './SkillsModal.scss'
 import { ALL_SKILLS } from '@/domain/balance/constants/skills-constants'
 import { buildSkillTooltipText } from '@/domain/balance/utils/skill-tooltip-content'
 import type { SkillDef } from '@/domain/balance/types'
@@ -59,50 +60,3 @@ function handleClose() {
   emit('close')
 }
 </script>
-
-<style scoped lang="scss">
-.skills-modal__scroll {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.skills-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.skills-list__item {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--color-border);
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.skills-list__row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.skills-list__name {
-  font-size: 14px;
-  color: var(--color-text-primary);
-}
-
-.skills-list__level {
-  font-size: 13px;
-  color: var(--color-accent);
-  font-weight: 600;
-}
-
-.skills-list__empty {
-  text-align: center;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  margin: 20px 0;
-}
-</style>

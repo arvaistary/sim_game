@@ -31,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import './GameModalHost.scss'
 import type { ComputedRef } from 'vue'
 import { STAT_LABELS_RU, METRIC_LABELS } from '@/constants/metric-labels'
 import type { GameModalButton } from '@/composables/useGameModal'
@@ -138,29 +139,3 @@ const processedLines: ComputedRef<ProcessedLine[]> = computed((): ProcessedLine[
   return result.length > 0 ? result : (state.value.lines ?? []).map((line: string): ProcessedLine => ({ text: line, explanation: undefined }))
 })
 </script>
-
-<style scoped lang="scss">
-.game-modal-host {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.game-modal-host__message {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--color-text, #e0e0e0);
-}
-
-.game-modal-host__meta {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--color-text-muted, #888);
-}
-
-.game-modal-host__line {
-  padding: 4px 0;
-}
-</style>

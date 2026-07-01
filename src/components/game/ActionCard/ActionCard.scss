@@ -1,3 +1,5 @@
+@use '../../../assets/scss/variables' as *;
+
 .action-card {
   display: flex;
   width: 100%;
@@ -5,7 +7,7 @@
   gap: $space-1;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 
-  &.disabled {
+  &.action-card--disabled {
     opacity: 0.5;
   }
 }
@@ -24,7 +26,8 @@
 .card-price {
   font-size: $font-size-sm;
   font-weight: $font-weight-bold;
-  color: var(--color-brand-accent);
+  color: var(--color-action-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .card-effect {
@@ -50,14 +53,14 @@
 
 .meta-tag {
   font-size: 10px;
-  background: var(--color-bg-elevated);
+  background: var(--color-bg-surface-2);
   padding: 2px $space-2;
-  border-radius: var(--radius-sm);
+  border-radius: $radius-xs;
   color: var(--color-text-secondary);
 }
 
 .card-footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 6px;
+  margin-top: $space-1;
 }

@@ -1,0 +1,182 @@
+@use '../../../assets/scss/variables' as *;
+@use '../../../assets/scss/mixins' as *;
+
+/* ───── Filter bar: chips + select ───── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.filter-bar__chips {
+  display: flex;
+  gap: $space-1;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $space-1 $space-3;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-card);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--color-action-primary);
+    color: var(--color-text-primary);
+  }
+
+  &.chip--active {
+    background: var(--color-action-primary);
+    border-color: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-weight: $font-weight-medium;
+
+    &:hover {
+      background: var(--color-action-primary-hover);
+      border-color: var(--color-action-primary-hover);
+    }
+  }
+}
+
+.chip__icon {
+  font-size: $font-size-sm;
+  line-height: 1;
+}
+
+.chip__label {
+  line-height: 1;
+}
+
+/* ───── Custom select ───── */
+.filter-bar__select-wrap {
+  position: relative;
+  margin-left: auto;
+}
+
+.filter-bar__select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: $space-1 $space-8 $space-1 $space-3;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  font-size: $font-size-xs;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  line-height: 1.4;
+
+  &:hover {
+    border-color: var(--color-action-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-action-primary);
+    box-shadow: 0 0 0 2px var(--color-pastel-green);
+  }
+}
+
+.filter-bar__arrow {
+  position: absolute;
+  right: $space-3;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+/* ───── Card grid ───── */
+.action-card-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-3;
+
+  @include respond-to('md') {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to('lg') {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ───── Card ───── */
+.action-card {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: $space-1;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+
+  &.action-card--disabled {
+    opacity: 0.5;
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.card-price {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: var(--color-action-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-effect {
+  font-size: $font-size-xs;
+  color: var(--color-text-secondary);
+  margin: $space-1 0;
+  white-space: pre-line;
+  line-height: $line-height-base;
+}
+
+.card-meta {
+  display: flex;
+  gap: $space-2;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.meta-tag {
+  font-size: 10px;
+  background: var(--color-bg-surface-2);
+  padding: 2px $space-2;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+
+  &.meta-tag--current {
+    background: var(--color-status-success);
+    color: var(--color-text-on-primary);
+  }
+
+  &.meta-tag--req {
+    color: var(--color-status-warning);
+  }
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: $space-1;
+}

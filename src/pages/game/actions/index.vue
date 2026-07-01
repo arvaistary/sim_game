@@ -1,8 +1,8 @@
 <template>
   <GameLayout title="Действия">
-    <ActionTabs
-      v-model:active-category="activeCategory"
-      :categories="ACTION_CATEGORIES"
+    <Tabs
+      v-model="activeCategory"
+      :items="ACTION_CATEGORIES"
     />
     <ActionCardList
       :actions="sortedActions"
