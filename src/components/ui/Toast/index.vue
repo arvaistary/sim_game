@@ -10,7 +10,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { TOAST_ICON_MAP } from './index.constants'
 import './style.scss'
 
@@ -31,7 +30,7 @@ const emit = defineEmits<{
 
 const iconMap = TOAST_ICON_MAP
 
-watch(() => props.visible, (val) => {
+watch(() => props.visible, (val: boolean) => {
   if (val) {
     setTimeout(() => {
       emit('update:visible', false)

@@ -933,10 +933,20 @@ export const SKILLS_BY_CATEGORY: Record<SkillCategory, SkillDef[]> = {
 
 export const SKILL_KEYS: string[] = ALL_SKILLS.map(s => s.key)
 
+/**
+ * Находит определение навыка по ключу.
+ * @description [Domain] - ищет навык в общем каталоге ALL_SKILLS по уникальному ключу.
+ * @return { SkillDef | undefined } определение навыка или undefined если не найден
+ */
 export function getSkillByKey(key: string): SkillDef | undefined {
   return ALL_SKILLS.find(s => s.key === key)
 }
 
+/**
+ * Возвращает все навыки указанной категории.
+ * @description [Domain] - получает массив определений навыков для заданной категории.
+ * @return { SkillDef[] } массив навыков категории
+ */
 export function getSkillsByCategory(category: SkillCategory): SkillDef[] {
   return SKILLS_BY_CATEGORY[category] || []
 }

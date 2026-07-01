@@ -13,6 +13,7 @@
     "build": "nuxt build",
     "audit:action-age-groups": "node scripts/audit-action-age-groups.mjs",
     "rules:audit": "node scripts/rules-audit.mjs",
+    "rules:audit:changed": "node scripts/rules-audit-changed.mjs",
     "rules:fix": "node scripts/fix-code.mjs",
     "typecheck": "nuxt typecheck",
     "typecheck:watch": "nuxt typecheck --watch",
@@ -62,7 +63,6 @@
     "typescript": "6.0.2",
     "vite": "6.3.5",
     "vitest": "4.1.4",
-    "vue-eslint-parser": "10.4.0",
-    "zod": "^4.3.6"
+    "vue-eslint-parser": "10.4.0"
   }
 }

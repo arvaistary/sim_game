@@ -1,6 +1,27 @@
 
 
-export type EducationLevel = 'none' | 'school' | 'college' | 'bachelor' | 'master' | 'phd'
+import type {
+  EducationLevel,
+  CompletedProgram,
+  ActiveEducation,
+  NeedsState,
+  CognitiveLoadStatus,
+  CanAddStudyHoursResult,
+} from './education-store.types'
+
+export type {
+  EducationLevel,
+  CompletedProgram,
+  CompletedProgramRecord,
+  MilestoneReward,
+  ActiveCourseStep,
+  ActiveCourse,
+  ActiveEducation,
+  NeedsState,
+  CognitiveLoadStatus,
+  CanAddStudyHoursResult,
+  CognitiveLoadComponent,
+} from './education-store.types'
 
 export const EDUCATION_RANK: Record<EducationLevel, number> = {
   none: 0,
@@ -20,46 +41,27 @@ export const RANK_LABELS: Record<EducationLevel, string> = {
   phd: 'Аспирантура',
 }
 
-export interface CompletedProgram {
-  id: string
-  name: string
-  typeLabel?: string
-  completedAtGameDay?: number
-}
-
-export interface CompletedProgramRecord {
-  id: string
-  name: string
-  typeLabel?: string
-  completedAt: number
-}
-
-export interface ActiveCourse {
-  id: string
-  name: string
-  progress: number
-  hoursTotal: number
-  hoursRemaining: number
-}
-
-export interface ActiveEducation {
-  id: string
-  name: string
-  progress: number
-  hoursTotal: number
-  hoursRemaining: number
-}
-
-export const EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN = 15
-export const ENERGY_EXHAUSTION_THRESHOLD_STUDY = 20
-export const EDUCATION_LONG_PROGRAM_STEP_HOURS = 4
-export const COGNITIVE_LOAD_CONSTANTS = {
+export const EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN: number = 15
+export const ENERGY_EXHAUSTION_THRESHOLD_STUDY: number = 20
+export const EDUCATION_LONG_PROGRAM_STEP_HOURS: number = 4
+export const COGNITIVE_LOAD_CONSTANTS: Readonly<{
+  LOW: number
+  MEDIUM: number
+  HIGH: number
+  MAX_STUDY_HOURS_CYCLE: number
+}> = {
   LOW: 30,
   MEDIUM: 60,
   HIGH: 80,
+  MAX_STUDY_HOURS_CYCLE: 8,
 } as const
 
-export function getNeedsStateFromComponents(stats: Record<string, number>) {
+/**
+ * Извлекает состояние needs из компонент статов.
+ * @description [Store] - формирует объект needs (energy, hunger, stress) из записи статов со значениями по умолчанию.
+ * @return { NeedsState } состояние needs
+ */
+export function getNeedsStateFromComponents(stats: Record<string, number>): NeedsState {
   return {
     energy: stats.energy ?? 100,
     hunger: stats.hunger ?? 0,
@@ -67,68 +69,80 @@ export function getNeedsStateFromComponents(stats: Record<string, number>) {
   }
 }
 
-export function getCognitiveLoadStatus(cognitive: number) {
-  if (cognitive < COGNITIVE_LOAD_CONSTANTS.LOW) return 'low'
-  if (cognitive < COGNITIVE_LOAD_CONSTANTS.MEDIUM) return 'medium'
-  return 'high'
+/**
+ * Определяет статус когнитивной нагрузки.
+ * @description [Store] - возвращает метку, описание и тональность для уровня когнитивной нагрузки.
+ * @return { CognitiveLoadStatus } статус когнитивной нагрузки
+ */
+export function getCognitiveLoadStatus(cognitive: number): CognitiveLoadStatus {
+  if (cognitive < COGNITIVE_LOAD_CONSTANTS.LOW) return { label: 'Низкая', description: 'Мозг свеж, можно учиться', tone: 'low' }
+
+  if (cognitive < COGNITIVE_LOAD_CONSTANTS.MEDIUM) return { label: 'Средняя', description: 'Умеренная нагрузка', tone: 'medium' }
+
+  return { label: 'Высокая', description: 'Когнитивная перегрузка, учиться нельзя', tone: 'high' }
 }
 
-export interface CanAddStudyHoursResult {
-  canDo: boolean
-  reason?: string
-}
-
+/**
+ * Проверяет возможность добавить учебные часы.
+ * @description [Store] - проверяет когнитивную нагрузку и энергию, возвращает результат с причиной отказа.
+ * @return { CanAddStudyHoursResult } результат проверки с причиной отказа
+ */
 export function canAddStudyHours(cognitive: number, energy: number): CanAddStudyHoursResult {
   if (cognitive >= COGNITIVE_LOAD_CONSTANTS.HIGH) {
     return { canDo: false, reason: 'Когнитивная нагрузка слишком высока' }
   }
+
   if (energy <= ENERGY_EXHAUSTION_THRESHOLD_STUDY) {
     return { canDo: false, reason: 'Энергия слишком низка для учёбы' }
   }
+
   return { canDo: true }
 }
 
-export function resolveStudySessionHours(cognitive: number, energy: number, maxHours = 8): number {
+/**
+ * Рассчитывает допустимое количество учебных часов за сессию.
+ * @description [Store] - определяет максимальное количество часов учёбы на основе когнитивной нагрузки и энергии.
+ * @return { number } допустимое количество часов (0–maxHours)
+ */
+export function resolveStudySessionHours(cognitive: number, energy: number, maxHours: number = 8): number {
   if (cognitive >= COGNITIVE_LOAD_CONSTANTS.HIGH || energy <= ENERGY_EXHAUSTION_THRESHOLD_STUDY) {
     return 0
   }
+
   if (cognitive < COGNITIVE_LOAD_CONSTANTS.LOW && energy > 80) {
     return maxHours
   }
+
   return Math.floor(maxHours / 2)
 }
 
-export interface CognitiveLoadComponent {
-  cognitiveLoad: number
-  studyHoursSinceLastSleep: number
-}
-
 export const useEducationStore = defineStore('education', () => {
-  const school = ref('')
-  const institute = ref('')
-  const educationLevel = ref<EducationLevel>('none')
-  const activeEducation = ref<ActiveEducation | null>(null)
-  const completedPrograms = ref<CompletedProgram[]>([])
-  const cognitiveLoad = ref(0)
-  const studyHoursSinceLastSleep = ref(0)
+  const school: Ref<string> = ref('')
+  const institute: Ref<string> = ref('')
+  const educationLevel: Ref<EducationLevel> = ref<EducationLevel>('none')
+  const activeEducation: Ref<ActiveEducation | null> = ref<ActiveEducation | null>(null)
+  const completedPrograms: Ref<CompletedProgram[]> = ref<CompletedProgram[]>([])
+  const cognitiveLoad: Ref<number> = ref<number>(0)
+  const studyHoursSinceLastSleep: Ref<number> = ref<number>(0)
 
-  const educationRank = computed(() => EDUCATION_RANK[educationLevel.value])
-  const educationLabel = computed(() => RANK_LABELS[educationLevel.value])
+  const educationRank: ComputedRef<number> = computed(() => EDUCATION_RANK[educationLevel.value])
+  const educationLabel: ComputedRef<string> = computed(() => RANK_LABELS[educationLevel.value])
 
-  const isStudying = computed(() => activeEducation.value !== null)
-  const hasEducation = computed(() => educationLevel.value !== 'none')
-  const completedCount = computed(() => completedPrograms.value.length)
+  const isStudying: ComputedRef<boolean> = computed(() => activeEducation.value !== null)
+  const hasEducation: ComputedRef<boolean> = computed(() => educationLevel.value !== 'none')
+  const completedCount: ComputedRef<number> = computed(() => completedPrograms.value.length)
 
   const canStartProgram = (programLevel: EducationLevel): boolean => {
     return educationRank.value < EDUCATION_RANK[programLevel] && !activeEducation.value
   }
 
-  const canStartProgramById = (programId: string): boolean => {
+  const canStartProgramById = (_programId: string): boolean => {
     return !activeEducation.value
   }
 
   function setSchool(name: string): void {
     school.value = name
+
     if (educationLevel.value === 'none') {
       educationLevel.value = 'school'
     }
@@ -136,6 +150,7 @@ export const useEducationStore = defineStore('education', () => {
 
   function setInstitute(name: string): void {
     institute.value = name
+
     if (educationLevel.value === 'none') {
       educationLevel.value = 'bachelor'
     }
@@ -151,6 +166,7 @@ export const useEducationStore = defineStore('education', () => {
 
   function updateProgress(hoursSpent: number): void {
     if (!activeEducation.value) return
+
     activeEducation.value.progress = Math.min(100, activeEducation.value.progress + hoursSpent)
     activeEducation.value.hoursRemaining = Math.max(0, activeEducation.value.hoursRemaining - hoursSpent)
   }
@@ -170,11 +186,16 @@ export const useEducationStore = defineStore('education', () => {
   }
 
   function getProgramBonus(): number {
-    const rank = educationRank.value
+    const rank: number = educationRank.value
+
     if (rank >= 4) return 12
+
     if (rank >= 3) return 10
+
     if (rank >= 2) return 6
+
     if (rank >= 1) return 3
+
     return 0
   }
 
@@ -202,6 +223,7 @@ export const useEducationStore = defineStore('education', () => {
       completeProgram(completed)
       return completed.name
     }
+
     return null
   }
 
@@ -229,11 +251,17 @@ export const useEducationStore = defineStore('education', () => {
 
   function load(data: Record<string, unknown>): void {
     if (data.school) school.value = data.school as string
+
     if (data.institute) institute.value = data.institute as string
+
     if (data.educationLevel) educationLevel.value = data.educationLevel as EducationLevel
+
     if (data.activeEducation) activeEducation.value = data.activeEducation as ActiveEducation | null
+
     if (data.completedPrograms) completedPrograms.value = data.completedPrograms as CompletedProgram[]
+
     if (data.cognitiveLoad) cognitiveLoad.value = data.cognitiveLoad as number
+
     if (data.studyHoursSinceLastSleep) studyHoursSinceLastSleep.value = data.studyHoursSinceLastSleep as number
   }
 

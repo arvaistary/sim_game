@@ -20,13 +20,11 @@
 </template>
 
 <script setup lang="ts">
-
+import type { ComputedRef } from 'vue'
 import { STAT_LABELS_RU, METRIC_LABELS } from '@/constants/metric-labels'
+import type { StatChangeDisplay, StatChangeProps } from './StatChange.types'
 
-const props = defineProps<{
-  text: string
-  explanation?: string
-}>()
+const props = defineProps<StatChangeProps>()
 
 // Объединяем все русские названия
 const RU_LABELS: Record<string, string> = {
@@ -108,24 +106,12 @@ const ICON_MAP: Record<string, string> = {
   'hour': '⏱️',
 }
 
-interface StatChange {
-  icon: string
-  name: string
-  value: number
-  isPositive: boolean
-}
+const change = computed<StatChangeDisplay>(() => {
+  const text: string = props.text.trim()
 
-/**
- * Извлекает изменение характеристики из строки
- */
-const change = computed<StatChange>(() => {
-  const text = props.text.trim()
-  
-  // Паттерн: "name value" где value может быть +123 или -123 или +123.45
-  const match = text.match(/^([a-zA-Zа-яА-ЯёЁ\s]+?)\s*([+-]\d+(?:\.\d+)?)$/i)
-  
+  const match: RegExpMatchArray | null = text.match(/^([a-zA-Zа-яА-ЯёЁ\s]+?)\s*([+-]\d+(?:\.\d+)?)$/i)
+
   if (!match) {
-    // Если не удалось распознать, возвращаем как обычный текст
     return {
       icon: '📊',
       name: text,
@@ -133,16 +119,14 @@ const change = computed<StatChange>(() => {
       isPositive: true,
     }
   }
-  
-  const [, nameRaw, valueRaw] = match
-  const nameKey = nameRaw.trim().toLowerCase()
-  const value = parseFloat(valueRaw)
-  
-  // Получаем русское название
-  let displayName = RU_LABELS[nameKey] ?? nameKey.charAt(0).toUpperCase() + nameKey.slice(1)
-  
-  // Определяем иконку
-  let icon = '📊'
+
+  const [, nameRaw, valueRaw]: RegExpMatchArray = match
+  const nameKey: string = (nameRaw ?? '').trim().toLowerCase()
+  const value: number = parseFloat(valueRaw ?? '0')
+
+  const displayName: string = RU_LABELS[nameKey] ?? nameKey.charAt(0).toUpperCase() + nameKey.slice(1)
+
+  let icon: string = '📊'
   for (const [key, iconValue] of Object.entries(ICON_MAP)) {
     if (nameKey.includes(key) || key.includes(nameKey)) {
       icon = iconValue
@@ -158,7 +142,7 @@ const change = computed<StatChange>(() => {
   }
 })
 
-const explanationText = computed(() => {
+const explanationText: ComputedRef<string> = computed(() => {
   return props.explanation ?? ''
 })
 </script>

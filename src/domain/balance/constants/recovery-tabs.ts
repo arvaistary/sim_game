@@ -1,14 +1,4 @@
-import type { RecoveryTab, RecoveryCard } from '@/domain/balance/types'
-
-interface ExtendedRecoveryCard extends RecoveryCard {
-  reserveDelta?: number
-  investmentReturn?: number
-  investmentDurationDays?: number
-}
-
-interface ExtendedRecoveryTab extends Omit<RecoveryTab, 'cards'> {
-  cards: ExtendedRecoveryCard[]
-}
+import type { ExtendedRecoveryTab } from './recovery-tabs.types'
 
 export const RECOVERY_TABS: ExtendedRecoveryTab[] = [
   {

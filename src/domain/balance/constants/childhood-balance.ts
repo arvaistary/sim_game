@@ -1,4 +1,6 @@
 import { AgeGroup } from '@/domain/balance/actions/types'
+import type { AgeRange } from '@/domain/balance/types'
+import type { SkillGainEntry } from './childhood-balance.types'
 
 // ─── Таблица получения навыка за действие по возрасту ───────────────
 
@@ -6,7 +8,7 @@ import { AgeGroup } from '@/domain/balance/actions/types'
  * Сколько навыка даёт действие в зависимости от возрастной группы.
  * Чем старше — тем больше прибавка за успех, но и больше штраф за провал.
  */
-export const SKILL_GAIN_BY_AGE: Record<number, { smallSuccess: number; bigSuccess: number; bigFail: number }> = {
+export const SKILL_GAIN_BY_AGE: Record<number, SkillGainEntry> = {
   [AgeGroup.INFANT]:  { smallSuccess: 1,  bigSuccess: 3,  bigFail: 0 },
   [AgeGroup.TODDLER]: { smallSuccess: 1,  bigSuccess: 3,  bigFail: 0 },
   [AgeGroup.CHILD]:   { smallSuccess: 2,  bigSuccess: 7,  bigFail: 4 },
@@ -78,20 +80,27 @@ export const DELAYED_EFFECT_PARAMS = {
 
 /**
  * Получить множитель получения навыка для текущей возрастной группы.
+ * @description [Domain] - возвращает таблицу прибавок навыка (smallSuccess, bigSuccess, bigFail) для возрастной группы.
+ * @return { SkillGainEntry } множители получения навыка
  */
 export function getSkillGainForAge(ageGroup: AgeGroup): { smallSuccess: number; bigSuccess: number; bigFail: number } {
-  return SKILL_GAIN_BY_AGE[ageGroup] ?? SKILL_GAIN_BY_AGE[AgeGroup.ADULT]
+  return SKILL_GAIN_BY_AGE[ageGroup] ?? SKILL_GAIN_BY_AGE[AgeGroup.ADULT]!
 }
 
 /**
  * Получить диапазон возрастов для возрастной группы.
+ * @description [Domain] - возвращает минимальный и максимальный возраст для указанной группы.
+ * @return { AgeRange } диапазон возрастов
  */
-export function getAgeRangeForGroup(ageGroup: AgeGroup): { min: number; max: number } {
-  return AGE_GROUP_RANGES[ageGroup] ?? { min: 0, max: 100 }
+export function getAgeRangeForGroup(ageGroup: AgeGroup): AgeRange {
+    const range: AgeRange = AGE_GROUP_RANGES[ageGroup] ?? { min: 0, max: 100 }
+    return range
 }
 
 /**
  * Определить возрастную группу по точному возрасту.
+ * @description [Domain] - сопоставляет точный возраст с одной из возрастных групп.
+ * @return { AgeGroup } возрастная группа
  */
 export function getAgeGroupByAge(age: number): AgeGroup {
   for (const [group, range] of Object.entries(AGE_GROUP_RANGES)) {

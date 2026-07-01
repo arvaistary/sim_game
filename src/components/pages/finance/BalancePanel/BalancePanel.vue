@@ -3,7 +3,7 @@
     <div class="balance-row">
       <div class="balance-item">
         <span class="balance-label">Наличные</span>
-        <span class="balance-value">{{ formatMoney(walletStore.money ?? store.money) }} ₽</span>
+        <span class="balance-value">{{ formatMoney(walletStore.money) }} ₽</span>
       </div>
       <div class="balance-item">
         <span class="balance-label">Резерв</span>
@@ -18,12 +18,13 @@
 </template>
 
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
 import { formatMoney } from '@/utils/format'
 
 const walletStore = useWalletStore()
 
-const reserveFund = computed(() => walletStore.reserveFund)
-const totalSpent = computed(() => walletStore.totalSpent)
+const reserveFund: ComputedRef<number> = computed(() => walletStore.reserveFund)
+const totalSpent: ComputedRef<number> = computed(() => walletStore.totalSpent)
 </script>
 
 <style scoped lang="scss" src="./BalancePanel.scss"></style>

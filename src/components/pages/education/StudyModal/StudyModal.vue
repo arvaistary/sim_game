@@ -22,7 +22,7 @@
               'dot--completed': i - 1 < currentStep,
               'dot--current': i - 1 === currentStep
             }"
-          ></span>
+          />
         </div>
       </div>
 
@@ -77,39 +77,30 @@
 </template>
 
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
+import type { StudyModalProps, StudyModalEmits } from './StudyModal.types'
 
-interface Props {
-  isOpen: boolean
-  courseName: string
-  courseDescription: string
-  currentStep: number
-  totalSteps: number
-  hoursRemaining: number
-  canContinue: boolean
-  canFinish: boolean
-  resourceWarning?: string | null
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<StudyModalProps>(), {
   resourceWarning: null
 })
 
-const emit = defineEmits<{
-  (e: 'read'): void
-  (e: 'finish'): void
-  (e: 'close'): void
-}>()
+const emit = defineEmits<StudyModalEmits>()
 
 const isFlipping = ref(false)
 const isFlipped = ref(false)
 
-const bookLabel = computed(() => {
+const bookLabel: ComputedRef<string> = computed(() => {
+
   if (props.currentStep === 0) return 'Начать чтение'
+
   if (props.currentStep >= props.totalSteps - 1) return 'Последняя страница'
+
+  return `Страница ${props.currentStep + 1}`
+
   return `Страница ${props.currentStep + 1}`
 })
 
-const currentPageContent = computed(() => {
+const currentPageContent: ComputedRef<string> = computed(() => {
   const contents = [
     'Вы начинаете погружаться в материал. Первые страницы открывают основные концепции...',
     'Автор объясняет ключевые принципы управления временем. Интересные примеры из практики...',
@@ -118,26 +109,23 @@ const currentPageContent = computed(() => {
     'Финальные рекомендации и план действий. Время подвести итоги...',
     'Книга завершена! Вы получили ценные знания и навыки.',
   ]
-  return contents[Math.min(props.currentStep, contents.length - 1)]
+  return contents[Math.min(props.currentStep, contents.length - 1)] ?? contents[0]!
 })
 
-const readButtonText = computed(() => {
+const readButtonText: ComputedRef<string> = computed(() => {
   if (!props.canContinue) {
-    const warning = (props.resourceWarning ?? '').toLowerCase()
+    const warning: string = (props.resourceWarning ?? '').toLowerCase()
+
     if (warning.includes('голод')) return 'Сначала поешьте'
+
     if (warning.includes('энерг')) return 'Нужно отдохнуть'
+
     if (warning.includes('поспите') || warning.includes('учёбы до сна')) return 'Сначала поспите'
+
     return 'Пока нельзя читать'
   }
-  return props.currentStep === 0 ? 'Начать читать' : 'Читать дальше'
-})
 
-const finishButtonText = computed(() => {
-  if (!props.canFinish) {
-    if (props.currentStep === 0) return 'Начните читать'
-    return 'Доступно позже'
-  }
-  return 'Закрыть'
+  return props.currentStep === 0 ? 'Начать читать' : 'Читать дальше'
 })
 
 function handleReadClick() {
@@ -154,17 +142,12 @@ function handleReadClick() {
   emit('read')
 }
 
-function handleFinish() {
-  if (!props.canFinish) return
-  emit('finish')
-}
-
 function handleClose() {
   emit('close')
 }
 
 // Reset flip state when modal opens
-watch(() => props.isOpen, (newVal) => {
+watch(() => props.isOpen, (newVal: boolean) => {
   if (newVal) {
     isFlipped.value = false
     isFlipping.value = false

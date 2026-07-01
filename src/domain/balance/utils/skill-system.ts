@@ -3,44 +3,42 @@
  * Все механики добавлены как множители поверх существующей системы, обратная совместимость сохранена
  */
 
-export interface SkillState {
-  xp: number
-  level: number
-  lastUsedAt: number
-  peakXp: number
-  consecutiveUses: number
-  lastActionAt: number
-}
+import type { SkillState, BurnoutResult, SkillStateWithStress, PlayerActivityState, LearningMethod } from './skill-system.types'
 
-export interface PlayerActivityState {
-  weeklyLearningHours: number
-  weekStartTimestamp: number
-  burnoutRecoveryStart: number
-}
+export type { SkillState, BurnoutResult, SkillStateWithStress, PlayerActivityState, LearningMethod }
 
-export type LearningMethod = 'work' | 'practice' | 'courses' | 'books' | 'videos'
-
-export const SKILL_XP_TABLE = Object.freeze([...Array(11)].map((_, n) => Math.floor(100 * Math.pow(1.3, n))))
-export const MAX_XP = 10000
-export const MAX_LEVEL = 10
+export const SKILL_XP_TABLE: readonly number[] = Object.freeze([...Array(11)].map((_: undefined, n: number) => Math.floor(100 * Math.pow(1.3, n))))
+export const MAX_XP: number = 10000
+export const MAX_LEVEL: number = 10
 
 /**
- * Возрастной множитель скорости обучения
- * @param age полных лет персонажа
+ * Возрастной множитель скорости обучения.
+ * @description [Domain] - возвращает множитель XP в зависимости от возраста персонажа.
+ * @return { number } множитель скорости обучения (0.3–2.5)
  */
 export function getAgeLearningMultiplier(age: number): number {
+
   if (age <= 7) return 2.5
+
   if (age <= 12) return 2.0
+
   if (age <= 18) return 1.7
+
   if (age <= 25) return 1.4
+
   if (age <= 35) return 1.1
+
   if (age <= 45) return 0.8
+
   if (age <= 60) return 0.5
+
   return 0.3
 }
 
 /**
- * Множитель эффективности способа обучения
+ * Множитель эффективности способа обучения.
+ * @description [Domain] - возвращает множитель XP в зависимости от метода обучения (work, practice и т.д.).
+ * @return { number } множитель эффективности (0.4–2.2)
  */
 export function getLearningMethodMultiplier(method: LearningMethod): number {
   const multipliers: Record<LearningMethod, number> = {
@@ -54,13 +52,15 @@ export function getLearningMethodMultiplier(method: LearningMethod): number {
 }
 
 /**
- * Рассчитывает текущий уровень по общему XP
+ * Рассчитывает текущий уровень по общему XP.
+ * @description [Domain] - определяет уровень навыка (0–10) на основе накопленного XP по таблице.
+ * @return { number } уровень навыка от 0 до MAX_LEVEL
  */
 export function calculateLevelFromXp(xp: number): number {
-  const boundedXp = Math.max(0, Math.min(xp, MAX_XP))
+  const boundedXp: number = Math.max(0, Math.min(xp, MAX_XP))
 
   for (let level = MAX_LEVEL; level >= 0; level--) {
-    if (boundedXp >= SKILL_XP_TABLE[level]) {
+    if (boundedXp >= SKILL_XP_TABLE[level]!) {
       return level
     }
   }
@@ -69,30 +69,38 @@ export function calculateLevelFromXp(xp: number): number {
 }
 
 /**
- * Рассчитывает XP необходимый для достижения указанного уровня
+ * Рассчитывает XP необходимый для достижения указанного уровня.
+ * @description [Domain] - возвращает пороговое значение XP для заданного уровня по таблице.
+ * @return { number } количество XP для уровня
  */
 export function getXpForLevel(level: number): number {
-  return SKILL_XP_TABLE[Math.max(0, Math.min(Math.floor(level), MAX_LEVEL))]
+  return SKILL_XP_TABLE[Math.max(0, Math.min(Math.floor(level), MAX_LEVEL))]!
 }
 
 /**
- * Рассчитывает множитель Зоны комфорта
+ * Рассчитывает множитель Зоны комфорта.
+ * @description [Domain] - уменьшает XP при повторении одного и того же действия более 5 раз подряд.
+ * @return { number } множитель от 0.2 до 1.0
  */
 export function getComfortZoneMultiplier(consecutiveUses: number): number {
   if (consecutiveUses <= 5) return 1.0
-  const penalty = (consecutiveUses - 5) * 0.15
+  const penalty: number = (consecutiveUses - 5) * 0.15
   return Math.max(0.2, 1 - penalty)
 }
 
 /**
- * Рассчитывает множитель Перегорания
+ * Рассчитывает множитель Перегорания.
+ * @description [Domain] - снижает эффективность обучения и добавляет стресс при перегрузке (>30ч/неделю).
+ * @return { BurnoutResult } множитель обучения и бонус стресса
  */
-export function getBurnoutMultiplier(weeklyHours: number): { multiplier: number; stressBonus: number } {
+export function getBurnoutMultiplier(weeklyHours: number): BurnoutResult {
+
   if (weeklyHours <= 30) return { multiplier: 1.0, stressBonus: 0 }
+
   if (weeklyHours >= 50) return { multiplier: 0, stressBonus: 0.15 }
 
-  const extraHours = weeklyHours - 30
-  const penalty = extraHours * 0.05
+  const extraHours: number = weeklyHours - 30
+  const penalty: number = extraHours * 0.05
   return {
     multiplier: Math.max(0, 1 - penalty),
     stressBonus: 0.15
@@ -100,10 +108,12 @@ export function getBurnoutMultiplier(weeklyHours: number): { multiplier: number;
 }
 
 /**
- * Проверяет и сбрасывает зону комфорта если прошло достаточно времени
+ * Проверяет и сбрасывает зону комфорта если прошло достаточно времени.
+ * @description [Domain] - обновляет счётчик последовательных использований навыка, сбрасывая при паузе >=7 дней.
+ * @return { number } новое значение consecutiveUses
  */
 function updateConsecutiveUses(state: SkillState, currentTimestamp: number): number {
-  const daysSinceLastAction = currentTimestamp - state.lastActionAt
+  const daysSinceLastAction: number = currentTimestamp - state.lastActionAt
 
   if (daysSinceLastAction >= 7) {
     return 1
@@ -113,14 +123,9 @@ function updateConsecutiveUses(state: SkillState, currentTimestamp: number): num
 }
 
 /**
- * Добавляет опыт к навыку с учетом всех множителей
- * @param currentState текущее состояние навыка
- * @param baseXp базовое количество XP до множителей
- * @param age возраст персонажа
- * @param method способ обучения
- * @param currentTimestamp текущий таймстемп в днях
- * @param activityState состояние активности игрока
- * @param additionalMultipliers дополнительные множители (существующие из системы модификаторов)
+ * Добавляет опыт к навыку с учетом всех множителей.
+ * @description [Domain] - начисляет XP с учётом возраста, метода обучения, зоны комфорта и перегорания.
+ * @return { SkillStateWithStress } новое состояние навыка с бонусом стресса
  */
 export function addSkillXp(
   currentState: SkillState,
@@ -130,18 +135,20 @@ export function addSkillXp(
   currentTimestamp: number,
   activityState: PlayerActivityState,
   additionalMultipliers: number = 1.0
-): SkillState & { stressGain: number } {
-  const ageMultiplier = getAgeLearningMultiplier(age)
-  const methodMultiplier = getLearningMethodMultiplier(method)
-  const consecutiveUses = updateConsecutiveUses(currentState, currentTimestamp)
-  const comfortZoneMultiplier = getComfortZoneMultiplier(consecutiveUses)
-  const { multiplier: burnoutMultiplier, stressBonus } = getBurnoutMultiplier(activityState.weeklyLearningHours)
+): SkillStateWithStress {
+  const ageMultiplier: number = getAgeLearningMultiplier(age)
+  const methodMultiplier: number = getLearningMethodMultiplier(method)
+  const consecutiveUses: number = updateConsecutiveUses(currentState, currentTimestamp)
+  const comfortZoneMultiplier: number = getComfortZoneMultiplier(consecutiveUses)
+  const burnoutResult: BurnoutResult = getBurnoutMultiplier(activityState.weeklyLearningHours)
+  const burnoutMultiplier: number = burnoutResult.multiplier
+  const stressBonus: number = burnoutResult.stressBonus
 
-  const totalMultiplier = ageMultiplier * methodMultiplier * comfortZoneMultiplier * burnoutMultiplier * additionalMultipliers
-  const gainedXp = baseXp * totalMultiplier
+  const totalMultiplier: number = ageMultiplier * methodMultiplier * comfortZoneMultiplier * burnoutMultiplier * additionalMultipliers
+  const gainedXp: number = baseXp * totalMultiplier
 
-  const newXp = Math.min(MAX_XP, currentState.xp + gainedXp)
-  const newLevel = calculateLevelFromXp(newXp)
+  const newXp: number = Math.min(MAX_XP, currentState.xp + gainedXp)
+  const newLevel: number = calculateLevelFromXp(newXp)
 
   return {
     xp: newXp,
@@ -155,33 +162,34 @@ export function addSkillXp(
 }
 
 /**
- * Рассчитывает деградацию неиспользуемого навыка
- * @param currentState текущее состояние навыка
- * @param currentTimestamp текущий таймстемп в днях
+ * Рассчитывает деградацию неиспользуемого навыка.
+ * @description [Domain] - уменьшает XP навыка при простое >30 дней, с порогом в 70% от пика.
+ * @return { SkillState } обновлённое состояние навыка после деградации
  */
 export function applySkillDecay(currentState: SkillState, currentTimestamp: number): SkillState {
-  const daysSinceUsed = currentTimestamp - currentState.lastUsedAt
+  const daysSinceUsed: number = currentTimestamp - currentState.lastUsedAt
 
   if (daysSinceUsed <= 30) {
     return currentState
   }
 
-  const decayDays = daysSinceUsed - 30
-  const decayRatePerDay = 0.005 // 0.5% в день
+  const decayDays: number = daysSinceUsed - 30
+  const decayRatePerDay: number = 0.005 // 0.5% в день
 
-  const maxAllowedXp = currentState.peakXp * 0.7
-  const theoreticalDecayedXp = currentState.xp * Math.pow(1 - decayRatePerDay, decayDays)
+  const maxAllowedXp: number = currentState.peakXp * 0.7
+  const theoreticalDecayedXp: number = currentState.xp * Math.pow(1 - decayRatePerDay, decayDays)
 
-  let newXp = Math.max(theoreticalDecayedXp, maxAllowedXp)
+  let newXp: number = Math.max(theoreticalDecayedXp, maxAllowedXp)
 
   // Навыки выше 7 уровня никогда не падают ниже 3 уровня
-  const currentLevel = calculateLevelFromXp(currentState.peakXp)
+  const currentLevel: number = calculateLevelFromXp(currentState.peakXp)
+
   if (currentLevel >= 7) {
-    const minXpForLevel3 = getXpForLevel(3)
+    const minXpForLevel3: number = getXpForLevel(3)
     newXp = Math.max(newXp, minXpForLevel3)
   }
 
-  const newLevel = calculateLevelFromXp(newXp)
+  const newLevel: number = calculateLevelFromXp(newXp)
 
   return {
     ...currentState,
@@ -191,7 +199,9 @@ export function applySkillDecay(currentState: SkillState, currentTimestamp: numb
 }
 
 /**
- * Инициализирует пустое состояние навыка
+ * Инициализирует пустое состояние навыка.
+ * @description [Domain] - создаёт начальное состояние навыка с нулевым XP и уровнем.
+ * @return { SkillState } начальное состояние навыка
  */
 export function createEmptySkillState(currentTimestamp: number): SkillState {
   return {
@@ -205,11 +215,12 @@ export function createEmptySkillState(currentTimestamp: number): SkillState {
 }
 
 /**
- * Конвертирует старый формат (только уровень) в новую систему состояния
- * Обратная совместимость
+ * Конвертирует старый формат (только уровень) в новую систему состояния.
+ * @description [Domain] - преобразует числовой уровень в SkillState с XP по таблице, для обратной совместимости.
+ * @return { SkillState } состояние навыка, соответствующее указанному уровню
  */
 export function convertLegacyLevelToSkillState(level: number, currentTimestamp: number): SkillState {
-  const xp = getXpForLevel(level)
+  const xp: number = getXpForLevel(level)
   return {
     xp,
     level,
@@ -221,14 +232,17 @@ export function convertLegacyLevelToSkillState(level: number, currentTimestamp: 
 }
 
 /**
- * Обновляет состояние активности и перегорания при выполнении обучения
+ * Обновляет состояние активности и перегорания при выполнении обучения.
+ * @description [Domain] - обновляет счётчик учебных часов за неделю и сбрасывает перегорание при отдыхе.
+ * @return { PlayerActivityState } обновлённое состояние активности игрока
  */
 export function updateActivityState(
   state: PlayerActivityState,
   hoursSpent: number,
   currentTimestamp: number
 ): PlayerActivityState {
-  const daysSinceWeekStart = currentTimestamp - state.weekStartTimestamp
+  const daysSinceWeekStart: number = currentTimestamp - state.weekStartTimestamp
+
   if (daysSinceWeekStart >= 7) {
     return {
       ...state,
@@ -237,7 +251,8 @@ export function updateActivityState(
     }
   }
 
-  const daysSinceBurnout = currentTimestamp - state.burnoutRecoveryStart
+  const daysSinceBurnout: number = currentTimestamp - state.burnoutRecoveryStart
+
   if (daysSinceBurnout >= 10) {
     return {
       ...state,
@@ -253,7 +268,9 @@ export function updateActivityState(
 }
 
 /**
- * Создает начальное состояние активности игрока
+ * Создает начальное состояние активности игрока.
+ * @description [Domain] - инициализирует PlayerActivityState с нулевыми учебными часами.
+ * @return { PlayerActivityState } начальное состояние активности
  */
 export function createInitialActivityState(currentTimestamp: number): PlayerActivityState {
   return {
@@ -264,17 +281,19 @@ export function createInitialActivityState(currentTimestamp: number): PlayerActi
 }
 
 /**
- * Рассчитывает прогресс к следующему уровню в процентах 0-100
+ * Рассчитывает прогресс к следующему уровню в процентах 0-100.
+ * @description [Domain] - вычисляет процент заполнения XP между текущим и следующим уровнем.
+ * @return { number } прогресс в процентах от 0 до 100
  */
 export function getLevelProgressPercent(xp: number): number {
-  const currentLevel = calculateLevelFromXp(xp)
+  const currentLevel: number = calculateLevelFromXp(xp)
 
   if (currentLevel >= MAX_LEVEL) {
     return 100
   }
 
-  const currentLevelXp = getXpForLevel(currentLevel)
-  const nextLevelXp = getXpForLevel(currentLevel + 1)
+  const currentLevelXp: number = getXpForLevel(currentLevel)
+  const nextLevelXp: number = getXpForLevel(currentLevel + 1)
 
   if (nextLevelXp === currentLevelXp) {
     return 0

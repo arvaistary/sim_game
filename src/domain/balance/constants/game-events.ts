@@ -1,4 +1,5 @@
-import type { MicroEvent, MicroEventChoice, StatChanges } from '@/domain/balance/types'
+import type { MicroEvent, MicroEventChoice } from '@/domain/balance/types'
+import type { WorkRandomEvent, WeeklyJobDismissalParams } from './game-events.types'
 
 function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value))
@@ -92,14 +93,19 @@ export const MICRO_EVENT_CHOICES_BY_ID: Record<string, MicroEventChoice[]> = {
 // ФУНКЦИИ СОЗДАНИЯ СОБЫТИЙ
 // =============================================================================
 
+/**
+ * Создаёт экземпляр микро-события из определения.
+ * @description [Domain] - формирует queued-событие с клонами выборов и уникальным instanceId.
+ * @return { object } объект queued-события с choices, instanceId и type=micro
+ */
 export function buildMicroQueuedEvent(
   def: MicroEvent,
   actionType: string,
   totalHours: number,
 ) {
-  const instanceId = `${def.id}_${totalHours}`
-  const choiceSource =
-    MICRO_EVENT_CHOICES_BY_ID[def.id] ?? MICRO_EVENT_CHOICES_BY_ID.__default
+  const instanceId: string = `${def.id}_${totalHours}`
+  const choiceSource: MicroEventChoice[] =
+    MICRO_EVENT_CHOICES_BY_ID[def.id] ?? MICRO_EVENT_CHOICES_BY_ID.__default ?? []
 
   return {
     ...def,
@@ -110,6 +116,11 @@ export function buildMicroQueuedEvent(
   }
 }
 
+/**
+ * Создаёт событие итогов недели.
+ * @description [Domain] - формирует queued-событие с вариантами «восстановиться» или «сфокусироваться на развитии».
+ * @return { object } объект queued-события с type=weekly
+ */
 export function createWeeklySummaryQueuedEvent(weekNumber: number) {
   return {
     id: 'weekly_summary',
@@ -133,6 +144,11 @@ export function createWeeklySummaryQueuedEvent(weekNumber: number) {
   }
 }
 
+/**
+ * Создаёт событие ежегодного размышления.
+ * @description [Domain] - формирует queued-событие с вариантами «здоровье и баланс» или «карьера и доход».
+ * @return { object } объект queued-события с type=yearly
+ */
 export function createYearlyReflectionQueuedEvent(yearNumber: number) {
   return {
     id: 'yearly_reflection',
@@ -159,27 +175,6 @@ export function createYearlyReflectionQueuedEvent(yearNumber: number) {
 // =============================================================================
 // РАБОЧИЕ СЛУЧАЙНЫЕ СОБЫТИЯ
 // =============================================================================
-
-interface WorkRandomEventChoice {
-  label: string
-  outcome: string
-  salaryMultiplier?: number
-  permanentSalaryMultiplier?: number
-  statChanges: StatChanges
-  skillChanges?: Record<string, number>
-}
-
-interface WorkRandomEvent {
-  id: string
-  title: string
-  description: string
-  probability: number
-  cooldownDays: number
-  minClicks?: number
-  requiresSkill?: Record<string, number>
-  requiresEducationRank?: number
-  choices: WorkRandomEventChoice[]
-}
 
 export const WORK_RANDOM_EVENTS: WorkRandomEvent[] = [
   {
@@ -367,14 +362,13 @@ export const EVENT_FINANCE_RESERVE_WARNING = {
   ],
 }
 
-export function createWeeklyJobDismissalQueuedEvent(params: {
-  jobName: string
-  worked: number
-  required: number
-  newWeekNumber: number
-  jobId: string
-}) {
-  const { jobName, worked, required, newWeekNumber, jobId } = params
+/**
+ * Создаёт событие увольнения за невыполнение недельной нормы часов.
+ * @description [Domain] - формирует queued-событие типа career с вариантами «найти новую работу» или «взять перерыв».
+ * @return { object } объект queued-события с type=career
+ */
+export function createWeeklyJobDismissalQueuedEvent(params: WeeklyJobDismissalParams) {
+  const { jobName, worked: _worked, required: _required, newWeekNumber, jobId } = params
   return {
     id: 'job_dismissal',
     type: 'career' as const,

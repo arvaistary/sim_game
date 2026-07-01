@@ -29,21 +29,11 @@
 </template>
 
 <script setup lang="ts">
-import type { WorkOptions } from '../WorkButton/WorkButton.types'
+import type { WorkChoiceModalEmits, WorkChoiceModalProps } from './WorkChoiceModal.types'
 
-interface Props {
-  workOptions: WorkOptions | null
-  isWorkInProgress: boolean
-  canStartOneDayShift: boolean
-  canStartFullShift: boolean
-  onRunShift?: (hours: number) => void
-}
+const props = defineProps<WorkChoiceModalProps>()
 
-const props = defineProps<Props>()
-
-const emit = defineEmits<{
-  close: []
-}>()
+const emit = defineEmits<WorkChoiceModalEmits>()
 
 function handleClose() {
   emit('close')

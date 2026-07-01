@@ -1,26 +1,17 @@
-/**
- * Запись модального окна в стеке
- */
-export interface ModalEntry {
-  id: symbol
-  component: Component
-  props?: Record<string, any>
-  zIndex: number
-}
+import type { ComputedRef, Ref } from 'vue'
+import type { ModalEntry } from './useModalStack.types'
+
+export type { ModalEntry } from './useModalStack.types'
+
+const BASE_Z_INDEX: number = 1000
+const Z_INDEX_STEP: number = 10
+
+const stack: Ref<ModalEntry[]> = ref<ModalEntry[]>([])
 
 /**
- * Базовый z-index для модальных окон
- */
-const BASE_Z_INDEX = 1000
-const Z_INDEX_STEP = 10
-
-/**
- * Глобальный стек модальных окон
- */
-const stack = ref<ModalEntry[]>([])
-
-/**
- * Composable для управления стеком модальных окон
+ * Composable для управления стеком модальных окон.
+ * @description [Composable] - предоставляет методы open/close/closeAll и реактивные top/count для стека модалок.
+ * @return { object } стек, верхняя модалка, счётчик и методы управления
  *
  * @example
  * ```ts
@@ -40,12 +31,9 @@ const stack = ref<ModalEntry[]>([])
  * ```
  */
 export function useModalStack() {
-  /**
-   * Открыть модальное окно и добавить его в стек
-   */
-  function open(component: Component, props?: Record<string, any>): symbol {
-    const id = Symbol('modal')
-    const zIndex = BASE_Z_INDEX + stack.value.length * Z_INDEX_STEP
+  function open(component: Component, props?: Record<string, unknown>): symbol {
+    const id: symbol = Symbol('modal')
+    const zIndex: number = BASE_Z_INDEX + stack.value.length * Z_INDEX_STEP
 
     stack.value.push({
       id,
@@ -57,48 +45,31 @@ export function useModalStack() {
     return id
   }
 
-  /**
-   * Закрыть модальное окно по ID
-   */
   function close(id: symbol): void {
-    const index = stack.value.findIndex(entry => entry.id === id)
+    const index: number = stack.value.findIndex((entry: ModalEntry) => entry.id === id)
+
     if (index !== -1) {
       stack.value.splice(index, 1)
       recalculateZIndexes()
     }
   }
 
-  /**
-   * Закрыть все модальные окна
-   */
   function closeAll(): void {
     stack.value = []
   }
 
-  /**
-   * Пересчитать z-index для всех модалок в стеке
-   */
   function recalculateZIndexes(): void {
-    stack.value.forEach((entry, index) => {
+    stack.value.forEach((entry: ModalEntry, index: number) => {
       entry.zIndex = BASE_Z_INDEX + index * Z_INDEX_STEP
     })
   }
 
-  /**
-   * Верхняя модалка в стеке
-   */
-  const top = computed(() => {
-    return stack.value[stack.value.length - 1] || null
+  const top: ComputedRef<ModalEntry | null> = computed(() => {
+    return stack.value[stack.value.length - 1] ?? null
   })
 
-  /**
-   * Количество открытых модалок
-   */
-  const count = computed(() => stack.value.length)
+  const count: ComputedRef<number> = computed(() => stack.value.length)
 
-  /**
-   * Сброс стека (для тестов)
-   */
   function reset(): void {
     stack.value = []
   }

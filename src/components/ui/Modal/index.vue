@@ -10,7 +10,7 @@
         <div class="modal-content" :style="contentStyle">
           <div class="modal-header">
             <h3 class="modal-title">{{ title }}</h3>
-            <button v-if="showClose" class="modal-close" @click="close" aria-label="Close dialog">x</button>
+            <button v-if="showClose" class="modal-close" aria-label="Close dialog" @click="close">x</button>
           </div>
           <div class="modal-body">
             <slot />

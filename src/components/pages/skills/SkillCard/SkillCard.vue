@@ -54,8 +54,8 @@
 
 <script setup lang="ts">
 
-import type { SkillDef } from '@/domain/balance/types'
-import type { SkillModifiers } from '@/domain/balance/types'
+import type { SkillDef, SkillModifiers  } from '@/domain/balance/types'
+
 import { getSkillEffectsForUi } from '@/domain/balance/constants/skill-effects-generator'
 
 const props = defineProps<{

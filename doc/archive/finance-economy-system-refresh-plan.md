@@ -1,5 +1,9 @@
 # План: Актуализация FinanceActionSystem + MonthlySettlementSystem + InvestmentSystem
 
+> **Статус:** ✅ Выполнено
+> **Дата выполнения:** апрель 2026
+> **Примечание:** Finance/Economy-системы стабилизированы
+
 ## Статус: Draft (Wave 1 — P0)
 
 ## Цель

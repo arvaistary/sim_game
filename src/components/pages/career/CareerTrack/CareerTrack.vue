@@ -38,42 +38,44 @@
 
 <script setup lang="ts">
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
+import type { CareerTrackJobItem } from '@/domain/balance/types'
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
+
 const skillsStore = useSkillsStore()
+
 const educationStore = useEducationStore()
+
 const careerStore = useCareerStore()
+
 const message = ref('')
 
-interface CareerTrackJob {
-  id: string
-  name: string
-  level: number
-  schedule: string
-  salaryPerHour: number
-  current: boolean
-  unlocked: boolean
-  missingProfessionalism: number
-  educationRequiredLabel: string
+const CAREER_RANK_LABELS: Record<number, string> = {
+  [-1]: 'Любое',
+  0: 'Среднее',
+  1: 'Высшее',
+  2: 'Бакалавриат',
+  3: 'Магистратура',
+  4: 'MBA',
 }
 
-const careerTrack = computed<CareerTrackJob[]>(() => {
+const careerTrack = computed<CareerTrackJobItem[]>(() => {
   void store.worldTick
   void skillsStore.totalLevels
   void educationStore.educationRank
   
-  const currentJobId = careerStore.currentJob?.id ?? ''
-  const educationRank = educationStore.educationRank
-  const professionalism = skillsStore.skills?.professionalism ?? 0
+  const currentJobId: string = careerStore.currentJob?.id ?? ''
+  const educationRank: number = educationStore.educationRank
+  const professionalism: number = skillsStore.skills?.professionalism?.level ?? 0
 
   return CAREER_JOBS.map(job => {
-    const educationRequiredLabel = job.minEducationRank === -1 
-      ? 'Любое' 
-      : RANK_LABELS[job.minEducationRank as EducationLevel] ?? 'Неизвестно'
-    
-    const missing = job.minProfessionalism - professionalism
-    const unlocked = professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank
+    const educationRequiredLabel: string = job.minEducationRank === -1
+      ? 'Любое'
+      : CAREER_RANK_LABELS[job.minEducationRank] ?? 'Неизвестно'
+
+    const missing: number = job.minProfessionalism - professionalism
+    const unlocked: boolean = professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank
 
     return {
       id: job.id,
@@ -81,15 +83,17 @@ const careerTrack = computed<CareerTrackJob[]>(() => {
       level: job.level,
       schedule: job.schedule,
       salaryPerHour: job.salaryPerHour,
+      description: job.description,
       current: job.id === currentJobId,
       unlocked,
       missingProfessionalism: Math.max(0, missing),
       educationRequiredLabel,
+      effectiveSalaryPerHour: job.salaryPerHour,
     }
   })
 })
 
-function takeJob(job: CareerTrackJob): void {
+function takeJob(job: CareerTrackJobItem): void {
   if (!job.unlocked || job.current) return
   careerStore.startWork({
     id: job.id,

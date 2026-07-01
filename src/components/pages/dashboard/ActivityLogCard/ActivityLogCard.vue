@@ -18,19 +18,17 @@
 </template>
 
 <script setup lang="ts">
+import type { ActivityEntry } from '@/stores/activity-store'
+import type { LogEntryDisplay } from './ActivityLogCard.types'
+
 const activityStore = useActivityStore()
 
-interface LogEntryDisplay {
-  icon: string
-  displayTitle: string
-  day: string | number
-}
-
 const logEntries = computed<LogEntryDisplay[]>(() => {
-  const entries = activityStore.recentEntries
+  const entries: ActivityEntry[] = activityStore.recentEntries
+
   if (!entries || entries.length === 0) return []
 
-  return entries.slice(0, 8).map(entry => ({
+  return entries.slice(0, 8).map((entry: ActivityEntry) => ({
     icon: '•',
     displayTitle: entry.title?.substring(0, 25) ?? entry.description?.substring(0, 25) ?? 'Событие',
     day: entry.day ?? '?',

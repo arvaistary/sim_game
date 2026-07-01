@@ -1,38 +1,26 @@
 
-export interface GameAction {
-  id: string
-  title: string
-  category: string
-  actionType: string
-  hourCost: number
-  price: number
-  statChanges?: Record<string, number>
-  skillChanges?: Record<string, number>
-  cooldown?: { hours: number }
-  requirements?: {
-    minAge?: number
-    minSkills?: Record<string, number>
-  }
-}
+import type { Ref, ComputedRef } from 'vue'
+import type { CanApplyWorkShiftResult } from '@/stores/game.store.types'
+import type { GameAction, ActionResult } from './actions-store.types'
 
-export interface ActionResult {
-  success: boolean
-  error?: string
-  summary?: string
-}
+export type { GameAction, ActionResult } from './actions-store.types'
 
-const ACTION_COOLDOWNS: Record<string, number> = {}
+const _ACTION_COOLDOWNS: Record<string, number> = {}
 
 export const useActionsStore = defineStore('actions', () => {
-  const lastExecutedAction = ref<string | null>(null)
-  const actionResults = ref<ActionResult[]>([])
+  const lastExecutedAction: Ref<string | null> = ref<string | null>(null)
+  const actionResults: Ref<ActionResult[]> = ref<ActionResult[]>([])
 
   const timeStore = useTimeStore()
+
   const statsStore = useStatsStore()
+
   const walletStore = useWalletStore()
+
   const skillsStore = useSkillsStore()
 
-  const canExecute = (action: GameAction): { canDo: boolean; reason?: string } => {
+  const canExecute = (action: GameAction): CanApplyWorkShiftResult => {
+
     if (action.price > 0 && !walletStore.canAfford(action.price)) {
       return { canDo: false, reason: 'Недостаточно денег' }
     }
@@ -56,12 +44,13 @@ export const useActionsStore = defineStore('actions', () => {
     return { canDo: true }
   }
 
-  const canExecuteAction = (actionId: string): { canDo: boolean; reason?: string } => {
+  const canExecuteAction = (_actionId: string): CanApplyWorkShiftResult => {
     return { canDo: true }
   }
 
   const executeAction = (action: GameAction): ActionResult => {
-    const check = canExecute(action)
+    const check: CanApplyWorkShiftResult = canExecute(action)
+
     if (!check.canDo) {
       return { success: false, error: check.reason }
     }
@@ -79,8 +68,8 @@ export const useActionsStore = defineStore('actions', () => {
     }
 
     if (action.hourCost > 0) {
-      const isSleep = action.actionType === 'sleep'
-      const isWork = action.actionType === 'work'
+      const isSleep: boolean = action.actionType === 'sleep'
+      const isWork: boolean = action.actionType === 'work'
       timeStore.advanceHours(action.hourCost, {
         actionType: isSleep ? 'sleep' : isWork ? 'work' : 'default',
       })
@@ -97,7 +86,10 @@ export const useActionsStore = defineStore('actions', () => {
   }
 
   const executeActionById = (actionId: string, actions: GameAction[]): ActionResult => {
-    const action = actions.find(a => a.id === actionId)
+    const action: GameAction | undefined = actions.find(
+      (a: GameAction) => a.id === actionId
+    )
+
     if (!action) {
       return { success: false, error: 'Действие не найдено' }
     }
@@ -108,7 +100,7 @@ export const useActionsStore = defineStore('actions', () => {
     return actionResults.value[index]
   }
 
-  const lastResult = computed(() => actionResults.value[actionResults.value.length - 1])
+  const lastResult: ComputedRef<ActionResult | undefined> = computed(() => actionResults.value[actionResults.value.length - 1])
 
   function reset(): void {
     lastExecutedAction.value = null

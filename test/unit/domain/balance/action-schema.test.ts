@@ -7,13 +7,20 @@ import {
   validateUniqueIds,
   validateRequiredFields,
 } from '@/domain/balance/actions/action-schema'
+import type {
+  ValidationErrors,
+  ActionArrayValidationResult,
+  UniqueIdsValidationResult,
+  RequiredFieldsValidationResult,
+  CatalogValidationResult,
+} from '@/domain/balance/actions/action-schema'
 import { AgeGroup } from '@/domain/balance/actions/types'
 import type { BalanceAction } from '@/domain/balance/actions'
 
 describe('Action Schema Validation', () => {
   describe('validateAction', () => {
     test('валидное действие проходит валидацию', () => {
-      const validAction = {
+      const validAction: BalanceAction = {
         id: 'test_action',
         category: 'fun' as const,
         title: 'Тестовое действие',
@@ -27,7 +34,7 @@ describe('Action Schema Validation', () => {
     })
 
     test('действие без ID не проходит валидацию', () => {
-      const invalidAction = {
+      const invalidAction: Record<string, unknown> = {
         category: 'fun' as const,
         title: 'Тестовое действие',
         hourCost: 1,
@@ -40,9 +47,9 @@ describe('Action Schema Validation', () => {
     })
 
     test('действие с невалидной категорией не проходит валидацию', () => {
-      const invalidAction = {
+      const invalidAction: Record<string, unknown> = {
         id: 'test_action',
-        category: 'invalid' as any,
+        category: 'invalid',
         title: 'Тестовое действие',
         hourCost: 1,
         price: 0,
@@ -54,7 +61,7 @@ describe('Action Schema Validation', () => {
     })
 
     test('действие с отрицательной ценой не проходит валидацию', () => {
-      const invalidAction = {
+      const invalidAction: Record<string, unknown> = {
         id: 'test_action',
         category: 'fun' as const,
         title: 'Тестовое действие',
@@ -68,7 +75,7 @@ describe('Action Schema Validation', () => {
     })
 
     test('действие с неизвестным полем не проходит валидацию (strict mode)', () => {
-      const invalidAction = {
+      const invalidAction: Record<string, unknown> = {
         id: 'test_action',
         category: 'fun' as const,
         title: 'Тестовое действие',
@@ -77,13 +84,13 @@ describe('Action Schema Validation', () => {
         actionType: 'neutral',
         effect: 'Тестовый эффект',
         unknownField: 'value',
-      } as any
+      }
 
       expect(validateAction(invalidAction)).toBe(false)
     })
 
     test('действие с ageGroup проходит валидацию', () => {
-      const validAction = {
+      const validAction: BalanceAction = {
         id: 'test_action',
         category: 'fun' as const,
         title: 'Тестовое действие',
@@ -98,7 +105,7 @@ describe('Action Schema Validation', () => {
     })
 
     test('действие с requirements проходит валидацию', () => {
-      const validAction = {
+      const validAction: BalanceAction = {
         id: 'test_action',
         category: 'fun' as const,
         title: 'Тестовое действие',
@@ -116,7 +123,7 @@ describe('Action Schema Validation', () => {
     })
 
     test('действие с неизвестным полем в requirements не проходит валидацию', () => {
-      const invalidAction = {
+      const invalidAction: Record<string, unknown> = {
         id: 'test_action',
         category: 'fun' as const,
         title: 'Тестовое действие',
@@ -127,7 +134,7 @@ describe('Action Schema Validation', () => {
         requirements: {
           unknownField: 'value',
         },
-      } as any
+      }
 
       expect(validateAction(invalidAction)).toBe(false)
     })
@@ -135,9 +142,9 @@ describe('Action Schema Validation', () => {
 
   describe('validateActionWithErrors', () => {
     test('getErrors возвращает список ошибок', () => {
-      const invalidAction = {
+      const invalidAction: Record<string, unknown> = {
         id: '',
-        category: 'invalid' as any,
+        category: 'invalid',
         title: '',
         hourCost: -1,
         price: -1,
@@ -145,16 +152,16 @@ describe('Action Schema Validation', () => {
         effect: '',
       }
 
-      const result = validateActionWithErrors(invalidAction)
+      const result: ValidationErrors = validateActionWithErrors(invalidAction)
 
       expect(result.valid).toBe(false)
       expect(result.errors.length).toBeGreaterThan(0)
     })
 
     test('getFirstError возвращает первую ошибку', () => {
-      const invalidAction = {
+      const invalidAction: Record<string, unknown> = {
         id: '',
-        category: 'invalid' as any,
+        category: 'invalid',
         title: '',
         hourCost: -1,
         price: -1,
@@ -162,7 +169,7 @@ describe('Action Schema Validation', () => {
         effect: '',
       }
 
-      const result = validateActionWithErrors(invalidAction)
+      const result: ValidationErrors = validateActionWithErrors(invalidAction)
 
       expect(result.valid).toBe(false)
       expect(result.errors[0]).toBeTruthy()
@@ -172,7 +179,7 @@ describe('Action Schema Validation', () => {
 
   describe('validateActionArray', () => {
     test('валидирует массив действий', () => {
-      const actions = [
+      const actions: BalanceAction[] = [
         {
           id: 'action1',
           category: 'fun' as const,
@@ -193,14 +200,14 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validateActionArray(actions)
+      const result: ActionArrayValidationResult = validateActionArray(actions)
 
       expect(result.valid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
     test('находит ошибки в массиве', () => {
-      const actions = [
+      const actions: BalanceAction[] = [
         {
           id: 'action1',
           category: 'fun' as const,
@@ -221,11 +228,11 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validateActionArray(actions)
+      const result: ActionArrayValidationResult = validateActionArray(actions)
 
       expect(result.valid).toBe(false)
       expect(result.errors).toHaveLength(1)
-      expect(result.errors[0].index).toBe(1)
+      expect(result.errors[0]!.index).toBe(1)
     })
   })
 
@@ -252,7 +259,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validateUniqueIds(actions)
+      const result: UniqueIdsValidationResult = validateUniqueIds(actions)
 
       expect(result.valid).toBe(false)
       expect(result.duplicates).toContain('duplicate')
@@ -280,7 +287,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validateUniqueIds(actions)
+      const result: UniqueIdsValidationResult = validateUniqueIds(actions)
 
       expect(result.valid).toBe(true)
       expect(result.duplicates).toHaveLength(0)
@@ -301,12 +308,12 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validateRequiredFields(actions)
+      const result: RequiredFieldsValidationResult = validateRequiredFields(actions)
 
       expect(result.valid).toBe(false)
       expect(result.missing).toHaveLength(1)
-      expect(result.missing[0].id).toBe('action1')
-      expect(result.missing[0].missingFields).toContain('title')
+      expect(result.missing[0]!.id).toBe('action1')
+      expect(result.missing[0]!.missingFields).toContain('title')
     })
 
     test('проходит если все обязательные поля присутствуют', () => {
@@ -322,7 +329,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validateRequiredFields(actions)
+      const result: RequiredFieldsValidationResult = validateRequiredFields(actions)
 
       expect(result.valid).toBe(true)
       expect(result.missing).toHaveLength(0)
@@ -352,7 +359,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validateActionCatalog(actions)
+      const result: CatalogValidationResult = validateActionCatalog(actions)
 
       expect(result.valid).toBe(true)
       expect(result.schemaErrors).toHaveLength(0)
@@ -382,7 +389,7 @@ describe('Action Schema Validation', () => {
         },
         {
           id: '', // Неверный ID
-          category: 'invalid' as any,
+          category: 'fun' as const,
           title: 'Действие 3',
           hourCost: -1, // Неверное значение
           price: 0,
@@ -391,7 +398,7 @@ describe('Action Schema Validation', () => {
         },
       ]
 
-      const result = validateActionCatalog(actions)
+      const result: CatalogValidationResult = validateActionCatalog(actions)
 
       expect(result.valid).toBe(false)
       expect(result.duplicateIds).toContain('duplicate')

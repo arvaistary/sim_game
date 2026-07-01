@@ -8,7 +8,7 @@
 
       <template v-if="currentEvent && !resultText">
         <EventCard :event="currentEvent" />
-        <EventChoices :choices="currentEvent.choices" @select="selectChoice" />
+        <EventChoices :choices="currentEvent.choices ?? []" @select="selectChoice" />
       </template>
 
       <EventResult
@@ -23,6 +23,9 @@
 </template>
 
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
+import type { EventChoice, GameEvent } from '@/stores/events-store'
+
 definePageMeta({ middleware: 'game-init' })
 
 const events = useEvents()
@@ -31,15 +34,16 @@ const router = useRouter()
 
 const resultText = ref('')
 
-const currentEvent = computed(() => events.currentEvent.value)
-const hasNextEvent = computed(() => events.hasNextEvent.value)
+const currentEvent: ComputedRef<GameEvent | null> = computed(() => events.currentEvent.value)
+const hasNextEvent: ComputedRef<boolean> = computed(() => events.hasNextEvent.value)
 
 onMounted(() => {
   events.loadNextEvent()
 })
 
-function selectChoice(choice: { id: string; text: string }) {
-  const ok = events.applyChoice(choice.id)
+function selectChoice(choice: EventChoice) {
+  const ok: boolean = events.applyChoice(choice.id)
+
   if (!ok) {
     toast.showError('Не удалось применить выбор')
     return
@@ -50,7 +54,8 @@ function selectChoice(choice: { id: string; text: string }) {
 
 function proceedNext() {
   resultText.value = ''
-  const next = events.loadNextEvent()
+  const next: GameEvent | null = events.loadNextEvent()
+
   if (!next) {
     toast.showInfo('Больше нет событий')
     goBack()

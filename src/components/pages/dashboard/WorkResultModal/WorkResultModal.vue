@@ -19,18 +19,11 @@
 </template>
 
 <script setup lang="ts">
-import type { WorkStatDiff } from '../WorkButton/WorkButton.types'
+import type { WorkResultModalEmits, WorkResultModalProps } from './WorkResultModal.types'
 
-interface Props {
-  workSummary: string
-  statDiffs: WorkStatDiff[]
-}
+defineProps<WorkResultModalProps>()
 
-defineProps<Props>()
-
-const emit = defineEmits<{
-  close: []
-}>()
+const emit = defineEmits<WorkResultModalEmits>()
 
 function handleClose() {
   emit('close')

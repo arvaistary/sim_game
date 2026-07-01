@@ -10,6 +10,10 @@
 </template>
 
 <script setup lang="ts">
+const careerStore = useCareerStore()
+
+const statsStore = useStatsStore()
+
 const workResult = ref('')
 
 function doWork(hours: number): void {
@@ -17,15 +21,14 @@ function doWork(hours: number): void {
     workResult.value = 'Сначала устройтесь на работу'
     return
   }
-  
-  // Проверяем достаточно ли энергии
+
   if (statsStore.energy < hours * 3) {
     workResult.value = 'Недостаточно энергии'
     return
   }
 
   careerStore.addWorkHours(hours)
-  const salary = hours * careerStore.currentJob.salaryPerHour
+  const salary: number = hours * careerStore.currentJob.salaryPerHour
   careerStore.addPendingSalary(salary)
   statsStore.applyStatChanges({ energy: -(hours * 3), hunger: +(hours * 2) })
   workResult.value = `Вы заработали ${salary} ₽`

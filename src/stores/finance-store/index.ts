@@ -1,16 +1,7 @@
 
-export interface Investment {
-  id: string
-  type: 'deposit' | 'stocks' | 'business'
-  amount: number
-  returnRate: number
-  startDate: number
-}
+import type { Investment, MonthlyExpense } from './finance-store.types'
 
-export interface MonthlyExpense {
-  category: string
-  amount: number
-}
+export type { Investment, MonthlyExpense } from './finance-store.types'
 
 export const DEFAULT_EXPENSES: MonthlyExpense[] = [
   { category: 'rent', amount: 15000 },
@@ -21,26 +12,33 @@ export const DEFAULT_EXPENSES: MonthlyExpense[] = [
 ]
 
 export const useFinanceStore = defineStore('finance', () => {
-  const investments = ref<Investment[]>([])
-  const monthlyExpenses = ref<MonthlyExpense[]>([...DEFAULT_EXPENSES])
-  const lastSettlement = ref<number | null>(null)
-  const debt = ref(0)
+  const investments: Ref<Investment[]> = ref<Investment[]>([])
+  const monthlyExpenses: Ref<MonthlyExpense[]> = ref<MonthlyExpense[]>([...DEFAULT_EXPENSES])
+  const lastSettlement: Ref<number | null> = ref<number | null>(null)
+  const debt: Ref<number> = ref<number>(0)
 
   const walletStore = useWalletStore()
 
-  const totalInvestment = computed(() => 
-    investments.value.reduce((sum, inv) => sum + inv.amount, 0)
+  const totalInvestment: ComputedRef<number> = computed(() =>
+    investments.value.reduce(
+      (sum: number, inv: Investment) => sum + inv.amount,
+      0
+    )
   )
 
-  const totalExpense = computed(() => 
-    monthlyExpenses.value.reduce((sum, exp) => sum + exp.amount, 0)
+  const totalExpense: ComputedRef<number> = computed(() =>
+    monthlyExpenses.value.reduce(
+      (sum: number, exp: MonthlyExpense) => sum + exp.amount,
+      0
+    )
   )
 
-  const totalDebt = computed(() => debt.value)
+  const totalDebt: ComputedRef<number> = computed(() => debt.value)
 
   const canInvest = (amount: number): boolean => walletStore.money >= amount
 
   const invest = (type: Investment['type'], amount: number, returnRate: number): boolean => {
+
     if (!canInvest(amount)) return false
 
     walletStore.spend(amount, false)
@@ -57,24 +55,31 @@ export const useFinanceStore = defineStore('finance', () => {
   }
 
   const divest = (investmentId: string): number => {
-    const index = investments.value.findIndex(inv => inv.id === investmentId)
+    const index: number = investments.value.findIndex(
+      (inv: Investment) => inv.id === investmentId
+    )
+
     if (index === -1) return 0
 
-    const investment = investments.value[index]
+    const investment: Investment = investments.value[index]!
     investments.value.splice(index, 1)
     walletStore.earn(investment.amount, false)
     return investment.amount
   }
 
   const calculateMonthlyReturn = (): number => {
-    return investments.value.reduce((sum, inv) => {
-      const monthlyReturn = inv.amount * (inv.returnRate / 100 / 12)
-      return sum + monthlyReturn
-    }, 0)
+    return investments.value.reduce(
+      (sum: number, inv: Investment) => {
+        const monthlyReturn: number = inv.amount * (inv.returnRate / 100 / 12)
+        return sum + monthlyReturn
+      },
+      0
+    )
   }
 
   const processMonthlySettlement = (): void => {
-    const investmentReturns = calculateMonthlyReturn()
+    const investmentReturns: number = calculateMonthlyReturn()
+
     if (investmentReturns > 0) {
       walletStore.earn(Math.round(investmentReturns), true)
     }
@@ -87,7 +92,10 @@ export const useFinanceStore = defineStore('finance', () => {
   }
 
   const setExpense = (category: string, amount: number): void => {
-    const expense = monthlyExpenses.value.find(e => e.category === category)
+    const expense: MonthlyExpense | undefined = monthlyExpenses.value.find(
+      (e: MonthlyExpense) => e.category === category
+    )
+
     if (expense) {
       expense.amount = amount
     } else {
@@ -101,7 +109,7 @@ export const useFinanceStore = defineStore('finance', () => {
   }
 
   const repayDebt = (amount: number): void => {
-    const repay = Math.min(amount, debt.value)
+    const repay: number = Math.min(amount, debt.value)
     walletStore.spend(repay, true)
     debt.value = Math.max(0, debt.value - repay)
   }
@@ -124,29 +132,36 @@ export const useFinanceStore = defineStore('finance', () => {
 
   function load(data: Record<string, unknown>): void {
     if (Array.isArray(data.investments)) investments.value = data.investments as Investment[]
+
     if (Array.isArray(data.monthlyExpenses)) monthlyExpenses.value = data.monthlyExpenses as MonthlyExpense[]
+
     if (data.lastSettlement !== undefined) lastSettlement.value = data.lastSettlement as number | null
+
     if (typeof data.debt === 'number') debt.value = data.debt
   }
 
   function applyAction(cardData: Record<string, unknown>): boolean {
-    const actionType = cardData.type as string
+    const actionType: string = cardData.type as string
+
     if (actionType === 'invest') {
-      const amount = cardData.amount as number
-      const returnRate = (cardData.returnRate as number) ?? 5
-      const type = (cardData.investmentType as 'deposit' | 'stocks' | 'business') ?? 'deposit'
+      const amount: number = cardData.amount as number
+      const returnRate: number = (cardData.returnRate as number) ?? 5
+      const type: Investment['type'] = (cardData.investmentType as Investment['type']) ?? 'deposit'
       return invest(type, amount, returnRate)
     }
+
     if (actionType === 'take_debt') {
-      const amount = cardData.amount as number
+      const amount: number = cardData.amount as number
       takeDebt(amount)
       return true
     }
+
     if (actionType === 'repay_debt') {
-      const amount = cardData.amount as number
+      const amount: number = cardData.amount as number
       repayDebt(amount)
       return true
     }
+
     return false
   }
 

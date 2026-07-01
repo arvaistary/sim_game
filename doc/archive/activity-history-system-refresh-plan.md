@@ -1,5 +1,9 @@
 # План: Актуализация ActivityLogSystem + EventHistorySystem
 
+> **Статус:** ⏸ Заморожено
+> **Дата:** апрель 2026
+> **Примечание:** План актуализации activity/history-систем
+
 ## Статус: Draft (Wave 2 — P1)
 
 ## Цель

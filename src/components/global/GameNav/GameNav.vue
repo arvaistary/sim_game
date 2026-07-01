@@ -40,15 +40,8 @@
 
 <script setup lang="ts">
 import { NAV_ITEMS, ROUTE_MAP } from '@/constants/navigation'
+import type { NavItemIdRef, NavItemWithState } from './GameNav.types'
 import './GameNav.scss'
-
-interface NavItemWithState {
-  id: string
-  icon: string
-  label: string
-  visible: boolean
-  unlockAge: number | null
-}
 
 const route = useRoute()
 const navItems = NAV_ITEMS
@@ -69,7 +62,9 @@ const isHomePage = computed(() => route.path === '/game')
 
 const activeItemId = computed(() => {
   const currentPath = route.path
-  const activeItem = navItems.find((item) => ROUTE_MAP[item.id] === currentPath)
+  const activeItem = navItems.find(
+    (item) => ROUTE_MAP[item.id] === currentPath,
+  )
   return activeItem?.id ?? ''
 })
 
@@ -77,8 +72,9 @@ function goHome(): void {
   navigateTo('/game')
 }
 
-function handleNavClick(item: { id: string }): void {
+function handleNavClick(item: NavItemIdRef): void {
   const targetRoute = ROUTE_MAP[item.id]
+
   if (targetRoute) {
     navigateTo(targetRoute)
   }
@@ -86,6 +82,7 @@ function handleNavClick(item: { id: string }): void {
 
 function handleLockedClick(item: NavItemWithState): void {
   const currentAge = age.value
+
   if (item.unlockAge !== null && item.unlockAge > currentAge) {
     toast.showInfo(`🔒 ${item.label} станет доступно в ${item.unlockAge} лет. Подрастите ещё немного!`)
   } else {

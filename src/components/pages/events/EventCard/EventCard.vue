@@ -8,22 +8,23 @@
       <p class="impact-text">{{ impactText }}</p>
     </div>
 
-    <div class="event-day">День {{ event.day }}</div>
+    <div class="event-day">День события</div>
   </RoundedPanel>
 </template>
 
 <script setup lang="ts">
-
+import type { ComputedRef } from 'vue'
 import { formatStatChangesBulletListRu } from '@/domain/balance/utils/stat-changes-format'
-import type { EventQueueItem } from '@/stores/events-store'
+import type { GameEvent } from '@/stores/events-store'
 
 const props = defineProps<{
-  event: EventQueueItem
+  event: GameEvent
 }>()
 
-const impactText = computed(() => {
+const impactText: ComputedRef<string> = computed(() => {
   if (!props.event?.data?.statImpact) return ''
-  return formatStatChangesBulletListRu(props.event.data.statImpact as any)
+
+  return formatStatChangesBulletListRu(props.event.data.statImpact as Record<string, number>)
 })
 </script>
 

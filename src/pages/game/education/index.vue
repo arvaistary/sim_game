@@ -26,24 +26,24 @@
 
       <!-- Контент: Учёба и навыки -->
       <template v-if="activeTab === 'study'">
-        <ActionCardList
-          :actions="sortedStudyActions"
-          :empty-text="actionsEmptyHint"
-          :is-disabled="(a: any) => !canExecute(a.id)"
-          :get-disabled-reason="getDisabledReason"
-          @execute="executeAction"
-        />
-      </template>
+      <ActionCardList
+        :actions="sortedStudyActions"
+        :empty-text="actionsEmptyHint"
+        :is-disabled="(a: BalanceAction) => !canExecute(a.id)"
+        :get-disabled-reason="getDisabledReason"
+        @execute="executeAction"
+      />
+    </template>
 
-      <!-- Контент: Практика и привычки -->
-      <template v-if="activeTab === 'practice'">
-        <ActionCardList
-          :actions="sortedPracticeActions"
-          :empty-text="actionsEmptyHint"
-          :is-disabled="(a: any) => !canExecute(a.id)"
-          :get-disabled-reason="getDisabledReason"
-          @execute="executeAction"
-        />
+    <!-- Контент: Практика и привычки -->
+    <template v-if="activeTab === 'practice'">
+      <ActionCardList
+        :actions="sortedPracticeActions"
+        :empty-text="actionsEmptyHint"
+        :is-disabled="(a: BalanceAction) => !canExecute(a.id)"
+        :get-disabled-reason="getDisabledReason"
+        @execute="executeAction"
+      />
       </template>
     </div>
   </GameLayout>
@@ -51,6 +51,8 @@
 
 <script setup lang="ts">
 import { PRACTICE_ACTION_IDS } from '@/config/education-tab-groups'
+import type { BalanceAction } from '@/domain/balance/actions'
+import type { CanExecuteActionResult } from '@/stores/game.store.types'
 
 definePageMeta({ middleware: 'game-init' })
 
@@ -78,37 +80,38 @@ watch(
 )
 
 const store = useGameStore()
+
 const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 
-const educationActions = getActionsByCategory('education') as any
-const selfdevActions = getActionsByCategory('selfdev') as any
+const educationActions: BalanceAction[] = getActionsByCategory('education')
+const selfdevActions: BalanceAction[] = getActionsByCategory('selfdev')
 
 /** Сортировка: доступные действия первыми */
-function sortByAvailability(actions: any[]): any[] {
+function sortByAvailability(actions: BalanceAction[]): BalanceAction[] {
   return [...actions].sort((a, b) => {
-    const aOk = canExecute(a.id) ? 0 : 1
-    const bOk = canExecute(b.id) ? 0 : 1
+    const aOk: number = canExecute(a.id) ? 0 : 1
+    const bOk: number = canExecute(b.id) ? 0 : 1
     return aOk - bOk
   })
 }
 
 /** Получить причину недоступности действия */
-function getDisabledReason(action: any): string {
-  const result = store.canExecuteAction(action.id)
+function getDisabledReason(action: BalanceAction): string {
+  const result: CanExecuteActionResult = store.canExecuteAction(action.id)
   return result.reason ?? 'Действие недоступно'
 }
 
 // Учёба и навыки: education БЕЗ practice-действий
 const studyActions = computed(() => {
   void store.worldTick
-  return educationActions.filter((a: any) => !PRACTICE_ACTION_IDS.has(a.id))
+  return educationActions.filter((a: BalanceAction) => !PRACTICE_ACTION_IDS.has(a.id))
 })
 
 // Практика и привычки: practice из education + все selfdev
 const practiceActions = computed(() => {
   void store.worldTick
   return [
-    ...educationActions.filter((a: any) => PRACTICE_ACTION_IDS.has(a.id)),
+    ...educationActions.filter((a: BalanceAction) => PRACTICE_ACTION_IDS.has(a.id)),
     ...selfdevActions,
   ]
 })

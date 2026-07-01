@@ -51,7 +51,7 @@
       >
         <div class="card-header">
           <span class="card-title">{{ job.name }}</span>
-          <span class="card-price">{{ formatMoney((job as any).effectiveSalaryPerHour ?? (job as any).salaryPerHour) }} ₽/ч</span>
+          <span class="card-price">{{ formatMoney(job.effectiveSalaryPerHour || job.salaryPerHour) }} ₽/ч</span>
         </div>
 
         <p class="card-effect">{{ job.description }}</p>
@@ -63,10 +63,10 @@
         </div>
 
         <div v-if="!job.unlocked" class="card-meta">
-          <span v-if="(job as any).missingProfessionalism > 0" class="meta-tag meta-tag--req">
-            Профессионализм: ещё {{ (job as any).missingProfessionalism }} ур.
+          <span v-if="job.missingProfessionalism > 0" class="meta-tag meta-tag--req">
+            Профессионализм: ещё {{ job.missingProfessionalism }} ур.
           </span>
-          <span class="meta-tag meta-tag--req">Образование: {{ (job as any).educationRequiredLabel }}</span>
+          <span class="meta-tag meta-tag--req">Образование: {{ job.educationRequiredLabel }}</span>
         </div>
 
         <div class="card-footer">
@@ -87,42 +87,48 @@
 </template>
 
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
 import { formatMoney } from '@/utils/format'
 import { WORK_TYPES, INDUSTRIES, JOB_INDUSTRY_MAP } from '@/config/work-categories'
 import CareerTrack from '@/components/pages/career/CareerTrack/CareerTrack.vue'
+import type { CareerTrackJobItem } from '@/domain/balance/types'
+import type { ChangeCareerResult } from '@/stores/game.store.types'
 
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()
+
 const toast = useToast()
 
 const activeWorkType = ref('full-time')
 const activeIndustry = ref('all')
 
-const types = WORK_TYPES
-const industries = INDUSTRIES
+const types: typeof WORK_TYPES = WORK_TYPES
+const industries: typeof INDUSTRIES = INDUSTRIES
 
-const careerTrack = computed(() => {
+const careerTrack = computed<CareerTrackJobItem[]>(() => {
   void store.worldTick
   return store.getCareerTrack()
 })
 
-const currentWorkType = computed(() =>
-  WORK_TYPES.find(t => t.id === activeWorkType.value) ?? WORK_TYPES[0]
+const currentWorkType: ComputedRef<typeof WORK_TYPES[number]> = computed(() =>
+  WORK_TYPES.find(t => t.id === activeWorkType.value) ?? WORK_TYPES[0]!
 )
 
-const filteredJobs = computed(() => {
-  const jobs = careerTrack.value as any[]
-  return jobs.filter(job => {
-    const scheduleMatches = currentWorkType.value.scheduleFilter.includes(job.schedule)
-    const industryId = JOB_INDUSTRY_MAP[job.id] ?? 'all'
-    const industryMatches = activeIndustry.value === 'all' || industryId === activeIndustry.value
-    return scheduleMatches && industryMatches
-  })
+const filteredJobs = computed<CareerTrackJobItem[]>(() => {
+  return careerTrack.value.filter(
+    (job) => {
+      const scheduleMatches: boolean = currentWorkType.value.scheduleFilter.includes(job.schedule)
+      const industryId: string = JOB_INDUSTRY_MAP[job.id] ?? 'all'
+      const industryMatches: boolean = activeIndustry.value === 'all' || industryId === activeIndustry.value
+      return scheduleMatches && industryMatches
+    }
+  )
 })
 
-function applyForJob(job: any): void {
-  const result = store.changeCareer(job.id)
+function applyForJob(job: CareerTrackJobItem): void {
+  const result: ChangeCareerResult = store.changeCareer(job.id)
+
   if (result.success) {
     toast.showSuccess(result.message)
   } else {

@@ -17,6 +17,7 @@
 import { STAT_DEFS } from '@/domain/balance/constants/stat-defs'
 
 const statsStore = useStatsStore()
+
 const statDefs = STAT_DEFS
 
 const statValues = computed<Record<string, number>>(() => ({

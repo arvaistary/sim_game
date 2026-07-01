@@ -16,8 +16,11 @@ import SkillsModal from '../SkillsModal/SkillsModal.vue'
 import { formatMoney } from '@/utils/format'
 
 const timeStore = useTimeStore()
+
 const walletStore = useWalletStore()
+
 const careerStore = useCareerStore()
+
 const housingStore = useHousingStore()
 
 const { isStatVisible } = useAgeRestrictions()
@@ -36,11 +39,13 @@ const comfort = computed(() => housingStore.comfort)
 
 const jobLabel = computed(() => {
   const job = careerStore.currentJob
+
   if (!job || !job.id) return 'Безработный'
 
   const baseLabel = job.name
   const required = job.requiredHoursPerWeek
   const worked = job.workedHoursCurrentWeek
+
   if (required <= 0) return baseLabel
 
   const remaining = Math.max(0, required - worked)

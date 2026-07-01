@@ -18,7 +18,7 @@
       </template>
     </div>
 
-    <template v-if="state.buttons.length > 0" #actions>
+    <template v-if="state.buttons?.length" #actions>
       <GameButton
         v-for="(btn, index) in state.buttons"
         :key="index"
@@ -31,7 +31,10 @@
 </template>
 
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
 import { STAT_LABELS_RU, METRIC_LABELS } from '@/constants/metric-labels'
+import type { GameModalButton } from '@/composables/useGameModal'
+import type { ProcessedLine } from './GameModalHost.types'
 
 const { state, close } = useGameModal()
 
@@ -59,44 +62,47 @@ function handleButtonClick(btn: GameModalButton): void {
 /**
  * Разбор строки вида «Характеристика ±число» с многословными названиями.
  */
-const STAT_CHANGE_LINE_RE = /^([a-zA-Zа-яА-ЯёЁ\s]+?)\s*([+-]\d+(?:\.\d+)?)$/i
+const STAT_CHANGE_LINE_RE: RegExp = /^([a-zA-Zа-яА-ЯёЁ\s]+?)\s*([+-]\d+(?:\.\d+)?)$/i
 
 function getExplanation(statKey: string, finalValue: number): string {
-  const englishKey = RUSSIAN_TO_KEY[statKey.toLowerCase()] ?? statKey
+  const englishKey: string = RUSSIAN_TO_KEY[statKey.toLowerCase()] ?? statKey
 
-  const baseValue = state.value.baseStatValues?.[englishKey]
+  const baseValue: number | undefined = state.value.baseStatValues?.[englishKey]
 
   if (baseValue === undefined || baseValue === finalValue) {
     return ''
   }
 
-  const diff = finalValue - baseValue
-  const diffPercent = baseValue !== 0 ? Math.round((diff / Math.abs(baseValue)) * 100) : 0
+  const diff: number = finalValue - baseValue
+  const diffPercent: number = baseValue !== 0 ? Math.round((diff / Math.abs(baseValue)) * 100) : 0
+
   if (Math.abs(diffPercent) < 5) {
     return ''
   }
   return `относительно строки эффекта: ${diffPercent > 0 ? '+' : ''}${diffPercent}%`
 }
 
-const processedLines = computed((): Array<{ text: string; explanation?: string }> => {
-  const result: Array<{ text: string; explanation?: string }> = []
+const processedLines: ComputedRef<ProcessedLine[]> = computed((): ProcessedLine[] => {
+  const result: ProcessedLine[] = []
 
-  for (const line of state.value.lines) {
-    const parts = line.split('•')
+  for (const line of state.value.lines ?? []) {
+    const parts: string[] = line.split('•')
 
     if (parts.length > 1) {
       for (const part of parts) {
-        const trimmed = part.trim()
+        const trimmed: string = part.trim()
+
         if (!trimmed) continue
 
         if (/[a-zа-яё]+\s*[+-]\d+(\.\d+)?/i.test(trimmed)) {
-          const statChanges = trimmed.split(',').map(s => s.trim()).filter(Boolean)
+          const statChanges: string[] = trimmed.split(',').map((s: string) => s.trim()).filter(Boolean)
           for (const change of statChanges) {
-            const match = change.match(STAT_CHANGE_LINE_RE)
+            const match: RegExpMatchArray | null = change.match(STAT_CHANGE_LINE_RE)
+
             if (match) {
-              const statKey = match[1].trim().toLowerCase()
-              const finalValue = parseFloat(match[2])
-              const explanation = getExplanation(statKey, finalValue)
+              const statKey: string = (match[1] ?? '').trim().toLowerCase()
+              const finalValue: number = parseFloat(match[2] ?? '0')
+              const explanation: string = getExplanation(statKey, finalValue)
               result.push({ text: change, explanation })
             } else {
               result.push({ text: change })
@@ -107,16 +113,17 @@ const processedLines = computed((): Array<{ text: string; explanation?: string }
         }
       }
     } else {
-      const trimmed = line.trim()
+      const trimmed: string = line.trim()
 
       if (trimmed.includes(',') && /[a-zа-яё]+\s*[+-]\d+(\.\d+)?/i.test(trimmed)) {
-        const statChanges = trimmed.split(',').map(s => s.trim()).filter(Boolean)
+        const statChanges: string[] = trimmed.split(',').map((s: string) => s.trim()).filter(Boolean)
         for (const change of statChanges) {
-          const match = change.match(STAT_CHANGE_LINE_RE)
+          const match: RegExpMatchArray | null = change.match(STAT_CHANGE_LINE_RE)
+
           if (match) {
-            const statKey = match[1].trim().toLowerCase()
-            const finalValue = parseFloat(match[2])
-            const explanation = getExplanation(statKey, finalValue)
+            const statKey: string = (match[1] ?? '').trim().toLowerCase()
+            const finalValue: number = parseFloat(match[2] ?? '0')
+            const explanation: string = getExplanation(statKey, finalValue)
             result.push({ text: change, explanation })
           } else {
             result.push({ text: change })
@@ -128,7 +135,7 @@ const processedLines = computed((): Array<{ text: string; explanation?: string }
     }
   }
 
-  return result.length > 0 ? result : state.value.lines.map(line => ({ text: line, explanation: undefined }))
+  return result.length > 0 ? result : (state.value.lines ?? []).map((line: string): ProcessedLine => ({ text: line, explanation: undefined }))
 })
 </script>
 

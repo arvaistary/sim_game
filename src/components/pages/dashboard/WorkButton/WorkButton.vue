@@ -13,9 +13,13 @@ import WorkResultModal from '../WorkResultModal/WorkResultModal.vue'
 import type { WorkStatDefinition, WorkStatDiff, WorkSnapshot, WorkOptions, WorkStatSnapshot } from './WorkButton.types'
 
 const careerStore = useCareerStore()
+
 const statsStore = useStatsStore()
+
 const walletStore = useWalletStore()
+
 const gameStore = useGameStore()
+
 const { isTabVisible } = useAgeRestrictions()
 const gameModal = useGameModal()
 const isVisible = computed(() => isTabVisible('career'))
@@ -39,6 +43,7 @@ let workResultModalId: symbol | null = null
 
 const currentWork = computed<WorkSnapshot | null>(() => {
   const job = careerStore.currentJob
+
   if (!job || !job.id) return null
   return {
     id: job.id,
@@ -54,6 +59,7 @@ const currentWork = computed<WorkSnapshot | null>(() => {
 
 const workOptions = computed<WorkOptions | null>(() => {
   const work = currentWork.value
+
   if (!work || !work.employed) return null
 
   const dailyHours = resolveDailyHours(work)

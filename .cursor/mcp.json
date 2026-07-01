@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "context-engine": {
+      "command": "C:\\Users\\arvai\\.local\\bin\\cce.exe",
+      "args": [
+        "serve",
+        "--project-dir",
+        "E:\\project\\games\\game_life"
+      ]
+    }
+  }
+}

@@ -14,7 +14,7 @@
           autocomplete="name"
           placeholder="Введите имя…"
           @keyup.enter="startGame"
-        />
+        >
 
         <fieldset class="start-page__fieldset">
           <legend class="start-page__legend">Старт жизни</legend>
@@ -27,7 +27,7 @@
               type="radio"
               name="start-mode"
               value="infancy"
-            />
+            >
             <label class="start-page__radio-label" for="start-infancy">
               <span class="start-page__radio-title">👶 Начать с начала (с младенчества)</span>
               <span class="start-page__radio-desc">Пройдите весь путь с рождения — детство, школа, взросление</span>
@@ -42,7 +42,7 @@
               type="radio"
               name="start-mode"
               value="adult"
-            />
+            >
             <label class="start-page__radio-label" for="start-adult">
               <span class="start-page__radio-title">🧑 Начать с взрослой жизни</span>
               <span class="start-page__radio-desc">Начните с высшим образованием и готовностью к карьере</span>
@@ -59,7 +59,7 @@
               :min="adultAgeMin"
               :max="ageMax"
               step="1"
-            />
+            >
           </div>
         </fieldset>
 
@@ -72,26 +72,33 @@
 </template>
 
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
 import type { StartMode } from '@/types'
 
 const playerStore = usePlayerStore()
+
 const timeStore = useTimeStore()
+
 const statsStore = useStatsStore()
+
 const walletStore = useWalletStore()
+
 const skillsStore = useSkillsStore()
 
 const playerName = ref('')
 const startMode = ref<StartMode>('infancy')
 const adultAge = ref(18)
 
-const MIN_ADULT_AGE = 16
-const MAX_AGE = 18
+const adultAgeMin: number = 16
+const ageMax: number = 18
 
-const canStart = computed(() => {
+const canStart: ComputedRef<boolean> = computed(() => {
+
   if (!playerName.value.trim()) return false
+
   if (startMode.value === 'adult') {
-    const a = Number(adultAge.value)
-    return Number.isFinite(a) && a >= MIN_ADULT_AGE && a <= MAX_AGE
+    const a: number = Number(adultAge.value)
+    return Number.isFinite(a) && a >= adultAgeMin && a <= ageMax
   }
   return true
 })
@@ -99,7 +106,7 @@ const canStart = computed(() => {
 function startGame() {
   if (!canStart.value) return
 
-  const startAge = startMode.value === 'infancy' ? 0 : adultAge.value
+  const startAge: number = startMode.value === 'infancy' ? 0 : adultAge.value
 
   // Инициализируем все stores
   playerStore.setName(playerName.value)

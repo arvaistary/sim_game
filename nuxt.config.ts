@@ -15,6 +15,7 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@nuxtjs/color-mode',
+    '@nuxt/eslint',
   ],
 
   // Components auto-import: short names without directory prefixes

@@ -84,6 +84,7 @@ import { FOOD_ACTION_IDS, LEARNING_ACTION_IDS, THINGS_ACTION_IDS, HOME_ACTION_ID
 definePageMeta({ middleware: 'game-init' })
 
 const timeStore = useTimeStore()
+
 const walletStore = useWalletStore()
 
 const tabs = [

@@ -1,3 +1,4 @@
+import type { ComputedRef } from 'vue'
 import type { BalanceAction } from '@/domain/balance/actions/types'
 import {
   AgeGroup,
@@ -8,50 +9,52 @@ import {
 } from './age-constants'
 import type { AgeRestrictions } from './age-constants'
 
-export { AgeGroup, TAB_UNLOCK_AGE }
+export { AgeGroup, TAB_UNLOCK_AGE, getAgeGroup }
 export type { AgeRestrictions }
 
 let lastKnownAge: number = 0
-let unlockedTabsCache: Set<string> = new Set()
+const unlockedTabsCache: Set<string> = new Set()
 
+/**
+ * Composable для проверки возрастных ограничений.
+ * @description [Composable] - предоставляет вычисляемые ограничения, видимость вкладок/стат/действий по возрасту.
+ * @return { object } возрастные ограничения и методы проверки видимости
+ */
 export function useAgeRestrictions() {
   const timeStore = useTimeStore()
+
   const toast = useToast()
 
-  const age = computed(() => timeStore.currentAge)
+  const age: ComputedRef<number> = computed(() => timeStore.currentAge)
 
-  const ageGroup = computed<AgeGroup>(() => {
+  const ageGroup: ComputedRef<AgeGroup> = computed<AgeGroup>(() => {
     return getAgeGroup(age.value)
   })
 
-  const restrictions = computed<AgeRestrictions>(() => AGE_RULES[ageGroup.value])
+  const restrictions: ComputedRef<AgeRestrictions> = computed<AgeRestrictions>(() => AGE_RULES[ageGroup.value])
 
-  const availableTabs = computed(() => {
+  const availableTabs: ComputedRef<string[]> = computed(() => {
     return restrictions.value.hiddenTabs
   })
 
-  const hiddenStats = computed(() => {
-    return restrictions.value.hiddenStats
-  })
-
-  const ageGroupLabel = computed(() => restrictions.value.label)
-  const timeSpeedMultiplier = computed(() => restrictions.value.timeSpeed)
+  const ageGroupLabel: ComputedRef<string> = computed(() => restrictions.value.label)
+  const timeSpeedMultiplier: ComputedRef<number> = computed(() => restrictions.value.timeSpeed)
 
   function checkUnlocks(currentAge: number): void {
     if (currentAge <= lastKnownAge) return
 
-    const previousGroup = getAgeGroup(lastKnownAge)
-    const newGroup = getAgeGroup(currentAge)
+    const previousGroup: AgeGroup = getAgeGroup(lastKnownAge)
+    const newGroup: AgeGroup = getAgeGroup(currentAge)
 
     if (previousGroup === newGroup) {
       lastKnownAge = currentAge
       return
     }
 
-    const previousHidden = new Set(AGE_RULES[previousGroup].hiddenTabs)
-    const newHidden = new Set(AGE_RULES[newGroup].hiddenTabs)
+    const previousHidden: Set<string> = new Set(AGE_RULES[previousGroup].hiddenTabs)
+    const newHidden: Set<string> = new Set(AGE_RULES[newGroup].hiddenTabs)
 
-    const justUnlocked = [...previousHidden].filter(tab => !newHidden.has(tab))
+    const justUnlocked: string[] = [...previousHidden].filter(tab => !newHidden.has(tab))
 
     justUnlocked.forEach(tabId => {
       if (!unlockedTabsCache.has(tabId) && UNLOCK_MESSAGES[tabId]) {

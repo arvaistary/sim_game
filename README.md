@@ -1,70 +1,102 @@
 # Game Life
 
-Cozy turn-based life simulator on Phaser 3 with a warm minimal UI and a scene-based architecture.
+Уютный пошаговый симулятор жизни на Nuxt 4, Vue 3, Pinia и TypeScript.
 
-## 📚 Documentation
+## 📚 Документация
 
-For complete documentation, see the [`doc/`](doc/) folder:
+Полная документация находится в папке [`doc/`](doc/):
 
-- **📖 Quick Start** → [`doc/core/README.md`](doc/core/README.md)
-- **📊 Implementation Status** → [`doc/core/IMPLEMENTATION_STATUS.md`](doc/core/IMPLEMENTATION_STATUS.md)
-- **🛣️ Roadmap** → [`doc/core/ROADMAP.md`](doc/core/ROADMAP.md)
-- **🧠 MemPalace Setup** → [`doc/core/MEMPALACE_SETUP.md`](doc/core/MEMPALACE_SETUP.md)
-- **🎮 Game Design** → [`doc/GDD/GDD.md`](doc/GDD/GDD.md)
-- **⚙️ ECS Architecture** → [`doc/ecs/ECS_ARCHITECTURE.md`](doc/ecs/ECS_ARCHITECTURE.md)
+- **📖 Быстрый старт** → [`doc/README.md`](doc/README.md)
+- **🧠 Обзор архитектуры** → [`doc/core/ARCHITECTURE_OVERVIEW.md`](doc/core/ARCHITECTURE_OVERVIEW.md)
+- **📊 Статус реализации** → [`doc/core/IMPLEMENTATION_STATUS.md`](doc/core/IMPLEMENTATION_STATUS.md)
+- **🛣️ План разработки** → [`doc/core/ROADMAP.md`](doc/core/ROADMAP.md)
+- **🎮 Геймдизайн** → [`doc/gdd/GDD.md`](doc/gdd/GDD.md)
+- **⚙️ Архитектурные решения** → [`doc/adr/`](doc/adr/)
+- **🧩 Spec-kit workflow** → [`doc/spec-kit/README.md`](doc/spec-kit/README.md)
 
-## Tech Stack
+## Технологический стек
 
-- `Phaser 3.80+`
-- `Vite`
-- `localStorage` for save persistence
-- Pure Phaser `GameObjects` for UI, no DOM overlays
+- `Nuxt 4` с Vue 3
+- `Pinia` для управления состоянием
+- `TypeScript` (строгий режим)
+- `Vitest` для тестирования
+- `SCSS` для стилизации
+- `LocalStorage` для сохранения прогресса
 
-## Run
+## Запуск
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Current Project Structure
+## Текущая структура проекта
 
-- `src/bootstrap.js` — entry point: Phaser game config, scene list, dev hook.
-- `src/game-state.js` — save schema, constants, helpers shared with UI.
-- `src/ui-kit.js` — shared panels, buttons, modals, toast, palette, text styles.
-- `src/style.css` — fullscreen shell for the canvas.
-- `src/scenes/` — Phaser scenes (see `doc/core/SCENES_REFERENCE.md`).
-- `src/ecs/` — ECS world, components, systems, adapters.
-- `src/balance/` — tunable game data: jobs, housing, demo save, skill UI defs, education programs, default monthly expenses (`index.js` re-exports).
-- `doc/` — documentation: **core/**, **GDD/**, **ecs/**.
+```
+src/
+├── domain/              # Бизнес-логика и баланс игры
+│   └── balance/         # Действия, константы, типы, утилиты
+├── application/         # Команды и запросы (порты)
+├── stores/              # Pinia stores (управление состоянием)
+├── composables/         # Vue composables (переиспользуемая логика)
+├── components/          # UI-компоненты
+│   ├── global/          # Глобальные компоненты (GameNav, Toast)
+│   ├── game/            # Игровые компоненты
+│   ├── ui/              # Переиспользуемые UI-компоненты
+│   ├── layout/          # Layout-компоненты
+│   └── pages/           # Странице-специфичные компоненты
+├── pages/               # Nuxt pages (маршрутизация)
+├── infrastructure/      # Адаптеры, persistence
+├── utils/               # Утилиты (форматтеры, хелперы)
+├── constants/           # Константы, метки, навигация
+└── assets/              # SCSS, изображения
+```
 
-## Implemented Scenes (see `src/scenes/`)
+## Реализованные страницы (см. `src/pages/game/`)
 
-- **StartScene** — character creation.
-- **SchoolIntroScene** / **InstituteIntroScene** — intro mini-games.
-- **MainGameScene** (`MainGameSceneECS.js`) — HUD, bottom navigation.
-- **HomeScene**, **ShopScene**, **FunScene**, **SocialScene** — recovery actions per category (shared core; scrollable cards).
-- **RecoveryScene** — optional multi-tab recovery via `initialTab`.
-- **CareerScene** — jobs, income, requirements.
-- **FinanceScene** — overview, expenses, actions, investments (scrollable block).
-- **EducationScene** — programs and active courses (scrollable programs block).
-- **EventQueueScene** — event queue and choices.
-- **SkillsScene** — skills screen.
+- **Dashboard** — обзор персонажа, статы, журнал активности, выбор работы
+- **Дом** — действия восстановления (здоровье, развлечения, соц. жизнь, саморазвитие, хобби)
+- **Действия** — интегрированная система восстановления с табами
+- **Работа** — вакансии, карьера, доход, рабочие смены
+- **Финансы** — обзор баланса, расходы, финансовые действия
+- **Образование** — программы, курсы, образовательные пути
+- **Навыки** — обзор и прогрессия навыков
+- **События** — случайные события и выбор
+- **Магазин** — покупки и улучшения жилья
 
-## Current Gameplay Systems
+## Текущие игровые системы
 
-- Work phase and recovery integrated with ECS (`SceneAdapter`, relevant systems).
-- Recovery, career, finance, education, events — see `doc/core/IMPLEMENTATION_STATUS.md`.
-- Autosave after meaningful state changes (`PersistenceSystem`).
+- Доменный слой с данными баланса и бизнес-логикой
+- Прикладной слой с командами и запросами
+- Управление состоянием через Pinia stores
+- Реактивные composables для логики UI
+- Автосохранение после значимых изменений состояния (LocalStorage)
 
-## UI Principles
+## Архитектура
 
-- Fullscreen responsive canvas (`Phaser.Scale.RESIZE`).
-- Palette and components from `ui-kit.js` and `doc/visual.txt`.
-- Long lists: container + mask + scroll (wheel / touch) where implemented.
+Проект следует слоистой архитектуре:
 
-## Notes For Further Development
+```
+utils/constants → domain → application → infrastructure → stores/composables → components → pages
+```
 
-- Prefer **ECS systems** for new stateful logic; put numbers and static tables in **`src/balance/`**; `game-state.js` for save merge defaults and legacy helpers.
-- New UI: extend `ui-kit.js`, follow patterns in `doc/core/SCENES_REFERENCE.md`.
-- ECS docs: `doc/ecs/`.
+Направление импортов следует цепочке зависимостей — верхние слои могут импортировать из нижних, но не наоборот.
+
+См. [`doc/core/ARCHITECTURE_OVERVIEW.md`](doc/core/ARCHITECTURE_OVERVIEW.md) для подробной документации по архитектуре.
+
+## Руководства по разработке
+
+- Игровые числа и статические таблицы размещайте в **`src/domain/balance/`**
+- Используйте **Pinia stores** для управления состоянием (см. `src/stores/`)
+- Создавайте **Vue composables** для переиспользуемой логики UI (см. `src/composables/`)
+- Следуйте конвенциям компонентов: префикс `Ui*` для `src/components/ui/`
+- Используйте комментарии **TSDoc** для экспортируемых функций
+- См. [`.cursor/rules/`](.cursor/rules/) для стандартов кода
+
+## Ссылки на документацию
+
+- Архитектура: [`doc/core/ARCHITECTURE_OVERVIEW.md`](doc/core/ARCHITECTURE_OVERVIEW.md)
+- Статус реализации: [`doc/core/IMPLEMENTATION_STATUS.md`](doc/core/IMPLEMENTATION_STATUS.md)
+- Справочник страниц: [`doc/core/PAGES_REFERENCE.md`](doc/core/PAGES_REFERENCE.md)
+- Справочник composables: [`doc/reference/COMPOSABLES_REFERENCE.md`](doc/reference/COMPOSABLES_REFERENCE.md)
+- Справочник stores: [`doc/reference/STORES_REFERENCE.md`](doc/reference/STORES_REFERENCE.md)

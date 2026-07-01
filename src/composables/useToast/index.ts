@@ -1,19 +1,15 @@
+import type { Ref } from 'vue'
+import type { ToastItem } from './useToast.types'
 
+export type { ToastItem } from './useToast.types'
 
-export interface ToastItem {
-  id: number
-  message: string
-  type: 'success' | 'error' | 'warning' | 'info'
-  visible: boolean
-}
+const toasts: Ref<ToastItem[]> = ref<ToastItem[]>([])
+let nextId: number = 0
 
-const toasts = ref<ToastItem[]>([])
-let nextId = 0
+const DEFAULT_TIMEOUT: number = 3000
 
-const DEFAULT_TIMEOUT = 3000
-
-function addToast(message: string, type: ToastItem['type'], timeout = DEFAULT_TIMEOUT): void {
-  const id = nextId++
+function addToast(message: string, type: ToastItem['type'], timeout: number = DEFAULT_TIMEOUT): void {
+  const id: number = nextId++
   const toast: ToastItem = { id, message, type, visible: true }
   toasts.value.push(toast)
 
@@ -21,15 +17,23 @@ function addToast(message: string, type: ToastItem['type'], timeout = DEFAULT_TI
 }
 
 function dismiss(id: number): void {
-  const idx = toasts.value.findIndex((t) => t.id === id)
+  const idx: number = toasts.value.findIndex((t: ToastItem) => t.id === id)
+
   if (idx !== -1) {
-    toasts.value[idx].visible = false
+    toasts.value[idx]!.visible = false
     setTimeout(() => {
-      toasts.value = toasts.value.filter((t) => t.id !== id)
+      toasts.value = toasts.value.filter(
+        (t: ToastItem) => t.id !== id
+      )
     }, 300)
   }
 }
 
+/**
+ * Composable для отображения toast-уведомлений.
+ * @description [Composable] - предоставляет методы showSuccess/showError/showWarning/showInfo для всплывающих уведомлений.
+ * @return { object } список тостов и методы показа и скрытия
+ */
 export function useToast() {
   function showSuccess(message: string): void {
     addToast(message, 'success')
@@ -56,4 +60,3 @@ export function useToast() {
     dismiss,
   }
 }
-

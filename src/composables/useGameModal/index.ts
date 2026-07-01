@@ -1,50 +1,22 @@
-import type { StatChangeBreakdownEntry } from '@/domain/balance/types'
+import type { Ref } from 'vue'
 import { buildActionResultStatLines, type ActionResultStatLine } from '@/utils/stat-breakdown-format'
 import { useModalStack } from '../useModalStack'
-import type { BaseModalProps, OpenModalOptions } from './modal.types'
+import type {
+  GameModalButton,
+  GameModalOptions,
+  GameModalState,
+  OpenModalOptions,
+  ShowGameResultModalExtra,
+} from './modal.types'
 
-/**
- * Описание кнопки в модальном окне.
- * Если указан `route` — при клике выполняется навигация.
- * Если указан `action` — вызывается произвольный колбэк.
- */
-export interface GameModalButton {
-  label: string
-  /** Путь для навигации (например, '/game/career') */
-  route?: string
-  action?: () => void
-  accent?: boolean
-}
-
-/**
- * Конфигурация модального окна, открываемого через useGameModal().
- */
-export interface GameModalOptions {
-  /** Заголовок модального окна */
-  title: string
-  /** Текст сообщения (поддерживает HTML-разметку не будет, только текст) */
-  message?: string
-  /** Массив строк-абзацев — каждый отрендерится отдельным <p> */
-  lines?: string[]
-  /** Базовые значения характеристик (до применения модификаторов) — устаревший путь без statBreakdown */
-  baseStatValues?: Record<string, number>
-  /** Строка над ними: время, деньги */
-  actionResultMeta?: string
-  /** Результат действия с разбором формулы (вместо парсинга lines) */
-  actionResultLines?: ActionResultStatLine[]
-  /** Кнопки действий */
-  buttons?: GameModalButton[]
-}
-
-interface GameModalState extends GameModalOptions {
-  isOpen: boolean
-  baseStatValues: Record<string, number>
-  actionResultMeta: string
-  actionResultLines: ActionResultStatLine[]
-}
+export type {
+  GameModalButton,
+  GameModalOptions,
+  ShowGameResultModalExtra,
+} from './modal.types'
 
 // Сохраняем state для обратной совместимости с GameModalHost
-const state = ref<GameModalState>({
+const state: Ref<GameModalState> = ref<GameModalState>({
   isOpen: false,
   title: '',
   message: '',
@@ -57,6 +29,8 @@ const state = ref<GameModalState>({
 
 /**
  * Единая система модальных окон (state-based).
+ * @description [Composable] - предоставляет методы show/close для управления состоянием модального окна.
+ * @return { object } реактивное состояние и методы show/close
  *
  * @example
  * ```ts
@@ -107,6 +81,9 @@ export function useGameModal() {
  *
  * Автоматически добавляет проп `onClose` в переданные props, если он указан в options.
  *
+ * @description [Composable] - открывает компонент в стеке модалок с поддержкой двух форматов вызова.
+ * @return { symbol } уникальный ID модального окна
+ *
  * @example
  * ```ts
  * import { openModal } from '@/composables/useGameModal'
@@ -128,45 +105,45 @@ export function useGameModal() {
  * })
  * ```
  */
-export function openModal<T extends BaseModalProps = BaseModalProps>(
+export function openModal(
   component: Component,
-  options?: OpenModalOptions | Record<string, any>
+  options?: OpenModalOptions | Record<string, unknown>
 ): symbol {
   const modalStack = useModalStack()
-  
+
   // Поддержка обоих форматов вызова:
   // 1. openModal(Component, { props: {...}, onClose: ... })
   // 2. openModal(Component, { title: '...', onClose: ... })
-  
-  let props: Record<string, any> = {}
+
+  let props: Record<string, unknown> = {}
   let onClose: (() => void) | undefined
-  
+
   if (options) {
     if ('props' in options && typeof options.props === 'object') {
-      // Формат с options
       props = { ...options.props }
-      onClose = options.onClose
+      onClose = options.onClose as (() => void) | undefined
     } else {
-      // Прямой формат - всё в props
       props = { ...options }
-      // Извлекаем onClose из props, если он там есть
+
       if ('onClose' in props && typeof props.onClose === 'function') {
         onClose = props.onClose as () => void
         delete props.onClose
       }
     }
   }
-  
+
   // Добавляем onClose в props, если он указан
   if (onClose) {
     props.onClose = onClose
   }
-  
+
   return modalStack.open(component, props)
 }
 
 /**
  * Закрыть модальное окно по ID.
+ * @description [Composable] - закрывает конкретное модальное окно в стеке по его символическому ID.
+ * @return { void }
  */
 export function closeModal(id: symbol): void {
   const modalStack = useModalStack()
@@ -175,6 +152,8 @@ export function closeModal(id: symbol): void {
 
 /**
  * Закрыть все модальные окна в стеке.
+ * @description [Composable] - очищает весь стек модальных окон.
+ * @return { void }
  */
 export function closeAllModals(): void {
   const modalStack = useModalStack()
@@ -184,11 +163,13 @@ export function closeAllModals(): void {
 const defaultOkButton: GameModalButton = { label: 'Понятно', accent: true }
 
 /**
- * Парсит строку эффекта и извлекает базовые значения характеристик
- * Формат: "Энергия +32, Настроение +6, Стресс -9"
+ * Парсит строку эффекта и извлекает базовые значения характеристик.
+ * @description [Composable] - разбирает формат «Энергия +32, Настроение +6» в Record<string, number>.
+ * @return { Record<string, number> } мапа ключ→значение характеристики
  */
 function parseBaseStatValues(effectText: string): Record<string, number> {
   const result: Record<string, number> = {}
+
   if (!effectText) return result
 
   const reverseMap: Record<string, string> = {
@@ -201,40 +182,37 @@ function parseBaseStatValues(effectText: string): Record<string, number> {
     'Физическая форма': 'physical',
   }
 
-  const pattern = /([\wа-яё\s]+?)\s*([+-]\d+(?:\.\d+)?)/gi
-  let match
+  const pattern: RegExp = /([\wа-яё\s]+?)\s*([+-]\d+(?:\.\d+)?)/gi
+  let match: RegExpExecArray | null
 
   while ((match = pattern.exec(effectText)) !== null) {
-    const [, nameRaw, valueRaw] = match
-    const name = nameRaw.trim()
-    const value = parseFloat(valueRaw)
+    const [, nameRaw, valueRaw]: RegExpExecArray = match
+    const name: string = (nameRaw ?? '').trim()
+    const value: number = parseFloat(valueRaw ?? '0')
 
-    const key = reverseMap[name] ?? name.toLowerCase()
+    const key: string = reverseMap[name] ?? name.toLowerCase()
     result[key] = value
   }
 
   return result
 }
 
-export interface ShowGameResultModalExtra {
-  /** Для вызовов без statBreakdown (финансы, обучение): парсинг «базы» из строки эффекта */
-  baseEffect?: string
-  /** Разбор из движка — приоритетнее baseEffect */
-  statBreakdown?: StatChangeBreakdownEntry[]
-  hourCost?: number
-  price?: number
-}
-
 /**
  * Модальное окно с результатом действия или покупки (единый формат для игры).
+ * @description [Composable] - показывает модалку с результатом: statBreakdown или парсинг baseEffect.
+ * @return { void }
  */
 export function showGameResultModal(title: string, detail: string, extra?: ShowGameResultModalExtra): void {
   const { show } = useGameModal()
-  const lines = detail.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
+  const lines: string[] = detail
+    .split(/\r?\n/)
+    .map((s: string) => s.trim())
+    .filter(Boolean)
 
   if (extra?.statBreakdown && extra.statBreakdown.length > 0) {
-    const actionResultLines = buildActionResultStatLines(extra.statBreakdown)
+    const actionResultLines: ActionResultStatLine[] = buildActionResultStatLines(extra.statBreakdown)
     const metaParts: string[] = []
+
     if (extra.hourCost) metaParts.push(`время ${extra.hourCost}ч`)
     if (extra.price) metaParts.push(`деньги -${extra.price}`)
     show({
@@ -249,7 +227,7 @@ export function showGameResultModal(title: string, detail: string, extra?: ShowG
     return
   }
 
-  const baseStatValues = extra?.baseEffect ? parseBaseStatValues(extra.baseEffect) : {}
+  const baseStatValues: Record<string, number> = extra?.baseEffect ? parseBaseStatValues(extra.baseEffect) : {}
   show({
     title,
     lines: lines.length > 0 ? lines : ['Готово.'],

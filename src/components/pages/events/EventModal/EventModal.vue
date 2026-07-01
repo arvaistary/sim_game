@@ -27,28 +27,30 @@
 </template>
 
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
 import EventCard from '../EventCard/EventCard.vue'
 import EventChoices from '../EventChoices/EventChoices.vue'
 import EventResult from '../EventResult/EventResult.vue'
+import type { EventChoice, GameEvent } from '@/stores/events-store'
+import type { EventModalEmits } from './EventModal.types'
 
-const emit = defineEmits<{
-  close: []
-}>()
+const emit = defineEmits<EventModalEmits>()
 
 const events = useEvents()
 const toast = useToast()
 
 const resultText = ref('')
 
-const currentEvent = computed(() => events.currentEvent.value)
-const hasNextEvent = computed(() => events.hasNextEvent.value)
+const currentEvent: ComputedRef<GameEvent | null> = computed(() => events.currentEvent.value)
+const hasNextEvent: ComputedRef<boolean> = computed(() => events.hasNextEvent.value)
 
 onMounted(() => {
   events.loadNextEvent()
 })
 
-function selectChoice(choice: { id: string; text: string }) {
-  const ok = events.applyChoice(choice.id)
+function selectChoice(choice: EventChoice) {
+  const ok: boolean = events.applyChoice(choice.id)
+
   if (!ok) {
     toast.showError('Не удалось применить выбор')
     return
@@ -59,7 +61,9 @@ function selectChoice(choice: { id: string; text: string }) {
 
 function proceedNext() {
   resultText.value = ''
-  const next = events.loadNextEvent()
+
+  const next: GameEvent | null = events.loadNextEvent()
+
   if (!next) {
     toast.showInfo('Больше нет событий')
     handleClose()

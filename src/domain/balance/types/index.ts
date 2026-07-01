@@ -6,6 +6,11 @@ import type { AgeGroup } from '../actions/types'
 
 export type StatKey = 'hunger' | 'energy' | 'stress' | 'mood' | 'health' | 'physical'
 
+export interface AgeRange {
+  min: number
+  max: number
+}
+
 export interface StatDef {
   key: StatKey
   label: string
@@ -56,6 +61,20 @@ export interface CareerJob {
   minEducationRank: number
   minAge: number
   description: string
+}
+
+export interface CareerTrackJobItem {
+  id: string
+  name: string
+  level: number
+  schedule: string
+  salaryPerHour: number
+  description: string
+  current: boolean
+  unlocked: boolean
+  missingProfessionalism: number
+  educationRequiredLabel: string
+  effectiveSalaryPerHour: number
 }
 
 export interface HousingLevel {

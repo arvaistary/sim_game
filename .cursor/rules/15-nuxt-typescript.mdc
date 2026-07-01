@@ -1,0 +1,57 @@
+---
+description: Nuxt, tsconfig и typecheck — tsconfig, auto-import, indexed access, enum, game store, CI
+globs: src/**/*.{ts,vue},tsconfig.json,package.json
+alwaysApply: true
+---
+
+# Nuxt и TypeScript
+
+Правила из практики typecheck после рефакторинга. Цель — не ломать резолвинг `.nuxt/imports.d.ts` и не полагаться на auto-import там, где Nuxt его не даёт.
+
+## 1. tsconfig.json — не переопределять Nuxt-конфигурацию
+
+Корневая причина массовых ошибок typecheck — корневой `tsconfig.json`, который переопределял `types` и `include`, ломая резолвинг `.nuxt/imports.d.ts`.
+
+**Правило:** при `extends: "./.nuxt/tsconfig.json"` добавляй только то, что реально нужно переопределить (например, `strictNullChecks`). Не трогай `types`, `include`, `exclude`.
+
+```json
+{
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
+```
+
+## 2. Предотвращение TS2304 (Cannot find name)
+
+Символы из `src/stores/` и `src/composables/*/index.ts` auto-importятся Nuxt. Но **типы**, **интерфейсы**, **константы** и **helper-функции** внутри этих файлов — нет: Nuxt сканирует экспорты composables/stores, но не все named exports.
+
+**Правило:** если символ — тип (`interface`, `type`), константа (`const`) или helper-функция, используемая в `.vue`-компонентах, добавляй **явный импорт**. Не полагайся на auto-import для не-composable/store символов.
+
+## 3. noUncheckedIndexedAccess — массивы и Record
+
+В `.nuxt/tsconfig.json` включён `noUncheckedIndexedAccess: true`. Это значит:
+
+- `arr[0]` → `T | undefined`
+- `record[key]` → `T | undefined`
+
+**Правило:** для захардкоженных индексов используй non-null assertion (`arr[0]!`) или значение по умолчанию (`?? defaultValue`). Не оставляй незащищённый доступ к индексу, если дальше ожидается `T`.
+
+## 4. Enum как тип в generic-параметрах
+
+`AgeGroup` и другие enum'ы: TypeScript строго относится к использованию enum-значений как типов. `Record<AgeGroup, string>` работает, но если enum auto-imported через Nuxt, `vue-tsc` может не видеть его как тип.
+
+**Правило:** для enum'ов, используемых **как типы** в дженериках (`Record<AgeGroup, …>`, `Map<AgeGroup, …>` и т.п.), добавляй явный импорт: `import { AgeGroup } from '...'`.
+
+## 5. Facade-методы в game store при расширении фич
+
+Компоненты (например, образование) вызывали методы (`advanceEducation`, `startEducationProgram`), которых не было в game store — фича разрабатывалась в отрыве от store.
+
+**Правило:** при добавлении новой страницы/компонента сначала проверь, какие store-методы она вызывает, и убедись, что они реализованы в `game.store` (или в целевом store). Запускай `npm run typecheck` (или CI typecheck) для раннего обнаружения отсутствующих методов.
+
+## 6. nuxt prepare в CI
+
+Предупреждение о duplicate import `useGameStore` возникает, когда store экспортируется из двух мест (`game.store.ts` и `stores/index.ts`). Nuxt резолвит это, но предупреждение засоряет вывод.
+
+**Правило:** в CI перед typecheck запускай `nuxt prepare` — так актуализируется `.nuxt/imports.d.ts`. Порядок: `nuxt prepare` → `nuxt typecheck` (или `npm run typecheck`, если скрипт уже включает prepare).

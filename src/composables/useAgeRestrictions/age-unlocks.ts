@@ -5,12 +5,12 @@
  * Импортирует константы из age-constants.ts - единый источник истины.
  */
 import {
-  AgeGroup,
   AGE_RULES,
   UNLOCK_MESSAGES,
   getAgeGroup,
 } from './age-constants'
-import type { AgeRestrictions } from './age-constants'
+import type { AgeRestrictions ,
+  AgeGroup} from './age-constants'
 
 // Используем AgeGroup enum вместо числовых литералов
 const RULES = AGE_RULES as Record<AgeGroup, AgeRestrictions>

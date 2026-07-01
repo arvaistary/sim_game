@@ -3,25 +3,9 @@
  * Позволяют поэтапно включать новые функциональности
  */
 
-export interface ActionsFeatureFlags {
-  // Schema validation V2 - валидация action schema (zod)
-  schemaV2: boolean
-  
-  // Engine reasons V2 - machine-readable reason codes для отказов
-  engineReasonsV2: boolean
-  
-  // Finance unified V2 - единый контур для finance действий
-  financeUnifiedV2: boolean
-  
-  // EventIngress integration - публикация событий через EventIngress
-  eventIngressIntegration: boolean
-  
-  // Needs validation - проверка needs/энергии в доступности
-  needsValidation: boolean
-  
-  // Anti-grind - защита от спама действий
-  antiGrind: boolean
-}
+import type { ActionsFeatureFlags, FeatureFlagStatusEntry } from './actions-feature-flags.types'
+
+export type { ActionsFeatureFlags, FeatureFlagStatusEntry } from './actions-feature-flags.types'
 
 /**
  * Конфигурация feature flags по умолчанию
@@ -43,19 +27,22 @@ export const DEFAULT_ACTIONS_FEATURE_FLAGS: ActionsFeatureFlags = {
 let currentFlags: ActionsFeatureFlags = { ...DEFAULT_ACTIONS_FEATURE_FLAGS }
 
 /**
- * Получить текущие feature flags
+ * Получить текущие feature flags.
+ * @description [Config] - возвращает копию текущей конфигурации feature flags для actions-системы.
+ * @return { ActionsFeatureFlags } копия текущих флагов
  */
 export function getActionsFeatureFlags(): ActionsFeatureFlags {
   return { ...currentFlags }
 }
 
 /**
- * Установить feature flags
+ * Установить feature flags.
+ * @description [Config] - обновляет указанные флаги и сохраняет результат в localStorage.
+ * @return { void }
  */
 export function setActionsFeatureFlags(flags: Partial<ActionsFeatureFlags>): void {
   currentFlags = { ...currentFlags, ...flags }
-  
-  // Сохраняем в localStorage для персистентности
+
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
       localStorage.setItem('actionsFeatureFlags', JSON.stringify(currentFlags))
@@ -66,14 +53,18 @@ export function setActionsFeatureFlags(flags: Partial<ActionsFeatureFlags>): voi
 }
 
 /**
- * Загрузить feature flags из localStorage
+ * Загрузить feature flags из localStorage.
+ * @description [Config] - читает сохранённые флаги из localStorage и обновляет текущую конфигурацию.
+ * @return { void }
  */
 export function loadActionsFeatureFlags(): void {
+
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
-      const saved = localStorage.getItem('actionsFeatureFlags')
+      const saved: string | null = localStorage.getItem('actionsFeatureFlags')
+
       if (saved) {
-        const parsed = JSON.parse(saved) as Partial<ActionsFeatureFlags>
+        const parsed: Partial<ActionsFeatureFlags> = JSON.parse(saved) as Partial<ActionsFeatureFlags>
         currentFlags = { ...DEFAULT_ACTIONS_FEATURE_FLAGS, ...parsed }
       }
     } catch (e) {
@@ -83,10 +74,13 @@ export function loadActionsFeatureFlags(): void {
 }
 
 /**
- * Сбросить feature flags к значениям по умолчанию
+ * Сбросить feature flags к значениям по умолчанию.
+ * @description [Config] - сбрасывает все флаги к DEFAULT_ACTIONS_FEATURE_FLAGS и удаляет запись из localStorage.
+ * @return { void }
  */
 export function resetActionsFeatureFlags(): void {
   currentFlags = { ...DEFAULT_ACTIONS_FEATURE_FLAGS }
+
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
       localStorage.removeItem('actionsFeatureFlags')
@@ -97,25 +91,25 @@ export function resetActionsFeatureFlags(): void {
 }
 
 /**
- * Проверить, включён ли конкретный флаг
+ * Проверить, включён ли конкретный флаг.
+ * @description [Config] - проверяет, что указанный флаг установлен в true.
+ * @return { boolean } true если флаг включён
  */
 export function isActionsFeatureEnabled(flag: keyof ActionsFeatureFlags): boolean {
   return currentFlags[flag] === true
 }
 
 /**
- * Получить статус всех feature flags для отображения в UI
+ * Получить статус всех feature flags для отображения в UI.
+ * @description [Config] - формирует массив объектов с ключом, статусом и описанием каждого флага.
+ * @return { FeatureFlagStatusEntry[] } массив статусов флагов
  */
-export function getActionsFeatureFlagsStatus(): Array<{
-  key: keyof ActionsFeatureFlags
-  enabled: boolean
-  description: string
-}> {
+export function getActionsFeatureFlagsStatus(): FeatureFlagStatusEntry[] {
   return [
     {
       key: 'schemaV2',
       enabled: currentFlags.schemaV2,
-      description: 'Валидация action schema (zod)',
+      description: 'Валидация action schema',
     },
     {
       key: 'engineReasonsV2',

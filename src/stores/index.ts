@@ -10,4 +10,3 @@ export { useHousingStore, HOUSING_LEVELS, FURNITURE_CATALOG } from './housing-st
 export { useFinanceStore, DEFAULT_EXPENSES } from './finance-store'
 export { useActivityStore, ACTIVITY_TYPES } from './activity-store'
 export { usePlayerStore } from './player-store'
-export { useGameStore } from './game.store'

@@ -632,7 +632,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
   }
 
   // Function params inline small arity
-  const multilineSmallArityFunctionPattern = /(export\s+)?(?:async\s+)?function\s+[A-Za-z_$][\w$]*\s*\(([\s\S]*?)\)\s*(?::\s*[\s\S]*?)?\s*\{/g;
+  const multilineSmallArityFunctionPattern = /(export\s+)?(?:async\s+)?function\s+[A-Za-z_$][\w$]*\s*\(([\s\S]*?)\)\s*(?::\s*[^\n{]*?)?\s*\{/g;
   for (const functionMatch of content.matchAll(multilineSmallArityFunctionPattern)) {
     const [, , paramsTextRaw] = functionMatch;
     const paramsText = paramsTextRaw ?? '';
@@ -642,6 +642,15 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
 
     const paramsCount = countTopLevelFunctionParams(paramsText.trim());
     if (paramsCount === 0 || paramsCount > 2) {
+      continue;
+    }
+
+    // Skip if params have type annotations (multiline is justified for readability)
+    const paramLines = paramsText.split('\n').map((p) => p.trim()).filter(Boolean);
+    const allParamsHaveTypes = paramLines.length > 0 && paramLines.every(
+      (param) => /^\w+\s*\??\s*:/.test(param),
+    );
+    if (allParamsHaveTypes) {
       continue;
     }
 
@@ -655,9 +664,9 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
   }
 
   const multilineSmallArityArrowPattern =
-    /(export\s+)?(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*(?::\s*[\s\S]*?)?=\s*(?:async\s*)?\(([\s\S]*?)\)\s*(?::\s*[\s\S]*?)?\s*=>/g;
+    /(?:export\s+)?(?:const|let|var)\s+(?!\[)[A-Za-z_$][\w$]*\s*=\s*(?:async\s*)?\(([^)]*?)\)\s*=>/g;
   for (const arrowMatch of content.matchAll(multilineSmallArityArrowPattern)) {
-    const [, , paramsTextRaw] = arrowMatch;
+    const [, paramsTextRaw] = arrowMatch;
     const paramsText = paramsTextRaw ?? '';
     if (!paramsText.includes('\n')) {
       continue;
@@ -744,15 +753,31 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
       );
     }
 
-    // Проверяем v-for без :key
+    // Проверяем v-for без :key — проверяем текущую и следующие 2 строки
     if (/v-for\s*=/.test(trimmedLine) && !/:key\s*=/.test(trimmedLine)) {
-      pushFinding(
-        'style/v-for-requires-key',
-        filePath,
-        `Line ${index + 1}: v-for must have :key binding`,
-      );
+      const nextLine1 = lines[index + 1]?.trim() ?? '';
+      const nextLine2 = lines[index + 2]?.trim() ?? '';
+      if (!/:key\s*=/.test(nextLine1) && !/:key\s*=/.test(nextLine2)) {
+        pushFinding(
+          'style/v-for-requires-key',
+          filePath,
+          `Line ${index + 1}: v-for must have :key binding`,
+        );
+      }
     }
   }
+
+    // Проверяем наличие блока <style> — стили должны импортироваться в <script setup>
+    // Исключаем случай с внешними стилями: <style src="...">
+    const styleBlockPattern = /<style\b[^>]*>/;
+    const externalStylePattern = /<style\b[^>]*\bsrc\s*=/;
+    if (styleBlockPattern.test(content) && !externalStylePattern.test(content)) {
+      pushFinding(
+        'style/no-style-block-in-vue',
+        filePath,
+        `<style> block in .vue file is not allowed — move styles to .scss file and import in <script setup>: import './ComponentName.scss'`,
+      );
+    }
 
   runVueScriptBlockOrderHeuristics({ filePath, lines });
   runPiniaStoreGroupSeparationHeuristics({ filePath, lines });
@@ -1057,6 +1082,15 @@ function runRuleHeuristics() {
             return;
           }
           if (isFunctionAssignment && hasInlineFunctionAnnotation) {
+            return;
+          }
+          // Skip composable/store calls (useXxxStore, useXxx) — exceptions per project rules
+          if (isHookCallInitializer) {
+            return;
+          }
+          // Skip simple scalar refs: ref(''), ref(0), ref(false), ref(null)
+          const isScalarRefInitializer = /=\s*ref\s*\(\s*['"\d\s\w]*\s*\)/.test(trimmedLine);
+          if (isScalarRefInitializer) {
             return;
           }
 

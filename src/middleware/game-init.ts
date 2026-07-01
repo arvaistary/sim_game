@@ -9,15 +9,25 @@ export default defineNuxtRouteMiddleware((to) => {
   }
 
   const playerStore = usePlayerStore()
+
   const timeStore = useTimeStore()
+
   const statsStore = useStatsStore()
+
   const walletStore = useWalletStore()
+
   const skillsStore = useSkillsStore()
+
   const careerStore = useCareerStore()
+
   const educationStore = useEducationStore()
+
   const housingStore = useHousingStore()
+
   const activityStore = useActivityStore()
+
   const gameStore = useGameStore()
+
   const { $autoSave } = useNuxtApp()
 
   if (!playerStore.isInitialized) {

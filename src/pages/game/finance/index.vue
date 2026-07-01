@@ -20,6 +20,7 @@
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()
+
 const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 const actions = getActionsByCategory('finance')
 

@@ -21,7 +21,9 @@ import type { BalanceAction } from '@/domain/balance/actions'
 definePageMeta({ middleware: 'game-init' })
 
 const timeStore = useTimeStore()
+
 const walletStore = useWalletStore()
+
 const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 
 const actions = getActionsByCategory('home' as any)

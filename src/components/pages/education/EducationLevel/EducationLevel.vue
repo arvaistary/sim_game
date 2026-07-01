@@ -47,7 +47,7 @@
                   class="progress-fill"
                   :class="efficiencyClass"
                   :style="{ width: `${overallProgress}%` }"
-                ></div>
+                />
               </div>
               <div v-if="currentStep" class="progress-details">
                 <span class="progress-text">Прогресс: {{ overallProgress.toFixed(1) }}%</span>
@@ -172,107 +172,130 @@
 </template>
 
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
 import Tooltip from '@/components/ui/Tooltip/index.vue'
-
-type CourseTile =
-  | { key: string; status: 'active' }
-  | { key: string; status: 'completed'; record: CompletedProgramRecord }
+import type { ActiveCourse, ActiveCourseStep, CanAddStudyHoursResult, CognitiveLoadStatus, CompletedProgramRecord, NeedsState } from '@/stores/education-store'
+import { AgeGroup } from '@/composables/useAgeRestrictions'
+import {
+  EDUCATION_LONG_PROGRAM_STEP_HOURS,
+  EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN,
+  ENERGY_EXHAUSTION_THRESHOLD_STUDY,
+  COGNITIVE_LOAD_CONSTANTS,
+  canAddStudyHours,
+  getCognitiveLoadStatus,
+  getNeedsStateFromComponents,
+  resolveStudySessionHours,
+} from '@/stores/education-store'
+import type { CourseTile } from './EducationLevel.types'
 
 const store = useGameStore()
+
 const educationStore = useEducationStore()
 
-const currentAge = computed(() => store.age ?? 0)
-const currentAgeGroup = computed(() => getAgeGroup(currentAge.value))
+const currentAge: ComputedRef<number> = computed(() => store.age ?? 0)
+const currentAgeGroup: ComputedRef<AgeGroup> = computed(() => getAgeGroup(currentAge.value))
 
-const showTimeHints = computed(() => true)
-const showCognitiveHints = computed(() => currentAgeGroup.value >= AgeGroup.TEEN)
+const showTimeHints: ComputedRef<boolean> = computed(() => true)
+const showCognitiveHints: ComputedRef<boolean> = computed(() => currentAgeGroup.value >= AgeGroup.TEEN)
 
-const educationLevel = computed(() => {
-  const edu = store.education as unknown as Record<string, unknown> | null
-  return (edu?.educationLevel as string) ?? 'Нет'
-})
-
-const activeCourse = computed(() => {
+const activeCourse: ComputedRef<ActiveCourse | null> = computed(() => {
   void store.worldTick
-  const edu = store.education as unknown as Record<string, unknown> | null
-  const courses = edu?.activeCourses as ActiveCourse[] | null
+  const edu: Record<string, unknown> | null = store.education as unknown as Record<string, unknown> | null
+  const courses: ActiveCourse[] | null = edu?.activeCourses as ActiveCourse[] | null
+
   if (!courses || courses.length === 0) return null
-  const source = courses[0]
-  // Shallow-clone курс и шаги, чтобы Vue обнаружил изменение ссылки
-  // после мутаций ECS (currentStepIndex, progressPercent и т.д.)
+
+  const source: ActiveCourse = courses[0]!
   return {
     ...source,
-    steps: source.steps?.map(s => ({ ...s })) ?? [],
+    steps: source.steps?.map((s: ActiveCourseStep) => ({ ...s })) ?? [],
   } as ActiveCourse
 })
 
-const currentStepIndex = computed(() => {
+const currentStepIndex: ComputedRef<number> = computed(() => {
   return activeCourse.value?.currentStepIndex ?? 0
 })
 
-const steps = computed(() => {
+const steps: ComputedRef<ActiveCourseStep[]> = computed(() => {
   return activeCourse.value?.steps ?? []
 })
 
-const totalSteps = computed(() => steps.value.length)
+const totalSteps: ComputedRef<number> = computed(() => steps.value.length)
 
-const currentStep = computed(() => {
+const currentStep: ComputedRef<ActiveCourseStep | null> = computed(() => {
+
   if (steps.value.length === 0) return null
+
   return steps.value[currentStepIndex.value] ?? null
 })
 
-const currentLearningFocus = computed(() => {
+const currentLearningFocus: ComputedRef<string> = computed(() => {
+
   if (!activeCourse.value) return ''
+
   if (currentStep.value?.title) {
     return `${activeCourse.value.name} - ${currentStep.value.title}`
   }
+
   return activeCourse.value.name
 })
 
-const isBookCourse = computed(() => {
-  const type = activeCourse.value?.type?.toLowerCase() ?? ''
+const isBookCourse: ComputedRef<boolean> = computed(() => {
+  const type: string = activeCourse.value?.type?.toLowerCase() ?? ''
+
   return type.includes('книга')
 })
 
-const overallProgress = computed(() => {
+const overallProgress: ComputedRef<number> = computed(() => {
+
   if (!activeCourse.value || steps.value.length === 0) return 0
-  const progress = activeCourse.value.progress ?? 0
+
+  const progress: number = activeCourse.value.progress ?? 0
+
   return Math.max(0, Math.min(100, progress * 100))
 })
 
-const hoursRemaining = computed(() => {
+const hoursRemaining: ComputedRef<number> = computed(() => {
+
   if (!steps.value.length) return 0
-  return steps.value.reduce((total, step, index) => {
+
+  return steps.value.reduce((total: number, step: typeof steps.value[number], index: number) => {
     if (index < currentStepIndex.value) return total
-    const stepProgress = Math.max(0, Math.min(1, step.progressPercent ?? 0))
-    return total + (step.hoursRequired * (1 - stepProgress))
+
+    const stepProgress: number = Math.max(0, Math.min(1, step.progressPercent ?? 0))
+
+    return total + ((step.hoursRequired ?? 0) * (1 - stepProgress))
   }, 0)
 })
 
-const studySessionHours = computed(() => {
+const studySessionHours: ComputedRef<number> = computed(() => {
+
   if (!currentStep.value) return EDUCATION_LONG_PROGRAM_STEP_HOURS
-  return resolveStudySessionHours(currentStep.value.hoursRequired)
+
+  return resolveStudySessionHours(cognitiveLoadValue.value, store.energy ?? 0, currentStep.value.hoursRequired)
 })
 
-const studySessionHoursDisplay = computed(() => Math.round(studySessionHours.value))
+const studySessionHoursDisplay: ComputedRef<number> = computed(() => Math.round(studySessionHours.value))
 
-const cognitiveLoadValue = computed(() => {
+const cognitiveLoadValue: ComputedRef<number> = computed(() => {
   return educationStore.cognitiveLoad
 })
 
-const studyHoursSinceLastSleep = computed(() => {
+const studyHoursSinceLastSleep: ComputedRef<number> = computed(() => {
   return educationStore.studyHoursSinceLastSleep
 })
 
-const studyHoursSinceLastSleepDisplay = computed(() => Math.round(studyHoursSinceLastSleep.value))
+const studyHoursSinceLastSleepDisplay: ComputedRef<number> = computed(() => Math.round(studyHoursSinceLastSleep.value))
 
 /** Максимальное количество учебных часов в одном цикле (константа) */
 const maxStudyHoursCycle = COGNITIVE_LOAD_CONSTANTS.MAX_STUDY_HOURS_CYCLE
-const maxStudyHoursCycleDisplay = Math.round(maxStudyHoursCycle)
+const maxStudyHoursCycleDisplay: number = Math.round(maxStudyHoursCycle)
 
-const studyWakeBudgetTooltipText = computed(() => {
-  const session = studySessionHours.value
-  const used = studyHoursSinceLastSleep.value
+const studyWakeBudgetTooltipText: ComputedRef<string> = computed(() => {
+  const session: number = studySessionHours.value
+
+  const used: number = studyHoursSinceLastSleep.value
+
   return [
     'Учёба до сна (отдельный лимит)',
     '',
@@ -282,28 +305,30 @@ const studyWakeBudgetTooltipText = computed(() => {
   ].join('\n')
 })
 
-const studyWakeBudgetAriaLabel = computed(
+const studyWakeBudgetAriaLabel: ComputedRef<string> = computed(
   () =>
     `Учёба до сна: ${studyHoursSinceLastSleepDisplay.value} из ${maxStudyHoursCycleDisplay} часов. Подробности — в подсказке (наведите или нажмите)`,
 )
 
-const showStudyWakeHints = computed(
+const showStudyWakeHints: ComputedRef<boolean> = computed(
   () => showCognitiveHints.value && !!activeCourse.value && !!currentStep.value,
 )
 
-const canOpenStudyModal = computed(() => !!activeCourse.value && !!currentStep.value)
+const canOpenStudyModal: ComputedRef<boolean> = computed(() => !!activeCourse.value && !!currentStep.value)
 
 /** Блокировка по накопительной усталости */
-const dailyStudyHoursBlocked = computed(() => {
-  const cognitiveValue = cognitiveLoadValue.value
+const dailyStudyHoursBlocked: ComputedRef<boolean> = computed(() => {
+  const cognitiveValue: number = cognitiveLoadValue.value
+
   if (!cognitiveValue) return false
-  
-  const canStudyCheck = canAddStudyHours(cognitiveValue, (store.energy ?? 0))
+
+  const canStudyCheck: CanAddStudyHoursResult = canAddStudyHours(cognitiveValue, (store.energy ?? 0))
+
   return !canStudyCheck.canDo
 })
 
 /** Лимит «учёбы до сна» исчерпан (или не хватает часов под сеанс), но по курсу ещё есть бюджет часов */
-const studyCycleBlockedWithCourseHoursLeft = computed(
+const studyCycleBlockedWithCourseHoursLeft: ComputedRef<boolean> = computed(
   () =>
     !!activeCourse.value &&
     !!currentStep.value &&
@@ -312,124 +337,168 @@ const studyCycleBlockedWithCourseHoursLeft = computed(
 )
 
 /** Истощение для учёбы привязано к энергии персонажа (как на главной), не к когнитивной шкале */
-const energyExhaustedForStudy = computed(() => (store.energy ?? 0) < ENERGY_EXHAUSTION_THRESHOLD_STUDY)
+const energyExhaustedForStudy: ComputedRef<boolean> = computed(() => (store.energy ?? 0) < ENERGY_EXHAUSTION_THRESHOLD_STUDY)
 
 /** Пессимистичная проверка: при макс. расходе за шаг энергия не должна уходить в 0 */
-const energyWouldHitZeroOnStep = computed(() => (store.energy ?? 0) <= EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN)
+const energyWouldHitZeroOnStep: ComputedRef<boolean> = computed(() => (store.energy ?? 0) <= EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN)
 
-const cognitiveLoadStatus = computed(() => {
-  const cognitiveValue = cognitiveLoadValue.value
+const cognitiveLoadStatus: ComputedRef<{ label: string; description: string } | null> = computed(() => {
+  const cognitiveValue: number = cognitiveLoadValue.value
+
   if (!cognitiveValue) return null
-  
-  const status = getCognitiveLoadStatus(cognitiveValue)
+
+  const status: CognitiveLoadStatus = getCognitiveLoadStatus(cognitiveValue)
+
   return {
     label: status.label,
     description: status.description,
   }
 })
 
-const canStudy = computed(() => {
+const canStudy: ComputedRef<boolean> = computed(() => {
+
   if (!activeCourse.value) return false
+
   if (!currentStep.value) return false
+
   if (energyExhaustedForStudy.value) return false
+
   if (energyWouldHitZeroOnStep.value) return false
+
   if (dailyStudyHoursBlocked.value) return false
+
   return true
 })
 
-const studyStatusTone = computed(() => {
+const studyStatusTone: ComputedRef<string> = computed(() => {
+
   if (!activeCourse.value || !currentStep.value) return 'idle'
+
   if (canStudy.value) return 'active'
+
   if (resourceWarning.value) return 'paused'
+
   return 'idle'
 })
 
-const studyStatusLabel = computed(() => {
+const studyStatusLabel: ComputedRef<string> = computed(() => {
+
   if (!activeCourse.value || !currentStep.value) return 'Нет активного обучения'
+
   if (canStudy.value) return isBookCourse.value ? 'Можно читать' : 'Можно продолжить'
+
   return 'Пауза'
 })
 
-const studyStatusHint = computed(() => {
+const studyStatusHint: ComputedRef<string> = computed(() => {
+
   if (!activeCourse.value || !currentStep.value) return 'Выберите программу ниже'
+
   if (canStudy.value) {
     return isBookCourse.value
       ? `Следующий сеанс: ${studySessionHoursDisplay.value} ч.`
       : `Следующий шаг: ${studySessionHoursDisplay.value} ч.`
   }
+
   if (dailyStudyHoursBlocked.value) {
     return `Лимит до сна: ${studyHoursSinceLastSleepDisplay.value}/${maxStudyHoursCycleDisplay} ч.`
   }
+
   if (energyExhaustedForStudy.value || energyWouldHitZeroOnStep.value) {
     return 'Нужно восстановить силы'
   }
+
   return 'Есть временные ограничения'
 })
 
-const studyButtonText = computed(() => {
+const studyButtonText: ComputedRef<string> = computed(() => {
+
   if (!activeCourse.value) return 'Выбрать курс'
+
   if (!currentStep.value) return 'Ожидание шагов программы'
+
   if (!canStudy.value) {
     return isBookCourse.value ? 'Почему нельзя читать?' : 'Почему нельзя продолжить?'
   }
+
   if (currentStepIndex.value === 0) {
     return isBookCourse.value ? 'Начать читать' : 'Начать обучение'
   }
+
   return isBookCourse.value ? 'Продолжить чтение' : 'Продолжить курс'
 })
 
 const isStudyModalOpen = ref(false)
 
-const activeCourseDescription = computed(() => {
+const activeCourseDescription: ComputedRef<string> = computed(() => {
+
   if (!activeCourse.value) return ''
+
   return 'Погрузитесь в материал и развивайте свои навыки. Каждая страница приближает вас к новым знаниям.'
 })
 
-const canContinueStudy = computed(() => {
+const canContinueStudy: ComputedRef<boolean> = computed(() => {
+
   if (!activeCourse.value) return false
+
   if (!currentStep.value) return false
+
   if (energyExhaustedForStudy.value) return false
+
   if (energyWouldHitZeroOnStep.value) return false
+
   if (dailyStudyHoursBlocked.value) return false
+
   return true
 })
 
-const canFinishStudy = computed(() => !!activeCourse.value)
+const canFinishStudy: ComputedRef<boolean> = computed(() => !!activeCourse.value)
 
-const resourceWarning = computed(() => {
-  const needs = getNeedsStateFromComponents(store.stats as unknown as Record<string, number> | null)
+const resourceWarning: ComputedRef<string | null | undefined> = computed(() => {
+  const needs: NeedsState = getNeedsStateFromComponents((store.stats as unknown as Record<string, number>) ?? {})
+
   if (needs.hunger < 10) {
     return 'Вы слишком голодны для учёбы. Сначала поешьте, потом возвращайтесь к чтению.'
   }
+
   if (energyExhaustedForStudy.value) {
     return `Энергия ниже ${ENERGY_EXHAUSTION_THRESHOLD_STUDY}% — истощение. Восстановите силы, прежде чем учиться.`
   }
+
   if (energyWouldHitZeroOnStep.value) {
     return 'Этого занятия не хватает: при текущей энергии шаг опустил бы запас до нуля или ниже.'
   }
+
   if (dailyStudyHoursBlocked.value) {
-    const canStudyCheck = canAddStudyHours(cognitiveLoadValue.value, energy)
+    const canStudyCheck: CanAddStudyHoursResult = canAddStudyHours(cognitiveLoadValue.value, store.energy ?? 0)
+
     if (canStudyCheck.canDo) {
       if (hoursRemaining.value > 0) {
         return `${canStudyCheck.reason}\n\nШкала «когнитивной нагрузки» может быть в норме — она не отражает лимит «учёбы до сна» (${studyHoursSinceLastSleepDisplay.value}/${maxStudyHoursCycleDisplay} ч).`
       }
+
       return canStudyCheck.reason
     }
+
     return 'Лимит учёбы исчерпан. Поспите для восстановления.'
   }
+
   return null
 })
 
-const inlineStudyWarning = computed(() => {
+const inlineStudyWarning: ComputedRef<string | null> = computed(() => {
   if (!resourceWarning.value) return null
+
   return resourceWarning.value.split('\n')[0] ?? resourceWarning.value
 })
 
-const completedProgramsForGrid = computed(() => {
-  const edu = store.education as unknown as Record<string, unknown> | null
-  const raw = edu?.completedPrograms
-  const list = (Array.isArray(raw) ? raw : []) as CompletedProgramRecord[]
-  const activeId = activeCourse.value?.id
+const completedProgramsForGrid: ComputedRef<CompletedProgramRecord[]> = computed(() => {
+  const edu: Record<string, unknown> | null = store.education as unknown as Record<string, unknown> | null
+  const raw: unknown = edu?.completedPrograms
+  const list: CompletedProgramRecord[] = (Array.isArray(raw) ? raw : []) as CompletedProgramRecord[]
+
+  const activeId: string | undefined = activeCourse.value?.id
+
   return list
     .filter((c) => c.id !== activeId)
     .sort((a, b) => (b.completedAtGameDay ?? 0) - (a.completedAtGameDay ?? 0))
@@ -437,17 +506,21 @@ const completedProgramsForGrid = computed(() => {
 
 const courseTiles = computed<CourseTile[]>(() => {
   const tiles: CourseTile[] = []
+
   if (activeCourse.value) {
     tiles.push({ key: `active-${activeCourse.value.id}`, status: 'active' })
   }
+
   for (const record of completedProgramsForGrid.value) {
     tiles.push({ key: `done-${record.id}`, status: 'completed', record })
   }
+
   return tiles
 })
 
 function openStudyModal() {
   if (!canOpenStudyModal.value) return
+
   isStudyModalOpen.value = true
 }
 
@@ -457,37 +530,47 @@ function closeStudyModal() {
 
 function handleRead() {
   if (!canContinueStudy.value) return
+
   store.advanceEducation()
 }
 
 function handleFinishStudy() {
   if (!canFinishStudy.value) return
+
   closeStudyModal()
 }
 
-const efficiencyClass = computed(() => {
-  const progress = overallProgress.value
+const efficiencyClass: ComputedRef<string> = computed(() => {
+  const progress: number = overallProgress.value
+
   if (progress >= 75) return 'efficiency-high'
+
   if (progress >= 50) return 'efficiency-medium'
+
   if (progress >= 25) return 'efficiency-low'
+
   return 'efficiency-very-low'
 })
 
-const timeHint = computed(() => {
-  const time = store.time as unknown as Record<string, number> | null
+const timeHint: ComputedRef<string | null> = computed(() => {
+  const time: Record<string, number> | null = store.time as unknown as Record<string, number> | null
+
   if (!time) return null
 
-  const weekHoursRemaining = time.weekHoursRemaining ?? 168
+  const weekHoursRemaining: number = time.weekHoursRemaining ?? 168
 
   if (weekHoursRemaining < 40) {
     return `В недельном бюджете мало свободных часов (осталось ${Math.round(weekHoursRemaining)} ч.).`
   }
+
   if (weekHoursRemaining >= 100) {
     return `В недельном бюджете много свободных часов (осталось ${Math.round(weekHoursRemaining)} ч.).`
   }
+
   return null
 })
 
+/** @description [EducationLevel] - Formats a stat key and numeric value into a human-readable label with sign. @return { string } Formatted string like "Энергия +5" or "Стресс -3". */
 function formatStatChange(stat: string, value: number): string {
   const statNames: Record<string, string> = {
     energy: 'Энергия',
@@ -496,11 +579,14 @@ function formatStatChange(stat: string, value: number): string {
     health: 'Здоровье',
     money: 'Деньги',
   }
-  const name = statNames[stat] || stat
-  const sign = value >= 0 ? '+' : ''
+
+  const name: string = statNames[stat] || stat
+  const sign: string = value >= 0 ? '+' : ''
+
   return `${name} ${sign}${value}`
 }
 
+/** @description [EducationLevel] - Formats a skill key and numeric value into a human-readable label with sign. @return { string } Formatted string like "Обучение +2" or "Программирование -1". */
 function formatSkillChange(skill: string, value: number): string {
   const skillNames: Record<string, string> = {
     learning: 'Обучение',
@@ -509,8 +595,10 @@ function formatSkillChange(skill: string, value: number): string {
     communication: 'Коммуникация',
     finance: 'Финансы',
   }
-  const name = skillNames[skill] || skill
-  const sign = value >= 0 ? '+' : ''
+
+  const name: string = skillNames[skill] || skill
+  const sign: string = value >= 0 ? '+' : ''
+
   return `${name} ${sign}${value}`
 }
 </script>

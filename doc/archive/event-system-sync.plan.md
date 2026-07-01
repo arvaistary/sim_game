@@ -1,23 +1,10 @@
----
-name: event-system-sync
-overview: План актуализации системы событий с текущим срезом, оптимизацией и безопасной синхронизацией с будущей Time System v2.
-todos:
-  - id: event-slice-baseline
-    content: Зафиксировать as-is срез event pipeline и текущие контракты queue/history/payload.
-    status: pending
-  - id: event-ingress-contract
-    content: Спроектировать единый EventIngress API и правила instanceId/dedup.
-    status: pending
-  - id: time-v2-sync
-    content: Определить точки синхронизации event handlers с Time v2 period hooks.
-    status: pending
-  - id: event-test-strategy
-    content: Сформировать тестовую матрицу order/idempotency/dedup/save-load для event-system.
-    status: pending
-isProject: false
----
-
 # План актуализации системы событий (sync с Time v2)
+
+> **Статус:** ⏸ Заморожено
+> **Дата:** апрель 2026
+> **Примечание:** План актуализации событий; детали см. в EVMIGRATION_GUIDE.md
+
+---
 
 ## Task Brief
 
