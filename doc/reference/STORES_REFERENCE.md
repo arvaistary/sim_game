@@ -1,7 +1,19 @@
 # Справочник Pinia Stores
 
-**Последнее обновление:** 2 июня 2026
+**Последнее обновление:** 2 июля 2026
 **Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia
+
+---
+
+## Архитектурный статус (ADR-0005, Фазы 1-4 завершены)
+
+Все Pinia stores остаются reactive source of truth для UI. Бизнес-логика перенесена в `src/domain/game-world/commands/` (pure mutations над `GameWorld`). Application layer (`src/application/game/`) не импортирует Pinia — команды и queries принимают `world: GameWorld` первым аргументом. Интеграция со stores идёт через `SPAExecutor` + временный `bridge.ts` (будет удалён при server-first миграции).
+
+Stores, чья бизнес-логика полностью мигрирована в domain (Фаза 3):
+- `career-store`, `skills-store`, `finance-store`, `events-store`, `wallet-store`, `stats-store`, `time-store`
+
+Stores, ожидающие проекционной миграции (V-2 в `ARCHITECTURE_CONTRACT.md`):
+- `game.store` (тонкий facade), `activity-store`, `education-store`, `housing-store`, `player-store`, `actions-store`
 
 ---
 

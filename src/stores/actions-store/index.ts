@@ -1,8 +1,9 @@
 
 import type { Ref, ComputedRef } from 'vue'
 import type { CanApplyWorkShiftResult } from '@/stores/game.store.types'
+import type { ExecuteActionCommandResult } from '@/application/game/index.types'
 import type { GameAction, ActionResult } from './actions-store.types'
-import { appGameCommands } from '@/application/game/commands'
+import { appGameCommands } from '@/application/game'
 
 export type { GameAction, ActionResult } from './actions-store.types'
 
@@ -54,7 +55,7 @@ export const useActionsStore = defineStore('actions', () => {
       return { success: false, error: check.reason }
     }
 
-    const result = appGameCommands.executeAction(action.id)
+    const result: ExecuteActionCommandResult = appGameCommands.executeAction(action.id)
 
     lastExecutedAction.value = action.id
     actionResults.value.push({ success: result.success, summary: result.message })
@@ -81,7 +82,9 @@ export const useActionsStore = defineStore('actions', () => {
     return actionResults.value[index]
   }
 
-  const lastResult: ComputedRef<ActionResult | undefined> = computed(() => actionResults.value[actionResults.value.length - 1])
+  const lastResult: ComputedRef<ActionResult | undefined> = computed(() => {
+    return actionResults.value[actionResults.value.length - 1]
+  })
 
   function reset(): void {
     lastExecutedAction.value = null

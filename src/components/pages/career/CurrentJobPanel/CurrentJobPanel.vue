@@ -46,7 +46,6 @@ const currentJobName: ComputedRef<string> = computed(() => careerStore.currentJo
 const currentSalaryPerHour: ComputedRef<number> = computed(() => careerStore.currentJob?.salaryPerHour ?? 0)
 
 function quitJob(): void {
-  careerStore.endWork()
   const result: QuitCareerResult = store.quitCareer()
 
   workResult.value = result?.message ?? 'Вы уволились'

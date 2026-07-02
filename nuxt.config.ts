@@ -25,6 +25,7 @@ export default defineNuxtConfig({
     { path: '~/components/ui', pathPrefix: false },
     { path: '~/components/layout', pathPrefix: false },
     { path: '~/components/pages', pathPrefix: false },
+    { path: '~/components/dev', pathPrefix: false },
   ],
 
   colorMode: {
@@ -36,6 +37,24 @@ export default defineNuxtConfig({
   typescript: {
     strict: true,
     typeCheck: false,
+  },
+
+  runtimeConfig: {
+    public: {
+      // server-first migration (Stage 1)
+      gameMode: 'spa',
+      gameOfflineQueue: true,
+      gameApiBaseUrl: '',
+    },
+  },
+
+  // Server-first migration (Stage 4): session storage для Nitro API
+  nitro: {
+    storage: {
+      'game-sessions': {
+        driver: 'memory',
+      },
+    },
   },
 
   imports: {

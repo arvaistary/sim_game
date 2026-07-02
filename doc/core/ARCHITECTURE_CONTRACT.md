@@ -177,18 +177,13 @@
 
 Контракт нарушен в нескольких местах. Нарушения отслеживаются и постепенно устраняются через recovery plan ниже.
 
-### V-1. `application` импортирует Pinia stores
+### V-1. ~~`application` импортирует Pinia stores~~ — RESOLVED (Фаза 4)
 
-**Файлы:**
-- `src/application/game/commands.ts`
-- `src/application/game/queries.ts`
-- `src/application/game/index.types.ts`
+**Статус:** Устранено в Фазе 4 плана `game_world_aggregate_foundation`.
 
-**Нарушает:** §application «НЕ может содержать: импорты stores или использование Pinia».
+`src/application/game/commands.ts` и `queries.ts` теперь pure functions с signature `(world: GameWorld, ...): Result`. Pinia-импорт остаётся только в `legacy.ts` (временный shim для обратной совместимости с consumers, использует `appGameCommands`/`appGameQueries`). SPAExecutor реализует `GameExecutor`/`GameQueryExecutor` interfaces.
 
-**Почему:** После ADR-0003 application layer реализован с прямым доступом к Pinia stores для orchestration. Это блокирует server-first миграцию (Domain Layer должен работать без Pinia в server mode).
-
-**Отслеживание:** `layer-boundaries.test.ts` → test «application does not import Pinia stores», счётчик capped ≤3. При росте — тест падает.
+Bridge (`fromStores`/`applyToStores`) остаётся в `src/domain/game-world/bridge.ts` как deprecated модуль. Будет удалён при завершении server-first миграции (когда stores станут true projections над `GameWorld`).
 
 ### V-2. Бизнес-логика в `stores` (часть stores)
 
@@ -196,7 +191,28 @@
 
 **Нарушает:** §stores «НЕ может содержать: бизнес-логику, которая относится к use-case сценариям».
 
-**Почему:** Исторически stores были единственным местом для бизнес-логики. Частично исправлено в аудите P1-4/P1-5 (делегирование в `appGameCommands`), но полный перенос требует восстановления `GameWorld` aggregate.
+**Почему:** Исторически stores были единственным местом для бизнес-логики. Частично исправлено в аудите P1-4/P1-5 и Фазах 2-3 `game_world_aggregate_foundation` (делегирование в domain commands через `SPAExecutor`). Полный перенос в projections требует server-first миграции.
+
+---
+
+## Server-first миграция (Strategy A, Stages 1-7)
+
+Архитектура расширена для поддержки server-mode и offline-first. Полное описание в [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md).
+
+**Статус по этапам:**
+- **Stage 1** ✅: `GameMode` типы (domain/game-mode), API contract (domain/api-contract), async executor interfaces
+- **Stage 2** ✅: SPA async adapter, Server executor stub, executor-factory (DI по mode)
+- **Stage 3** ✅: `useGameStore` async layer (executor, queryExecutor, async methods)
+- **Stage 4** ✅: Nitro Server API (7 endpoints), session utils, error-handler
+- **Stage 5** ✅: Реальный ServerExecutor (`$fetch`), state-sync, client error-handler, OfflineQueueManager
+- **Stage 6** ✅: ModeSwitcher dev component, integration tests (state-sync + error-handler)
+- **Stage 7** ✅: SERVER_MIGRATION.md, README update, ARCHITECTURE_CONTRACT/OVERVIEW update
+- **Stage 8** (отложен): выделение domain в npm-пакет, отдельный Node.js сервер, Яндекс.Игры интеграция
+
+**Архитектурные правила server-first:**
+- **`nuxt/server-client-boundary`**: `server/**` не импортируется в `src/**`. API contract типы живут в `src/domain/api-contract/` (нейтральный слой).
+- **`application` не импортирует `infrastructure`**: `executor-factory.ts` принимает `GameMode` параметром (DI).
+- **`GameMode` типы в `domain/game-mode/`**: нейтральный слой.
 
 ---
 
@@ -204,18 +220,16 @@
 
 Устранение known violations выполняется через стратегию A (ADR-0005): восстановление `GameWorld` aggregate в `src/domain/game-world/` как единого source of truth.
 
-**План:** [.cursor/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md](../../.cursor/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md)
+**План:** [archive/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md](../archive/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md)
 
 **Этапы:**
-1. **Фаза 1 — Foundation** (~3-5 дней): `GameWorld.ts`, `toJSON`/`fromJSON`, `game-facade/`, временный bridge `fromStores`/`applyToStores`.
-2. **Фаза 2 — Actions migration** (~3-4 дня): `executeAction`/`simulateWorkShift`/`resolveEventDecision` переносятся в domain commands с signature `(world: GameWorld, ...)`.
-3. **Фаза 3 — Stores → projections** (~5-7 дней, store-by-store): career → skills → finance → events → wallet/stats/time.
-4. **Фаза 4 — Application pure + SPAExecutor** (~2-3 дня): убираем импорт Pinia из application (V-1 устранён), реализуем `SPAExecutor`.
-5. **Фаза 5 — Cleanup + docs** (~2 дня): удаляем bridge, обновляем документацию.
+1. **Фаза 1 — Foundation** ✅: `GameWorld.ts`, `toJSON`/`fromJSON`, `game-facade/`, временный bridge `fromStores`/`applyToStores`.
+2. **Фаза 2 — Actions migration** ✅: `executeAction`/`simulateWorkShift`/`resolveEventDecision` перенесены в domain commands с signature `(world: GameWorld, ...)`.
+3. **Фаза 3 — Stores → projections** ✅: career, skills, finance, events, wallet/stats/time мигрированы (делегируют в world mutations через SPAExecutor).
+4. **Фаза 4 — Application pure + SPAExecutor** ✅: убран импорт Pinia из application (V-1 устранён), реализован `SPAExecutor` + `GameExecutor`/`GameQueryExecutor` interfaces.
+5. **Фаза 5 — Cleanup + docs** (текущая): e2e smoke-test ✅; bridge удаление deferred к server-first миграции; docs обновлены.
 
-**Итого:** 15-21 рабочий день (~3-4 недели). Каждая фаза — отдельный PR с e2e smoke-test.
-
-После завершения V-1 и V-2 устранены, `layer-boundaries.test.ts` показывает 0 violations application→stores.
+**Итого:** Фазы 1-4 завершены. Bridge остаётся deprecated — его удаление требует превратить stores в истинные projections (reactive-computed над `gameStore.world: Ref<GameWorld>`), что рискованно в SPA-only режиме. Server-first миграция (Strategy A) удалит bridge естественным путём при замене `SPAExecutor` на `ServerExecutor`.
 
 ---
 

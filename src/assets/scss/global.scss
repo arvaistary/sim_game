@@ -17,20 +17,16 @@
   --color-bg-sidebar: #{$color-bg-sidebar};
   --color-bg-header: #{$color-bg-header};
   --color-bg-elevated: #{$color-bg-elevated};
-
   --color-text-primary: #{$color-text-primary};
   --color-text-secondary: #{$color-text-secondary};
   --color-text-tertiary: #{$color-text-tertiary};
-
   --color-border: #{$color-border};
   --color-border-subtle: #{$color-border-subtle};
-
   --color-action-primary: #{$color-action-primary};
   --color-action-primary-hover: #{$color-action-primary-hover};
   --color-action-primary-active: #{$color-action-primary-active};
   --color-action-secondary: #{$color-action-secondary};
   --color-action-danger: #{$color-action-danger};
-
   --color-status-success: #{$color-status-success};
   --color-status-success-strong: #{$color-status-success-strong};
   --color-status-success-bright: #{$color-status-success-bright};
@@ -151,27 +147,23 @@ html[data-theme="dark"] {
   --color-bg-sidebar: #{$color-dark-bg-sidebar};
   --color-bg-header: #{$color-dark-bg-header};
   --color-bg-elevated: #{$color-dark-bg-elevated};
-
   --color-text-primary: #{$color-dark-text-primary};
   --color-text-secondary: #{$color-dark-text-secondary};
   --color-text-tertiary: #{$color-dark-text-tertiary};
-
   --color-border: #{$color-dark-border};
   --color-border-subtle: #{$color-dark-border-subtle};
-
   --color-action-primary: #{$color-dark-action-primary};
   --color-action-primary-hover: #{$color-dark-action-primary-hover};
   --color-action-primary-active: #{$color-dark-action-primary-active};
   --color-action-secondary: #{$color-dark-action-secondary};
   --color-action-danger: #{$color-dark-action-danger};
-
   --color-accent: #E85656;
-  --color-accent-soft: rgba(255, 107, 107, 0.16);
+  --color-accent-soft: rgb(255 107 107 / 16%);
   --color-sage: #{$color-pastel-green};
   --color-blue: #{$color-dark-action-primary};
-  --color-neutral: rgba(255, 255, 255, 0.08);
-  --color-shadow: rgba(15, 23, 42, 0.45);
-  --shadow-button: 0 4px 12px rgba(15, 23, 42, 0.3);
+  --color-neutral: rgb(255 255 255 / 8%);
+  --color-shadow: rgb(15 23 42 / 45%);
+  --shadow-button: 0 4px 12px rgb(15 23 42 / 30%);
 
   // Pastel strong colors - need lighter versions for dark theme
   --color-pastel-purple-strong: #A78BFA;
@@ -205,6 +197,7 @@ html {
   background-color: var(--color-bg-page);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
   @include transition(background-color, color);
 }
 
@@ -213,21 +206,22 @@ body {
   margin: 0;
   color: var(--color-text-primary);
   background:
-    radial-gradient(circle at top right, rgba(0, 200, 150, 0.12), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(123, 97, 255, 0.08), transparent 32%),
+    radial-gradient(circle at top right, rgb(0 200 150 / 12%), transparent 28%),
+    radial-gradient(circle at bottom left, rgb(123 97 255 / 8%), transparent 32%),
     linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-page) 100%);
 }
 
 html[data-theme="dark"] body {
   background:
-    radial-gradient(circle at top right, rgba(45, 212, 191, 0.18), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(123, 97, 255, 0.12), transparent 34%),
+    radial-gradient(circle at top right, rgb(45 212 191 / 18%), transparent 28%),
+    radial-gradient(circle at bottom left, rgb(123 97 255 / 12%), transparent 34%),
     linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-page) 100%);
 }
 
 // Headings
 h1, .text-h1 {
   @include typography-heading-1;
+
   color: $color-text-primary;
 
   @include dark-theme {
@@ -237,6 +231,7 @@ h1, .text-h1 {
 
 h2, .text-h2 {
   @include typography-heading-2;
+
   color: $color-text-primary;
 
   @include dark-theme {
@@ -246,6 +241,7 @@ h2, .text-h2 {
 
 h3, .text-h3 {
   @include typography-heading-3;
+
   color: $color-text-primary;
 
   @include dark-theme {
@@ -257,6 +253,7 @@ h3, .text-h3 {
 a {
   color: $color-action-primary;
   text-decoration: none;
+
   @include transition(color);
 
   @include hover-event {
@@ -280,8 +277,8 @@ img {
 // Main content area
 .main-content {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
+
   @include scrollbar-thin;
 }
 
@@ -374,38 +371,38 @@ img {
 }
 
 .badge--success {
-  background: rgba(34, 197, 94, 0.20);
+  background: rgb(34 197 94 / 20%);
   color: var(--color-status-success-strong);
 
   @include dark-theme {
-    background: rgba(74, 222, 128, 0.24);
+    background: rgb(74 222 128 / 24%);
   }
 }
 
 .badge--warning {
-  background: rgba(245, 158, 11, 0.20);
+  background: rgb(245 158 11 / 20%);
   color: var(--color-status-warning-strong);
 
   @include dark-theme {
-    background: rgba(251, 191, 36, 0.24);
+    background: rgb(251 191 36 / 24%);
   }
 }
 
 .badge--danger {
-  background: rgba(239, 68, 68, 0.20);
+  background: rgb(239 68 68 / 20%);
   color: var(--color-status-danger-strong);
 
   @include dark-theme {
-    background: rgba(248, 113, 113, 0.24);
+    background: rgb(248 113 113 / 24%);
   }
 }
 
 .badge--info {
-  background: rgba(0, 200, 150, 0.20);
+  background: rgb(0 200 150 / 20%);
   color: var(--color-action-primary);
 
   @include dark-theme {
-    background: rgba(45, 212, 191, 0.24);
+    background: rgb(45 212 191 / 24%);
   }
 }
 
@@ -438,7 +435,11 @@ img {
 
 // Numeric metrics — Inter with tabular figures
 .tabular-nums { font-variant-numeric: tabular-nums; }
-.metric { font-variant-numeric: tabular-nums; letter-spacing: $tracking-heading; }
+
+.metric {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: $tracking-heading;
+}
 
 // Flex
 .flex { display: flex; }
@@ -519,4 +520,65 @@ img {
 
 * {
   @include scrollbar-thin;
+}
+
+.mode-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 8px);
+  padding: var(--space-md, 12px);
+  border: 1px solid var(--color-border, #e2e2e2);
+  border-radius: 8px;
+  background-color: var(--color-bg-panel, #fafafa);
+  font-size: 13px;
+
+  &--warning {
+    border-color: var(--color-warning, #f59e0b);
+    background-color: var(--color-warning-bg, #fef3c7);
+  }
+
+  &__label {
+    font-weight: 600;
+    color: var(--color-text-primary, #1a1a1a);
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 4px;
+  }
+
+  &__button {
+    padding: 6px 12px;
+    border: 1px solid var(--color-border, #e2e2e2);
+    border-radius: 6px;
+    background-color: var(--color-bg-card, #ffffff);
+    color: var(--color-text-secondary, #555);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 12px;
+    font-weight: 500;
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-accent, #10b981);
+      color: var(--color-accent, #10b981);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--active {
+      background-color: var(--color-accent, #10b981);
+      border-color: var(--color-accent, #10b981);
+      color: #ffffff;
+    }
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 11px;
+    color: var(--color-text-muted, #888);
+    line-height: 1.4;
+  }
 }

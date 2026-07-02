@@ -1,5 +1,1 @@
-export interface SaveRepository {
-  save(payload: Record<string, unknown>): void
-  load(): Record<string, unknown> | null
-  clear(): void
-}
+// тип перенесён в ./SaveRepository.types.ts (правило typing/types-location).

@@ -10,6 +10,8 @@
 </template>
 
 <script setup lang="ts">
+import { appGameCommands } from '@/application/game'
+
 const careerStore = useCareerStore()
 
 const statsStore = useStatsStore()
@@ -27,11 +29,7 @@ function doWork(hours: number): void {
     return
   }
 
-  careerStore.addWorkHours(hours)
-  const salary: number = hours * careerStore.currentJob.salaryPerHour
-  careerStore.addPendingSalary(salary)
-  statsStore.applyStatChanges({ energy: -(hours * 3), hunger: +(hours * 2) })
-  workResult.value = `Вы заработали ${salary} ₽`
+  workResult.value = appGameCommands.simulateWorkShift(hours)
 }
 </script>
 

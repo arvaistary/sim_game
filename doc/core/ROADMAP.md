@@ -1,94 +1,89 @@
 # План разработки (Roadmap)
 
-**Последнее обновление:** 2 июня 2026
-**Версия:** 4.0
-**Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia
+**Последнее обновление:** 2 июля 2026
+**Версия:** 5.0
+**Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia + Nitro Server API
 
 ---
 
 ## Обзор проекта
 
-Проект Game Life - это симулятор жизни с пошаговым геймплеем. Текущая архитектура:
+Проект Game Life — симулятор жизни с пошаговым геймплеем. Текущая архитектура:
 
-- **Слоистая архитектура:** Domain (balance) → Application (commands/queries) → Infrastructure (persistence) → Presentation (stores/composables/components/pages)
+- **Server-first слоистая архитектура:** `domain → application → infrastructure → stores/composables → components → pages`
+- **`GameWorld` aggregate** (ADR-0005): pure TypeScript state container, единый source of truth в `src/domain/game-world/`
+- **Три режима исполнения:** SPA (по умолчанию), Server (Nitro API), Hybrid (offline-first)
 - **~222 действия в 10 категориях:** полная система восстановления
-- **TypeScript:** строгая типизация на всех уровнях
-- **13 Pinia stores:** state management
-- **17 Composables:** переиспользуемая логика UI
+- **TypeScript:** строгая типизация на всех уровнях, 0 typecheck-ошибок
+- **210+ unit/integration тестов:** `rules:audit` 0 нарушений
 
 ---
 
 ## Текущее состояние
 
-### Основная инфраструктура
+### Архитектура (завершено)
 
-- ✅ Основной игровой цикл (Dashboard)
+- ✅ **GameWorld aggregate** (Фазы 1-4, ADR-0005): pure domain state, pure commands `(world: GameWorld, ...)`, SPAExecutor
+- ✅ **Server-first миграция** (Stages 1-7): GameMode, API contract, executor-factory, Nitro Server API (7 endpoints), OfflineQueueManager, state-sync, error-handler
+- ✅ **Application layer чистый:** 0 импортов Pinia, 0 импортов infrastructure
+- ✅ **Domain layer:** `game-world/`, `game-mode/`, `api-contract/`, `balance/`
+- ✅ **Infrastructure layer:** `LocalStorageSaveRepository`, `config/game-mode.ts`
+- ✅ **Presentation layer:** stores (projections over GameWorld), composables, components, pages
+
+### Базовые механики (завершено)
+
 - ✅ Система шкал персонажа (6 шкал)
-- ✅ Система времени и возраста
-- ✅ Экономика и прогресс (деньги, работы)
+- ✅ Система времени и возраста (часовая модель)
+- ✅ Экономика и прогресс (деньги, работы, инвестиции, кредиты, подписки)
+- ✅ Система сохранения (localStorage + автосохранение)
 - ✅ Навигация между экранами (Nuxt роутинг)
-- ✅ Система сохранения (localStorage)
-- ✅ Автосохранение
 
-### Слои архитектуры
-
-- ✅ Domain Layer: balance (actions, constants, types, utils)
-- ✅ Application Layer: commands, queries, ports
-- ✅ Infrastructure Layer: LocalStorageSaveRepository
-- ✅ Presentation Layer: stores, composables, components, pages
-
-### Vue страницы
-
-- ✅ Dashboard - главный экран и навигация
-- ✅ Home - восстановление дома
-- ✅ Actions - интегрированная страница восстановления
-- ✅ Work - работа и карьера
-- ✅ Finance - финансы
-- ✅ Education - образование
-- ✅ Skills - навыки
-- ✅ Events - события
-- ✅ Shop - магазин
-
-### Базовые механики
+### Игровые механики (частично)
 
 - ✅ Система навыков (10 базовых)
-- ✅ Образование в рантайме
+- ✅ Образование в рантайме (программы, активные курсы)
 - ✅ Карьера (должности, доход, требования)
 - ✅ Финансы (обзор, расходы, действия, инвестиции)
 - ✅ Восстановление (~222 действия в 10 категориях)
-- ✅ Случайные события (базовая система)
 - ✅ Жильё и мебель (5 уровней)
 - ✅ Ежемесячный расчёт
-- ✅ Кредиты
-- ✅ Подписки
+- 🔄 Случайные события (~25%): базовая система, нужны полный список + cooldown
+- 🔄 Хобби и побочный заработок (~35%): UI реализован, нет побочного заработка
+
+---
+
+## Завершённые вехи (архив)
+
+| Веха | Дата | Документы |
+|------|------|-----------|
+| Nuxt 4 миграция | Апрель 2026 | [`archive/migration-plans/`](../archive/migration-plans/) |
+| ECS удаление → Application-first | Апрель-Май 2026 | ADR-0002, ADR-0003 |
+| Dashboard restyle v2 (Linear aesthetic) | Июль 2026 | [`archive/plans/dashboard_restyle_v2_0e7aa0b4.plan.md`](../archive/plans/) |
+| GameWorld aggregate foundation | Июль 2026 | [`archive/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md`](../archive/plans/), ADR-0005 |
+| Server-first architecture migration | Июль 2026 | [`archive/plans/server-first_architecture_migration_05bcd970.plan.md`](../archive/plans/), [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md) |
+| Аудит и рекомендации | Июль 2026 | [`archive/plans/`](../archive/plans/) |
 
 ---
 
 ## Краткосрочные планы (1-2 спринта)
 
-### 1. Rules fix и типизация
+### 1. Завершить bridge removal (после server-first)
 
-**Статус:** Планируется (см. `plans/active/rules-fix-plan.md`)
-
-**Задачи:**
-- [ ] Вынести inline типы в `*.types.ts`
-- [ ] Вынести константы в `*.constants.ts`
-- [ ] Удалить inline object-типы в параметрах
-- [ ] Использовать `import type` для type-only импортов
-
-### 2. Документация cleanup
-
-**Статус:** ✅ Завершено
+**Статус:** Запланировано (после стабилизации server-mode)
 
 **Задачи:**
-- [x] Актуализировать корневой README.md ✅
-- [x] Консолидировать структуру директорий ✅
-- [x] Обновить doc/README.md ✅
-- [x] Архивировать устаревшие документы ✅
-- [x] Актуализировать Architecture Overview ✅
-- [x] Создать ADR-журнал ✅
-- [x] Консолидировать Roadmap ✅
-- [ ] Актуализировать API Reference
+- [ ] Превратить stores в true projections (reactive-computed над `gameStore.world: Ref<GameWorld>`)
+- [ ] Удалить `src/domain/game-world/bridge.ts` (deprecated)
+- [ ] Удалить `src/application/game/legacy.ts` shim
+
+### 2. Качество кода и testing
+
+**Статус:** Continuous
+
+**Задачи:**
+- [ ] E2E тесты (Playwright) для основных user flows
+- [ ] Покрыть server-mode integration тестами (с моками Nitro)
+- [ ] Storybook для переиспользуемых UI компонентов
 
 ---
 
@@ -102,7 +97,6 @@
 - [ ] Множество инвестиционных продуктов
 - [ ] Цели накопления
 - [ ] Давление долгов/кредитов
-- [ ] Более чёткая история денежных потоков
 - [ ] Экстренные финансовые события
 
 ### 4. Реальное развитие жилья
@@ -110,9 +104,9 @@
 **Статус:** Частично (~20%)
 
 **Задачи:**
-- [ ] Расширение существующих уровней жилья с визуальными улучшениями
+- [ ] Расширение уровней жилья с визуальными улучшениями
 - [ ] Долгосрочные контракты аренды
-- [ ] Возможность изменения уровня жилья (вверх и вниз)
+- [ ] Возможность изменения уровня жилья
 - [ ] Влияние соседей на комфорт
 
 ### 5. Расширение социальных систем
@@ -135,7 +129,7 @@
 - [ ] Возрастные события (E018–E025)
 - [ ] Система cooldown
 - [ ] Нейтральные/сюжетные события с выбором
-- [ ] Ветвящиеся последствия событий
+- [ ] Ветвящиеся последствия
 
 ### 7. Полноценная система работы/карьеры
 
@@ -145,63 +139,67 @@
 - [ ] Ручное переключение между работами
 - [ ] Заявки на вакансии
 - [ ] Система требований для каждой работы
-- [ ] Состояния отказов
 - [ ] Специальные рабочие события по профессии
 
 ---
 
 ## Долгосрочные планы (Backlog)
 
-### 8. Система смерти и концовки
+### 8. Server-first Stage 8: выделенный Node.js сервер
+
+**Статус:** Отложен (инфраструктура подготовлена)
+
+**Задачи:**
+- [ ] Выделить `src/domain/` в npm-пакет `@game-life/domain`
+- [ ] Создать отдельный сервер (Express/NestJS/Fastify)
+- [ ] Мигрировать с in-memory storage на БД
+- [ ] Отключить Nitro server-mode в Nuxt
+
+### 9. Платформы дистрибуции
+
+**Статус:** Не начато
+
+**Задачи:**
+- [ ] Яндекс.Игры интеграция
+- [ ] VK Play
+- [ ] PWA (offline-capable SPA build)
+
+### 10. Система смерти и концовки
 
 **Статус:** В зачатке (~10%)
 
 **Задачи:**
-- [ ] Условия Game Over (здоровье = 0 уже реализовано)
 - [ ] Финальный экран статистики жизни
 - [ ] Типы концовок (5 типов)
-- [ ] Оценка жизни (успех, провал, скучная)
+- [ ] Оценка жизни
 - [ ] Возрождение (New Game+)
 
-### 9. Семья и дети
+### 11. Семья и дети
 
 **Статус:** В зачатке (~5%)
 
 **Задачи:**
-- [ ] Система отношений (отношения с NPC)
-- [ ] Поиск партнёра
+- [ ] Система отношений
 - [ ] Брак и развод
 - [ ] Рождение детей
 - [ ] Воспитание детей
-- [ ] События семьи
 
-### 10. Хобби и побочный заработок
-
-**Статус:** Частично (~35%)
-
-**Задачи:**
-- [ ] Система хобби (UI реализован)
-- [ ] Влияние хобби на навыки
-- [ ] Побочный заработок через хобби
-- [ ] Конкурсы и выставки
-
-### 11. Достижения и трофеи
+### 12. Достижения и трофеи
 
 **Статус:** В зачатке (~5%)
 
 **Задачи:**
 - [ ] Система достижений
-- [ ] Уведомления о достижениях
-- [ ] Трофеи за специальные события
+- [ ] Уведомления
 - [ ] Leaderboard (локальный)
 
-### 12. Сезонные и праздничные события
+### 13. Сезонные и праздничные события
 
 **Статус:** Не начато (0%)
 
 **Задачи:**
-- [ ] Сезонные события (весна, лето, осень, зима)
-- [ ] Праздничные события (Новый год, День рождения и т.д.)
+- [ ] Сезонные события
+- [ ] Праздничные события
 - [ ] Влияние сезонов на механики
 
 ---
@@ -216,20 +214,13 @@
 - [ ] Error tracking (Sentry)
 - [ ] Analytics
 
-### Developer Experience
-
-- [ ] Playwright E2E tests
-- [ ] Storybook для компонентов
-- [ ] API documentation (OpenAPI?)
-- [ ] Type-check в CI
-
 ---
 
 ## Отклонённые идеи
 
 - ❌ ECS-архитектура (удалена, см. ADR-0002)
-- ❌ Canvas-рендеринг (Phaser, см. ADR-0001)
-- ❌ SSR-режим (остаёмся SPA)
+- ❌ Canvas-рендеринг / Phaser (см. ADR-0001)
+- ❌ SSR-режим (остаёмся SPA-only клиент, server-логика через Nitro API)
 
 ---
 
@@ -237,9 +228,11 @@
 
 - **Статус реализации:** [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md)
 - **Архитектура:** [`ARCHITECTURE_OVERVIEW.md`](ARCHITECTURE_OVERVIEW.md)
+- **Архитектурный контракт:** [`ARCHITECTURE_CONTRACT.md`](ARCHITECTURE_CONTRACT.md)
+- **Server-first миграция:** [`../SERVER_MIGRATION.md`](../SERVER_MIGRATION.md)
 - **GDD:** [`../gdd/GDD.md`](../gdd/GDD.md)
 - **ADR:** [`../adr/`](../adr/)
 
 ---
 
-**Последнее обновление:** 2 июня 2026
+**Последнее обновление:** 2 июля 2026

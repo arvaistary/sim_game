@@ -6,26 +6,32 @@
 
 Для новых разработчиков рекомендуем следующий порядок чтения:
 
-1. Архитектура проекта и слоистая структура
-2. Статус реализации модулей
-3. Справочник страниц и роутинга
-4. Game Design Document (GDD)
-5. Nuxt 4 архитектура и конфигурация
-6. Composables для работы с состоянием
+1. [Обзор архитектуры](./core/ARCHITECTURE_OVERVIEW.md) — слоистая архитектура
+2. [Архитектурный контракт](./core/ARCHITECTURE_CONTRACT.md) — куда класть код
+3. [Server-first миграция](./SERVER_MIGRATION.md) — режимы SPA/Server/Hybrid
+4. [Статус реализации](./core/IMPLEMENTATION_STATUS.md) — что готово
+5. [Справочник страниц](./core/PAGES_REFERENCE.md) — Vue страницы и роутинг
+6. [Game Design Document](./gdd/GDD.md) — описание механик
+7. [Composables Reference](./reference/COMPOSABLES_REFERENCE.md) — API composables
+8. [Stores Reference](./reference/STORES_REFERENCE.md) — API stores
 
 ## Структура документации
 
 ```
 doc/
-├── README.md                          # Этот файл - главная навигация
+├── README.md                          # Этот файл — главная навигация
+├── SERVER_MIGRATION.md                # Server-first миграция: режимы, offline, API
+│
 ├── core/                              # Основная документация
 │   ├── README.md                      # Обзор проекта и быстрый старт
+│   ├── ARCHITECTURE_OVERVIEW.md       # Обзор слоистой архитектуры
+│   ├── ARCHITECTURE_CONTRACT.md       # Архитектурный контракт (куда класть код)
 │   ├── IMPLEMENTATION_STATUS.md       # Статус реализации всех модулей
-│   ├── START_GAME_DOCUMENTATION.md    # Документация старта игры
+│   ├── ROADMAP.md                     # План разработки
 │   ├── PAGES_REFERENCE.md             # Справочник Vue страниц и роутинга
-│   ├── ARCHITECTURE_OVERVIEW.md       # Обзор 4 архитектурных слоёв
-│   ├── ARCHITECTURE_CONTRACT.md       # Архитектурный контракт
-│   └── ROADMAP.md                     # План разработки
+│   ├── START_GAME_DOCUMENTATION.md    # Документация старта игры
+│   ├── MEMPALACE_SETUP.md             # Настройка MemPalace
+│   └── SKILLS.md                      # Справочник по навыкам
 │
 ├── gdd/                               # Game Design Document
 │   ├── README.md                      # Обзор GDD и навигация
@@ -47,8 +53,14 @@ doc/
 │       └── 14_conclusion.md
 │
 ├── adr/                               # Architecture Decision Records
+│   ├── README.md                      # Обзор ADR
 │   ├── decision-guide.md              # Руководство по ADR
+│   ├── 0001-phaser-to-nuxt-migration.md
+│   ├── 0002-ecs-removal.md
+│   ├── 0003-layered-architecture.md
+│   ├── 0005-game-world-aggregate-strategy-a.md
 │   ├── architecture-research-report.md
+│   ├── ARCHITECTURE_DECISION_HENDERSON_ADAPTATION.md
 │   └── nuxt4-architecture-analysis.md
 │
 ├── guides/                            # Практические руководства
@@ -60,66 +72,98 @@ doc/
 │   ├── COMPOSABLES_REFERENCE.md       # Справочник Vue composables
 │   └── STORES_REFERENCE.md            # Справочник Pinia stores
 │
-├── plans/                             # Активные планы
-│   └── active/                        # Планы в работе
-│       ├── documentation-cleanup-plan.md
-│       └── rules-fix-plan.md
-│
 ├── spec-kit/                          # Spec-kit workflow и шаблоны
 │   ├── README.md                      # Описание процесса
+│   ├── ADOPTION_CHECKLIST.md          # Чеклист внедрения
+│   ├── CURSOR_RULES_BRIDGE.md         # Маппинг project rules → Spec-kit
 │   ├── templates/                     # Шаблоны spec/plan/tasks
 │   └── specs/                         # Активные спецификации
 │
 └── archive/                           # Архив устаревших документов
-    ├── ecs/                           # ECS-архитектура (удалена)
-    ├── phaser-architecture/           # Phaser.js архитектура (legacy)
-    ├── migration-plans/               # Выполненные планы миграций
+    ├── ecs/                           # ECS-архитектура (удалена, см. ADR-0002)
+    ├── phaser-architecture/           # Phaser.js архитектура (см. ADR-0001)
+    ├── legacy-docs/                   # Старые системные спецификации (CAREER_SYSTEM, EVENT_SYSTEM, ...)
+    ├── migration-plans/               # Выполненные планы миграций (Nuxt 4, Vue 3, TypeScript)
     ├── refresh-plans/                 # Выполненные refresh-планы
-    └── ...                            # Другие архивные документы
+    └── plans/                         # Выполненные планы (dashboard restyle, GameWorld, server-first, ...)
 ```
+
+Активные планы (Spec-kit): создаются через `spec-kit/` workflow и хранятся в `.cursor/plans/` (вне `doc/`).
+
+## Режимы работы (Server-First Migration)
+
+Проект поддерживает три режима исполнения game-логики. См. [`SERVER_MIGRATION.md`](./SERVER_MIGRATION.md) для полного описания архитектуры.
+
+### SPA режим (по умолчанию)
+Локальное исполнение через Pinia stores + `GameWorld` bridge. Все команды синхронные под капотом, обёрнуты в `Promise.resolve` для совместимости с async API.
+
+### Server режим
+Через Nitro Server API (`server/api/game/**`). Состояние хранится в сессии (cookie-based, TTL 24h). Команды выполняются на сервере, клиент получает обновлённое состояние.
+
+### Hybrid режим
+Server при online, fallback на SPA при offline. Действия буферизуются в offline queue (`localStorage`) и синхронизируются при восстановлении сети через `POST /api/game/sync`.
+
+### Переключение режимов
+
+Через `nuxt.config.ts` `runtimeConfig.public.gameMode` или `.env`:
+
+```
+NUXT_PUBLIC_GAME_MODE=server
+NUXT_PUBLIC_GAME_API_BASE_URL=https://api.example.com
+```
+
+Для разработки: dev-компонент `ModeSwitcher` (`src/components/dev/ModeSwitcher/`) позволяет переключать режимы в UI.
 
 ## Что где искать
 
 ### Хочу узнать о проекте в целом
-Обзор проекта и архитектуры → `core/ARCHITECTURE_OVERVIEW.md`
+Обзор проекта и архитектуры → [`core/ARCHITECTURE_OVERVIEW.md`](./core/ARCHITECTURE_OVERVIEW.md)
+
+### Хочу узнать правила размещения кода
+Архитектурный контракт → [`core/ARCHITECTURE_CONTRACT.md`](./core/ARCHITECTURE_CONTRACT.md)
+
+### Хочу узнать про server-first миграцию
+Архитектура и режимы работы → [`SERVER_MIGRATION.md`](./SERVER_MIGRATION.md)
 
 ### Хочу узнать, что уже готово
-Статус реализации → `core/IMPLEMENTATION_STATUS.md`
+Статус реализации → [`core/IMPLEMENTATION_STATUS.md`](./core/IMPLEMENTATION_STATUS.md)
 
 ### Хочу узнать план разработки
-План разработки → `core/ROADMAP.md`
+Roadmap → [`core/ROADMAP.md`](./core/ROADMAP.md)
 
 ### Хочу понять механики игры
-Полный GDD → `gdd/GDD.md`
+Полный GDD → [`gdd/GDD.md`](./gdd/GDD.md)
 
 ### Хочу понять механики старта игры
-Документация старта игры → `core/START_GAME_DOCUMENTATION.md`
+Документация старта игры → [`core/START_GAME_DOCUMENTATION.md`](./core/START_GAME_DOCUMENTATION.md)
 
 ### Хочу понять, какие страницы есть в коде
-Справочник Vue страниц → `core/PAGES_REFERENCE.md`
+Справочник Vue страниц → [`core/PAGES_REFERENCE.md`](./core/PAGES_REFERENCE.md)
 
 ### Хочу найти API composable или store
-Composables → `reference/COMPOSABLES_REFERENCE.md`
-Stores → `reference/STORES_REFERENCE.md`
+Composables → [`reference/COMPOSABLES_REFERENCE.md`](./reference/COMPOSABLES_REFERENCE.md)
+Stores → [`reference/STORES_REFERENCE.md`](./reference/STORES_REFERENCE.md)
 
 ### Хочу понять архитектурные решения
-ADR → `adr/` (Architecture Decision Records)
+ADR → [`adr/`](./adr/) (Architecture Decision Records)
 
 ### Хочу добавить новую функцию
-1. Проверьте `gdd/GDD.md` - возможно, это уже описано
-2. Изучите `core/IMPLEMENTATION_STATUS.md`
-3. Создайте Spec-kit артефакты в `spec-kit/specs/` по шаблонам `spec-kit/templates/`
-4. Следуйте архитектуре проекта (domain → application → stores/composables → components → pages)
+1. Проверьте [`gdd/GDD.md`](./gdd/GDD.md) — возможно, это уже описано
+2. Изучите [`core/IMPLEMENTATION_STATUS.md`](./core/IMPLEMENTATION_STATUS.md)
+3. Создайте Spec-kit артефакты в [`spec-kit/specs/`](./spec-kit/specs/) по шаблонам [`spec-kit/templates/`](./spec-kit/templates/)
+4. Следуйте архитектуре проекта: `domain → application → infrastructure → stores/composables → components → pages`
+5. Проверьте `npm run typecheck` и `npm run rules:audit`
 
 ## Роли и документация
 
 ### Разработчик
 
 Что читать:
-- Архитектура проекта
-- Статус реализации модулей
-- GDD (Game Design Document) - разделы реализуемых функций
-- Nuxt 4 архитектура
+- [Архитектура проекта](./core/ARCHITECTURE_OVERVIEW.md)
+- [Архитектурный контракт](./core/ARCHITECTURE_CONTRACT.md)
+- [Статус реализации](./core/IMPLEMENTATION_STATUS.md)
+- [GDD](./gdd/GDD.md) — разделы реализуемых функций
+- [Server-first миграция](./SERVER_MIGRATION.md)
 - Rules и code style (`.cursor/rules/`)
 
 Где искать:
@@ -143,8 +187,9 @@ ADR → `adr/` (Architecture Decision Records)
 ### Архитектор/Техлид
 
 Что читать:
-- Архитектура проекта
-- Nuxt 4 архитектура
+- [Архитектура проекта](./core/ARCHITECTURE_OVERVIEW.md)
+- [Архитектурный контракт](./core/ARCHITECTURE_CONTRACT.md)
+- [Server-first миграция](./SERVER_MIGRATION.md)
 - ADR (Architecture Decision Records)
 
 Где искать:
@@ -154,70 +199,37 @@ ADR → `adr/` (Architecture Decision Records)
 
 ## Глоссарий терминов
 
-- GDD - Game Design Document (документ геймдизайна)
-- Core Loop - основной игровой цикл
-- Nuxt 4 - веб-фреймворк на базе Vue 3
-- Vue 3 - UI фреймворк для интерфейса
-- TypeScript - язык программирования с типами
-- Pinia - state management библиотека для Vue 3
-- Domain layer - доменный слой (бизнес-логика)
-- Application layer - прикладной слой (команды и запросы)
-- Infrastructure layer - инфраструктурный слой (persistence)
-- ADR - Architecture Decision Record (архитектурные решения)
-- MVP - Minimum Viable Product (минимально жизнеспособный продукт)
-- Legacy - устаревший код, который был заменён (архив Phaser.js)
-
-## Быстрые ссылки
-
-### Начало работы
-- Установка и запуск → корневой README.md
-- Структура проекта → корневой README.md
-- Быстрый старт → `core/README.md`
-
-### Текущее состояние
-- Статус реализации → `core/IMPLEMENTATION_STATUS.md`
-- Roadmap → `core/ROADMAP.md`
-
-### Игровые механики
-- Полный GDD → `gdd/GDD.md`
-- Основные механики → `gdd/modules/03_core_mechanics.md`
-- Баланс и экономика → `gdd/modules/04_balance.md`
-- Случайные события → `gdd/modules/07_random_events.md`
-
-### Техническая документация
-- Обзор архитектуры проекта → `core/ARCHITECTURE_OVERVIEW.md`
-- Архитектурные решения → `adr/`
-- Nuxt 4 архитектура → `adr/nuxt4-architecture-analysis.md`
-- Composables Reference → `reference/COMPOSABLES_REFERENCE.md`
-- Stores Reference → `reference/STORES_REFERENCE.md`
-
-### Активные планы
-- Документация cleanup → `plans/active/documentation-cleanup-plan.md`
-- Rules fix → `plans/active/rules-fix-plan.md`
-
-### Spec-kit
-- Процесс и правила → `spec-kit/README.md`
-- Чеклист внедрения → `spec-kit/ADOPTION_CHECKLIST.md`
-- Маппинг project rules -> Spec-kit → `spec-kit/CURSOR_RULES_BRIDGE.md`
-- Шаблоны артефактов → `spec-kit/templates/`
-- Активные спецификации → `spec-kit/specs/`
+- **GDD** — Game Design Document (документ геймдизайна)
+- **Core Loop** — основной игровой цикл
+- **Nuxt 4** — веб-фреймворк на базе Vue 3
+- **Vue 3** — UI фреймворк для интерфейса
+- **TypeScript** — язык программирования с типами
+- **Pinia** — state management библиотека для Vue 3
+- **Nitro** — server engine Nuxt (Server API)
+- **GameWorld** — domain aggregate, единый state-container
+- **Domain layer** — доменный слой (бизнес-логика)
+- **Application layer** — прикладной слой (use cases: commands/queries)
+- **Infrastructure layer** — инфраструктурный слой (persistence)
+- **ADR** — Architecture Decision Record (архитектурные решения)
+- **SPA/Server/Hybrid** — режимы исполнения game-логики
+- **Offline queue** — буферизация действий при offline (server/hybrid режимы)
 
 ## Обновление документации
 
 ### Основные правила
 
-1. Держите в актуальном состоянии
+1. **Держите в актуальном состоянии**
    - Обновляйте `IMPLEMENTATION_STATUS.md` при завершении модуля
    - Обновляйте `ROADMAP.md` при изменении планов
    - Создавайте ADR при принятии архитектурных решений
 
-2. Соблюдайте структуру
+2. **Соблюдайте структуру**
    - Используйте существующие папки и файлы
    - Архивные документы → `archive/`
    - Новые ADR → `adr/`
-   - Новые планы → `plans/active/`
+   - Новые планы → через Spec-kit workflow в `.cursor/plans/`
 
-3. Кросс-ссылки
+3. **Кросс-ссылки**
    - Обновляйте ссылки в других файлах при переименовании
    - Проверяйте актуальность ссылок периодически
 
@@ -237,7 +249,13 @@ ADR → `adr/` (Architecture Decision Records)
 - Принятое решение
 - Последствия решения
 
-См. `adr/decision-guide.md` для формата ADR.
+См. [`adr/decision-guide.md`](./adr/decision-guide.md) для формата ADR.
+
+Актуальные ADR:
+- **ADR-0001**: Phaser.js → Nuxt миграция
+- **ADR-0002**: Удаление ECS
+- **ADR-0003**: Layered architecture
+- **ADR-0005**: GameWorld aggregate (Strategy A)
 
 ## Участие
 
@@ -251,23 +269,9 @@ ADR → `adr/` (Architecture Decision Records)
 2. Обсудите с командой
 3. Внесите изменения
 
-### Нужно добавить новый раздел?
-1. Определите категорию и название
-2. Создайте файл
-3. Обновите README соответствующей папки
-4. Добавьте ссылку в этот README
-
-## Поддержка
-
-По вопросам о документации:
-
-- Посмотрите этот README
-- Посмотрите README в нужной папке (core/gdd/adr/guides/reference)
-- Свяжитесь с ответственным за документацию
-
 ---
 
-**Последнее обновление:** 2 июня 2026
-**Версия документации:** 4.0
+**Последнее обновление:** 2 июля 2026
+**Версия документации:** 5.0
 **Статус:** Активная
-**Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia
+**Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia + Nitro Server API

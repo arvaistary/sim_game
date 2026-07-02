@@ -1,7 +1,7 @@
 # Обзор архитектуры проекта Game Life
 
-**Последнее обновление:** 2 июня 2026
-**Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia
+**Последнее обновление:** 2 июля 2026
+**Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia + Nitro Server API
 
 ---
 
@@ -93,6 +93,28 @@ graph TB
 
 ```
 src/domain/
+├── game-world/            # GameWorld aggregate (ADR-0005, Strategy A)
+│   ├── GameWorld.ts       # State-container класс (slices: time/stats/wallet/...)
+│   ├── GameWorld.types.ts # GameWorldSnapshot, slice types
+│   ├── bridge.ts          # @deprecated миграционный bridge (fromStores/applyToStores)
+│   ├── bridge.types.ts    # StoresSnapshot, StoresLoadTarget
+│   ├── game-facade/       # Тонкая обёртка над GameWorld
+│   └── commands/          # Domain commands + pure mutations
+│       ├── commands.types.ts
+│       ├── mutations.ts        # Pure мутации над world (stat/money/time/career/...)
+│       ├── execute-action.ts
+│       ├── simulate-work-shift.ts
+│       ├── resolve-event-decision.ts
+│       └── index.ts
+│
+├── game-mode/             # Server-first migration: типы режимов (Stage 1)
+│   ├── game-mode.types.ts # GameMode, GameModeConfig, SyncStatus
+│   └── index.ts
+│
+├── api-contract/          # Server-first migration: shared API типы (Stage 1)
+│   ├── types.ts           # ApiResponse, SyncResponse, ApiErrorCode, ...
+│   └── index.ts
+│
 └── balance/
     ├── actions/            # ~222 игровых действий в 10 категориях
     │   ├── index.ts       # Реэкспорт всех действий
@@ -180,13 +202,40 @@ src/domain/
 
 ```
 src/application/game/
-├── commands.ts           # Команды приложения (executeLifestyleAction, simulateWorkShift, ...)
-├── queries.ts            # Запросы приложения (getCareerTrack, getFinanceOverview, ...)
-├── index.types.ts        # Типы приложения
-├── index.ts              # Реэкспорт всех команд и запросов
+├── commands.ts                # Pure commands (signature: (world: GameWorld, ...) => Result)
+├── queries.ts                 # Pure queries (signature: (world: GameWorld, ...) => Data)
+├── SPAExecutor.ts             # createSPAExecutor(snapshotProvider, loadTarget) - sync SPA executor (Фаза 4)
+├── spa-async-executor.ts      # Async-адаптер над pure commands (server-first Stage 2)
+├── server-executor.ts         # ServerExecutor: $fetch к Nitro API (Stage 5)
+├── server-query-executor.ts   # ServerQueryExecutor: $fetch GET endpoints (Stage 5)
+├── executor-factory.ts        # createExecutor(mode) — DI factory (Stage 2)
+├── state-sync.ts              # loadWorldFromServer, syncWorldWithServer (Stage 5.3)
+├── error-handler.ts           # parseApiError, isNetworkError (Stage 5.4)
+├── offline-queue.ts           # OfflineQueueManager (Stage 5.5)
+├── legacy.ts                  # @deprecated appGameCommands/appGameQueries shim
+├── index.types.ts             # GameExecutor, GameQueryExecutor, CommandOutcome, ...
+├── async-executor.types.ts    # AsyncGameExecutor, AsyncGameQueryExecutor (Stage 1)
+├── server-executor.types.ts   # ServerExecutorOptions (Stage 5)
+├── server-sync.types.ts       # StateSyncResult, ConflictInfo, ParsedApiError (Stage 5)
+├── offline-queue.types.ts     # QueuedAction, SyncOutcome (Stage 5)
+├── index.ts                   # Реэкспорт
 └── ports/
-    └── SaveRepository.ts # Порт для persistence
+    ├── SaveRepository.ts          # @deprecated (пустой, тип вынесен)
+    └── SaveRepository.types.ts    # Порт для persistence
 ```
+
+### Architecture (ADR-0005 + Server-first migration)
+
+Application layer чистый: 0 импортов Pinia, 0 импортов infrastructure. Все команды принимают `world: GameWorld` первым аргументом.
+
+**Server-first миграция (Stages 1-7 завершены):**
+- `createExecutor(mode)` factory выбирает executor по game-mode (DI, без импортов infrastructure)
+- SPA режим: `spa-async-executor.ts` оборачивает pure commands в `Promise.resolve`
+- Server режим: `server-executor.ts` делает `$fetch` к Nitro API
+- Hybrid режим: SPA fallback с offline queue
+- `OfflineQueueManager` буферизует действия при offline, синхронизируется через `POST /api/game/sync`
+
+См. [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md) для полного описания.
 
 ### Commands
 

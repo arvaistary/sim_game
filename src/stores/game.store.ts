@@ -16,7 +16,24 @@ import { useActivityStore } from './activity-store'
 import type { GameEvent } from './events-store/events-store.types'
 import { getActionById, type BalanceAction } from '@/domain/balance/actions'
 import type { CareerTrackJobItem } from '@/domain/balance/types'
-import { appGameCommands } from '@/application/game/commands'
+import type { GameWorld } from '@/domain/game-world/GameWorld'
+import { fromStores, applyToStores } from '@/domain/game-world/bridge'
+import type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
+import type { GameMode, GameModeConfig, SyncStatus } from '@/domain/game-mode'
+import {
+  createExecutor,
+  createQueryExecutor,
+  appGameCommands,
+  OfflineQueueManager,
+} from '@/application/game'
+import type {
+  AsyncGameExecutor,
+  AsyncGameQueryExecutor,
+  QueuedAction,
+  SyncOutcome,
+} from '@/application/game'
+import type { ApiResponse, SyncResponse } from '@/domain/api-contract'
+import { getGameMode, getGameModeConfig } from '@/infrastructure/config/game-mode'
 import type { ActionResult } from '@/stores/actions-store'
 import type {
   CanApplyWorkShiftResult,
@@ -57,6 +74,62 @@ export const useGameStore = defineStore('game', () => {
   const finance = useFinanceStore()
 
   const activity = useActivityStore()
+
+  // --- Server-first migration: async executor layer (Stage 3) ---
+  const gameMode: GameMode = getGameMode()
+
+  const gameModeConfig: GameModeConfig = getGameModeConfig()
+
+  const executor: AsyncGameExecutor = createExecutor(gameMode, { baseUrl: gameModeConfig.apiBaseUrl })
+
+  const queryExecutor: AsyncGameQueryExecutor = createQueryExecutor(gameMode, {
+    baseUrl: gameModeConfig.apiBaseUrl,
+  })
+
+  const isOnline: Ref<boolean> = ref<boolean>(true)
+
+  const pendingSyncCount: Ref<number> = ref<number>(0)
+
+  const syncStatus: Ref<SyncStatus> = ref<SyncStatus>('idle')
+
+  // Offline queue только для server/hybrid режимов
+  const offlineQueue: OfflineQueueManager | null = gameModeConfig.offlineQueueEnabled
+    ? new OfflineQueueManager()
+    : null
+
+  /**
+   * Построить GameWorld из текущих Pinia stores (для SPA async executor).
+   * @description [Store] - мост stores -> world.
+   * @return { GameWorld }
+   */
+  function buildWorld(): GameWorld {
+    const snapshot: StoresSnapshot = save() as unknown as StoresSnapshot
+    return fromStores(snapshot)
+  }
+
+  /**
+   * Записать изменения из world обратно в Pinia stores (для SPA async).
+   * @description [Store] - мост world -> stores.
+   * @param world источник
+   * @return { void }
+   */
+  function syncFromWorld(world: GameWorld): void {
+    const target: StoresLoadTarget = {
+      player,
+      time,
+      stats,
+      wallet,
+      skills,
+      career,
+      education,
+      housing,
+      events,
+      finance,
+      activity,
+    }
+    applyToStores(world, target)
+    worldVersion.value++
+  }
 
   const worldTick: ComputedRef<number> = computed(() => worldVersion.value)
 
@@ -244,6 +317,144 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
+  // --- Server-first migration: async methods (Stage 3) ---
+  // Эти методы используют executor (SPA или server) и поддерживают режимы.
+  // Синхронные методы выше остаются для back-compat.
+
+  /**
+   * Async executeAction через executor (SPA строит world, server — через API).
+   * @description [Store] - server-first команда.
+   * @return { Promise<ExecuteActionResult> }
+   */
+  async function executeActionAsync(actionId: string): Promise<ExecuteActionResult> {
+    const world: GameWorld = buildWorld()
+    const result: ExecuteActionResult = await executor.executeAction(world, actionId)
+    syncFromWorld(world)
+    return result
+  }
+
+  /**
+   * Async applyWorkShift через executor.
+   * @description [Store] - server-first команда.
+   * @return { Promise<string> }
+   */
+  async function applyWorkShiftAsync(hours: number): Promise<string> {
+    const check: CanApplyWorkShiftResult = canApplyWorkShift(hours)
+
+    if (!check.canDo) return check.reason ?? 'Ошибка'
+
+    const world: GameWorld = buildWorld()
+    const result: string = await executor.simulateWorkShift(world, hours)
+    syncFromWorld(world)
+    return result
+  }
+
+  /**
+   * Async changeCareer через executor.
+   * @description [Store] - server-first команда.
+   * @return { Promise<ChangeCareerResult> }
+   */
+  async function changeCareerAsync(jobId: string): Promise<ChangeCareerResult> {
+    const world: GameWorld = buildWorld()
+    const result: ChangeCareerResult = await executor.changeCareer(world, jobId)
+    syncFromWorld(world)
+    return result
+  }
+
+  /**
+   * Async quitCareer через executor.
+   * @description [Store] - server-first команда.
+   * @return { Promise<QuitCareerResult> }
+   */
+  async function quitCareerAsync(): Promise<QuitCareerResult> {
+    const world: GameWorld = buildWorld()
+    const result: QuitCareerResult = await executor.quitCareer(world)
+    syncFromWorld(world)
+    return result
+  }
+
+  /**
+   * Async getFinanceOverview через query executor.
+   * @description [Store] - server-first query.
+   * @return { Promise<FinanceOverview> }
+   */
+  async function getFinanceOverviewAsync(): Promise<FinanceOverview> {
+    const world: GameWorld = buildWorld()
+    const dto: FinanceOverview = await queryExecutor.getFinanceOverview(world)
+    return dto
+  }
+
+  /**
+   * Async getInvestments через query executor.
+   * @description [Store] - server-first query.
+   * @return { Promise<Investment[]> }
+   */
+  async function getInvestmentsAsync(): Promise<Investment[]> {
+    const world: GameWorld = buildWorld()
+    return queryExecutor.getInvestments(world)
+  }
+
+  // --- Server-first migration: offline queue integration (Stage 5.6) ---
+
+  /**
+   * Sync client для отправки оффлайн-очереди на сервер через /api/game/sync.
+   * @description [Store] - offline queue sync adapter.
+   * @param actions действия для отправки
+   * @return { Promise<ApiResponse<SyncResponse>> } ответ сервера
+   */
+  function createSyncClient(actions: QueuedAction[]): Promise<ApiResponse<SyncResponse>> {
+    return $fetch<ApiResponse<SyncResponse>>(`${gameModeConfig.apiBaseUrl}/api/game/sync`, {
+      method: 'POST',
+      body: {
+        actions: actions.map((action: QueuedAction) => ({
+          type: action.type,
+          payload: action.payload,
+          timestamp: action.timestamp,
+        })),
+      },
+    })
+  }
+
+  /**
+   * Синхронизировать оффлайн-очередь с сервером (при восстановлении сети).
+   * @description [Store] - offline queue flush.
+   * @return { Promise<void> }
+   */
+  async function flushOfflineQueue(): Promise<void> {
+    if (!offlineQueue || !offlineQueue.hasPending()) return
+
+    syncStatus.value = 'syncing'
+
+    try {
+      const outcome: SyncOutcome = await offlineQueue.syncWithServer(createSyncClient)
+
+      pendingSyncCount.value = offlineQueue.size()
+
+      if (outcome.failed > 0 && outcome.applied === 0) {
+        syncStatus.value = 'error'
+      } else {
+        syncStatus.value = 'idle'
+      }
+    } catch {
+      syncStatus.value = 'error'
+    }
+  }
+
+  /**
+   * Установить online-статус и запустить синхронизацию при восстановлении.
+   * @description [Store] - online status update.
+   * @param online новый статус
+   * @return { Promise<void> }
+   */
+  async function setOnlineStatus(online: boolean): Promise<void> {
+    const wasOffline: boolean = !isOnline.value
+    isOnline.value = online
+
+    if (online && wasOffline) {
+      await flushOfflineQueue()
+    }
+  }
+
   return {
     worldVersion, worldTick, isInitialized,
     playerName: computed(() => player.name),
@@ -271,6 +482,13 @@ export const useGameStore = defineStore('game', () => {
     initWorld, save, load, resetGame,
     canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
     canExecuteAction, executeAction, getNextEvent, applyEventChoice, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment,
-    canStartEducationProgramWithReason, startEducationProgram, advanceEducation
+    canStartEducationProgramWithReason, startEducationProgram, advanceEducation,
+    // server-first migration (Stage 3 + 5.6)
+    executor, queryExecutor,
+    gameMode,
+    isOnline, pendingSyncCount, syncStatus,
+    executeActionAsync, applyWorkShiftAsync, changeCareerAsync, quitCareerAsync,
+    getFinanceOverviewAsync, getInvestmentsAsync,
+    flushOfflineQueue, setOnlineStatus,
   }
 })

@@ -87,22 +87,11 @@ const careerTrack = computed<CareerTrackJobItem[]>(() => {
 
 function takeJob(job: CareerTrackJobItem): void {
   if (!job.unlocked || job.current) return
-  careerStore.startWork({
-    id: job.id,
-    name: job.name,
-    schedule: job.schedule,
-    employed: true,
-    level: job.level,
-    salaryPerHour: job.salaryPerHour,
-    salaryPerDay: job.salaryPerHour * 8,
-    salaryPerWeek: job.salaryPerHour * 40,
-    requiredHoursPerWeek: 40,
-    workedHoursCurrentWeek: 0,
-    pendingSalaryWeek: 0,
-    totalWorkedHours: 0,
-    daysAtWork: 0,
-  })
-  message.value = `Вы устроились на работу: ${job.name}`
+  const result = store.changeCareer(job.id)
+
+  message.value = result?.success
+    ? (result.message ?? `Вы устроились на работу: ${job.name}`)
+    : (result?.message ?? 'Не удалось устроиться')
   setTimeout(() => {
     message.value = ''
   }, 3000)

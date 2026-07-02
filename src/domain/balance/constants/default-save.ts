@@ -2,124 +2,22 @@
  * Демо-сейв для тестов и начального состояния новой игры
  */
 
-import type { CharacterTag } from '../types'
+import type { SaveData } from './default-save.types'
 
-export interface SaveData {
-  version: string
-  playerName: string
-  startAge: number
-  currentAge: number
-  gameDays: number
-  gameWeeks: number
-  gameMonths: number
-  gameYears: number
-  time: TimeData
-  money: number
-  totalEarnings: number
-  totalSpent: number
-  currentJob: JobData
-  housing: HousingData
-  skills: Record<string, number>
-  skillModifiers: Record<string, number>
-  education: EducationData
-  relationships: RelationshipData[]
-  investments: unknown[]
-  finance: FinanceData
-  eventState: EventStateData
-  eventHistory: unknown[]
-  pendingEvents: unknown[]
-  lifetimeStats: LifetimeStatsData
-  stats: StatsData
-  /** ECS-компонент тегов (временные модификаторы); опционально в старых сейвах. */
-  tags?: { items: CharacterTag[] }
-}
-
-export interface TimeData {
-  totalHours: number
-  hourOfDay: number
-  dayOfWeek: number
-  weekHoursSpent: number
-  weekHoursRemaining: number
-  dayHoursSpent: number
-  dayHoursRemaining: number
-  sleepHoursToday: number
-  sleepDebt: number
-}
-
-export interface JobData {
-  id: string
-  name: string
-  schedule: string
-  employed: boolean
-  salaryPerHour: number
-  salaryPerWeek: number
-  salaryPerDay: number
-  requiredHoursPerWeek: number
-  workedHoursCurrentWeek: number
-  totalWorkedHours: number
-  level: number
-  daysAtWork: number
-}
-
-export interface HousingData {
-  level: number
-  name: string
-  comfort: number
-  furniture: unknown[]
-  lastWeeklyBonus: number | null
-}
-
-export interface EducationData {
-  school: string
-  institute: string
-  educationLevel: string
-  activeCourses: unknown[]
-  completedPrograms?: Array<{
-    id: string
-    name: string
-    typeLabel?: string
-    completedAtGameDay?: number
-  }>
-}
-
-export interface RelationshipData {
-  id: string
-  name: string
-  type: string
-  level: number
-  lastContact: number
-}
-
-export interface FinanceData {
-  reserveFund: number
-  monthlyExpenses: Record<string, number>
-  lastMonthlySettlement: number | null
-  debt: number
-}
-
-export interface EventStateData {
-  cooldownByEventId: Record<string, number>
-  lastWeeklyEventWeek: number
-  lastMonthlyEventMonth: number
-  lastYearlyEventYear: number
-}
-
-export interface LifetimeStatsData {
-  totalWorkDays: number
-  totalWorkHours: number
-  totalEvents: number
-  totalMicroEvents: number
-  maxMoney: number
-}
-
-export interface StatsData {
-  hunger: number
-  energy: number
-  stress: number
-  mood: number
-  health: number
-  physical: number
-}
+export type {
+  EducationData,
+  EventStateData,
+  FinanceData,
+  HousingData,
+  Investment,
+  JobData,
+  LifetimeStatsData,
+  MonthlyExpense,
+  RelationshipData,
+  SaveData,
+  StatsData,
+  TimeData,
+} from './default-save.types'
 
 export const DEFAULT_SAVE: SaveData = {
   version: '1.1.0',
@@ -154,6 +52,7 @@ export const DEFAULT_SAVE: SaveData = {
     salaryPerDay: 8400,
     requiredHoursPerWeek: 40,
     workedHoursCurrentWeek: 0,
+    pendingSalaryWeek: 0,
     totalWorkedHours: 1168,
     level: 1,
     daysAtWork: 146,
@@ -228,12 +127,21 @@ export const DEFAULT_SAVE: SaveData = {
     },
     lastMonthlySettlement: null,
     debt: 0,
+    investments: [],
+    expenseList: [
+      { category: 'rent', amount: 16000 },
+      { category: 'food', amount: 9000 },
+      { category: 'transport', amount: 4500 },
+      { category: 'leisure', amount: 6500 },
+      { category: 'education', amount: 2500 },
+    ],
   },
   eventState: {
     cooldownByEventId: {},
     lastWeeklyEventWeek: 19,
     lastMonthlyEventMonth: 4,
     lastYearlyEventYear: 0,
+    seenEventIds: [],
   },
   eventHistory: [],
   pendingEvents: [],

@@ -1,132 +1,136 @@
-import type { FinanceSnapshotDto, FinanceOverviewDto } from './index.types'
-import { getActionById, type BalanceAction } from '@/domain/balance/actions'
-import { useCareerStore } from '@/stores/career-store'
-import { useEducationStore } from '@/stores/education-store'
-import type { Investment, MonthlyExpense } from '@/stores/finance-store'
-import { useFinanceStore } from '@/stores/finance-store'
-import { useWalletStore } from '@/stores/wallet-store'
-import type { ActivityEntry } from '@/stores/activity-store'
-import { useActivityStore } from '@/stores/activity-store'
-import type { GameEvent } from '@/stores/events-store'
-import { useEventsStore } from '@/stores/events-store'
-import { useTimeStore } from '@/stores/time-store'
+/**
+ * Pure application queries (ADR-0005, Фаза 4).
+ *
+ * Все queries принимают `world: GameWorld` первым аргументом.
+ * Application layer НЕ импортирует Pinia — только domain и utils.
+ * SPAExecutor (legacy.ts) поставляет stores для совместимости со старым API.
+ */
+import type { GameWorld } from '@/domain/game-world/GameWorld'
+import type { GameEventPayload } from '@/domain/game-world/commands/commands.types'
+import type { ActivityEntry, GameWorldSnapshot } from '@/domain/game-world/GameWorld.types'
+import { getActionById } from '@/domain/balance/actions'
+import type { BalanceAction } from '@/domain/balance/actions'
+import type { FinanceOverviewDto, FinanceSnapshotDto } from './index.types'
 
-export const appGameQueries = {
-  getCareerTrack(): Array<Record<string, unknown>> {
-    const careerStore = useCareerStore()
+/**
+ * Career track из мира (без useCareerStore).
+ * @description [Application] - чистая query.
+ * @return { Array<Record<string, unknown>> }
+ */
+export function getCareerTrack(world: GameWorld): Array<Record<string, unknown>> {
+  const job: GameWorldSnapshot['career']['currentJob'] = world.career.currentJob
 
-    return [careerStore.currentJob]
-  },
+  if (!job.employed) return []
+  return [job as unknown as Record<string, unknown>]
+}
 
-  getActivityLogEntries(count: number = 8): Array<Record<string, unknown>> {
-    const activityStore = useActivityStore()
+/**
+ * Activity log из мира.
+ * @description [Application] - чистая query.
+ * @return { ActivityEntry[] }
+ */
+export function getActivityLog(world: GameWorld, filter?: string, limit?: number): ActivityEntry[] {
+  let entries: ActivityEntry[] = world.activity.entries
 
-    return activityStore.getEntries(count) as unknown as Array<Record<string, unknown>>
-  },
+  if (filter && filter !== 'all') {
+    entries = entries.filter((entry: ActivityEntry) => entry.type === filter)
+  }
 
-  canStartEducationProgram(programId: string): boolean {
-    const educationStore = useEducationStore()
+  if (limit) {
+    entries = entries.slice(-limit)
+  }
+  return entries
+}
 
-    return educationStore.canStartProgramById(programId)
-  },
+/**
+ * Activity log entries (последние N).
+ * @description [Application] - чистая query.
+ * @return { ActivityEntry[] }
+ */
+export function getActivityLogEntries(world: GameWorld, count: number = 8): ActivityEntry[] {
+  return world.activity.entries.slice(-count)
+}
 
-  canStartEducationProgramWithReason(programId: string): CanStartEducationResult {
-    const educationStore = useEducationStore()
+/**
+ * Finance overview из мира.
+ * @description [Application] - чистая query.
+ * @return { FinanceOverviewDto }
+ */
+export function getFinanceOverview(world: GameWorld): FinanceOverviewDto {
+  return {
+    balance: world.wallet.money,
+    expenses: 0,
+    income: world.wallet.totalEarnings,
+  }
+}
 
-    if (!educationStore.canStartProgramById(programId)) {
-      return { ok: false, reason: 'Невозможно начать программу' }
-    }
-    return { ok: true }
-  },
+/**
+ * Investments из мира.
+ * @description [Application] - чистая query.
+ * @return { typeof world.finance.investments }
+ */
+export function getInvestments(world: GameWorld): typeof world.finance.investments {
+  return world.finance.investments
+}
 
-  getFinanceOverview(): FinanceOverviewDto {
-    const walletStore = useWalletStore()
+/**
+ * Can execute action check (без мутации).
+ * @description [Application] - чистая query.
+ * @return { { canExecute: boolean; reason?: string } }
+ */
+export function canExecuteAction(world: GameWorld, actionId: string): { canExecute: boolean; reason?: string } {
+  const action: BalanceAction | null = getActionById(actionId)
 
-    const financeStore = useFinanceStore()
+  if (!action) return { canExecute: false, reason: 'Действие не найдено' }
 
-    return {
-      balance: walletStore.money,
-      expenses: financeStore.totalExpense,
-      income: walletStore.totalEarned,
-    }
-  },
+  if (world.wallet.money < action.price) return { canExecute: false, reason: 'Недостаточно денег' }
 
-  getFinanceActions(): never[] {
-    return []
-  },
+  if (world.time.weekHoursRemaining < action.hourCost) return { canExecute: false, reason: 'Недостаточно времени' }
 
-  getInvestments(): Investment[] {
-    const financeStore = useFinanceStore()
+  return { canExecute: true }
+}
 
-    return financeStore.investments
-  },
+/**
+ * Peek scheduled event (следующее в очереди).
+ * @description [Application] - чистая query.
+ * @return { GameEventPayload | null }
+ */
+export function peekScheduledEvent(world: GameWorld): GameEventPayload | null {
+  const next: unknown = world.events.pending[0]
+  return (next as GameEventPayload) ?? null
+}
 
-  canExecuteAction(actionId: string): { canExecute: boolean; reason?: string } {
-    const action: BalanceAction | null = getActionById(actionId)
+/**
+ * Event queue из мира.
+ * @description [Application] - чистая query.
+ * @return { GameEventPayload[] }
+ */
+export function getEventQueue(world: GameWorld): GameEventPayload[] {
+  return world.events.pending as unknown as GameEventPayload[]
+}
 
-    if (!action) return { canExecute: false, reason: 'Действие не найдено' }
+/**
+ * Finance snapshot из мира (DTO).
+ * @description [Application] - чистая query.
+ * @return { FinanceSnapshotDto }
+ */
+export function getFinanceSnapshot(world: GameWorld): FinanceSnapshotDto {
+  return {
+    money: world.wallet.money,
+    reserveFund: world.wallet.reserveFund,
+    monthlyIncome: world.wallet.totalEarnings,
+    monthlyExpenses: world.finance.monthlyExpenses,
+    emergencyFund: world.wallet.reserveFund,
+    deposits: [],
+    portfolios: world.finance.investments,
+  }
+}
 
-    const walletStore = useWalletStore()
-
-    const timeStore = useTimeStore()
-
-    if (walletStore.money < action.price) return { canExecute: false, reason: 'Недостаточно денег' }
-
-    if (timeStore.weekHoursRemaining < action.hourCost) return { canExecute: false, reason: 'Недостаточно времени' }
-
-    return { canExecute: true }
-  },
-
-  peekScheduledEvent(): Record<string, unknown> | null {
-    const eventsStore = useEventsStore()
-
-    return eventsStore.currentEvent as unknown as Record<string, unknown> | null
-  },
-
-  getActivityLog(filter?: string, limit?: number): ActivityEntry[] {
-    const activityStore = useActivityStore()
-
-    let entries: ActivityEntry[] = activityStore.entries
-
-    if (filter && filter !== 'all') {
-      entries = entries.filter((e: ActivityEntry) => e.type === filter)
-    }
-
-    if (limit) {
-      entries = entries.slice(-limit)
-    }
-    return entries
-  },
-
-  getActivityTimelineWindow(count: number): ActivityEntry[] {
-    const activityStore = useActivityStore()
-
-    return activityStore.getEntries(count)
-  },
-
-  getEventQueue(): GameEvent[] {
-    const eventsStore = useEventsStore()
-
-    return eventsStore.eventQueue
-  },
-
-  getFinanceSnapshot(): FinanceSnapshotDto {
-    const walletStore = useWalletStore()
-
-    const financeStore = useFinanceStore()
-
-    return {
-      money: walletStore.money,
-      reserveFund: walletStore.reserveFund,
-      monthlyIncome: walletStore.totalEarned,
-      monthlyExpenses: financeStore.monthlyExpenses
-        .reduce(
-          (acc: Record<string, number>, e: MonthlyExpense) => ({ ...acc, [e.category]: e.amount }),
-          {} as Record<string, number>,
-        ),
-      emergencyFund: walletStore.reserveFund,
-      deposits: [],
-      portfolios: financeStore.investments,
-    }
-  },
+/**
+ * Activity timeline window (последние N с sorting).
+ * @description [Application] - чистая query.
+ * @return { ActivityEntry[] }
+ */
+export function getActivityTimelineWindow(world: GameWorld, count: number): ActivityEntry[] {
+  return world.activity.entries.slice(-count)
 }

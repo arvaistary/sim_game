@@ -1,323 +1,197 @@
-# Game Life - Документация для разработчиков
+# Game Life — Документация для разработчиков
 
-Добро пожаловать в проект Game Life! Это симулятор жизни с пошаговым геймплеем, реализованный на Nuxt 4 + Vue 3 + TypeScript.
+Добро пожаловать в проект Game Life! Симулятор жизни с пошаговым геймплеем на Nuxt 4 + Vue 3 + TypeScript + Pinia + Nitro Server API.
 
-## 📚 Быстрый старт
+## Быстрый старт для новых разработчиков
 
-Для новых разработчиков рекомендуем следующий порядок чтения:
+Рекомендуемый порядок чтения:
 
-1. **🏗️ Обзор архитектуры** - 4 архитектурных слоя проекта
-2. **🎯 Обзор проекта** - эта страница
-3. **📊 Статус реализации** - что готово, что в работе
-4. **🧩 Справочник страниц** - Vue страницы и Nuxt роутинг
-5. **🎮 GDD (Game Design Document)** - полное описание механик игры
-6. **📄 Документация старта игры** - StartPage и инициализация
-7. **⚙️ Архитектура Engine** - техническая архитектура доменного слоя
+1. [Обзор архитектуры](ARCHITECTURE_OVERVIEW.md) — слоистая архитектура, server-first
+2. [Архитектурный контракт](ARCHITECTURE_CONTRACT.md) — правила размещения кода
+3. [Server-first миграция](../SERVER_MIGRATION.md) — режимы SPA/Server/Hybrid, offline-first
+4. [Статус реализации](IMPLEMENTATION_STATUS.md) — что готово, что в работе
+5. [Roadmap](ROADMAP.md) — планы разработки
+6. [Справочник страниц](PAGES_REFERENCE.md) — Vue страницы и Nuxt роутинг
+7. [GDD](../gdd/GDD.md) — полное описание механик
+8. [Документация старта игры](START_GAME_DOCUMENTATION.md) — StartPage и инициализация
 
-## 📁 Структура документации
+## Структура документации
 
-### 📖 Основная документация (эта папка)
+### Основная документация (эта папка `doc/core/`)
 
-В этой папке собрана основная документация для входа в проект:
+- **README.md** — этот файл, обзор и навигация
+- **ARCHITECTURE_OVERVIEW.md** — обзор слоистой архитектуры (domain → application → infrastructure → presentation)
+- **ARCHITECTURE_CONTRACT.md** — куда класть новый код, известные нарушения
+- **IMPLEMENTATION_STATUS.md** — текущий статус реализации всех модулей
+- **ROADMAP.md** — кратко-/средне-/долгосрочные планы
+- **PAGES_REFERENCE.md** — таблица Vue страниц и Nuxt роутинга
+- **START_GAME_DOCUMENTATION.md** — документация старта игры
+- **MEMPALACE_SETUP.md** — настройка MemPalace (локальная память команды)
 
-- **README.md** - этот файл, обзор и навигация
-- **IMPLEMENTATION_STATUS.md** - текущий статус реализации всех модулей
-- **PAGES_REFERENCE.md** - таблица Vue страниц и Nuxt роутинга
-- **START_GAME_DOCUMENTATION.md** - документация старта игры
-- **ARCHITECTURE_OVERVIEW.md** - обзор 4 архитектурных слоёв
-- **MEMPALACE_SETUP.md** - настройка и workflow MemPalace
+### Server-first миграция (`doc/SERVER_MIGRATION.md`)
 
-### 🎮 Game Design Document (`../GDD/`)
+Полное описание архитектуры сервер-первой миграции: 3 режима работы (SPA/Server/Hybrid), offline-first flow, API endpoints, план Stage 8 (выделенный Node.js сервер).
 
-Полное описание игровой механики и дизайна:
+### Game Design Document (`doc/gdd/`)
 
-- **GDD.md** - основной документ со всеми механиками игры
-- **modules/** - модульные документы по темам:
-  - `01_general.md` - общая информация
-  - `02_implementation.md` - рекомендации по реализации в Nuxt 4 + Vue 3
-  - `03_core_mechanics.md` - основные механики
-  - `04_balance.md` - баланс и экономика
-  - `05_save_system.md` - система сохранений
-  - `06_death_system.md` - система смерти и концовок
-  - `07_random_events.md` - случайные события
-  - `08_family.md` - семья и дети
-  - `09_hobbies.md` - хобби и побочный заработок
-  - `10_achievements.md` - достижения и трофеи
-  - `11_seasonal.md` - сезонные и праздничные события
-  - `12_technical.md` - технические требования
-  - `13_roadmap.md` - roadmap разработки (дублирует ../ROADMAP.md)
-  - `14_conclusion.md` - заключение
+- **GDD.md** — основной документ со всеми механиками
+- **modules/** — модульные документы по темам (01_general ... 14_conclusion)
 
-### ⚙️ Техническая архитектура (`../ecs/`)
+### Architecture Decision Records (`doc/adr/`)
 
-В коде данные баланса (работы, жильё, демо-сейв, навыки UI, образование, базовые расходы) собраны в **`src/domain/balance/`**.
+Ключевые архитектурные решения:
 
-Документация о технической реализации:
+- **ADR-0001**: Phaser.js → Nuxt миграция
+- **ADR-0002**: Удаление ECS
+- **ADR-0003**: Layered architecture
+- **ADR-0005**: GameWorld aggregate (Strategy A)
+- См. [`adr/README.md`](../adr/README.md) для полного списка
 
-- **ecs/ECS_ARCHITECTURE.md** — описание ECS архитектуры доменного слоя
-- **ecs/ECS_DOMAIN_MAP.md** — карта соответствия домена
-- **ecs/ECS_MIGRATION_FINAL_REPORT.md** — финальный отчёт о миграции
-- **ecs/Nuxt4_INTEGRATION.md** — интеграция ECS с Pinia store
-- **ecs/README.md** — обзор ECS и статус миграции
+### Practical guides (`doc/guides/`)
 
-### 🌐 Фреймворк и инструменты (`../`)
+- **DESIGN_SYSTEM.md** — design system проекта
+- **MODAL_SYSTEM_GUIDE.md** — руководство по модальной системе
+- **RULES_NUXT_ADAPTATION.md** — правила адаптации под Nuxt
 
-- **NUXT4_ARCHITECTURE.md** — архитектура и конфигурация Nuxt 4
+### Reference (`doc/reference/`)
+
 - **COMPOSABLES_REFERENCE.md** — справочник Vue composables
+- **STORES_REFERENCE.md** — справочник Pinia stores
 
-## 🚀 Начало работы
+### Spec-kit (`doc/spec-kit/`)
 
-### Требования
+Workflow для постановки задач: spec → plan → tasks. См. [`spec-kit/README.md`](../spec-kit/README.md).
 
-- Node.js (версия 18+)
-- Современный браузер (Chrome, Firefox, Safari, Edge)
-- npm или yarn
+### Архив (`doc/archive/`)
 
-### Установка
+Устаревшие документы по историческим контекстам:
+
+- **ecs/** — ECS-архитектура (удалена, см. ADR-0002)
+- **phaser-architecture/** — Phaser.js (см. ADR-0001)
+- **migration-plans/** — старые планы миграций (Nuxt 4, Vue 3, TypeScript)
+- **refresh-plans/** — выполненные refresh-планы
+- **plans/** — выполненные планы (dashboard restyle, game world aggregate, server-first migration и т.д.)
+- **legacy-docs/** — старые системные спецификации (CAREER_SYSTEM, EDUCATION_SYSTEM, EVENT_SYSTEM, и т.д.)
+
+## Запуск проекта
 
 ```bash
-# Клонирование репозитория
-git clone <repository-url>
-cd game_life
-
 # Установка зависимостей
 npm install
-```
 
-### Запуск проекта
-
-```bash
+# Dev-сервер (SPA режим по умолчанию)
 npm run dev
+
+# Production build
+npm run build
+
+# Typecheck
+npm run typecheck
+
+# Unit/integration тесты
+npm run test
+
+# Audit правил проекта
+npm run rules:audit
 ```
 
-Nuxt выведет адрес (часто `http://localhost:3000/`). Откройте его в браузере.
+Nuxt выведет адрес (часто `http://localhost:3000/`).
 
-## 📦 Структура проекта
+## Технологический стек
 
-```text
-game_life/
-├── src/                         # Исходный код
-│   ├── domain/                   # Доменный слой (бизнес-логика)
-│   │   ├── engine/              # Engine архитектура
-│   │   │   ├── components/       # Компоненты (данные)
-│   │   │   ├── systems/          # Системы (логика)
-│   │   │   ├── types/            # TypeScript типы
-│   │   │   ├── constants/        # Константы компонентов
-│   │   │   ├── policies/         # Политики форматирования
-│   │   │   └── utils/           # Утилиты Engine
-│   │   ├── balance/              # Баланс и статический контент
-│   │   │   ├── actions/          # Каталог действий (~222 действия)
-│   │   │   ├── career-jobs.ts    # Должности
-│   │   │   ├── education-programs.ts # Программы обучения
-│   │   │   ├── housing-levels.ts  # Уровни жилья
-│   │   │   └── ...              # Другие файлы баланса
-│   │   └── game-facade/          # Фасад доменного слоя
-│   │       ├── system-context.ts  # Контекст систем
-│   │       ├── commands.ts       # Команды домена
-│   │       ├── queries.ts        # Запросы домена
-│   │       └── index.ts         # createWorldFromSave, gameDomainFacade
-│   │
-│   ├── application/              # Прикладной слой (Use Cases)
-│   │   └── game/
-│   │       ├── commands.ts       # Команды прикладного слоя
-│   │       ├── queries.ts        # Запросы прикладного слоя
-│   │       ├── types.ts         # Типы прикладного слоя
-│   │       └── ports/
-│   │           └── SaveRepository.ts # Интерфейс репозитория
-│   │
-│   ├── infrastructure/           # Инфраструктурный слой
-│   │   └── persistence/
-│   │       └── LocalStorageSaveRepository.ts
-│   │
-│   ├── components/               # Vue компоненты
-│   │   ├── layout/              # Layout компоненты
-│   │   ├── ui/                  # UI компоненты
-│   │   └── game/                # Игровые компоненты
-│   │
-│   ├── pages/                   # Vue страницы (15 шт.)
-│   │   ├── StartPage.vue
-│   │   ├── MainPage.vue
-│   │   ├── RecoveryPage.vue
-│   │   └── ...                 # 12 других страниц
-│   │
-│   ├── nuxt-pages/              # Nuxt страницы (роутинг)
-│   │   ├── index.vue
-│   │   └── game/[section].vue   # Динамические страницы
-│   │
-│   ├── middleware/               # Nuxt middleware
-│   │   └── game-init.ts        # Инициализация игры
-│   │
-│   ├── composables/              # Vue composables
-│   │   ├── useActions.ts
-│   │   ├── useFinance.ts
-│   │   └── ...                 # 3 других composables
-│   │
-│   ├── stores/                  # Pinia stores
-│   │   └── game.store.ts       # Главный хранилище игры
-│   │
-│   ├── assets/                  # Статические ресурсы
-│   │   └── css/main.css        # Глобальные стили
-│   ├── plugins/                 # Nuxt плагины
-│   ├── utils/                   # Общие утилиты
-│   └── constants/               # Глобальные константы
-│
-├── doc/                        # Документация
-│   ├── core/                   # Основная документация (эта папка)
-│   ├── GDD/                    # Game Design Document
-│   ├── ecs/                    # Техническая документация ECS
-│   ├── archive/                # Архив устаревших документов
-│   ├── NUXT4_ARCHITECTURE.md   # Nuxt 4 архитектура
-│   └── COMPOSABLES_REFERENCE.md # Справочник composables
-│
-├── test/                       # Тесты
-│   ├── unit/                   # Unit тесты
-│   ├── integration/             # Интеграционные тесты
-│   └── e2e/                   # E2E тесты
-│
-├── nuxt.config.ts              # Конфигурация Nuxt 4
-├── tsconfig.json              # Конфигурация TypeScript
-├── vite.config.ts             # Конфигурация Vite
-├── package.json               # Зависимости и скрипты
-└── README.md                 # Документация проекта
+- **Nuxt 4** — веб-фреймворк на базе Vue 3 (SPA mode, `ssr: false`)
+- **Vue 3** — UI фреймворк (`<script setup lang="ts">`)
+- **TypeScript** — строгая типизация на всех уровнях
+- **Pinia** — state management (13 stores)
+- **Nitro Server API** — server-first endpoints (`server/api/game/**`)
+- **Vitest** — unit/integration тесты (210+ тестов)
+- **SCSS** — стилизация компонентов
+
+## Архитектурные слои
+
+```
+utils/constants → domain → application → infrastructure → stores/composables → components → pages
 ```
 
-## 🎯 Ключевые механики игры
+| Слой | Назначение |
+|------|------------|
+| **Domain** (`src/domain/`) | `game-world/` aggregate, `game-mode/`, `api-contract/`, `balance/` — pure TypeScript, без фреймворков |
+| **Application** (`src/application/`) | Use cases (commands, queries), async executors (SPA/Server), offline queue, state-sync |
+| **Infrastructure** (`src/infrastructure/`) | `LocalStorageSaveRepository`, `config/game-mode.ts` |
+| **Presentation** (`src/stores/`, `src/composables/`, `src/components/`, `src/pages/`) | Pinia stores (projections over GameWorld), composables, UI |
+
+Подробнее: [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md), [ARCHITECTURE_CONTRACT.md](ARCHITECTURE_CONTRACT.md).
+
+## Режимы работы
+
+Проект поддерживает три режима исполнения game-логики (см. [SERVER_MIGRATION.md](../SERVER_MIGRATION.md)):
+
+- **SPA** (по умолчанию) — локальное исполнение через Pinia + GameWorld bridge
+- **Server** — через Nitro Server API, состояние в сессии
+- **Hybrid** — Server + offline queue (fallback на SPA при offline)
+
+Переключение через `nuxt.config.ts` `runtimeConfig.public.gameMode` или `.env` (`NUXT_PUBLIC_GAME_MODE`).
+
+## Ключевые механики
 
 ### Core Loop
 
-1. **Создание персонажа** - игрок вводит имя, выбирает возраст и путь образования (StartPage.vue)
-   - 3 варианта образования: без образования, школа, школа+институт
-   - Инициализация ECS World через Pinia store
-2. **Работа** - игрок выбирает длительность рабочего периода
-3. **Восстановление** - игрок тратит деньги на восстановление шкал
-4. **Повтор** - цикл повторяется
+1. **Создание персонажа** — игрок вводит имя, выбирает возраст и путь образования (StartPage.vue)
+2. **Работа** — игрок выбирает длительность рабочего периода
+3. **Восстановление** — игрок тратит деньги на восстановление шкал (~222 действия в 10 категориях)
+4. **Повтор** — цикл повторяется
 
-### Шкалы персонажа
+### Шкалы персонажа (6)
 
-- Голод (Hunger)
-- Энергия (Energy)
-- Стресс (Stress)
-- Настроение (Mood)
-- Здоровье (Health)
-- Физическая форма (Physical)
+Голод (Hunger), Энергия (Energy), Стресс (Stress), Настроение (Mood), Здоровье (Health), Физическая форма (Physical)
 
-### Основные системы
+### Игровые системы
 
-1. **ECS (Entity-Component-System)** - архитектура доменного слоя
-   - 18 систем (TimeSystem, StatsSystem, ActionSystem и др.)
-   - 19+ компонентов
-   - Интеграция с Pinia store через shallowRef
-2. **Pinia Store** - централизованное состояние игры
-   - ECS World в shallowRef для оптимизации
-   - Computed свойства для компонентов ECS
-   - Методы для команд и запросов
-3. **Composables** - переиспользуемая логика для Vue компонентов
-    - useActions - работа с действиями
-    - useFinance - финансы
-    - useEvents - события
-    - useToast - уведомления
-    - useActivityLog - журнал активности
-    - useSkills - навыки персонажа
-    - useTime - система времени
-4. **Nuxt Routing** - файловый роутинг
-   - index.vue - стартовая страница
-   - game/[section].vue - динамические страницы
-   - middleware game-init.ts - инициализация игры
+- **GameWorld aggregate** — единый state-container (`src/domain/game-world/`)
+- **Domain commands** — pure functions `(world: GameWorld, ...)`: executeAction, simulateWorkShift, resolveEventDecision, и т.д.
+- **Async executors** — SPA/Server/Hybrid (server-first migration)
+- **Offline queue** — буферизация действий при offline (server/hybrid режимы)
+- **Pinia stores** — projections над GameWorld для UI
+- **Composables** (17) — UI orchestration
 
-### Дополнительные системы
+## Вклад в проект
 
-- Карьера - progression через уровни работ
-- Образование - книги, курсы, вузы
-- Дом - жильё и мебель
-- Отношения - семья и друзья (частично реализовано)
-- Инвестиции - пассивный доход
-- Хобби - побочный заработок
-
-## 🔧 Технологический стек
-
-- **Nuxt 4** - веб-фреймворк на базе Vue 3
-- **Vue 3** - UI фреймворк для интерфейса
-- **TypeScript** - язык разработки
-- **Pinia** - state management для Vue 3
-- **ECS Pattern** - архитектура доменного слоя (Entity-Component-System)
-- **Vite** - сборщик и dev-сервер
-- **LocalStorage** - сохранение прогресса
-
-## 🏗️ Архитектурные слои
-
-Проект разделён на 4 архитектурных слоя:
-
-### 1. Domain Layer (Доменный слой)
-- ECS - Entity-Component-System (логика игры)
-- Balance - баланс и статический контент
-- Game Facade - фасад доменного слоя
-
-### 2. Application Layer (Прикладной слой)
-- Commands - команды приложения
-- Queries - запросы приложения
-- Ports - интерфейсы для инфраструктуры
-
-### 3. Infrastructure Layer (Инфраструктурный слой)
-- Repositories - реализация персистентности
-- LocalStorageSaveRepository - сохранение в localStorage
-
-### 4. Presentation Layer (Презентационный слой)
-- Pinia Store - централизованное состояние
-- Composables - переиспользуемая логика
-- Vue Components - UI компоненты
-- Vue Pages - страницы игры
-
-**Подробнее:** см. [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md)
-
-## 🤝 Вклад в проект
-
-### Для разработки новых функций
+### Разработка новой функции
 
 1. Изучите соответствующий модуль в GDD
-2. Проверьте IMPLEMENTATION_STATUS.md для понимания контекста
-3. Следуйте архитектуре (4 слоя) для новой логики
-4. Добавьте тесты при необходимости
+2. Проверьте [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) для контекста
+3. Проверьте [ARCHITECTURE_CONTRACT.md](ARCHITECTURE_CONTRACT.md) — куда класть код
+4. Для server-side: см. [SERVER_MIGRATION.md](../SERVER_MIGRATION.md), раздел «Добавление нового API endpoint»
+5. Добавьте тесты (vitest)
+6. Проверьте `npm run typecheck` и `npm run rules:audit`
 
-### Для исправления багов
+### Создание новой Vue страницы
 
-1. Воспроизведите проблему
-2. Найдите соответствующий код в `src/`
-3. Проверьте ECS системы, которые могут влиять на проблему
-4. Создайте фикс с тестом
+1. Создайте компонент страницы в `src/pages/<Section>/`
+2. Зарегистрируйте в динамическом роутере `src/nuxt-pages/game/[section].vue` (или создайте новый route)
+3. Добавьте ссылку в навигацию (Topbar/BottomNav)
+4. Обновите [PAGES_REFERENCE.md](PAGES_REFERENCE.md)
 
-### Добавление новой Vue страницы
+### Добавление новой game-команды
 
-1. Создайте компонент страницы в `src/pages/`
-2. Добавьте маппинг в `src/nuxt-pages/game/[section].vue`
-3. Добавьте ссылку в навигацию MainPage
-4. Обновите документацию в PAGES_REFERENCE.md
+1. Реализуйте pure command в `src/domain/game-world/commands/` (signature `(world: GameWorld, ...): Result`)
+2. Добавьте тип в `index.types.ts`
+3. При необходимости — расширьте `AsyncGameExecutor` interface и реализуйте в `SPAExecutor`/`ServerExecutor`
+4. При server-side — создайте endpoint в `server/api/game/`
+5. Покройте unit-тестом
 
-### Добавление новой ECS системы
-
-1. Создайте файл системы в `src/domain/ecs/systems/`
-2. Добавьте систему в SystemContext
-3. Реализуйте логику в доменном слое
-4. Обновите ECS_DOMAIN_MAP.md
-
-## 📞 Контакты и поддержка
-
-- По вопросам по дизайну: смотрите GDD
-- По вопросам по архитектуре: смотрите ARCHITECTURE_OVERVIEW.md и ECS документацию
-- По вопросам по реализации: смотрите исходный код в `src/`
-- По вопросам по Nuxt: смотрите NUXT4_ARCHITECTURE.md
-
-## 📝 Полезные ссылки
+## Полезные ссылки
 
 - [Nuxt 4 Documentation](https://nuxt.com/docs)
 - [Vue 3 Documentation](https://vuejs.org/)
 - [Pinia Documentation](https://pinia.vuejs.org/)
 - [TypeScript Documentation](https://www.typescriptlang.org/)
-- [ECS Pattern Guide](https://github.com/SanderMertens/ecs-faq)
-- GDD модули в `doc/GDD/modules/`
+- [Vitest Documentation](https://vitest.dev/)
+- GDD модули в `doc/gdd/modules/`
 
 ---
 
-**Дата проверки актуальности:** 15.04.2026
-**Последнее обновление:** 15.04.2026
-**Версия документа:** 3.1
-**Миграция:** Проект полностью мигрировал на Nuxt 4 + Vue 3 + TypeScript
+**Последнее обновление:** 2 июля 2026
+**Версия документа:** 5.0
+**Статус:** Активная
+**Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia + Nitro Server API

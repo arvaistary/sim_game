@@ -1,8 +1,9 @@
 import type { ComputedRef } from 'vue'
+import type { ExecuteActionCommandResult } from '@/application/game/index.types'
 import { getActionsByCategory, getActionById } from '@/domain/balance/actions'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { ActionCategory } from '@/domain/balance/types'
-import { appGameCommands } from '@/application/game/commands'
+import { appGameCommands } from '@/application/game'
 import type { UseActionsReturn } from './useActions.types'
 
 /**
@@ -22,20 +23,25 @@ export function useActions(): UseActionsReturn {
 
   function canExecute(actionId: string): boolean {
     const action: BalanceAction | null = getActionById(actionId)
+
     if (!action) return false
+
     if (walletStore.money < action.price) return false
+
     if (timeStore.weekHoursRemaining < action.hourCost) return false
+
     return true
   }
 
   function executeAction(actionId: string): boolean {
     const action: BalanceAction | null = getActionById(actionId)
+
     if (!action) {
       toast.showError(`Действие не найдено: ${actionId}`)
       return false
     }
 
-    const result = appGameCommands.executeAction(actionId)
+    const result: ExecuteActionCommandResult = appGameCommands.executeAction(actionId)
 
     if (!result.success) {
       toast.showError(result.message)

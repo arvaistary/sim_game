@@ -868,8 +868,8 @@ function runRuleHeuristics() {
 
     if (filePath.endsWith('.scss')) {
       const normalizedPath = filePath.split(sep).join('/');
-      if (normalizedPath.includes('/src/') && !normalizedPath.endsWith('/src/assets/styles/global.scss')) {
-        pushFinding('styles/global-scss-location', filePath, 'Global styles should live only in src/assets/styles/global.scss');
+      if (normalizedPath.includes('/src/') && !normalizedPath.endsWith('/src/assets/scss/global.scss')) {
+        pushFinding('styles/global-scss-location', filePath, 'Global styles should live only in src/assets/scss/global.scss');
       }
 
       if (/@import\s+['"]/.test(content)) {
