@@ -1,4 +1,7 @@
 
+import type { ComputedRef, Ref } from 'vue'
+import type { SkillModifiers } from '@/domain/balance/types'
+import { recalculateSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
 import type { SkillEntry } from './skills-store.types'
 
 export type { SkillsComponent, SkillEntry } from './skills-store.types'
@@ -34,6 +37,10 @@ export const useSkillsStore = defineStore('skills', () => {
       0
     )
   })
+
+  const skillModifiers: ComputedRef<SkillModifiers> = computed(() =>
+    recalculateSkillModifiers(skills.value as Record<string, number | { level?: number; xp?: number }>)
+  )
 
   const hasSkill = (key: string): boolean => key in skills.value
 
@@ -107,6 +114,7 @@ export const useSkillsStore = defineStore('skills', () => {
     skills,
     skillList,
     totalLevels,
+    skillModifiers,
     hasSkill,
     getSkillLevel,
     getSkillXp,

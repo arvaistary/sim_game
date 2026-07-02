@@ -39,6 +39,7 @@
 <script setup lang="ts">
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
 import type { CareerTrackJobItem } from '@/domain/balance/types'
+import { EDUCATION_RANK_TO_LABEL, storeLevelToCareerRank } from '@/domain/balance/utils/education-ranks'
 import { formatMoney } from '@/utils/format'
 
 const store = useGameStore()
@@ -51,28 +52,19 @@ const careerStore = useCareerStore()
 
 const message = ref('')
 
-const CAREER_RANK_LABELS: Record<number, string> = {
-  [-1]: 'Любое',
-  0: 'Среднее',
-  1: 'Высшее',
-  2: 'Бакалавриат',
-  3: 'Магистратура',
-  4: 'MBA',
-}
-
 const careerTrack = computed<CareerTrackJobItem[]>(() => {
   void store.worldTick
   void skillsStore.totalLevels
-  void educationStore.educationRank
-  
+  void educationStore.educationLevel
+
   const currentJobId: string = careerStore.currentJob?.id ?? ''
-  const educationRank: number = educationStore.educationRank
+  const educationRank: number = storeLevelToCareerRank(educationStore.educationLevel)
   const professionalism: number = skillsStore.skills?.professionalism?.level ?? 0
 
   return CAREER_JOBS.map(job => {
     const educationRequiredLabel: string = job.minEducationRank === -1
       ? 'Любое'
-      : CAREER_RANK_LABELS[job.minEducationRank] ?? 'Неизвестно'
+      : EDUCATION_RANK_TO_LABEL[job.minEducationRank] ?? 'Неизвестно'
 
     const missing: number = job.minProfessionalism - professionalism
     const unlocked: boolean = professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank

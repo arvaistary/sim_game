@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADR)
 
-**Последнее обновление:** 2 июня 2026
+**Последнее обновление:** июль 2026
 
 ## Обзор
 
@@ -18,6 +18,7 @@ ADR (Architecture Decision Records) — это записи о ключевых 
 | [ADR-0002](0002-ecs-removal.md) | Удаление ECS-архитектуры | апрель 2026 | Принято |
 | [ADR-0003](0003-layered-architecture.md) | Слоистая архитектура (Domain/Application/Infrastructure) | апрель 2026 | Принято |
 | [ADR-0004](ARCHITECTURE_DECISION_HENDERSON_ADAPTATION.md) | Адаптация архитектуры Henderson | 2025 | Принято |
+| [ADR-0005](0005-game-world-aggregate-strategy-a.md) | State abstraction — GameWorld aggregate (Strategy A) | июль 2026 | Принято |
 
 ## Формат ADR
 

@@ -1,6 +1,7 @@
 
 import type { ComputedRef, Ref } from 'vue'
-import type { EventChoice, GameEvent } from '@/stores/events-store'
+import type { GameEvent } from '@/stores/events-store'
+import { appGameCommands } from '@/application/game/commands'
 
 /**
  * Composable для управления игровыми событиями.
@@ -11,10 +12,6 @@ export function useEvents() {
   const eventsStore = useEventsStore()
 
   const timeStore = useTimeStore()
-
-  const statsStore = useStatsStore()
-
-  const activityStore = useActivityStore()
 
   const currentEvent: Ref<GameEvent | null> = ref<GameEvent | null>(null)
 
@@ -37,31 +34,18 @@ export function useEvents() {
 
   function applyChoice(choiceId: string): boolean {
     if (!currentEvent.value?.choices) return false
-    const choice: EventChoice | undefined = currentEvent.value.choices.find(
-      (c: EventChoice) => c.id === choiceId) as EventChoice | undefined
 
-  if (!choice) return false
+    const result = appGameCommands.resolveEventDecision(currentEvent.value.id, choiceId)
+    if (!result.success) return false
 
-  if (choice.effects) {
-    statsStore.applyStatChanges(choice.effects)
+    currentEvent.value = null
+    return true
   }
 
-  eventsStore.resolveCurrentEvent(choiceId, choice.text, choice.effects)
-
-  activityStore.addEventEntry(
-    currentEvent.value.title,
-    choice.text,
-    choice.outcome
-  )
-
-  currentEvent.value = null
-  return true
-}
-
-return {
-  currentEvent,
-  hasNextEvent,
-  loadNextEvent,
-  applyChoice,
-}
+  return {
+    currentEvent,
+    hasNextEvent,
+    loadNextEvent,
+    applyChoice,
+  }
 }

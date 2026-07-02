@@ -1,5 +1,6 @@
 import type { SaveRepository } from '@/application/game/ports/SaveRepository'
 import { DEFAULT_SAVE_KEY } from './constants'
+import { migrateSave, needsMigration } from './event-migration'
 
 /**
  * Создаёт репозиторий сохранений на основе localStorage
@@ -18,7 +19,16 @@ export function createLocalStorageSaveRepository(
       const raw = localStorage.getItem(saveKey)
       if (!raw) return null
       try {
-        return JSON.parse(raw) as Record<string, unknown>
+        const payload = JSON.parse(raw) as Record<string, unknown>
+
+        if (needsMigration(payload)) {
+          const migrationResult = migrateSave(payload)
+          if (!migrationResult.success) {
+            console.warn('[save] migration completed with errors:', migrationResult.errors)
+          }
+        }
+
+        return payload
       } catch {
         return null
       }

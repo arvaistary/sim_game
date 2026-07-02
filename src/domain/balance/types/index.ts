@@ -218,7 +218,7 @@ export interface EducationPath {
   result: EducationPathResult
 }
 
-export type EducationRank = -1 | 0 | 1 | 2
+export type EducationRank = -1 | 0 | 1 | 2 | 3 | 4
 
 export interface RecoveryCard {
   title: string

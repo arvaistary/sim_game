@@ -25,6 +25,11 @@ export interface ProgramCatalogEntry {
   cost: number
 }
 
+export interface ActionRequirements {
+  minAge?: number
+  minSkills?: Record<string, number>
+}
+
 export interface FinanceSnapshotDto {
   money: number
   reserveFund: number

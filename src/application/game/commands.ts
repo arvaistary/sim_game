@@ -1,6 +1,8 @@
-import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './index.types'
+import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry, ActionRequirements } from './index.types'
 import type { BalanceAction } from '@/domain/balance/actions'
+import type { StatChanges } from '@/domain/balance/types'
 import { getActionById } from '@/domain/balance/actions'
+import { calculateStatChanges } from '@/domain/balance/utils/hourly-rates'
 import { useTimeStore } from '@/stores/time-store'
 import { useStatsStore } from '@/stores/stats-store'
 import { useWalletStore } from '@/stores/wallet-store'
@@ -44,22 +46,44 @@ export const appGameCommands = {
 
     const statsStore = useStatsStore()
 
+    const timeStore = useTimeStore()
+
+    const skillsStore = useSkillsStore()
+
     const activityStore = useActivityStore()
 
     if (!careerStore.isEmployed) return 'Нет работы'
 
-    const salary: number = hours * (careerStore.currentJob?.salaryPerHour ?? 0)
+    const baseSalary: number = hours * (careerStore.currentJob?.salaryPerHour ?? 0)
+    const salary: number = Math.round(baseSalary * skillsStore.skillModifiers.salaryMultiplier)
     careerStore.addWorkHours(hours)
     careerStore.addPendingSalary(salary)
 
     const actualSalary: number = careerStore.collectSalary()
     walletStore.earn(actualSalary)
 
-    statsStore.applyStatChanges({
-      energy: -(hours * 3),
-      hunger: +(hours * 2),
-    })
+    const perStatModifiers: Record<string, number> = {
+      energy: -(skillsStore.skillModifiers.energyDrainMultiplier - 1),
+      hunger: -(skillsStore.skillModifiers.hungerDrainMultiplier - 1),
+      stress: (skillsStore.skillModifiers.stressGainMultiplier - 1),
+    }
+    const workStatChanges: StatChanges = calculateStatChanges(
+      'work',
+      hours,
+      { energy: -(hours * 3), hunger: +(hours * 2) },
+      perStatModifiers,
+      timeStore.currentAge,
+      timeStore.sleepDebt,
+    )
+    const workRawChanges: Record<string, number> = {}
+    for (const [key, value] of Object.entries(workStatChanges)) {
+      if (value !== undefined) {
+        workRawChanges[key] = value
+      }
+    }
+    statsStore.applyStatChangesRaw(workRawChanges)
 
+    timeStore.advanceHours(hours)
     activityStore.addWorkEntry('Работа', hours, actualSalary)
 
     return `Вы заработали ${actualSalary} ₽`
@@ -172,17 +196,73 @@ export const appGameCommands = {
 
     const statsStore = useStatsStore()
 
+    const skillsStore = useSkillsStore()
+
     const activityStore = useActivityStore()
 
-    if (walletStore.money < action.price) return { success: false, message: 'Недостаточно денег' }
+    if (action.price > 0 && !walletStore.canAfford(action.price)) {
+      return { success: false, message: 'Недостаточно денег' }
+    }
 
-    if (timeStore.weekHoursRemaining < action.hourCost) return { success: false, message: 'Недостаточно времени' }
+    if (timeStore.weekHoursRemaining < action.hourCost) {
+      return { success: false, message: 'Недостаточно времени' }
+    }
 
-    walletStore.spend(action.price)
-    timeStore.advanceHours(action.hourCost)
+    const requirements: ActionRequirements | undefined = (action.requirements ?? undefined) as ActionRequirements | undefined
+
+    if (requirements?.minAge && timeStore.currentAge < requirements.minAge) {
+      return { success: false, message: `Требуется возраст ${requirements.minAge}+` }
+    }
+
+    if (requirements?.minSkills) {
+      for (const [skill, level] of Object.entries(requirements.minSkills)) {
+        if (!skillsStore.hasSkillLevel(skill, level)) {
+          return { success: false, message: `Требуется навык ${skill} уровня ${level}` }
+        }
+      }
+    }
+
+    if (action.price > 0) {
+      walletStore.spend(action.price, true)
+    }
+
+    if (action.hourCost > 0) {
+      const isSleep: boolean = action.actionType === 'sleep'
+      const isWork: boolean = action.actionType === 'work'
+      timeStore.advanceHours(action.hourCost, {
+        actionType: isSleep ? 'sleep' : isWork ? 'work' : 'default',
+      })
+    }
 
     if (action.statChanges) {
-      statsStore.applyStatChanges(action.statChanges)
+      const perStatModifiers: Record<string, number> = {
+        energy: -(skillsStore.skillModifiers.energyDrainMultiplier - 1),
+        hunger: -(skillsStore.skillModifiers.hungerDrainMultiplier - 1),
+        stress: (skillsStore.skillModifiers.stressGainMultiplier - 1),
+        mood: (skillsStore.skillModifiers.moodRecoveryMultiplier - 1),
+        health: -(skillsStore.skillModifiers.healthDecayMultiplier - 1),
+      }
+
+      const finalStatChanges: StatChanges = calculateStatChanges(
+        action.actionType,
+        action.hourCost,
+        action.statChanges,
+        perStatModifiers,
+        timeStore.currentAge,
+        timeStore.sleepDebt,
+      )
+
+      const finalRawChanges: Record<string, number> = {}
+      for (const [key, value] of Object.entries(finalStatChanges)) {
+        if (value !== undefined) {
+          finalRawChanges[key] = value
+        }
+      }
+      statsStore.applyStatChangesRaw(finalRawChanges)
+    }
+
+    if (action.skillChanges) {
+      skillsStore.applySkillChanges(action.skillChanges)
     }
 
     activityStore.addActionEntry(action.title, action.effect || 'Выполнено', { category: action.category })
@@ -190,7 +270,7 @@ export const appGameCommands = {
     return { success: true, message: action.effect || 'Выполнено' }
   },
 
-  resolveEventDecision(_eventId: string, choiceId: string): string {
+  resolveEventDecision(_eventId: string, choiceId: string): { success: boolean; message: string } {
     const eventsStore = useEventsStore()
 
     const statsStore = useStatsStore()
@@ -199,13 +279,13 @@ export const appGameCommands = {
 
     const current: GameEvent | null = eventsStore.currentEvent
 
-    if (!current) return 'Нет события'
+    if (!current) return { success: false, message: 'Нет события' }
 
     const choice: EventChoice | undefined = current.choices?.find(
       (c: EventChoice) => c.id === choiceId,
     )
 
-    if (!choice) return 'Выбор не найден'
+    if (!choice) return { success: false, message: 'Выбор не найден' }
 
     if (choice.effects) {
       statsStore.applyStatChanges(choice.effects)
@@ -214,7 +294,7 @@ export const appGameCommands = {
     eventsStore.resolveCurrentEvent(choiceId, choice.text, choice.effects)
     activityStore.addEventEntry(current.title, choice.text, choice.outcome)
 
-    return choice.outcome || 'Выбор применён'
+    return { success: true, message: choice.outcome || 'Выбор применён' }
   },
 
   collectInvestment(investmentId: string): string {

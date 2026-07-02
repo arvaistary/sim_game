@@ -1,7 +1,8 @@
 import type { ComputedRef } from 'vue'
 import { getActionsByCategory, getActionById } from '@/domain/balance/actions'
 import type { BalanceAction } from '@/domain/balance/actions'
-import type { ActionCategory, StatChanges } from '@/domain/balance/types'
+import type { ActionCategory } from '@/domain/balance/types'
+import { appGameCommands } from '@/application/game/commands'
 import type { UseActionsReturn } from './useActions.types'
 
 /**
@@ -10,14 +11,8 @@ import type { UseActionsReturn } from './useActions.types'
  * @return { UseActionsReturn } Actions management functions and state
  */
 export function useActions(): UseActionsReturn {
-  const timeStore = useTimeStore()
-
-  const statsStore = useStatsStore()
-
   const walletStore = useWalletStore()
-
-  const activityStore = useActivityStore()
-
+  const timeStore = useTimeStore()
   const toast = useToast()
   const { filterActionsByAge, ageGroupLabel } = useAgeRestrictions()
 
@@ -33,14 +28,6 @@ export function useActions(): UseActionsReturn {
     return true
   }
 
-  function getCanExecuteReason(actionId: string): string | null {
-    const action: BalanceAction | null = getActionById(actionId)
-    if (!action) return 'Действие не найдено'
-    if (walletStore.money < action.price) return 'Недостаточно денег'
-    if (timeStore.weekHoursRemaining < action.hourCost) return 'Недостаточно времени'
-    return null
-  }
-
   function executeAction(actionId: string): boolean {
     const action: BalanceAction | null = getActionById(actionId)
     if (!action) {
@@ -48,25 +35,15 @@ export function useActions(): UseActionsReturn {
       return false
     }
 
-    const reason: string | null = getCanExecuteReason(actionId)
-    if (reason) {
-      toast.showError(reason)
+    const result = appGameCommands.executeAction(actionId)
+
+    if (!result.success) {
+      toast.showError(result.message)
       return false
     }
 
-    walletStore.spend(action.price)
-    timeStore.advanceHours(action.hourCost, { actionType: action.actionType as 'work' | 'sleep' | 'default' })
-    statsStore.applyStatChanges(action.statChanges ?? {})
-
-    const statBreakdown: StatChanges | undefined = action.statChanges
-    const message: string = action.effect || 'Действие выполнено'
-
-    activityStore.addActionEntry(action.title, message, { category: action.category })
-
-    showGameResultModal(action.title, message, {
-      statBreakdown: statBreakdown as any,
-      hourCost: action.hourCost,
-      price: action.price,
+    showGameResultModal(action.title, result.message, {
+      baseEffect: action.effect,
     })
     return true
   }

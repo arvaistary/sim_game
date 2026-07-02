@@ -8,11 +8,7 @@ export default defineConfig({
 
     // Pool fix for Node 24 compatibility
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        execArgv: ['--experimental-vm-modules'],
-      },
-    },
+    execArgv: ['--experimental-vm-modules'],
 
     // Test discovery
     include: ['test/**/*.test.ts'],
@@ -27,7 +23,10 @@ export default defineConfig({
     globals: true,
 
     // Setup files
-    setupFiles: ['test/setup/localStorage.mock.ts'],
+    setupFiles: [
+      'test/setup/localStorage.mock.ts',
+      'test/setup/nuxt-autoimports.ts',
+    ],
 
     // Timeout
     testTimeout: 30000,

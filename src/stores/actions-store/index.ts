@@ -2,6 +2,7 @@
 import type { Ref, ComputedRef } from 'vue'
 import type { CanApplyWorkShiftResult } from '@/stores/game.store.types'
 import type { GameAction, ActionResult } from './actions-store.types'
+import { appGameCommands } from '@/application/game/commands'
 
 export type { GameAction, ActionResult } from './actions-store.types'
 
@@ -12,8 +13,6 @@ export const useActionsStore = defineStore('actions', () => {
   const actionResults: Ref<ActionResult[]> = ref<ActionResult[]>([])
 
   const timeStore = useTimeStore()
-
-  const statsStore = useStatsStore()
 
   const walletStore = useWalletStore()
 
@@ -55,34 +54,16 @@ export const useActionsStore = defineStore('actions', () => {
       return { success: false, error: check.reason }
     }
 
-    if (action.price > 0) {
-      walletStore.spend(action.price, true)
-    }
-
-    if (action.statChanges) {
-      statsStore.applyStatChangesRaw(action.statChanges)
-    }
-
-    if (action.skillChanges) {
-      skillsStore.applySkillChanges(action.skillChanges)
-    }
-
-    if (action.hourCost > 0) {
-      const isSleep: boolean = action.actionType === 'sleep'
-      const isWork: boolean = action.actionType === 'work'
-      timeStore.advanceHours(action.hourCost, {
-        actionType: isSleep ? 'sleep' : isWork ? 'work' : 'default',
-      })
-    }
+    const result = appGameCommands.executeAction(action.id)
 
     lastExecutedAction.value = action.id
-    actionResults.value.push({ success: true, summary: action.title })
+    actionResults.value.push({ success: result.success, summary: result.message })
 
     if (actionResults.value.length > 20) {
       actionResults.value = actionResults.value.slice(-20)
     }
 
-    return { success: true }
+    return { success: result.success, error: result.success ? undefined : result.message }
   }
 
   const executeActionById = (actionId: string, actions: GameAction[]): ActionResult => {

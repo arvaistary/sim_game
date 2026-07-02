@@ -166,10 +166,56 @@
 
 Контракт проверяется автоматически:
 
-- `test/unit/architecture/layer-boundaries.test.ts` — проверяет границы слоев
+- `test/unit/architecture/layer-boundaries.test.ts` — проверяет границы слоев (domain, application, infrastructure)
 - `test/unit/architecture/store-boundaries.test.ts` — проверяет границы stores
 
 При нарушении правил тесты падают.
+
+---
+
+## Known violations (на июль 2026)
+
+Контракт нарушен в нескольких местах. Нарушения отслеживаются и постепенно устраняются через recovery plan ниже.
+
+### V-1. `application` импортирует Pinia stores
+
+**Файлы:**
+- `src/application/game/commands.ts`
+- `src/application/game/queries.ts`
+- `src/application/game/index.types.ts`
+
+**Нарушает:** §application «НЕ может содержать: импорты stores или использование Pinia».
+
+**Почему:** После ADR-0003 application layer реализован с прямым доступом к Pinia stores для orchestration. Это блокирует server-first миграцию (Domain Layer должен работать без Pinia в server mode).
+
+**Отслеживание:** `layer-boundaries.test.ts` → test «application does not import Pinia stores», счётчик capped ≤3. При росте — тест падает.
+
+### V-2. Бизнес-логика в `stores` (часть stores)
+
+**Файлы:** `applyWorkShift` логика в `game.store.ts`, `recalculateSkillModifiers` в `skills-store` (хотя сама функция в domain), per-stat модификаторы в stores.
+
+**Нарушает:** §stores «НЕ может содержать: бизнес-логику, которая относится к use-case сценариям».
+
+**Почему:** Исторически stores были единственным местом для бизнес-логики. Частично исправлено в аудите P1-4/P1-5 (делегирование в `appGameCommands`), но полный перенос требует восстановления `GameWorld` aggregate.
+
+---
+
+## Recovery plan
+
+Устранение known violations выполняется через стратегию A (ADR-0005): восстановление `GameWorld` aggregate в `src/domain/game-world/` как единого source of truth.
+
+**План:** [.cursor/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md](../../.cursor/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md)
+
+**Этапы:**
+1. **Фаза 1 — Foundation** (~3-5 дней): `GameWorld.ts`, `toJSON`/`fromJSON`, `game-facade/`, временный bridge `fromStores`/`applyToStores`.
+2. **Фаза 2 — Actions migration** (~3-4 дня): `executeAction`/`simulateWorkShift`/`resolveEventDecision` переносятся в domain commands с signature `(world: GameWorld, ...)`.
+3. **Фаза 3 — Stores → projections** (~5-7 дней, store-by-store): career → skills → finance → events → wallet/stats/time.
+4. **Фаза 4 — Application pure + SPAExecutor** (~2-3 дня): убираем импорт Pinia из application (V-1 устранён), реализуем `SPAExecutor`.
+5. **Фаза 5 — Cleanup + docs** (~2 дня): удаляем bridge, обновляем документацию.
+
+**Итого:** 15-21 рабочий день (~3-4 недели). Каждая фаза — отдельный PR с e2e smoke-test.
+
+После завершения V-1 и V-2 устранены, `layer-boundaries.test.ts` показывает 0 violations application→stores.
 
 ---
 

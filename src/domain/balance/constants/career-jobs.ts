@@ -16,7 +16,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Junior-разработчик',
     schedule: '5/2',
     level: 1,
-    salaryPerHour: 625,      // ~50к/мес
+    salaryPerHour: 625,      // ~108к/мес
     salaryPerDay: 5000,
     salaryPerWeek: 25000,
     requiredHoursPerWeek: 40,
@@ -30,7 +30,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Middle-разработчик',
     schedule: '5/2',
     level: 3,
-    salaryPerHour: 1250,     // ~100к/мес
+    salaryPerHour: 1250,     // ~216к/мес
     salaryPerDay: 10000,
     salaryPerWeek: 50000,
     requiredHoursPerWeek: 40,
@@ -44,7 +44,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Senior-разработчик',
     schedule: '5/2',
     level: 5,
-    salaryPerHour: 2250,     // ~180к/мес
+    salaryPerHour: 2250,     // ~389к/мес
     salaryPerDay: 18000,
     salaryPerWeek: 90000,
     requiredHoursPerWeek: 40,
@@ -58,7 +58,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Технический лидер',
     schedule: '5/2',
     level: 7,
-    salaryPerHour: 3125,     // ~250к/мес
+    salaryPerHour: 3125,     // ~541к/мес
     salaryPerDay: 25000,
     salaryPerWeek: 125000,
     requiredHoursPerWeek: 40,
@@ -72,7 +72,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'QA-инженер (тестировщик)',
     schedule: '5/2',
     level: 2,
-    salaryPerHour: 750,      // ~60к/мес
+    salaryPerHour: 750,      // ~130к/мес
     salaryPerDay: 6000,
     salaryPerWeek: 30000,
     requiredHoursPerWeek: 40,
@@ -86,7 +86,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'DevOps-инженер',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 1750,     // ~140к/мес
+    salaryPerHour: 1750,     // ~303к/мес
     salaryPerDay: 14000,
     salaryPerWeek: 70000,
     requiredHoursPerWeek: 40,
@@ -100,7 +100,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Системный администратор',
     schedule: '5/2',
     level: 3,
-    salaryPerHour: 1000,     // ~80к/мес
+    salaryPerHour: 1000,     // ~173к/мес
     salaryPerDay: 8000,
     salaryPerWeek: 40000,
     requiredHoursPerWeek: 40,
@@ -114,7 +114,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Аналитик данных',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 1500,     // ~120к/мес
+    salaryPerHour: 1500,     // ~260к/мес
     salaryPerDay: 12000,
     salaryPerWeek: 60000,
     requiredHoursPerWeek: 40,
@@ -130,7 +130,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Медсестра / Медбрат',
     schedule: '2/2',
     level: 1,
-    salaryPerHour: 625,      // ~50к/мес
+    salaryPerHour: 625,      // ~108к/мес
     salaryPerDay: 5000,
     salaryPerWeek: 25000,
     requiredHoursPerWeek: 36,
@@ -144,7 +144,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Врач-терапевт (поликлиника)',
     schedule: '5/2',
     level: 3,
-    salaryPerHour: 1250,     // ~100к/мес
+    salaryPerHour: 1250,     // ~216к/мес
     salaryPerDay: 10000,
     salaryPerWeek: 50000,
     requiredHoursPerWeek: 39,
@@ -158,7 +158,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Врач-специалист',
     schedule: '5/2',
     level: 5,
-    salaryPerHour: 2000,     // ~160к/мес
+    salaryPerHour: 2000,     // ~346к/мес
     salaryPerDay: 16000,
     salaryPerWeek: 80000,
     requiredHoursPerWeek: 39,
@@ -172,7 +172,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Заведующий отделением',
     schedule: '5/2',
     level: 7,
-    salaryPerHour: 2750,     // ~220к/мес
+    salaryPerHour: 2750,     // ~476к/мес
     salaryPerDay: 22000,
     salaryPerWeek: 110000,
     requiredHoursPerWeek: 40,
@@ -188,7 +188,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Учитель школы',
     schedule: '5/2',
     level: 2,
-    salaryPerHour: 500,      // ~40к/мес
+    salaryPerHour: 500,      // ~87к/мес
     salaryPerDay: 4000,
     salaryPerWeek: 20000,
     requiredHoursPerWeek: 36,
@@ -202,7 +202,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Старший учитель',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 688,      // ~55к/мес
+    salaryPerHour: 688,      // ~119к/мес
     salaryPerDay: 5500,
     salaryPerWeek: 27500,
     requiredHoursPerWeek: 36,
@@ -216,7 +216,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Преподаватель вуза',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 875,      // ~70к/мес
+    salaryPerHour: 875,      // ~151к/мес
     salaryPerDay: 7000,
     salaryPerWeek: 35000,
     requiredHoursPerWeek: 40,
@@ -230,7 +230,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Профессор',
     schedule: '5/2',
     level: 8,
-    salaryPerHour: 1875,     // ~150к/мес
+    salaryPerHour: 1875,     // ~324к/мес
     salaryPerDay: 15000,
     salaryPerWeek: 75000,
     requiredHoursPerWeek: 40,
@@ -246,7 +246,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Рабочий на производстве',
     schedule: '2/2',
     level: 1,
-    salaryPerHour: 563,      // ~45к/мес (по 12ч)
+    salaryPerHour: 563,      // ~97к/мес
     salaryPerDay: 6750,
     salaryPerWeek: 27000,
     requiredHoursPerWeek: 36,
@@ -260,7 +260,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Оператор станков с ЧПУ',
     schedule: '2/2',
     level: 3,
-    salaryPerHour: 938,      // ~75к/мес
+    salaryPerHour: 938,      // ~162к/мес
     salaryPerDay: 11250,
     salaryPerWeek: 45000,
     requiredHoursPerWeek: 36,
@@ -274,7 +274,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Мастер цеха',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 1250,     // ~100к/мес
+    salaryPerHour: 1250,     // ~216к/мес
     salaryPerDay: 10000,
     salaryPerWeek: 50000,
     requiredHoursPerWeek: 40,
@@ -288,7 +288,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Инженер-технолог',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 1125,     // ~90к/мес
+    salaryPerHour: 1125,     // ~195к/мес
     salaryPerDay: 9000,
     salaryPerWeek: 45000,
     requiredHoursPerWeek: 40,
@@ -302,7 +302,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Директор завода',
     schedule: '5/2',
     level: 9,
-    salaryPerHour: 3750,     // ~300к/мес
+    salaryPerHour: 3750,     // ~649к/мес
     salaryPerDay: 30000,
     salaryPerWeek: 150000,
     requiredHoursPerWeek: 45,
@@ -318,7 +318,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Продавец-консультант',
     schedule: '2/2',
     level: 1,
-    salaryPerHour: 500,      // ~40к/мес + премии
+    salaryPerHour: 500,      // ~87к/мес
     salaryPerDay: 4000,
     salaryPerWeek: 16000,
     requiredHoursPerWeek: 30,
@@ -332,7 +332,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Старший продавец',
     schedule: '2/2',
     level: 2,
-    salaryPerHour: 625,      // ~50к/мес
+    salaryPerHour: 625,      // ~108к/мес
     salaryPerDay: 5000,
     salaryPerWeek: 20000,
     requiredHoursPerWeek: 30,
@@ -346,7 +346,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Менеджер магазина',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 1000,     // ~80к/мес
+    salaryPerHour: 1000,     // ~173к/мес
     salaryPerDay: 8000,
     salaryPerWeek: 40000,
     requiredHoursPerWeek: 40,
@@ -360,7 +360,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Директор торговой сети',
     schedule: '5/2',
     level: 8,
-    salaryPerHour: 3125,     // ~250к/мес
+    salaryPerHour: 3125,     // ~541к/мес
     salaryPerDay: 25000,
     salaryPerWeek: 125000,
     requiredHoursPerWeek: 40,
@@ -376,7 +376,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Офис-менеджер',
     schedule: '5/2',
     level: 1,
-    salaryPerHour: 563,      // ~45к/мес
+    salaryPerHour: 563,      // ~97к/мес
     salaryPerDay: 4500,
     salaryPerWeek: 22500,
     requiredHoursPerWeek: 40,
@@ -390,7 +390,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'HR-специалист',
     schedule: '5/2',
     level: 3,
-    salaryPerHour: 875,      // ~70к/мес
+    salaryPerHour: 875,      // ~151к/мес
     salaryPerDay: 7000,
     salaryPerWeek: 35000,
     requiredHoursPerWeek: 40,
@@ -404,7 +404,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Бухгалтер',
     schedule: '5/2',
     level: 3,
-    salaryPerHour: 1000,     // ~80к/мес
+    salaryPerHour: 1000,     // ~173к/мес
     salaryPerDay: 8000,
     salaryPerWeek: 40000,
     requiredHoursPerWeek: 40,
@@ -418,7 +418,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Финансовый менеджер',
     schedule: '5/2',
     level: 5,
-    salaryPerHour: 1500,     // ~120к/мес
+    salaryPerHour: 1500,     // ~260к/мес
     salaryPerDay: 12000,
     salaryPerWeek: 60000,
     requiredHoursPerWeek: 40,
@@ -434,7 +434,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Строительный рабочий',
     schedule: '6/1',
     level: 1,
-    salaryPerHour: 625,      // ~50к/мес
+    salaryPerHour: 625,      // ~108к/мес
     salaryPerDay: 5000,
     salaryPerWeek: 30000,
     requiredHoursPerWeek: 48,
@@ -448,7 +448,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Бригадир',
     schedule: '6/1',
     level: 3,
-    salaryPerHour: 875,      // ~70к/мес
+    salaryPerHour: 875,      // ~151к/мес
     salaryPerDay: 7000,
     salaryPerWeek: 42000,
     requiredHoursPerWeek: 48,
@@ -462,7 +462,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Прораб',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 1250,     // ~100к/мес
+    salaryPerHour: 1250,     // ~216к/мес
     salaryPerDay: 10000,
     salaryPerWeek: 50000,
     requiredHoursPerWeek: 40,
@@ -476,7 +476,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Инженер-строитель',
     schedule: '5/2',
     level: 5,
-    salaryPerHour: 1500,     // ~120к/мес
+    salaryPerHour: 1500,     // ~260к/мес
     salaryPerDay: 12000,
     salaryPerWeek: 60000,
     requiredHoursPerWeek: 40,
@@ -492,7 +492,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Водитель-экспедитор',
     schedule: '6/1',
     level: 1,
-    salaryPerHour: 688,      // ~55к/мес
+    salaryPerHour: 688,      // ~119к/мес
     salaryPerDay: 5500,
     salaryPerWeek: 33000,
     requiredHoursPerWeek: 48,
@@ -506,7 +506,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Водитель автобуса / маршрутки',
     schedule: '2/2',
     level: 2,
-    salaryPerHour: 750,      // ~60к/мес
+    salaryPerHour: 750,      // ~130к/мес
     salaryPerDay: 6000,
     salaryPerWeek: 30000,
     requiredHoursPerWeek: 36,
@@ -520,7 +520,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Менеджер по логистике',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 1125,     // ~90к/мес
+    salaryPerHour: 1125,     // ~195к/мес
     salaryPerDay: 9000,
     salaryPerWeek: 45000,
     requiredHoursPerWeek: 40,
@@ -536,7 +536,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Повар на линии',
     schedule: '2/2',
     level: 1,
-    salaryPerHour: 563,      // ~45к/мес
+    salaryPerHour: 563,      // ~97к/мес
     salaryPerDay: 4500,
     salaryPerWeek: 22500,
     requiredHoursPerWeek: 36,
@@ -550,7 +550,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Старший повар',
     schedule: '2/2',
     level: 3,
-    salaryPerHour: 875,      // ~70к/мес
+    salaryPerHour: 875,      // ~151к/мес
     salaryPerDay: 7000,
     salaryPerWeek: 35000,
     requiredHoursPerWeek: 36,
@@ -564,7 +564,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Шеф-повар',
     schedule: '5/2',
     level: 6,
-    salaryPerHour: 1875,     // ~150к/мес
+    salaryPerHour: 1875,     // ~324к/мес
     salaryPerDay: 15000,
     salaryPerWeek: 75000,
     requiredHoursPerWeek: 40,
@@ -580,7 +580,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Специалист госс��уж��ы',
     schedule: '5/2',
     level: 2,
-    salaryPerHour: 500,      // ~40к/мес
+    salaryPerHour: 500,      // ~87к/мес
     salaryPerDay: 4000,
     salaryPerWeek: 20000,
     requiredHoursPerWeek: 40,
@@ -594,7 +594,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Государственный инспектор',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 750,      // ~60к/мес
+    salaryPerHour: 750,      // ~130к/мес
     salaryPerDay: 6000,
     salaryPerWeek: 30000,
     requiredHoursPerWeek: 40,
@@ -608,7 +608,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Государственный служащий',
     schedule: '5/2',
     level: 6,
-    salaryPerHour: 1500,     // ~120к/мес
+    salaryPerHour: 1500,     // ~260к/мес
     salaryPerDay: 12000,
     salaryPerWeek: 60000,
     requiredHoursPerWeek: 40,
@@ -624,7 +624,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Копирайтер',
     schedule: 'Свободный',
     level: 1,
-    salaryPerHour: 500,      // ~30-50к/мес
+    salaryPerHour: 500,      // ~87к/мес
     salaryPerDay: 3000,
     salaryPerWeek: 15000,
     requiredHoursPerWeek: 30,
@@ -638,7 +638,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Графический дизайнер',
     schedule: 'Свободный',
     level: 2,
-    salaryPerHour: 750,      // ~45-60к/мес
+    salaryPerHour: 750,      // ~130к/мес
     salaryPerDay: 4500,
     salaryPerWeek: 22500,
     requiredHoursPerWeek: 30,
@@ -652,7 +652,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Профессиональный фотограф',
     schedule: 'Свободный',
     level: 3,
-    salaryPerHour: 1250,     // ~75-100к/мес
+    salaryPerHour: 1250,     // ~216к/мес
     salaryPerDay: 7500,
     salaryPerWeek: 37500,
     requiredHoursPerWeek: 30,
@@ -666,7 +666,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Контент-мейкер / Блогер',
     schedule: 'Свободный',
     level: 3,
-    salaryPerHour: 1500,     // переменный доход
+    salaryPerHour: 1500,     // ~260к/мес
     salaryPerDay: 9000,
     salaryPerWeek: 45000,
     requiredHoursPerWeek: 30,
@@ -682,7 +682,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Менеджер банка',
     schedule: '5/2',
     level: 2,
-    salaryPerHour: 750,      // ~60к/мес + бонусы
+    salaryPerHour: 750,      // ~130к/мес
     salaryPerDay: 6000,
     salaryPerWeek: 30000,
     requiredHoursPerWeek: 40,
@@ -696,7 +696,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Банковский аналитик',
     schedule: '5/2',
     level: 4,
-    salaryPerHour: 1375,     // ~110к/мес
+    salaryPerHour: 1375,     // ~238к/мес
     salaryPerDay: 11000,
     salaryPerWeek: 55000,
     requiredHoursPerWeek: 40,
@@ -710,7 +710,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Директор филиала банка',
     schedule: '5/2',
     level: 8,
-    salaryPerHour: 3125,     // ~250к/мес
+    salaryPerHour: 3125,     // ~541к/мес
     salaryPerDay: 25000,
     salaryPerWeek: 125000,
     requiredHoursPerWeek: 40,
@@ -726,7 +726,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Косметолог',
     schedule: 'Свободный',
     level: 2,
-    salaryPerHour: 1125,     // ~90к/мес
+    salaryPerHour: 1125,     // ~195к/мес
     salaryPerDay: 6750,
     salaryPerWeek: 33750,
     requiredHoursPerWeek: 30,
@@ -740,7 +740,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Фитнес-тренер',
     schedule: 'Свободный',
     level: 2,
-    salaryPerHour: 750,      // ~60к/мес
+    salaryPerHour: 750,      // ~130к/мес
     salaryPerDay: 4500,
     salaryPerWeek: 22500,
     requiredHoursPerWeek: 30,
@@ -754,7 +754,7 @@ export const CAREER_JOBS: CareerJob[] = [
     name: 'Риелтор',
     schedule: 'Свободный',
     level: 2,
-    salaryPerHour: 1250,     // комиссия ~3-5%
+    salaryPerHour: 1250,     // ~216к/мес
     salaryPerDay: 7500,
     salaryPerWeek: 37500,
     requiredHoursPerWeek: 32,

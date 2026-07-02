@@ -38,6 +38,48 @@ const VALID_CATEGORIES: readonly string[] = [
   'selfdev',
 ] as const
 
+const ALLOWED_ACTION_FIELDS: readonly string[] = [
+  'id',
+  'category',
+  'title',
+  'hourCost',
+  'price',
+  'actionType',
+  'effect',
+  'mood',
+  'statChanges',
+  'skillChanges',
+  'relationshipDelta',
+  'housingComfortDelta',
+  'oneTime',
+  'furnitureId',
+  'housingUpgradeLevel',
+  'requirements',
+  'cooldown',
+  'subscription',
+  'grantsItem',
+  'reserveDelta',
+  'investmentReturn',
+  'investmentDurationDays',
+  'monthlyExpenseDelta',
+  'ageGroup',
+  'maxAgeGroup',
+]
+
+const ALLOWED_REQUIREMENTS_FIELDS: readonly string[] = [
+  'minAge',
+  'minSkills',
+  'minEducationRank',
+  'minRelationshipLevel',
+  'isEmployed',
+  'requiresItem',
+  'requiresRelationship',
+  'relationshipRequired',
+  'housingLevel',
+  'hasMortgage',
+  'hasDebt',
+]
+
 /**
  * Валидирует структуру и типы полей действия.
  * @description [Domain] - проверяет обязательные поля, типы и ограничения BalanceAction.
@@ -82,6 +124,25 @@ export function validateActionWithErrors(action: unknown): ValidationErrors {
 
   if (typeof record.price !== 'number' || record.price < 0) {
     errors.push('price: Должен быть числом >= 0')
+  }
+
+  for (const key of Object.keys(record)) {
+    if (!ALLOWED_ACTION_FIELDS.includes(key)) {
+      errors.push(`${key}: Неизвестное поле действия`)
+    }
+  }
+
+  if (
+    record.requirements !== undefined &&
+    typeof record.requirements === 'object' &&
+    record.requirements !== null
+  ) {
+    const requirements: Record<string, unknown> = record.requirements as Record<string, unknown>
+    for (const key of Object.keys(requirements)) {
+      if (!ALLOWED_REQUIREMENTS_FIELDS.includes(key)) {
+        errors.push(`requirements.${key}: Неизвестное поле requirements`)
+      }
+    }
   }
 
   return {

@@ -131,18 +131,9 @@ export const useGameStore = defineStore('game', () => {
 
     if (!check.canDo) return check.reason ?? 'Ошибка'
 
-    const salary: number = hours * (career.currentJob?.salaryPerHour ?? 0)
-    career.addWorkHours(hours)
-    career.addPendingSalary(salary)
-
-    const actualSalary: number = career.collectSalary()
-    wallet.earn(actualSalary)
-
-    stats.applyStatChanges({ energy: -(hours * 3), hunger: +(hours * 2) })
-    time.advanceHours(hours)
+    const result: string = appGameCommands.simulateWorkShift(hours)
     worldVersion.value++
-    activity.addWorkEntry('Работа', hours, actualSalary)
-    return `Вы заработали ${actualSalary} ₽`
+    return result
   }
 
   function quitCareer(): QuitCareerResult {
