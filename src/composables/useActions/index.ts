@@ -3,7 +3,6 @@ import type { ExecuteActionCommandResult } from '@/application/game/index.types'
 import { getActionsByCategory, getActionById } from '@/domain/balance/actions'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { ActionCategory } from '@/domain/balance/types'
-import { appGameCommands } from '@/application/game'
 import type { UseActionsReturn } from './useActions.types'
 
 /**
@@ -14,6 +13,7 @@ import type { UseActionsReturn } from './useActions.types'
 export function useActions(): UseActionsReturn {
   const walletStore = useWalletStore()
   const timeStore = useTimeStore()
+  const gameStore = useGameStore()
   const toast = useToast()
   const { filterActionsByAge, ageGroupLabel } = useAgeRestrictions()
 
@@ -33,7 +33,7 @@ export function useActions(): UseActionsReturn {
     return true
   }
 
-  function executeAction(actionId: string): boolean {
+  async function executeAction(actionId: string): Promise<boolean> {
     const action: BalanceAction | null = getActionById(actionId)
 
     if (!action) {
@@ -41,7 +41,7 @@ export function useActions(): UseActionsReturn {
       return false
     }
 
-    const result: ExecuteActionCommandResult = appGameCommands.executeAction(actionId)
+    const result: ExecuteActionCommandResult = await gameStore.executeActionAsync(actionId)
 
     if (!result.success) {
       toast.showError(result.message)

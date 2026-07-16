@@ -28,6 +28,8 @@ import {
   applyMonthlySettlement,
   executeFinanceDecision,
   executeLifestyleAction,
+  startEducationProgram,
+  advanceEducation,
 } from './commands'
 import {
   canExecuteAction as canExecuteActionQuery,
@@ -76,12 +78,14 @@ export function createSPAAsyncExecutor(): AsyncGameExecutor {
       return Promise.resolve(quitCareer(world))
     },
 
-    startEducationProgram(_world: GameWorld | null, _programId: string): Promise<string> {
-      return Promise.resolve('ok')
+    startEducationProgram(world: GameWorld | null, programId: string): Promise<string> {
+      if (!world) return reject(world)
+      return Promise.resolve(startEducationProgram(world, programId))
     },
 
-    advanceEducation(_world: GameWorld | null): Promise<string> {
-      return Promise.resolve('ok')
+    advanceEducation(world: GameWorld | null): Promise<string> {
+      if (!world) return reject(world)
+      return Promise.resolve(advanceEducation(world))
     },
 
     executeFinanceDecision(world: GameWorld | null, actionId: string): Promise<string> {
@@ -132,6 +136,14 @@ export function createSPAAsyncQueryExecutor(): AsyncGameQueryExecutor {
   }
 
   return {
+    getState(world: GameWorld | null) {
+      return Promise.resolve(requireWorld(world).toJSON())
+    },
+
+    initState(world: GameWorld | null) {
+      return Promise.resolve(requireWorld(world).toJSON())
+    },
+
     getCareerTrack(world: GameWorld | null): Promise<CareerTrackItemDto[]> {
       const w: GameWorld = requireWorld(world)
       const track: Array<Record<string, unknown>> = getCareerTrackQuery(w)

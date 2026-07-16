@@ -127,8 +127,8 @@ const filteredJobs = computed<CareerTrackJobItem[]>(() => {
   )
 })
 
-function applyForJob(job: CareerTrackJobItem): void {
-  const result: ChangeCareerResult = store.changeCareer(job.id)
+async function applyForJob(job: CareerTrackJobItem): Promise<void> {
+  const result: ChangeCareerResult = await store.changeCareerAsync(job.id)
 
   if (result.success) {
     toast.showSuccess(result.message)

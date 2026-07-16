@@ -44,7 +44,7 @@ const financeActions = computed<FinanceActionItem[]>(() => {
   return actions.length > 0 ? actions : []
 })
 
-function handleAction(action: FinanceActionItem): void {
+async function handleAction(action: FinanceActionItem): Promise<void> {
   if (action.available === false) {
     toast.showError(action.reason || 'Действие недоступно')
     return
@@ -55,7 +55,7 @@ function handleAction(action: FinanceActionItem): void {
     return
   }
 
-  const result: string = store.executeAction(action.id).message
+  const result: string = (await store.executeActionAsync(action.id)).message
 
   if (result && !result.startsWith('Мир не')) {
     const baseEffect: string | undefined = (action as unknown as { effect?: string }).effect

@@ -7,9 +7,10 @@
  * Иначе — создаётся пустой мир через GameWorld.createEmpty().
  */
 import { GameWorld } from '@/domain/game-world/GameWorld'
-import type { GameStateResponse, InitRequestBody } from '../types'
+import type { ApiResponse, GameStateResponse, InitRequestBody } from '../types'
+import { okResponse } from '../../utils/error-handler'
 
-export default defineEventHandler(async (event): Promise<GameStateResponse> => {
+export default defineEventHandler(async (event): Promise<ApiResponse<GameStateResponse>> => {
   const sessionId: string = getOrCreateSessionId(event)
   const body: InitRequestBody = await readBody(event).catch(() => ({})) ?? {}
 
@@ -23,9 +24,9 @@ export default defineEventHandler(async (event): Promise<GameStateResponse> => {
 
   await saveWorldForSession(sessionId, world)
 
-  return {
+  return okResponse({
     state: world.toJSON(),
     sessionId,
     version: '1.0',
-  }
+  })
 })

@@ -528,10 +528,10 @@ function closeStudyModal() {
   isStudyModalOpen.value = false
 }
 
-function handleRead() {
+async function handleRead(): Promise<void> {
   if (!canContinueStudy.value) return
 
-  store.advanceEducation()
+  await store.advanceEducationAsync()
 }
 
 function handleFinishStudy() {

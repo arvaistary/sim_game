@@ -188,6 +188,47 @@ export function executeFinanceDecision(world: GameWorld, actionId: string): stri
 }
 
 /**
+ * Начать обучение. Education state пока хранит migration-compatible shape,
+ * поэтому mutation остаётся application command до выделения отдельного domain aggregate.
+ */
+export function startEducationProgram(world: GameWorld, programId: string): string {
+  const education: Record<string, unknown> = world.education as unknown as Record<string, unknown>
+  if (education.activeEducation) throw new Error('Уже учитесь')
+
+  education.activeEducation = {
+    id: programId,
+    name: programId,
+    progress: 0,
+    hoursTotal: 100,
+    hoursRemaining: 100,
+  }
+  return `Программа ${programId} начата`
+}
+
+/** Продвинуть активную учебную программу на один час. */
+export function advanceEducation(world: GameWorld): string {
+  const education: Record<string, unknown> = world.education as unknown as Record<string, unknown>
+  const active: Record<string, unknown> | null = (education.activeEducation as Record<string, unknown> | undefined) ?? null
+  if (!active) return 'Нет активного обучения'
+
+  const remaining: number = Math.max(0, Number(active.hoursRemaining ?? 0) - 1)
+  active.hoursRemaining = remaining
+  active.progress = Math.min(100, Number(active.progress ?? 0) + 1)
+  education.cognitiveLoad = Math.min(100, Number(education.cognitiveLoad ?? 0) + 10)
+
+  if (remaining === 0) {
+    const completed: Array<Record<string, unknown>> = Array.isArray(education.completedPrograms)
+      ? education.completedPrograms as Array<Record<string, unknown>>
+      : []
+    completed.push({ id: String(active.id ?? ''), name: String(active.name ?? '') })
+    education.completedPrograms = completed
+    education.activeEducation = null
+  }
+
+  return 'Обучение продвинуто'
+}
+
+/**
  * Получить уровень professionalism из мира.
  * @description [Application] - локальный helper для changeCareer checks.
  * @return { number }

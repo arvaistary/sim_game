@@ -118,7 +118,7 @@ export interface InvestRequest {
  */
 export interface SyncRequest {
   actions: Array<{
-    type: 'action' | 'work' | 'event' | 'career' | 'finance'
+    type: 'action' | 'work' | 'event' | 'career' | 'finance' | 'education'
     payload: Record<string, unknown>
     timestamp: number
   }>

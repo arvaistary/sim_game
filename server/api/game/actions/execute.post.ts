@@ -8,10 +8,11 @@
  */
 import { executeActionCommand } from '@/domain/game-world/commands'
 import type { GameWorld } from '@/domain/game-world/GameWorld'
-import type { ActionExecuteResponse, ActionExecuteRequest } from '../../types'
+import type { ApiResponse, ActionExecuteResponse, ActionExecuteRequest } from '../../types'
 import type { ExecuteActionResult } from '@/domain/game-world/commands/commands.types'
+import { okResponse } from '../../../utils/error-handler'
 
-export default defineEventHandler(async (event): Promise<ActionExecuteResponse> => {
+export default defineEventHandler(async (event): Promise<ApiResponse<ActionExecuteResponse>> => {
   const sessionId: string = getOrCreateSessionId(event)
   const body: ActionExecuteRequest = await readBody(event)
   const actionId: string | undefined = body?.actionId
@@ -37,8 +38,8 @@ export default defineEventHandler(async (event): Promise<ActionExecuteResponse> 
   const result: ExecuteActionResult = executeActionCommand(world, actionId)
   await saveWorldForSession(sessionId, world)
 
-  return {
+  return okResponse({
     result: { success: result.success, message: result.message },
     state: world.toJSON(),
-  }
+  })
 })

@@ -97,7 +97,13 @@ export default defineNuxtPlugin((nuxtApp) => {
   periodicTimer = setInterval(flushSave, PERIODIC_MS)
 
   // --- beforeunload: гарантированное сохранение при уходе со страницы ---
-  window.addEventListener('beforeunload', flushSave)
+  window.addEventListener('beforeunload', () => {
+    if (periodicTimer) {
+      clearInterval(periodicTimer)
+      periodicTimer = null
+    }
+    flushSave()
+  })
 
   return {
     provide: {

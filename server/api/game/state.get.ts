@@ -5,10 +5,11 @@
  * Cookie-based session. Если сессия/мир не найден — возвращает 404,
  * клиент должен вызвать POST /api/game/init.
  */
-import type { GameStateResponse } from '../types'
+import type { ApiResponse, GameStateResponse } from '../types'
 import type { GameWorld } from '@/domain/game-world/GameWorld'
+import { okResponse } from '../../utils/error-handler'
 
-export default defineEventHandler(async (event): Promise<GameStateResponse> => {
+export default defineEventHandler(async (event): Promise<ApiResponse<GameStateResponse>> => {
   const sessionId: string = getOrCreateSessionId(event)
   const world: GameWorld | null = await loadWorldForSession(sessionId)
 
@@ -20,9 +21,9 @@ export default defineEventHandler(async (event): Promise<GameStateResponse> => {
     })
   }
 
-  return {
+  return okResponse({
     state: world.toJSON(),
     sessionId,
     version: '1.0',
-  }
+  })
 })

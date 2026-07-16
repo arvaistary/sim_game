@@ -42,8 +42,8 @@ onMounted(() => {
   events.loadNextEvent()
 })
 
-function selectChoice(choice: EventChoice) {
-  const ok: boolean = events.applyChoice(choice.id)
+async function selectChoice(choice: EventChoice): Promise<void> {
+  const ok: boolean = await events.applyChoice(choice.id)
 
   if (!ok) {
     toast.showError('Не удалось применить выбор')

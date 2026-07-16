@@ -5,8 +5,9 @@
  * `world` параметр игнорируется — сервер читает состояние из сессии.
  */
 import type { GameWorld } from '@/domain/game-world/GameWorld'
+import type { GameWorldJSON, ActivityEntry  } from '@/domain/game-world/GameWorld.types'
 import type { Investment } from '@/domain/balance/constants/default-save'
-import type { ActivityEntry } from '@/domain/game-world/GameWorld.types'
+
 import type { GameEventPayload } from '@/domain/game-world/commands/commands.types'
 import type {
   AsyncGameQueryExecutor,
@@ -20,6 +21,7 @@ import type {
   FinanceOverviewDto,
   FinanceSnapshotDto,
 } from './index.types'
+import type { ApiResponse, GameStateResponse } from '@/domain/api-contract'
 import type { ServerQueryExecutorOptions } from './server-executor.types'
 import { DEFAULT_SERVER_QUERY_EXECUTOR_OPTIONS } from './server-executor.types'
 
@@ -35,8 +37,21 @@ export function createServerQueryExecutor(
   const base: string = options.baseUrl
 
   return {
+    async getState(_world: GameWorld | null): Promise<GameWorldJSON> {
+      const data: GameStateResponse = await fetchApi<GameStateResponse>(`${base}/api/game/state`)
+      return data.state
+    },
+
+    async initState(_world: GameWorld | null): Promise<GameWorldJSON> {
+      const data: GameStateResponse = await fetchApi<GameStateResponse>(`${base}/api/game/init`, {
+        method: 'POST',
+        body: {},
+      })
+      return data.state
+    },
+
     async getCareerTrack(_world: GameWorld | null): Promise<CareerTrackItemDto[]> {
-      const data: Array<Record<string, unknown>> = await $fetch<Array<Record<string, unknown>>>(
+      const data: Array<Record<string, unknown>> = await fetchApi<Array<Record<string, unknown>>>(
         `${base}/api/game/career/track`,
       )
       return data.map((item: Record<string, unknown>) => ({
@@ -52,7 +67,7 @@ export function createServerQueryExecutor(
       const url: string = count !== undefined
         ? `${base}/api/game/activity-log?count=${count}`
         : `${base}/api/game/activity-log`
-      return $fetch<ActivityEntry[]>(url)
+      return fetchApi<ActivityEntry[]>(url)
     },
 
     async canStartEducationProgram(
@@ -73,15 +88,15 @@ export function createServerQueryExecutor(
     },
 
     async getFinanceOverview(_world: GameWorld | null): Promise<FinanceOverviewDto> {
-      return $fetch<FinanceOverviewDto>(`${base}/api/game/finance/overview`)
+      return fetchApi<FinanceOverviewDto>(`${base}/api/game/finance/overview`)
     },
 
     async getFinanceSnapshot(_world: GameWorld | null): Promise<FinanceSnapshotDto> {
       // Пока нет отдельного endpoint — собираем из overview + investments
-      const overview: FinanceOverviewDto = await $fetch<FinanceOverviewDto>(
+      const overview: FinanceOverviewDto = await fetchApi<FinanceOverviewDto>(
         `${base}/api/game/finance/overview`,
       )
-      const investments: Investment[] = await $fetch<Investment[]>(`${base}/api/game/investments`)
+      const investments: Investment[] = await fetchApi<Investment[]>(`${base}/api/game/investments`)
       return {
         money: overview.balance,
         reserveFund: 0,
@@ -94,7 +109,7 @@ export function createServerQueryExecutor(
     },
 
     async getInvestments(_world: GameWorld | null): Promise<Investment[]> {
-      return $fetch<Investment[]>(`${base}/api/game/investments`)
+      return fetchApi<Investment[]>(`${base}/api/game/investments`)
     },
 
     async canExecuteAction(_world: GameWorld | null, actionId: string): Promise<AvailabilityCheck> {
@@ -120,14 +135,14 @@ export function createServerQueryExecutor(
       if (limit !== undefined) params.push(`limit=${limit}`)
 
       const query: string = params.length > 0 ? `?${params.join('&')}` : ''
-      return $fetch<ActivityEntry[]>(`${base}/api/game/activity-log${query}`)
+      return fetchApi<ActivityEntry[]>(`${base}/api/game/activity-log${query}`)
     },
 
     async getActivityTimelineWindow(
       _world: GameWorld | null,
       count: number,
     ): Promise<ActivityLogWindow> {
-      const entries: ActivityEntry[] = await $fetch<ActivityEntry[]>(
+      const entries: ActivityEntry[] = await fetchApi<ActivityEntry[]>(
         `${base}/api/game/activity-log?count=${count}`,
       )
       return { entries, hasMore: false }
@@ -138,4 +153,17 @@ export function createServerQueryExecutor(
       return []
     },
   }
+}
+
+async function fetchApi<T>(url: string, options?: { method?: 'GET' | 'POST'; body?: Record<string, unknown> }): Promise<T> {
+  const response: ApiResponse<T> = await $fetch<ApiResponse<T>>(url, {
+    ...options,
+    credentials: 'include',
+  })
+
+  if (!response.success || response.data === undefined) {
+    throw new Error(response.error?.message ?? 'API request failed')
+  }
+
+  return response.data
 }

@@ -234,7 +234,7 @@ function goToShopBooks(): void {
   void router.push('/game/shop?tab=learning')
 }
 
-function startProgram(program: EducationProgram): void {
+async function startProgram(program: EducationProgram): Promise<void> {
   if (!isAgeOk(program)) {
     const minAgeGroup = program.minAgeGroup ?? AgeGroup.TEEN
     toast.showWarning(`${program.ageReason || `Эта программа доступна с ${getAgeGroupLabel(minAgeGroup)}+`}. Сейчас вам ${currentAge.value} лет.`)
@@ -258,7 +258,7 @@ function startProgram(program: EducationProgram): void {
     return
   }
 
-  const result: string | undefined = store.startEducationProgram(program.id)
+  const result: string = await store.startEducationProgramAsync(program.id)
 
   if (result && !result.startsWith('Мир не')) {
     const baseEffect: string | undefined = (program as unknown as { effect?: string }).effect

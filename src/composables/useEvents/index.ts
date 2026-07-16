@@ -1,7 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { CommandOutcome } from '@/application/game/index.types'
 import type { GameEvent } from '@/stores/events-store'
-import { appGameCommands } from '@/application/game'
 
 /**
  * Composable для управления игровыми событиями.
@@ -11,6 +10,7 @@ import { appGameCommands } from '@/application/game'
 export function useEvents() {
   const eventsStore = useEventsStore()
   const timeStore = useTimeStore()
+  const gameStore = useGameStore()
 
   const currentEvent: Ref<GameEvent | null> = ref<GameEvent | null>(null)
 
@@ -31,10 +31,10 @@ export function useEvents() {
     return currentEvent.value
   }
 
-  function applyChoice(choiceId: string): boolean {
+  async function applyChoice(choiceId: string): Promise<boolean> {
     if (!currentEvent.value?.choices) return false
 
-    const result: CommandOutcome = appGameCommands.resolveEventDecision(currentEvent.value.id, choiceId)
+    const result: CommandOutcome = await gameStore.resolveEventDecisionAsync(currentEvent.value.id, choiceId)
 
     if (!result.success) return false
 

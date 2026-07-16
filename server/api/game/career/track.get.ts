@@ -4,8 +4,10 @@
  */
 import { getCareerTrack } from '@/application/game/queries'
 import type { GameWorld } from '@/domain/game-world/GameWorld'
+import type { ApiResponse } from '../../types'
+import { okResponse } from '../../../utils/error-handler'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<ApiResponse<Array<Record<string, unknown>>>> => {
   const sessionId: string = getOrCreateSessionId(event)
   const world: GameWorld | null = await loadWorldForSession(sessionId)
 
@@ -17,5 +19,5 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return getCareerTrack(world)
+  return okResponse(getCareerTrack(world))
 })

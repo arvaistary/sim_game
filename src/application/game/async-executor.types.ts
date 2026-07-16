@@ -7,7 +7,7 @@
  * Миграция store на async-интерфейсы идёт постепенно (Stage 3),
  * sync GameExecutor/GameQueryExecutor остаются для backwards compat.
  */
-import type { ActivityEntry } from '@/domain/game-world/GameWorld.types'
+import type { ActivityEntry, GameWorldJSON } from '@/domain/game-world/GameWorld.types'
 import type { GameEventPayload } from '@/domain/game-world/commands/commands.types'
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type {
@@ -83,6 +83,8 @@ export interface AsyncGameExecutor {
  * Async GameQueryExecutor для server-first миграции.
  */
 export interface AsyncGameQueryExecutor {
+  getState(world: GameWorld | null): Promise<GameWorldJSON>
+  initState(world: GameWorld | null): Promise<GameWorldJSON>
   getCareerTrack(world: GameWorld | null): Promise<CareerTrackItemDto[]>
   getActivityLogEntries(world: GameWorld | null, count?: number): Promise<ActivityEntry[]>
   canStartEducationProgram(world: GameWorld | null, programId: string): Promise<boolean>

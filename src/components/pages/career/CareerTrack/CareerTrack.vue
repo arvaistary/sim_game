@@ -85,9 +85,9 @@ const careerTrack = computed<CareerTrackJobItem[]>(() => {
   })
 })
 
-function takeJob(job: CareerTrackJobItem): void {
+async function takeJob(job: CareerTrackJobItem): Promise<void> {
   if (!job.unlocked || job.current) return
-  const result = store.changeCareer(job.id)
+  const result = await store.changeCareerAsync(job.id)
 
   message.value = result?.success
     ? (result.message ?? `Вы устроились на работу: ${job.name}`)

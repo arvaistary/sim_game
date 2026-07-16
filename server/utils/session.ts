@@ -23,9 +23,13 @@ export function getOrCreateSessionId(event: H3Event): string {
   if (existing) return existing
 
   const sessionId: string = generateSessionId()
+  const config = useRuntimeConfig()
+  const sameSite = String(config.gameCookieSameSite ?? 'lax') as 'lax' | 'strict' | 'none'
+  const secure = config.gameCookieSecure === true || String(config.gameCookieSecure) === 'true'
   setCookie(event, SESSION_COOKIE, sessionId, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite,
+    secure,
     maxAge: SESSION_TTL_SECONDS,
     path: '/',
   })

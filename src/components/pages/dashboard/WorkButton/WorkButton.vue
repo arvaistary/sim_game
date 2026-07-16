@@ -39,7 +39,6 @@ const isWorkInProgress = ref<boolean>(false)
 const workSummary = ref<string>('')
 const statDiffs = ref<WorkStatDiff[]>([])
 let workChoiceModalId: symbol | null = null
-let workResultModalId: symbol | null = null
 
 const currentWork = computed<WorkSnapshot | null>(() => {
   const job = careerStore.currentJob
@@ -165,12 +164,12 @@ function buildDiffs(beforeState: WorkStatSnapshot, afterState: WorkStatSnapshot)
     .filter((diff) => diff.delta !== 0)
 }
 
-function runShift(hours: number): void {
+async function runShift(hours: number): Promise<void> {
   if (!hours || hours <= 0 || isWorkInProgress.value) return
 
   isWorkInProgress.value = true
   const beforeSnapshot = createWorkStatSnapshot()
-  const summary = gameStore.applyWorkShift(hours)
+  const summary = await gameStore.applyWorkShiftAsync(hours)
   const afterSnapshot = createWorkStatSnapshot()
   isWorkInProgress.value = false
 
@@ -182,12 +181,9 @@ function runShift(hours: number): void {
     workChoiceModalId = null
   }
 
-  workResultModalId = openModal(WorkResultModal, {
+  openModal(WorkResultModal, {
     workSummary: workSummary.value,
     statDiffs: statDiffs.value,
-    onClose: () => {
-      workResultModalId = null
-    },
   })
 }
 </script>

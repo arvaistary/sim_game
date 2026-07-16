@@ -40,9 +40,13 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    // Server-only deployment settings. Override through NUXT_GAME_* env vars.
+    gameCorsOrigin: 'http://127.0.0.1:3000,http://localhost:3000',
+    gameCookieSameSite: 'lax',
+    gameCookieSecure: false,
     public: {
-      // server-first migration (Stage 1)
-      gameMode: 'spa',
+      // Server-authoritative mode is production default; SPA remains test/offline fallback.
+      gameMode: 'server',
       gameOfflineQueue: true,
       gameApiBaseUrl: '',
     },

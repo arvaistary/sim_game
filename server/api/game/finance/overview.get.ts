@@ -5,8 +5,10 @@
 import { getFinanceOverview } from '@/application/game/queries'
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { FinanceOverviewDto } from '@/application/game/index.types'
+import type { ApiResponse } from '../../types'
+import { okResponse } from '../../../utils/error-handler'
 
-export default defineEventHandler(async (event): Promise<FinanceOverviewDto> => {
+export default defineEventHandler(async (event): Promise<ApiResponse<FinanceOverviewDto>> => {
   const sessionId: string = getOrCreateSessionId(event)
   const world: GameWorld | null = await loadWorldForSession(sessionId)
 
@@ -18,5 +20,5 @@ export default defineEventHandler(async (event): Promise<FinanceOverviewDto> => 
     })
   }
 
-  return getFinanceOverview(world)
+  return okResponse(getFinanceOverview(world))
 })

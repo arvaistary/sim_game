@@ -10,15 +10,15 @@
 </template>
 
 <script setup lang="ts">
-import { appGameCommands } from '@/application/game'
-
 const careerStore = useCareerStore()
 
 const statsStore = useStatsStore()
 
+const gameStore = useGameStore()
+
 const workResult = ref('')
 
-function doWork(hours: number): void {
+async function doWork(hours: number): Promise<void> {
   if (!careerStore.isEmployed) {
     workResult.value = 'Сначала устройтесь на работу'
     return
@@ -29,7 +29,7 @@ function doWork(hours: number): void {
     return
   }
 
-  workResult.value = appGameCommands.simulateWorkShift(hours)
+  workResult.value = await gameStore.applyWorkShiftAsync(hours)
 }
 </script>
 

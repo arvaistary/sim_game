@@ -16,7 +16,8 @@ import { useActivityStore } from './activity-store'
 import type { GameEvent } from './events-store/events-store.types'
 import { getActionById, type BalanceAction } from '@/domain/balance/actions'
 import type { CareerTrackJobItem } from '@/domain/balance/types'
-import type { GameWorld } from '@/domain/game-world/GameWorld'
+import { GameWorld } from '@/domain/game-world/GameWorld'
+import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
 import { fromStores, applyToStores } from '@/domain/game-world/bridge'
 import type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
 import type { GameMode, GameModeConfig, SyncStatus } from '@/domain/game-mode'
@@ -29,6 +30,7 @@ import {
 import type {
   AsyncGameExecutor,
   AsyncGameQueryExecutor,
+  CommandOutcome,
   QueuedAction,
   SyncOutcome,
 } from '@/application/game'
@@ -129,6 +131,32 @@ export const useGameStore = defineStore('game', () => {
     }
     applyToStores(world, target)
     worldVersion.value++
+  }
+
+  async function refreshServerState(): Promise<void> {
+    if (gameMode === 'spa') return
+    const state: GameWorldJSON = await queryExecutor.getState(null)
+    syncFromWorld(GameWorld.fromJSON(state))
+  }
+
+  async function initializeServerSession(): Promise<void> {
+    if (gameMode === 'spa') return
+
+    try {
+      await refreshServerState()
+    } catch (error) {
+      if (!isMissingServerSession(error)) throw error
+      const state: GameWorldJSON = await queryExecutor.initState(null)
+      syncFromWorld(GameWorld.fromJSON(state))
+    }
+  }
+
+  function isMissingServerSession(error: unknown): boolean {
+    const candidate = error as { statusCode?: number; data?: { code?: string } }
+    const message: string = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
+    return candidate.statusCode === 404
+      || candidate.data?.code === 'session_not_found'
+      || message.includes('session not found')
   }
 
   const worldTick: ComputedRef<number> = computed(() => worldVersion.value)
@@ -327,9 +355,10 @@ export const useGameStore = defineStore('game', () => {
    * @return { Promise<ExecuteActionResult> }
    */
   async function executeActionAsync(actionId: string): Promise<ExecuteActionResult> {
-    const world: GameWorld = buildWorld()
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: ExecuteActionResult = await executor.executeAction(world, actionId)
-    syncFromWorld(world)
+    await refreshServerState()
+    if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
 
@@ -343,9 +372,10 @@ export const useGameStore = defineStore('game', () => {
 
     if (!check.canDo) return check.reason ?? 'Ошибка'
 
-    const world: GameWorld = buildWorld()
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: string = await executor.simulateWorkShift(world, hours)
-    syncFromWorld(world)
+    await refreshServerState()
+    if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
 
@@ -355,9 +385,10 @@ export const useGameStore = defineStore('game', () => {
    * @return { Promise<ChangeCareerResult> }
    */
   async function changeCareerAsync(jobId: string): Promise<ChangeCareerResult> {
-    const world: GameWorld = buildWorld()
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: ChangeCareerResult = await executor.changeCareer(world, jobId)
-    syncFromWorld(world)
+    await refreshServerState()
+    if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
 
@@ -367,9 +398,34 @@ export const useGameStore = defineStore('game', () => {
    * @return { Promise<QuitCareerResult> }
    */
   async function quitCareerAsync(): Promise<QuitCareerResult> {
-    const world: GameWorld = buildWorld()
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: QuitCareerResult = await executor.quitCareer(world)
-    syncFromWorld(world)
+    await refreshServerState()
+    if (gameMode === 'spa' && world) syncFromWorld(world)
+    return result
+  }
+
+  async function startEducationProgramAsync(programId: string): Promise<string> {
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
+    const result: string = await executor.startEducationProgram(world, programId)
+    await refreshServerState()
+    if (gameMode === 'spa' && world) syncFromWorld(world)
+    return result
+  }
+
+  async function advanceEducationAsync(): Promise<string> {
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
+    const result: string = await executor.advanceEducation(world)
+    await refreshServerState()
+    if (gameMode === 'spa' && world) syncFromWorld(world)
+    return result
+  }
+
+  async function resolveEventDecisionAsync(eventId: string, choiceId: string): Promise<CommandOutcome> {
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
+    const result: CommandOutcome = await executor.resolveEventDecision(world, eventId, choiceId)
+    await refreshServerState()
+    if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
 
@@ -379,7 +435,7 @@ export const useGameStore = defineStore('game', () => {
    * @return { Promise<FinanceOverview> }
    */
   async function getFinanceOverviewAsync(): Promise<FinanceOverview> {
-    const world: GameWorld = buildWorld()
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const dto: FinanceOverview = await queryExecutor.getFinanceOverview(world)
     return dto
   }
@@ -390,7 +446,7 @@ export const useGameStore = defineStore('game', () => {
    * @return { Promise<Investment[]> }
    */
   async function getInvestmentsAsync(): Promise<Investment[]> {
-    const world: GameWorld = buildWorld()
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     return queryExecutor.getInvestments(world)
   }
 
@@ -488,6 +544,8 @@ export const useGameStore = defineStore('game', () => {
     gameMode,
     isOnline, pendingSyncCount, syncStatus,
     executeActionAsync, applyWorkShiftAsync, changeCareerAsync, quitCareerAsync,
+    startEducationProgramAsync, advanceEducationAsync, resolveEventDecisionAsync,
+    initializeServerSession,
     getFinanceOverviewAsync, getInvestmentsAsync,
     flushOfflineQueue, setOnlineStatus,
   }

@@ -45,8 +45,8 @@ const reactivityTrigger: ComputedRef<number> = computed(() => useGameStore().wor
 const currentJobName: ComputedRef<string> = computed(() => careerStore.currentJob?.name ?? 'Безработный')
 const currentSalaryPerHour: ComputedRef<number> = computed(() => careerStore.currentJob?.salaryPerHour ?? 0)
 
-function quitJob(): void {
-  const result: QuitCareerResult = store.quitCareer()
+async function quitJob(): Promise<void> {
+  const result: QuitCareerResult = await store.quitCareerAsync()
 
   workResult.value = result?.message ?? 'Вы уволились'
 }
