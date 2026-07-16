@@ -15,6 +15,10 @@
     "rules:audit": "node scripts/rules-audit.mjs",
     "rules:audit:changed": "node scripts/rules-audit-changed.mjs",
     "rules:fix": "node scripts/fix-code.mjs",
+    "audit:integrity": "node --experimental-strip-types scripts/integrity-audit/index.ts",
+    "audit:integrity:validate": "node --experimental-strip-types scripts/integrity-audit/validate.ts",
+    "test:e2e:integrity": "node --experimental-strip-types scripts/e2e/run-integrity.ts",
+    "test:e2e:integrity:regression": "vitest run --config vitest.integrity.config.ts",
     "lint": "eslint --ext .ts,.vue .",
     "lint:fix": "eslint --ext .ts,.vue . --fix",
     "lint:style": "stylelint \"src/**/*.{css,scss}\"",
@@ -54,6 +58,7 @@
     "vue-tsc": "3.2.6"
   },
   "devDependencies": {
+    "@playwright/test": "1.50.1",
     "@types/lodash.debounce": "4.0.9",
     "@types/lodash.throttle": "4.1.9",
     "@types/node": "25.5.2",

@@ -1,7 +1,0 @@
-{
-  "name": "002-rules-fix-implementation",
-  "path": "specs/002-rules-fix-implementation/",
-  "mode": "full",
-  "description": "Реализовать план исправления нарушений правил из doc/plans/active/rules-fix-plan.md (7 волн, 81 нарушение)",
-  "created": "2026-06-02T12:16:00Z"
-}

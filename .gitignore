@@ -2,6 +2,8 @@ node_modules/
 dist/
 .DS_Store
 *.log
+*.env
+*.env.*
 *.tsbuildinfo
 
 .nuxt/
@@ -26,6 +28,8 @@ opencode.json
 # Test artifacts
 test-results.json
 test.html
+test-results/integrity-audit/
+coverage/
 
 # Cursor IDE: only user-local files are ignored.
 # Project-shared .cursor/rules, .cursor/commands, .cursor/skills,
