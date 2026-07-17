@@ -17,7 +17,7 @@ const { stack, close } = useModalStack()
  * исключая onClose — он обрабатывается в handleClose.
  * Это avoids конфликт Vue3 между on*-пропами и @close event listener.
  */
-function getComponentProps(entry: ModalEntry): Record<string, any> {
+function getComponentProps(entry: ModalEntry): Record<string, unknown> {
   if (!entry.props) return {}
   const { onClose, ...rest } = entry.props
   return rest

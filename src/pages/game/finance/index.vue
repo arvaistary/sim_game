@@ -7,7 +7,7 @@
       <ActionCardList
         :actions="sortedActions"
         :empty-text="actionsEmptyHint"
-        :is-disabled="(a: any) => !canExecute(a.id)"
+        :is-disabled="isDisabled"
         :get-disabled-reason="getDisabledReason"
         :show-price-when-zero="true"
         @execute="executeAction"
@@ -18,6 +18,7 @@
 
 <script setup lang="ts">
 import './finance.scss'
+import type { BalanceAction } from '@/domain/balance/actions'
 
 definePageMeta({ middleware: 'game-init' })
 
@@ -26,7 +27,11 @@ const store = useGameStore()
 const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 const actions = getActionsByCategory('finance')
 
-function getDisabledReason(action: any): string {
+function isDisabled(action: BalanceAction): boolean {
+  return !canExecute(action.id)
+}
+
+function getDisabledReason(action: BalanceAction): string {
   const result = store.canExecuteAction(action.id)
   return result.reason ?? 'Действие недоступно'
 }

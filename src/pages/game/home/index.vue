@@ -26,13 +26,13 @@ const walletStore = useWalletStore()
 
 const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
 
-const actions = getActionsByCategory('home' as any)
+const actions = getActionsByCategory('home')
 
 function isDisabled(action: BalanceAction): boolean {
   return !canExecute(action.id)
 }
 
-function getDisabledReason(action: any): string {
+function getDisabledReason(action: BalanceAction): string {
   const result = getActionById(action.id)
   if (!result) return 'Действие не найдено'
   if (walletStore.money < result.price) return 'Недостаточно денег'

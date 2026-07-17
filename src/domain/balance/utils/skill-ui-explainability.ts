@@ -3,7 +3,7 @@
  * Показывает игроку, как навыки влияют на геймплей
  */
 
-import type { SkillDef, SkillModifiers } from '@/domain/balance/types'
+import type { SkillModifiers } from '@/domain/balance/types'
 import { ALL_SKILLS, getSkillByKey } from '../constants/skills-constants'
 import { getSkillEffectsForUi } from '../constants/skill-effects-generator'
 import { getSkillProgressionConfig, isXpModelActive } from '../constants/skill-progression-config'
@@ -27,6 +27,12 @@ export interface SkillGrowthExplanation {
     description: string
   }>
   totalMultiplier: number
+}
+
+type LearningMethod = 'work' | 'practice' | 'courses' | 'books' | 'videos'
+
+function isLearningMethod(value: string): value is LearningMethod {
+  return ['work', 'practice', 'courses', 'books', 'videos'].includes(value)
 }
 
 /**
@@ -101,8 +107,8 @@ export function explainSkillGrowth(
   }
   
   // Метод обучения
-  if (context.method) {
-    const methodMultiplier = getLearningMethodMultiplier(context.method as any)
+  if (context.method && isLearningMethod(context.method)) {
+    const methodMultiplier = getLearningMethodMultiplier(context.method)
     if (methodMultiplier !== 1.0) {
       factors.push({
         factor: 'Метод обучения',
@@ -179,7 +185,7 @@ export function explainSkillGrowth(
  */
 export function getPlayerActiveEffects(
   skillLevels: Record<string, number>,
-  skillModifiers: SkillModifiers
+  _skillModifiers: SkillModifiers
 ): Array<{
   category: string
   effects: Array<{
@@ -272,7 +278,7 @@ function getAgeMultiplierDescription(age: number, multiplier: number): string {
   return `${ageGroup} ${effect} обучение на ${percent.toFixed(0)}%`
 }
 
-function getLearningMethodMultiplier(method: 'work' | 'practice' | 'courses' | 'books' | 'videos'): number {
+function getLearningMethodMultiplier(method: LearningMethod): number {
   const multipliers = {
     work: 2.2,
     practice: 1.5,
@@ -333,8 +339,7 @@ function getBurnoutDescription(weeklyHours: number, multiplier: number): string 
   return 'Нормальная нагрузка: полная эффективность'
 }
 
-function getDifficultyMultiplier(baseXp: number, finalXp: number): number {
-  const baseLevel = Math.floor(baseXp / 10)
+function getDifficultyMultiplier(_baseXp: number, finalXp: number): number {
   const finalLevel = Math.floor(finalXp / 10)
   
   if (finalLevel <= 3) return 1.0

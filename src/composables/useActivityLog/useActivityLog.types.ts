@@ -1,5 +1,4 @@
 import type { Ref, ComputedRef } from 'vue'
-import type { ActivityEntry } from '@/stores/activity-store/activity-store.types'
 
 export interface DisplayLogEntry {
   day: number

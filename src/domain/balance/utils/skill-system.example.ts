@@ -9,7 +9,6 @@ import {
   applySkillDecay,
   getAgeLearningMultiplier,
   getLearningMethodMultiplier,
-  calculateLevelFromXp,
   convertLegacyLevelToSkillState,
   createEmptySkillState,
   createInitialActivityState,
@@ -42,6 +41,7 @@ console.log('XP после деградации:', afterDecay.xp)
 // 3. Конвертация старого формата (только уровень) в новую систему
 const legacyLevel = 5
 const convertedState = convertLegacyLevelToSkillState(legacyLevel, timestamp)
+console.log('Converted skill level:', convertedState.level)
 
 // 4. Таблица множителей возрастов:
 console.table({

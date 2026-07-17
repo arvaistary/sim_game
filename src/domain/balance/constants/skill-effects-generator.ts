@@ -3,7 +3,7 @@
  * Обеспечивает синхронизацию между skill definitions и фактическими эффектами
  */
 
-import type { SkillDef, SkillModifiers } from '@/domain/balance/types'
+import type { SkillModifiers } from '@/domain/balance/types'
 import { ALL_SKILLS } from './skills-constants'
 import { isMultiplicativeModifier, createBaseSkillModifiers } from './skill-modifiers'
 
@@ -52,7 +52,7 @@ export function generateModifiersFromSkillDefs(skillLevels: Record<string, numbe
     if (!modifierKey) continue
     
     // Применяем значение к модификатору
-    applyEffectToModifier(modifiers, modifierKey, value, mapping.effectKey)
+    applyEffectToModifier(modifiers, modifierKey, value)
   }
   
   return modifiers
@@ -146,7 +146,6 @@ function applyEffectToModifier(
   modifiers: Partial<SkillModifiers>,
   modifierKey: keyof SkillModifiers,
   value: number,
-  effectKey: string
 ): void {
   const currentValue = modifiers[modifierKey] ?? getDefaultModifierValue(modifierKey)
   
