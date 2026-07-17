@@ -78,51 +78,19 @@ done
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# Prefer active work-item state if present; fall back to branch-based detection.
-ACTIVE_STATE_FILE="$SCRIPT_DIR/../../.active-work-item.json"
-
-if [[ -f "$ACTIVE_STATE_FILE" ]]; then
-    REPO_ROOT="$(get_repo_root)"
-    HAS_GIT="false"
-    if has_git; then
-        HAS_GIT="true"
-    fi
-
-    active_name=$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$ACTIVE_STATE_FILE" | head -1)
-    active_path=$(sed -n 's/.*"path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$ACTIVE_STATE_FILE" | head -1)
-
-    if [[ -n "$active_path" ]]; then
-        FEATURE_DIR="$REPO_ROOT/${active_path%/}"
-    elif [[ -n "$active_name" ]]; then
-        FEATURE_DIR="$REPO_ROOT/specs/$active_name"
-    else
-        echo "ERROR: Invalid active work-item state in $ACTIVE_STATE_FILE" >&2
-        exit 1
-    fi
-
-    CURRENT_BRANCH="$active_name"
-    FEATURE_SPEC="$FEATURE_DIR/spec.md"
-    IMPL_PLAN="$FEATURE_DIR/plan.md"
-    TASKS="$FEATURE_DIR/tasks.md"
-    RESEARCH="$FEATURE_DIR/research.md"
-    DATA_MODEL="$FEATURE_DIR/data-model.md"
-    QUICKSTART="$FEATURE_DIR/quickstart.md"
-    CONTRACTS_DIR="$FEATURE_DIR/contracts"
-else
-    # Get feature paths and validate branch
-    eval $(get_feature_paths)
-    check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
-fi
+eval "$(get_resolved_feature_paths)"
+check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 
 # If paths-only mode, output paths and exit (support JSON + paths-only combined)
 if $PATHS_ONLY; then
     if $JSON_MODE; then
         # Minimal JSON paths payload (no validation performed)
-        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS":"%s"}\n' \
-            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS"
+        printf '{"REPO_ROOT":"%s","BRANCH":"%s","RESOLUTION_SOURCE":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS":"%s"}\n' \
+            "$REPO_ROOT" "$CURRENT_BRANCH" "$RESOLUTION_SOURCE" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS"
     else
         echo "REPO_ROOT: $REPO_ROOT"
         echo "BRANCH: $CURRENT_BRANCH"
+        echo "RESOLUTION_SOURCE: $RESOLUTION_SOURCE"
         echo "FEATURE_DIR: $FEATURE_DIR"
         echo "FEATURE_SPEC: $FEATURE_SPEC"
         echo "IMPL_PLAN: $IMPL_PLAN"

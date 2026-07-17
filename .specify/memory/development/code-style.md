@@ -480,6 +480,10 @@ const { data, pending, error } = await useAsyncData<UserProfile>(
 
 ## Code Style Checklist
 
+## Rules Audit Baseline
+
+`npm run rules:audit` keeps pre-existing repository debt in `scripts/rules-audit-baseline.json` and fails when new rule/file pairs appear. Remove baseline entries when legacy debt is deliberately remediated; do not update baseline to hide new violations.
+
 - [ ] Names are meaningful and domain-specific
 - [ ] Boolean variables use prefixes (is/has/can/should/was/are)
 - [ ] Functions start with action verbs

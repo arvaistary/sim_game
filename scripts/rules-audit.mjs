@@ -1,10 +1,12 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { resolve, relative, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const repoRoot = process.cwd();
-const inputTarget = process.argv[2] ?? 'src';
+const inputTarget = process.argv.slice(2).find((argument) => !argument.startsWith('--')) ?? 'src';
 const targetPath = resolve(repoRoot, inputTarget);
+const baselinePath = resolve(repoRoot, 'scripts/rules-audit-baseline.json');
+const shouldUpdateBaseline = process.argv.includes('--update-baseline');
 const skippedDirectoryNames = new Set(['node_modules', '.nuxt', '.output', '.git']);
 
 if (!existsSync(targetPath)) {
@@ -43,11 +45,6 @@ function walkDirectory(pathname, collector) {
 }
 
 // Проверяет, относится ли файл к `src/components/ui`, где действуют отдельные архитектурные исключения.
-function isFileInComponentsUi(absolutePath) {
-  const normalizedPath = absolutePath.split(sep).join('/');
-  return normalizedPath.includes('/src/components/ui/');
-}
-
 // Проверяет, можно ли считать конец выражения валидным основанием для продолжения цепочки вызовов на следующей строке.
 function hasChainReceiverAtLineEnd(value) {
   return /(?:[A-Za-z_$][\w$.\]?]*|\([^)]*\))$/.test(value.trim());
@@ -569,7 +566,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
 
   // async tail await return pattern
   const asyncFunctionTailAwaitPattern =
-    /^([ \t]*)(export\s+)?async function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*(:\s*Promise<[^>\n]+>)?\s*\{\n\1  await\s+([^\n;]+);\n\1\}/gm;
+    /^([ \t]*)(export\s+)?async function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*(:\s*Promise<[^>\n]+>)?\s*\{\n\1 {2}await\s+([^\n;]+);\n\1\}/gm;
 
   for (const asyncFunctionMatch of content.matchAll(asyncFunctionTailAwaitPattern)) {
     const matchOffset = asyncFunctionMatch.index ?? 0;
@@ -582,7 +579,7 @@ function runAdditionalStyleHeuristics({ content, filePath, lines }) {
   }
 
   const asyncArrowTailAwaitPattern =
-    /^([ \t]*)(export\s+)?const\s+([A-Za-z_$][\w$]*\s*=\s*async\s*\([^)]*\)\s*(:\s*Promise<[^>\n]+>)?\s*=>\s*\{\n\1  await\s+([^\n;]+);\n\1\};)/gm;
+    /^([ \t]*)(export\s+)?const\s+([A-Za-z_$][\w$]*\s*=\s*async\s*\([^)]*\)\s*(:\s*Promise<[^>\n]+>)?\s*=>\s*\{\n\1 {2}await\s+([^\n;]+);\n\1\};)/gm;
 
   for (const asyncArrowMatch of content.matchAll(asyncArrowTailAwaitPattern)) {
     const matchOffset = asyncArrowMatch.index ?? 0;
@@ -1143,8 +1140,33 @@ function printReport() {
   }
 }
 
+function applyLegacyBaseline() {
+  if (shouldUpdateBaseline) {
+    const entries = [...new Map(findings.map((finding) => [`${finding.rule}|${finding.filePath}`, {
+      rule: finding.rule,
+      filePath: finding.filePath,
+    }])).values()];
+    writeFileSync(baselinePath, `${JSON.stringify(entries, null, 2)}\n`, 'utf8');
+    return;
+  }
+
+  if (!existsSync(baselinePath)) {
+    return;
+  }
+
+  const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
+  const legacyKeys = new Set(baseline.map((entry) => `${entry.rule}|${entry.filePath}`));
+  for (let index = findings.length - 1; index >= 0; index -= 1) {
+    const finding = findings[index];
+    if (legacyKeys.has(`${finding.rule}|${finding.filePath}`)) {
+      findings.splice(index, 1);
+    }
+  }
+}
+
 runEslintAudit();
 runRuleHeuristics();
+applyLegacyBaseline();
 printReport();
 
 process.exit(findings.length ? 1 : 0);

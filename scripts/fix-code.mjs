@@ -554,7 +554,7 @@ function fixVueLifecycleNamedFunction(content) {
     'g',
   );
 
-  fixedContent = fixedContent.replace(hookNamedFunctionPattern, (_fullMatch, hookStart, _hookName, params, _returnType) => {
+  fixedContent = fixedContent.replace(hookNamedFunctionPattern, (_fullMatch, hookStart, _hookName, params) => {
     fixesCount += 1;
     const normalizedParams = params.trim();
     return `${hookStart}(${normalizedParams}) => {`;
@@ -572,7 +572,7 @@ function fixAsyncSingleAwaitTailToReturn(content) {
   let fixesCount = 0;
 
   const functionDeclarationPattern =
-    /^([ \t]*)(export\s+)?async function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*(:\s*Promise<[^>\n]+>)?\s*\{\n\1  await\s+([^\n;]+);\n\1\}/gm;
+    /^([ \t]*)(export\s+)?async function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*(:\s*Promise<[^>\n]+>)?\s*\{\n\1 {2}await\s+([^\n;]+);\n\1\}/gm;
 
   fixedContent = fixedContent.replace(
     functionDeclarationPattern,
@@ -584,7 +584,7 @@ function fixAsyncSingleAwaitTailToReturn(content) {
   );
 
   const arrowFunctionPattern =
-    /^([ \t]*)(export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*async\s*\(([^)]*)\)\s*(:\s*Promise<[^>\n]+>)?\s*=>\s*\{\n\1  await\s+([^\n;]+);\n\1\};/gm;
+    /^([ \t]*)(export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*async\s*\(([^)]*)\)\s*(:\s*Promise<[^>\n]+>)?\s*=>\s*\{\n\1 {2}await\s+([^\n;]+);\n\1\};/gm;
 
   fixedContent = fixedContent.replace(
     arrowFunctionPattern,

@@ -88,6 +88,7 @@ emit_feature_path_exports() {
     local current_branch="$2"
     local has_git_repo="$3"
     local feature_dir="$4"
+    local resolution_source="$5"
 
     cat <<EOF
 REPO_ROOT='$repo_root'
@@ -101,6 +102,7 @@ RESEARCH='$feature_dir/research.md'
 DATA_MODEL='$feature_dir/data-model.md'
 QUICKSTART='$feature_dir/quickstart.md'
 CONTRACTS_DIR='$feature_dir/contracts'
+RESOLUTION_SOURCE='$resolution_source'
 EOF
 }
 
@@ -169,7 +171,7 @@ get_active_feature_paths() {
         return 1
     fi
 
-    emit_feature_path_exports "$repo_root" "$current_branch" "$has_git_repo" "$feature_dir"
+    emit_feature_path_exports "$repo_root" "$active_name" "$has_git_repo" "$feature_dir" "active-work-item"
 }
 
 # Find feature directory by numeric prefix instead of exact branch match
@@ -225,7 +227,25 @@ get_feature_paths() {
     # Use prefix-based lookup to support multiple branches per spec
     local feature_dir=$(find_feature_dir_by_prefix "$repo_root" "$current_branch")
 
-    emit_feature_path_exports "$repo_root" "$current_branch" "$has_git_repo" "$feature_dir"
+    local resolution_source="latest-spec"
+    if [[ -n "${SPECIFY_FEATURE:-}" ]]; then
+        resolution_source="environment"
+    elif [[ "$has_git_repo" == "true" ]]; then
+        resolution_source="git-branch"
+    fi
+
+    emit_feature_path_exports "$repo_root" "$current_branch" "$has_git_repo" "$feature_dir" "$resolution_source"
+}
+
+get_resolved_feature_paths() {
+    if [[ -n "${SPECIFY_FEATURE:-}" ]]; then
+        get_feature_paths
+        return
+    fi
+    if get_active_feature_paths; then
+        return
+    fi
+    get_feature_paths
 }
 
 check_file() { [[ -f "$1" ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
