@@ -124,7 +124,7 @@ $color-dark-action-danger: #F87171;      // red-400 — ярче для dark bg
 
 // ===== Typography =====
 
-$font-family-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+$font-family-sans: 'Inter', system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
 $font-family-mono: "SF Mono", ui-monospace, monospace;
 
 // Font weights
@@ -200,16 +200,16 @@ $radius-full: 9999px;
 
 // ===== Shadows =====
 
-$shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
-$shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);   // основной для карточек
-$shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.10);
+$shadow-xs: 0 1px 2px rgb(0 0 0 / 5%);
+$shadow-sm: 0 1px 3px rgb(0 0 0 / 5%);
+$shadow-md: 0 4px 12px rgb(0 0 0 / 6%);
+$shadow-lg: 0 10px 30px rgb(0 0 0 / 8%);   // основной для карточек
+$shadow-xl: 0 20px 50px rgb(0 0 0 / 10%);
 
 // Semantic shadows
 $shadow-card: $shadow-lg;
 $shadow-popover: $shadow-xl;
-$shadow-button-hover: 0 6px 16px rgba(0, 200, 150, 0.30); // сочный emerald glow на hover
+$shadow-button-hover: 0 6px 16px rgb(0 200 150 / 30%); // сочный emerald glow на hover
 
 // ===== Z-indices =====
 
@@ -295,4 +295,4 @@ $component-padding-compact: $space-4; // 16px
 
 // Emerald-soft для бейджей/active-фонов
 $color-emerald-soft: #ECFDF5;
-$color-emerald-soft-dark: rgba(0, 200, 150, 0.18);
+$color-emerald-soft-dark: rgb(0 200 150 / 18%);

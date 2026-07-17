@@ -4,15 +4,16 @@
 .onboarding__overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgb(15 23 42 / 50%);
   z-index: $z-index-modal;
 }
 
 .onboarding__spotlight {
   position: fixed;
   border-radius: var(--radius-md);
+
   // Inverted box-shadow: darkens everything except the target
-  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.5);
+  box-shadow: 0 0 0 9999px rgb(15 23 42 / 50%);
   background: transparent;
   pointer-events: none;
   z-index: $z-index-modal + 1;

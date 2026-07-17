@@ -42,7 +42,7 @@
   border-left-color: var(--color-status-success);
 
   .toast-host__icon {
-    background: rgba(34, 197, 94, 0.22);
+    background: rgb(34 197 94 / 22%);
     color: var(--color-status-success-strong);
   }
 }
@@ -51,7 +51,7 @@
   border-left-color: var(--color-status-danger);
 
   .toast-host__icon {
-    background: rgba(239, 68, 68, 0.22);
+    background: rgb(239 68 68 / 22%);
     color: var(--color-status-danger-strong);
   }
 }
@@ -60,7 +60,7 @@
   border-left-color: var(--color-status-warning);
 
   .toast-host__icon {
-    background: rgba(245, 158, 11, 0.22);
+    background: rgb(245 158 11 / 22%);
     color: var(--color-status-warning-strong);
   }
 }
@@ -69,7 +69,7 @@
   border-left-color: var(--color-action-primary);
 
   .toast-host__icon {
-    background: rgba(0, 200, 150, 0.22);
+    background: rgb(0 200 150 / 22%);
     color: var(--color-action-primary);
   }
 }

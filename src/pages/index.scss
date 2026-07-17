@@ -22,8 +22,8 @@
   gap: $space-6;
   padding: $space-10;
   background:
-    radial-gradient(circle at top right, rgba(0, 200, 150, 0.22), transparent 50%),
-    radial-gradient(circle at bottom left, rgba(123, 97, 255, 0.14), transparent 55%),
+    radial-gradient(circle at top right, rgb(0 200 150 / 22%), transparent 50%),
+    radial-gradient(circle at bottom left, rgb(123 97 255 / 14%), transparent 55%),
     linear-gradient(160deg, #0F172A 0%, #1E293B 100%);
   color: $color-neutral-0;
 
@@ -44,7 +44,7 @@
   font-size: $font-size-5xl;
   font-weight: $font-weight-bold;
   letter-spacing: 0.04em;
-  box-shadow: 0 20px 40px rgba(0, 200, 150, 0.40);
+  box-shadow: 0 20px 40px rgb(0 200 150 / 40%);
 }
 
 .start-page__brand-text {

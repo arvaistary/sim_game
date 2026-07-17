@@ -24,7 +24,7 @@
     background: var(--color-pastel-green);
 
     @include dark-theme {
-      background: rgba(45, 212, 191, 0.18);
+      background: rgb(45 212 191 / 18%);
     }
   }
 

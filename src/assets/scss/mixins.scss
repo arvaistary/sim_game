@@ -107,14 +107,7 @@
 
 // Generic typography mixin
 @mixin typography($type) {
-  @if $type == 'h1' { @include typography-heading-1; }
-  @else if $type == 'h2' { @include typography-heading-2; }
-  @else if $type == 'h3' { @include typography-heading-3; }
-  @else if $type == 'body' { @include typography-body; }
-  @else if $type == 'caption' { @include typography-caption; }
-  @else if $type == 'button' { @include typography-button; }
-  @else if $type == 'metric' { @include typography-metric; }
-  @else if $type == 'metric-sm' { @include typography-metric-sm; }
+  @if $type == 'h1' { @include typography-heading-1; } @else if $type == 'h2' { @include typography-heading-2; } @else if $type == 'h3' { @include typography-heading-3; } @else if $type == 'body' { @include typography-body; } @else if $type == 'caption' { @include typography-caption; } @else if $type == 'button' { @include typography-button; } @else if $type == 'metric' { @include typography-metric; } @else if $type == 'metric-sm' { @include typography-metric-sm; }
 }
 
 // ===== Transitions =====
@@ -194,7 +187,6 @@
 
 @mixin blur-base {
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
 }
 
 // ===== Focus ring =====
@@ -270,6 +262,7 @@
   border-radius: $card-radius;
   padding: $card-padding;
   box-shadow: $shadow-card;
+
   @include transition(box-shadow, transform);
 
   @include dark-theme {
@@ -292,6 +285,7 @@
   line-height: 1;
   cursor: pointer;
   border: none;
+
   @include transition(background-color, box-shadow, transform);
   @include typography-button;
 
@@ -317,6 +311,7 @@
   font-size: $font-size-base;
   font-family: $font-family-sans;
   color: $color-text-primary;
+
   @include transition(border-color, box-shadow);
 
   @include dark-theme {
@@ -348,6 +343,7 @@
   font-weight: $badge-font-weight;
   background-color: $bg-color;
   color: $text-color;
+
   @include typography-caption;
 }
 

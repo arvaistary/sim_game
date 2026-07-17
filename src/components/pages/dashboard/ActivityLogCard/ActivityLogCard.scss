@@ -70,7 +70,7 @@
     border-color: var(--color-action-primary);
 
     @include dark-theme {
-      background: rgba(45, 212, 191, 0.20);
+      background: rgb(45 212 191 / 20%);
     }
   }
 }

@@ -4,7 +4,7 @@
 .settings-drawer__overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgb(15 23 42 / 45%);
   backdrop-filter: blur(4px);
   z-index: $z-index-modal;
 }

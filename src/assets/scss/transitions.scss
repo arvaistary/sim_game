@@ -21,6 +21,7 @@
 .slide-down-enter-active,
 .slide-down-leave-active {
   @include transition(max-height, opacity);
+
   overflow: hidden;
 }
 
@@ -90,6 +91,7 @@
 
 .pop-enter-active {
   @include transition(transform, opacity);
+
   animation: pop-in $transition-slow;
 }
 
@@ -107,9 +109,11 @@
     transform: scale(0.8);
     opacity: 0;
   }
+
   50% {
     transform: scale(1.05);
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -120,11 +124,13 @@
 
 .fade-scale-enter-active {
   @include transition(transform, opacity);
+
   transform-origin: top;
 }
 
 .fade-scale-leave-active {
   @include transition(transform, opacity);
+
   transform-origin: top;
 }
 
@@ -173,6 +179,7 @@
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -188,6 +195,7 @@
   0%, 100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -204,12 +212,15 @@
     transform: scale(0.3);
     opacity: 0;
   }
+
   50% {
     transform: scale(1.05);
   }
+
   70% {
     transform: scale(0.9);
   }
+
   100% {
     transform: scale(1);
     opacity: 1;

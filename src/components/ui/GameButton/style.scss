@@ -67,7 +67,7 @@
 
   &:hover:not(.game-button--disabled) {
     background: color.adjust($color-action-danger, $lightness: -6%);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    box-shadow: 0 4px 12px rgb(239 68 68 / 25%);
 
     @include dark-theme {
       background: color.adjust($color-dark-action-danger, $lightness: -4%);

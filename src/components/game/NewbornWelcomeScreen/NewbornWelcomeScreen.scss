@@ -38,7 +38,7 @@
   &__icon {
     font-size: 80px;
     margin-bottom: $space-7;
-    animation: babyBounce 2s ease-in-out infinite;
+    animation: baby-bounce 2s ease-in-out infinite;
   }
 
   &__title {
@@ -72,7 +72,7 @@
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0, 200, 150, 0.40);
+      box-shadow: 0 10px 25px rgb(0 200 150 / 40%);
     }
 
     &:active {
@@ -81,10 +81,11 @@
   }
 }
 
-@keyframes babyBounce {
+@keyframes baby-bounce {
   0%, 100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }

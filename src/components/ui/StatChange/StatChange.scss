@@ -45,12 +45,12 @@
 
   &.stat-change__value--positive {
     color: var(--color-status-success-strong);
-    background: rgba(34, 197, 94, 0.20);
+    background: rgb(34 197 94 / 20%);
   }
 
   &.stat-change__value--negative {
     color: var(--color-status-danger-strong);
-    background: rgba(239, 68, 68, 0.20);
+    background: rgb(239 68 68 / 20%);
   }
 }
 

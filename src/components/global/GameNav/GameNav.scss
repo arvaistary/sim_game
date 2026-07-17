@@ -81,7 +81,7 @@
     }
 
     @include dark-theme {
-      background: rgba(45, 212, 191, 0.20);
+      background: rgb(45 212 191 / 20%);
     }
   }
 }
@@ -94,8 +94,7 @@
   align-items: center;
   height: 100%;
   padding: 0 $space-2;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: auto hidden;
   scrollbar-width: none;
 
   // hide scrollbar in webkit

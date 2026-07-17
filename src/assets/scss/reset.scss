@@ -16,14 +16,16 @@
 // Set core root defaults
 html {
   -webkit-tap-highlight-color: transparent;
-  text-rendering: optimizeLegibility;
-  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizelegibility;
+  text-size-adjust: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
 }
 
 // Set core body defaults
 body {
   min-height: 100vh;
-  text-rendering: optimizeSpeed;
+  text-rendering: optimizespeed;
   line-height: 1.5;
 }
 
@@ -112,10 +114,4 @@ table {
 :focus-visible {
   outline: 2px solid var(--color-action-primary, #00B2FF);
   outline-offset: 2px;
-}
-
-// Remove default scrollbar styling (we'll add our own)
-html {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
 }
