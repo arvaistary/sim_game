@@ -6,7 +6,8 @@
 - **Version:** 4.4.2
 - **Purpose:** Full-stack Vue framework
 - **Configuration:** `nuxt.config.ts`
-- **Mode:** SPA only (`ssr: false`)
+- **Rendering:** Client-only UI (`ssr: false`)
+- **Runtime execution:** `server` by default; `spa` remains test/offline fallback and `hybrid` remains migration option
 - **Compatibility Date:** 2026-04-10
 
 **Key Features Used:**
@@ -134,10 +135,6 @@
 - **Purpose:** Carousel/slider components
 - **Types:** @types/swiper (5.4.3)
 
-### Toastify
-- **Version:** 0.2.8
-- **Purpose:** Toast notifications
-
 ### Color Mode
 - **Version:** 4.0.0
 - **Integration:** @nuxtjs/color-mode
@@ -202,6 +199,20 @@
   - Load on game start
   - Migration support for schema changes
 
+### Nitro Storage
+- **Binding:** `game-sessions`
+- **Driver:** In-memory storage in current configuration
+- **Purpose:** Cookie-scoped server game sessions with 24-hour TTL
+- **Boundary:** Development/runtime implementation; production persistence needs durable driver
+
+## Server API
+
+### Nitro / H3
+- **Location:** `server/api/game/`
+- **Endpoints:** initialization, state, action execution, offline sync, investments, career track, finance overview
+- **Session identity:** HTTP-only `gl_session` cookie with `SameSite=Lax`
+- **Contracts:** `src/domain/api-contract/`
+
 ## Aliases
 
 Configured in `nuxt.config.ts`:
@@ -242,10 +253,11 @@ Components are auto-imported from:
 
 ## Security Considerations
 
-- No server-side rendering (reduces XSS surface)
-- LocalStorage for data (requires client-side storage)
-- No external API calls currently
-- CSP headers recommended for production
+- UI rendering remains client-side; Nitro API is a separate runtime boundary
+- SPA saves reside in browser LocalStorage
+- Server sessions use HTTP-only cookie identifiers; current in-memory storage is process-local
+- API input validation and consistent error envelopes remain required at every endpoint
+- CSP headers are recommended for production
 
 ## Future Considerations
 

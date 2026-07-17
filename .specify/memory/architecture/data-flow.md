@@ -257,6 +257,13 @@ export function executeLifestyleActionCommand(actionId: string): ActionResult {
 
 ## Persistence Flow
 
+Runtime persistence depends on game mode:
+
+- `spa`: stores/application execute locally and persist saves through `LocalStorageSaveRepository`.
+- `server`: client executor calls Nitro endpoints; HTTP-only cookie selects `GameWorld` in `game-sessions` storage.
+- `hybrid`: online commands prefer server execution; offline commands may queue and later flush through `POST /api/game/sync`.
+- Current server storage uses memory driver with 24-hour TTL, so process restart loses server sessions.
+
 Game state is persisted after significant changes:
 
 ```

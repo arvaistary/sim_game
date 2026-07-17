@@ -180,7 +180,9 @@ export function useFinance() {
 ### Nuxt 4 Integration
 - **Routing:** File-based routing in `src/pages/`
 - **Auto-import:** Components, composables, stores auto-imported
-- **SSR:** Disabled (`ssr: false`) - pure SPA
+- **SSR:** Disabled (`ssr: false`) for client UI rendering
+- **Nitro API:** `server/api/game/` exposes session-backed game commands and queries
+- **Execution modes:** `spa`, `server`, and `hybrid`; configured through `runtimeConfig.public.gameMode`
 - **Modules:** Pinia, ESLint, Color Mode
 - **Aliases:** Configured for domain, utils, constants, composables
 

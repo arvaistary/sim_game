@@ -1,6 +1,6 @@
 # Game Life Repository Context
 
-**Last Updated:** 2026-06-02
+**Last Updated:** 2026-07-16
 
 ## Project Overview
 
@@ -8,17 +8,17 @@ Game Life is a cozy turn-based life simulator built with modern web technologies
 
 ## Technology Stack
 
-- **Framework:** Nuxt 4 with Vue 3 (SPA mode, no SSR)
+- **Framework:** Nuxt 4 with Vue 3 (`ssr: false` client UI plus Nitro API routes)
 - **Language:** TypeScript (strict mode)
 - **State Management:** Pinia
 - **Styling:** SCSS
-- **Persistence:** LocalStorage
+- **Persistence:** LocalStorage for SPA saves; Nitro `game-sessions` memory storage for server sessions
 - **Testing:** Vitest + Playwright
 - **Build Tool:** Vite
 
 ## Core Technical Decisions
 
-1. **SPA Architecture:** Uses `ssr: false` in nuxt.config.ts for pure client-side rendering
+1. **Runtime Modes:** Client UI uses `ssr: false`; game commands support `spa`, `server`, and `hybrid` execution modes through runtime configuration
 2. **Layered Architecture:** Strict dependency flow: utils/constants → domain → application → infrastructure → stores/composables → components → pages
 3. **Type Safety:** All code is TypeScript with strict mode enabled
 4. **Component Auto-import:** Components from specific directories are auto-imported without prefixes
@@ -44,6 +44,10 @@ src/
 ├── utils/               # Utility functions
 ├── constants/           # Constants and navigation
 └── assets/              # SCSS, images
+server/
+├── api/game/            # Nitro game state, action, query, and sync endpoints
+└── utils/               # Cookie session, storage, and API error helpers
+shared/                  # Client/server-neutral shared types
 ```
 
 ## Game Systems
@@ -67,6 +71,8 @@ src/
 - Random events with choices
 - Activity log for game history
 - Auto-save system (LocalStorage)
+- Server session API with cookie identity and 24-hour in-memory state TTL
+- Hybrid/offline execution contracts and queued-action synchronization
 
 ## Development Workflow
 
@@ -75,7 +81,10 @@ src/
 - `npm run build` - Production build
 - `npm run typecheck` - Type checking
 - `npm run test` - Run tests
+- `npm run test:e2e:integrity` - Run 60 route/viewport checks with direct Nuxt lifecycle ownership and bounded cleanup
+- `npm run test:e2e:integrity:regression` - Verify integrity-command exit code and bounded hanging-child cleanup
 - `npm run rules:audit` - Audit code for rule violations
+- `npm run rules:audit` - Audit code for new rule/file violations against `scripts/rules-audit-baseline.json`
 - `npm run rules:fix` - Auto-fix code style issues
 
 **Code Quality:**
@@ -140,6 +149,7 @@ src/
 - All game balance data is in `src/domain/balance/constants/`
 - Game actions are defined in `src/domain/balance/actions/`
 - The project uses strict import direction rules between layers
+- Browser execution defaults to `server`; `spa` remains test/offline fallback and `hybrid` remains migration/runtime option, not SSR rendering mode
 - Auto-save is triggered after significant state changes
 - Time system handles game progression with ages and seasons
 
