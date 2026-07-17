@@ -1,0 +1,914 @@
+[
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\App.scss"
+  },
+  {
+    "rule": "style/script-setup-block-separation",
+    "filePath": "src\\app.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\assets\\scss\\mixins.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\assets\\scss\\reset.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\assets\\scss\\transitions.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\assets\\scss\\variables.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\game\\ActionCard\\ActionCard.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\game\\ActionCard\\ActionCard.vue"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\game\\ActionCard\\ActionCard.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\game\\ActionCardList\\ActionCardList.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\game\\EmptyState\\EmptyState.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\game\\IndustryFilter\\IndustryFilter.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\game\\NewbornWelcomeScreen\\NewbornWelcomeScreen.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\game\\SectionHeader\\SectionHeader.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\game\\StatBar\\StatBar.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\game\\StatBar\\StatBar.vue"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\game\\StatBar\\StatBar.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\global\\GameNav\\GameNav.scss"
+  },
+  {
+    "rule": "style/chain-callback-newline",
+    "filePath": "src\\components\\global\\GameNav\\GameNav.vue"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\global\\GameNav\\GameNav.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\layout\\DashboardLayout\\DashboardLayout.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\layout\\Topbar\\Topbar.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\layout\\Topbar\\Topbar.vue"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\layout\\Topbar\\Topbar.vue"
+  },
+  {
+    "rule": "style/blank-line-after-store-block",
+    "filePath": "src\\components\\layout\\Topbar\\Topbar.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\activity\\ActivityFilter\\ActivityFilter.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\activity\\ActivityLogList\\ActivityLogList.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\pages\\activity\\ActivityLogList\\ActivityLogList.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\career\\CareerTrack\\CareerTrack.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\career\\CurrentJobPanel\\CurrentJobPanel.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\career\\WorkShiftPanel\\WorkShiftPanel.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\dashboard\\ActivityLogCard\\ActivityLogCard.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\dashboard\\HomePreview\\HomePreview.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\dashboard\\ProfileCard\\ProfileCard.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\pages\\dashboard\\ProfileCard\\ProfileCard.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\dashboard\\SkillsModal\\SkillsModal.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\dashboard\\StatsCard\\StatsCard.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\dashboard\\WorkButton\\WorkButton.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\dashboard\\WorkChoiceModal\\WorkChoiceModal.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\dashboard\\WorkResultModal\\WorkResultModal.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\education\\EducationLevel\\EducationLevel.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\pages\\education\\EducationLevel\\EducationLevel.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\education\\ProgramList\\ProgramList.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\education\\StudyModal\\StudyModal.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\pages\\education\\StudyModal\\StudyModal.vue"
+  },
+  {
+    "rule": "style/script-setup-block-separation",
+    "filePath": "src\\components\\pages\\education\\StudyModal\\StudyModal.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\events\\EventCard\\EventCard.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\pages\\events\\EventCard\\EventCard.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\events\\EventChoices\\EventChoices.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\events\\EventModal\\EventModal.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\events\\EventResult\\EventResult.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\finance\\BalancePanel\\BalancePanel.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\finance\\ExpenseList\\ExpenseList.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\pages\\finance\\ExpenseList\\ExpenseList.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\finance\\FinanceActionList\\FinanceActionList.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\skills\\SkillCard\\SkillCard.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\skills\\SkillList\\SkillList.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\CommandPalette\\CommandPalette.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\ui\\CommandPalette\\CommandPalette.vue"
+  },
+  {
+    "rule": "style/chain-callback-newline",
+    "filePath": "src\\components\\ui\\CommandPalette\\CommandPalette.vue"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\ui\\CommandPalette\\CommandPalette.vue"
+  },
+  {
+    "rule": "style/blank-line-after-store-block",
+    "filePath": "src\\components\\ui\\CommandPalette\\CommandPalette.vue"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\ui\\GameButton\\index.vue"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\ui\\GameButton\\index.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\GameButton\\style.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\GameModalHost\\GameModalHost.scss"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\ui\\Modal\\modal.constants.ts"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\Modal\\style.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\ui\\ModalStackHost\\ModalStackHost.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\OnboardingTour\\OnboardingTour.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\ui\\OnboardingTour\\OnboardingTour.vue"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\ui\\OnboardingTour\\OnboardingTour.vue"
+  },
+  {
+    "rule": "style/blank-line-after-store-block",
+    "filePath": "src\\components\\ui\\OnboardingTour\\OnboardingTour.vue"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\ui\\ProgressBar\\index.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\ProgressBar\\style.scss"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\ui\\RoundedPanel\\index.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\RoundedPanel\\style.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\SettingsDrawer\\SettingsDrawer.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\ui\\SettingsDrawer\\SettingsDrawer.vue"
+  },
+  {
+    "rule": "style/blank-line-after-store-block",
+    "filePath": "src\\components\\ui\\SettingsDrawer\\SettingsDrawer.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\StatChange\\StatChange.scss"
+  },
+  {
+    "rule": "style/script-setup-block-separation",
+    "filePath": "src\\components\\ui\\StatChange\\StatChange.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\Tabs\\Tabs.scss"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\components\\ui\\Tabs\\Tabs.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\Toast\\style.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\ToastHost\\ToastHost.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\components\\ui\\Tooltip\\index.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\ui\\Tooltip\\style.scss"
+  },
+  {
+    "rule": "style/prefer-function-declaration",
+    "filePath": "src\\composables\\useActivity\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\composables\\useActivity\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\composables\\useAgeRestrictions\\age-constants.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\composables\\useAgeRestrictions\\age-constants.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\composables\\useAgeRestrictions\\age-constants.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\composables\\useAgeRestrictions\\age-unlocks.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\composables\\useAgeRestrictions\\age-unlocks.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\composables\\useAgeRestrictions\\index.ts"
+  },
+  {
+    "rule": "style/prefer-function-declaration",
+    "filePath": "src\\composables\\useCareer\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\composables\\useCareer\\index.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\composables\\useCommandPalette\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\composables\\useCommandPalette\\index.ts"
+  },
+  {
+    "rule": "style/prefer-function-declaration",
+    "filePath": "src\\composables\\useEducation\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\composables\\useEducation\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\composables\\useEventModal\\index.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\composables\\useFinance\\index.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\composables\\useGameModal\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\composables\\useHousing\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\composables\\useSettingsDrawer\\index.ts"
+  },
+  {
+    "rule": "style/prefer-function-declaration",
+    "filePath": "src\\composables\\useSkills\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\composables\\useSkills\\index.ts"
+  },
+  {
+    "rule": "style/prefer-function-declaration",
+    "filePath": "src\\composables\\useStats\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\composables\\useStats\\index.ts"
+  },
+  {
+    "rule": "style/prefer-function-declaration",
+    "filePath": "src\\composables\\useTime\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\composables\\useTime\\index.ts"
+  },
+  {
+    "rule": "style/prefer-function-declaration",
+    "filePath": "src\\composables\\useWallet\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\composables\\useWallet\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\config\\action-categories.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\config\\actions-feature-flags.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\config\\event-feature-flags.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\config\\event-feature-flags.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\config\\event-feature-flags.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\config\\event-feature-flags.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\config\\feature-flags.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\config\\feature-flags.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\config\\feature-flags.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\config\\feature-flags.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\config\\work-categories.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\domain\\balance\\actions\\index.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\actions\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\domain\\balance\\actions\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\constants\\childhood-events\\index.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\constants\\childhood-skills.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\constants\\initial-save.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\domain\\balance\\constants\\skill-effects-generator.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\constants\\skill-effects-generator.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\constants\\skill-effects-generator.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\constants\\skill-effects-generator.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\domain\\balance\\constants\\skill-modifiers.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\constants\\skill-modifiers.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\domain\\balance\\constants\\skill-modifiers.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\constants\\skill-modifiers.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\domain\\balance\\constants\\skill-progression-config.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\constants\\skill-progression-config.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\constants\\skill-progression-config.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\domain\\balance\\constants\\skill-progression-config.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\constants\\skill-progression-config.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\types\\activity-log.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\types\\childhood-event.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\types\\childhood-skill.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\types\\childhood-skill.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\types\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\types\\life-memory.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\types\\personality.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\utils\\build-adult-game-save.ts"
+  },
+  {
+    "rule": "typing/no-inline-object-function-params",
+    "filePath": "src\\domain\\balance\\utils\\build-adult-game-save.ts"
+  },
+  {
+    "rule": "style/function-params-inline-small-arity",
+    "filePath": "src\\domain\\balance\\utils\\build-adult-game-save.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\utils\\build-adult-game-save.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\domain\\balance\\utils\\build-new-game-save.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\utils\\build-new-game-save.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\utils\\build-new-game-save.ts"
+  },
+  {
+    "rule": "typing/no-inline-object-function-params",
+    "filePath": "src\\domain\\balance\\utils\\build-new-game-save.ts"
+  },
+  {
+    "rule": "style/function-params-inline-small-arity",
+    "filePath": "src\\domain\\balance\\utils\\build-new-game-save.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\utils\\build-new-game-save.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\domain\\balance\\utils\\education-ranks.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\utils\\education-ranks.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\domain\\balance\\utils\\hourly-rates.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\utils\\hourly-rates.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\utils\\hourly-rates.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\domain\\balance\\utils\\hourly-rates.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\utils\\hourly-rates.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\utils\\skill-system.example.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\utils\\skill-tooltip-content.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\domain\\balance\\utils\\skill-tooltip-content.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\domain\\balance\\utils\\skill-ui-explainability.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\domain\\balance\\utils\\skill-ui-explainability.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\utils\\skill-ui-explainability.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\domain\\balance\\utils\\skill-ui-explainability.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\domain\\balance\\utils\\stat-changes-format.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\domain\\balance\\utils\\stat-changes-format.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\domain\\balance\\utils\\stat-changes-format.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\infrastructure\\persistence\\event-migration.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\infrastructure\\persistence\\event-migration.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\infrastructure\\persistence\\event-migration.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\infrastructure\\persistence\\event-migration.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\middleware\\game-init.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\middleware\\game-init.ts"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\pages\\game\\activity\\activity.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\pages\\game\\education\\education.scss"
+  },
+  {
+    "rule": "style/script-setup-block-separation",
+    "filePath": "src\\pages\\game\\education\\index.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\pages\\game\\events\\events.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\pages\\game\\finance\\finance.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\pages\\game\\home\\index.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\pages\\game\\index.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\pages\\game\\shop\\index.vue"
+  },
+  {
+    "rule": "style/script-setup-block-separation",
+    "filePath": "src\\pages\\game\\shop\\index.vue"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\pages\\game\\shop\\shop.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\pages\\game\\work\\work.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
+    "filePath": "src\\pages\\index.scss"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\pages\\index.vue"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\plugins\\auto-save.client.ts"
+  },
+  {
+    "rule": "typing/no-returntype-typeof-variable",
+    "filePath": "src\\plugins\\auto-save.client.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\plugins\\auto-save.client.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\stores\\activity-store\\index.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\stores\\career-store\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\stores\\career-store\\index.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\stores\\career-store\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\stores\\player-store\\index.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\stores\\player-store\\index.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\stores\\player-store\\index.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\stores\\settings-store\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\stores\\settings-store\\index.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\stores\\settings-store\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\stores\\stats-store\\index.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\stores\\stats-store\\index.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\stores\\stats-store\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\stores\\time-store\\index.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\stores\\time-store\\index.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\stores\\time-store\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\stores\\wallet-store\\index.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\stores\\wallet-store\\index.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\stores\\wallet-store\\index.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\types\\plugins.d.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\utils\\format.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\utils\\format.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc",
+    "filePath": "src\\utils\\format.ts"
+  },
+  {
+    "rule": "style/blank-line-before-if",
+    "filePath": "src\\utils\\stat-breakdown-format.ts"
+  },
+  {
+    "rule": "typing/types-location",
+    "filePath": "src\\utils\\stat-breakdown-format.ts"
+  },
+  {
+    "rule": "typing/explicit-variable-annotation",
+    "filePath": "src\\utils\\stat-breakdown-format.ts"
+  },
+  {
+    "rule": "style/exported-function-tsdoc-format",
+    "filePath": "src\\utils\\stat-breakdown-format.ts"
+  }
+]
