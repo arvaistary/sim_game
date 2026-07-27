@@ -16,9 +16,9 @@
 
 ---
 
-## StartPage.vue
+## Стартовая страница (`src/pages/index.vue`)
 
-**Файл:** `src/pages/StartPage.vue`
+**Файл:** `src/pages/index.vue`
 
 ### Назначение
 
@@ -188,7 +188,7 @@ function refresh() {
 
 ```mermaid
 flowchart TD
-    A[Пользователь на index.vue] --> B[StartPage.vue]
+    A[Пользователь на index.vue] --> B[Стартовая страница]
     B --> C[Ввод имени и возраста]
     B --> D[Выбор образования]
     C --> E[Кнопка Начать игру]
@@ -212,7 +212,7 @@ flowchart TD
 ### Слои данных
 
 ```
-User Input (StartPage.vue)
+User Input (src/pages/index.vue)
     ↓
 Vue Component (StartPage)
     ↓

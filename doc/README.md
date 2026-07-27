@@ -11,7 +11,7 @@
 3. [Server-first миграция](./SERVER_MIGRATION.md) — режимы SPA/Server/Hybrid
 4. [Статус реализации](./core/IMPLEMENTATION_STATUS.md) — что готово
 5. [Справочник страниц](./core/PAGES_REFERENCE.md) — Vue страницы и роутинг
-6. [Game Design Document](./gdd/GDD.md) — описание механик
+6. [Game Design Document](./GDD/GDD.md) — описание механик
 7. [Composables Reference](./reference/COMPOSABLES_REFERENCE.md) — API composables
 8. [Stores Reference](./reference/STORES_REFERENCE.md) — API stores
 
@@ -79,13 +79,7 @@ doc/
 │   ├── templates/                     # Шаблоны spec/plan/tasks
 │   └── specs/                         # Активные спецификации
 │
-└── archive/                           # Архив устаревших документов
-    ├── ecs/                           # ECS-архитектура (удалена, см. ADR-0002)
-    ├── phaser-architecture/           # Phaser.js архитектура (см. ADR-0001)
-    ├── legacy-docs/                   # Старые системные спецификации (CAREER_SYSTEM, EVENT_SYSTEM, ...)
-    ├── migration-plans/               # Выполненные планы миграций (Nuxt 4, Vue 3, TypeScript)
-    ├── refresh-plans/                 # Выполненные refresh-планы
-    └── plans/                         # Выполненные планы (dashboard restyle, GameWorld, server-first, ...)
+└── adr/                               # Архитектурные решения, включая Phaser → Nuxt
 ```
 
 Активные планы (Spec-kit): создаются через `spec-kit/` workflow и хранятся в `.cursor/plans/` (вне `doc/`).
@@ -132,7 +126,7 @@ NUXT_PUBLIC_GAME_API_BASE_URL=https://api.example.com
 Roadmap → [`core/ROADMAP.md`](./core/ROADMAP.md)
 
 ### Хочу понять механики игры
-Полный GDD → [`gdd/GDD.md`](./gdd/GDD.md)
+Полный GDD → [`GDD/GDD.md`](./GDD/GDD.md)
 
 ### Хочу понять механики старта игры
 Документация старта игры → [`core/START_GAME_DOCUMENTATION.md`](./core/START_GAME_DOCUMENTATION.md)
@@ -148,7 +142,7 @@ Stores → [`reference/STORES_REFERENCE.md`](./reference/STORES_REFERENCE.md)
 ADR → [`adr/`](./adr/) (Architecture Decision Records)
 
 ### Хочу добавить новую функцию
-1. Проверьте [`gdd/GDD.md`](./gdd/GDD.md) — возможно, это уже описано
+1. Проверьте [`GDD/GDD.md`](./GDD/GDD.md) — возможно, это уже описано
 2. Изучите [`core/IMPLEMENTATION_STATUS.md`](./core/IMPLEMENTATION_STATUS.md)
 3. Создайте Spec-kit артефакты в [`spec-kit/specs/`](./spec-kit/specs/) по шаблонам [`spec-kit/templates/`](./spec-kit/templates/)
 4. Следуйте архитектуре проекта: `domain → application → infrastructure → stores/composables → components → pages`
@@ -162,7 +156,7 @@ ADR → [`adr/`](./adr/) (Architecture Decision Records)
 - [Архитектура проекта](./core/ARCHITECTURE_OVERVIEW.md)
 - [Архитектурный контракт](./core/ARCHITECTURE_CONTRACT.md)
 - [Статус реализации](./core/IMPLEMENTATION_STATUS.md)
-- [GDD](./gdd/GDD.md) — разделы реализуемых функций
+- [GDD](./GDD/GDD.md) — разделы реализуемых функций
 - [Server-first миграция](./SERVER_MIGRATION.md)
 - Rules и code style (`.cursor/rules/`)
 
@@ -225,7 +219,7 @@ ADR → [`adr/`](./adr/) (Architecture Decision Records)
 
 2. **Соблюдайте структуру**
    - Используйте существующие папки и файлы
-   - Архивные документы → `archive/`
+   - Промежуточные и завершенные work items → `../specs/`
    - Новые ADR → `adr/`
    - Новые планы → через Spec-kit workflow в `.cursor/plans/`
 
@@ -235,7 +229,7 @@ ADR → [`adr/`](./adr/) (Architecture Decision Records)
 
 ### Процесс добавления новой документации
 
-1. Определите категорию (core/gdd/adr/guides/reference)
+1. Определите категорию (core/GDD/adr/guides/reference)
 2. Создайте файл с понятным именем
 3. Добавьте описание в соответствующий README.md
 4. Обновите перекрёстные ссылки

@@ -7,7 +7,7 @@
 
 Текущая архитектура (после ADR-0002 «Удаление ECS» и ADR-0003 «Слоистая архитектура») хранит состояние игры в Pinia stores как единственный source of truth. Бизнес-логика размазана между stores, composables и `application/commands.ts`, который **напрямую импортирует Pinia stores** — это нарушает [doc/core/ARCHITECTURE_CONTRACT.md §application](../core/ARCHITECTURE_CONTRACT.md).
 
-Параллельно существовал план миграции на server-first архитектуру (см. архив `archive/plans/server-first_architecture_migration_05bcd970.plan.md`), целевой ориентир которого — долгосрочный переезд game-runtime на Node.js бекенд. В server mode Domain Layer обязан работать **без Pinia вообще**: состояние приходит deserialize-нутым из сессии, а не из Vue reactive-системы.
+Параллельно существует Spec-kit план server-first архитектуры, целевой ориентир которого — переезд game-runtime на Node.js бекенд. В server mode Domain Layer обязан работать **без Pinia вообще**: состояние приходит deserialize-нутым из сессии, а не из Vue reactive-системы.
 
 Разрыв: server-first план предполагает чистый `application` layer с signature `(world: GameWorld, ...)` и `GameWorld` aggregate в `domain/`, но в коде этого нет. Дальнейшая разработка без зафиксированной стратегии state abstraction закрепит store-centric модель и потребует переписывания при переходе на сервер.
 
@@ -73,8 +73,7 @@ ADR-0002 удалил ECS **как реализацию** (Phaser-зависим
 ---
 
 **Связанные документы:**
-- [../archive/plans/server-first_architecture_migration_05bcd970.plan.md](../archive/plans/server-first_architecture_migration_05bcd970.plan.md) — целевая архитектура (завершена, заархивирована)
-- [../archive/plans/game_life_—_аудит_и_рекомендации_3a3e7e84.plan.md](../archive/plans/game_life_—_аудит_и_рекомендации_3a3e7e84.plan.md) — P-Foundation (завершена, заархивирована)
+- [Spec-kit server-first plan](../../specs/server-first-arch/plan.md) — текущая техническая декомпозиция
 - [doc/core/ARCHITECTURE_CONTRACT.md](../core/ARCHITECTURE_CONTRACT.md) — §application не импортирует stores
 - [doc/adr/0002-ecs-removal.md](0002-ecs-removal.md) — почему ADR-0005 НЕ откат ECS
 - [doc/adr/0003-layered-architecture.md](0003-layered-architecture.md) — слоистая архитектура

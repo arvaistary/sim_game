@@ -15,7 +15,7 @@ import type {
   ActionExecuteResponse,
   ApiResponse,
   SyncResponse,
-} from '@/domain/api-contract'
+} from '@game-life/contracts'
 import type { CommandOutcome, ExecuteActionCommandResult } from './index.types'
 import type { ServerExecutorOptions } from './server-executor.types'
 import { DEFAULT_SERVER_EXECUTOR_OPTIONS } from './server-executor.types'
@@ -240,7 +240,8 @@ async function fetchApi<T>(url: string, options?: { method?: 'GET' | 'POST'; bod
     throw new Error(message)
   }
 
-  const syncData = response.data as T & { failed?: number; errors?: Array<{ message: string }> }
+  const syncData: T & { failed?: number; errors?: Array<{ message: string }> } = response.data as T & { failed?: number; errors?: Array<{ message: string }> }
+
   if (syncData.failed && syncData.failed > 0) {
     throw new Error(syncData.errors?.[0]?.message ?? 'Command rejected by server')
   }

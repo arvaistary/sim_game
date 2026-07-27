@@ -1,6 +1,6 @@
 # Game Life Repository Context
 
-**Last Updated:** 2026-07-16
+**Last Updated:** 2026-07-26
 
 ## Project Overview
 
@@ -8,11 +8,11 @@ Game Life is a cozy turn-based life simulator built with modern web technologies
 
 ## Technology Stack
 
-- **Framework:** Nuxt 4 with Vue 3 (`ssr: false` client UI plus Nitro API routes)
+- **Framework:** Nuxt 4 with Vue 3 (`ssr: false` client UI), standalone Fastify API, and Nitro compatibility handlers during migration
 - **Language:** TypeScript (strict mode)
 - **State Management:** Pinia
 - **Styling:** SCSS
-- **Persistence:** LocalStorage for SPA saves; Nitro `game-sessions` memory storage for server sessions
+- **Persistence:** LocalStorage for SPA saves; current server sessions use memory repository adapters; PostgreSQL 16 and Redis 7 are planned for M3
 - **Testing:** Vitest + Playwright
 - **Build Tool:** Vite
 
@@ -22,7 +22,8 @@ Game Life is a cozy turn-based life simulator built with modern web technologies
 2. **Layered Architecture:** Strict dependency flow: utils/constants → domain → application → infrastructure → stores/composables → components → pages
 3. **Type Safety:** All code is TypeScript with strict mode enabled
 4. **Component Auto-import:** Components from specific directories are auto-imported without prefixes
-5. **Composable Auto-import:** All composables and stores are auto-imported by Nuxt
+5. **Server-first runtime:** Browser/dev defaults to server execution through standalone Fastify on `:3001`; Nitro handlers remain compatibility layer
+6. **Composable Auto-import:** All composables and stores are auto-imported by Nuxt
 
 ## Key Directories
 
@@ -45,9 +46,11 @@ src/
 ├── constants/           # Constants and navigation
 └── assets/              # SCSS, images
 server/
-├── api/game/            # Nitro game state, action, query, and sync endpoints
+├── api/game/            # Nitro compatibility game endpoints
 └── utils/               # Cookie session, storage, and API error helpers
-shared/                  # Client/server-neutral shared types
+apps/server/             # Standalone Fastify API (M2)
+packages/                # Framework-free contracts, domain, and application packages
+specs/                   # Durable Spec-kit work items and server-first plan
 ```
 
 ## Game Systems
@@ -71,20 +74,23 @@ shared/                  # Client/server-neutral shared types
 - Random events with choices
 - Activity log for game history
 - Auto-save system (LocalStorage)
-- Server session API with cookie identity and 24-hour in-memory state TTL
+- Server session API with cookie identity and 24-hour in-memory state TTL (transitional M2 implementation)
 - Hybrid/offline execution contracts and queued-action synchronization
 
 ## Development Workflow
 
 **Scripts:**
-- `npm run dev` - Development server
+- `npm run dev` - Server-first client/server development stack
+- `npm run dev:standalone-server` - Standalone Fastify API only
 - `npm run build` - Production build
 - `npm run typecheck` - Type checking
 - `npm run test` - Run tests
 - `npm run test:e2e:integrity` - Run 60 route/viewport checks with direct Nuxt lifecycle ownership and bounded cleanup
 - `npm run test:e2e:integrity:regression` - Verify integrity-command exit code and bounded hanging-child cleanup
 - `npm run rules:audit` - Audit code for rule violations
-- `npm run rules:audit` - Audit code for new rule/file violations against `scripts/rules-audit-baseline.json`
+- `npm run audit:integrity:validate` - Validate integrity-audit evidence artifacts
+- `npm run test:architecture` - Check extracted package boundaries
+- `npm run test:standalone-server` - Check standalone Fastify API contract
 - `npm run rules:fix` - Auto-fix code style issues
 
 **Code Quality:**
@@ -102,7 +108,7 @@ shared/                  # Client/server-neutral shared types
 - `adr/` - Architecture Decision Records
 - `guides/` - Practical guides (design system, modals, etc.)
 - `reference/` - API reference (composables, stores)
-- `plans/active/` - Active development plans
+- `specs/` - Durable Spec-kit specifications, plans, tasks, and evidence
 
 ## Project Conventions
 
@@ -144,7 +150,8 @@ shared/                  # Client/server-neutral shared types
 
 ## Important Notes
 
-- The project migrated from Phaser.js to Nuxt 4 (see ADR)
+- The project migrated from Phaser.js to Nuxt 4; ADR-0001 is the only retained migration rationale
+- Archived documentation is intentionally removed; completed or superseded Spec-kit work items remain under `specs/`
 - ECS architecture was removed in favor of layered architecture
 - All game balance data is in `src/domain/balance/constants/`
 - Game actions are defined in `src/domain/balance/actions/`
@@ -155,4 +162,4 @@ shared/                  # Client/server-neutral shared types
 
 ## Current Status
 
-The game is in active development with core systems implemented. See `doc/core/IMPLEMENTATION_STATUS.md` for detailed module status. The project follows a structured development workflow with Spec-kit for specifications and planning.
+The game is in active development with core systems implemented. M0-M2 of server-first extraction are complete; M3 durable PostgreSQL/Redis persistence remains in progress. See `doc/core/IMPLEMENTATION_STATUS.md` and `specs/server-first-arch/` for current status. The project follows Spec-kit with durable intermediate artifacts.

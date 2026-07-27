@@ -44,6 +44,8 @@ export default defineNuxtConfig({
     gameCorsOrigin: 'http://127.0.0.1:3000,http://localhost:3000',
     gameCookieSameSite: 'lax',
     gameCookieSecure: false,
+    gameAuthUsername: '',
+    gameAuthPassword: '',
     public: {
       // Server-authoritative mode is production default; SPA remains test/offline fallback.
       gameMode: 'server',
@@ -56,6 +58,9 @@ export default defineNuxtConfig({
   nitro: {
     storage: {
       'game-sessions': {
+        driver: 'memory',
+      },
+      'auth-sessions': {
         driver: 'memory',
       },
     },

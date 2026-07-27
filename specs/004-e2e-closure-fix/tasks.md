@@ -50,7 +50,7 @@
 - [X] T012 [P] [US2] Compare `playwright.config.ts` and `test/e2e/routes/*.spec.ts` against the baseline to verify all 4 spec files, 60 cases, three viewport projects, and existing assertions remain enabled.
 - [X] T013 [P] [US2] Run `npm test`, `npm run typecheck`, and applicable mode-parity integration tests in `test/integration/game/` to verify no runtime behavior changed.
 - [X] T014 [US2] Run `npm run rules:audit` and `npm run build`; record whether generated `.output/` changes are build artifacts rather than lifecycle source changes.
-- [X] T015 [US2] Review `git diff -- package.json playwright.config.ts scripts/e2e test/integration/tooling src test/e2e doc/GDD doc/archive` and document any pre-existing or unknown-origin paths without reverting or rewriting them.
+- [X] T015 [US2] Review `git diff -- package.json playwright.config.ts scripts/e2e test/integration/tooling src test/e2e doc/GDD doc/adr` and document any pre-existing or unknown-origin paths without reverting or rewriting them.
 
 **Checkpoint**: User Story 2 is independently complete when coverage is unchanged, application checks pass, and the change classification shows test-tooling lifecycle scope only.
 

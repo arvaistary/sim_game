@@ -12,7 +12,7 @@ import type {
   ServerSyncClient,
   SyncOutcome,
 } from './offline-queue.types'
-import type { ApiResponse, SyncResponse } from '@/domain/api-contract'
+import type { ApiResponse, SyncResponse } from '@game-life/contracts'
 
 const STORAGE_KEY: string = 'gl_offline_queue'
 const MAX_QUEUE_SIZE: number = 100

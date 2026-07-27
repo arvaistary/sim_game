@@ -4,7 +4,7 @@
  * Парсит ошибки API и сетевые ошибки, классифицирует и предоставляет
  * человекочитаемые сообщения для toast-уведомлений.
  */
-import type { ApiErrorCode } from '@/domain/api-contract'
+import type { ApiErrorCode } from '@game-life/contracts'
 import type { NuxtLikeError, ParsedApiError } from './server-sync.types'
 
 const NETWORK_ERROR_PATTERNS: string[] = [

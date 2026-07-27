@@ -127,7 +127,7 @@ shared/                  # Общие типы и утилиты (автоимп
 | Направление зависимостей:<br>`shared -> entities -> features -> widgets -> pages -> app` | Направление зависимостей:<br>`shared -> domain -> application -> stores/composables -> components -> pages`<br><br>**Детализация:**<br>- `shared` - утилиты, константы, типы<br>- `domain` - бизнес-логика (engine, balance, game-facade)<br>- `application` - команды/запросы к domain<br>- `stores` - Pinia stores (state management)<br>- `composables` - Vue composables (reusable logic)<br>- `components` - UI и presentation<br>- `pages` - Nuxt pages (маршрутизация) |
 | ## Соглашения по компонентам<br>- Префикс `Ui*` зарезервирован только для `src/shared/ui`.<br>- Компоненты вне `shared/ui` называй по смыслу, без `Ui`.<br>- Структура папки компонента:<br>  - `ComponentName.tsx`<br>  - `ComponentName.types.ts`<br>  - `index.ts` | ## Соглашения по компонентам<br>- Префикс `Ui*` зарезервирован только для `src/components/ui`.<br>- Layout компоненты в `src/components/layout/`.<br>- Game-специфичные компоненты в `src/components/game/`.<br>- Структура компонента:<br>  - `ComponentName.vue` (SFC с template, script, style)<br>  - Типы обычно в том же файле или импортируются<br>  - Если компонент сложный, типы можно вынести в `ComponentName.types.ts` рядом |
 | ## Next.js client-компоненты<br>- Если файл использует hooks/state/events браузера, ставь `'use client';` первой инструкцией в файле. | ## Nuxt components<br>- Nuxt 4 по умолчанию использует client-side rendering (SSR отключен в конфиге)<br>- Все компоненты могут использовать browser APIs без специальных директив<br>- Для server-side логики используйте Nitro plugins/server routes (не применимо при SSR: false) |
-| ## Каркас `app/layout.tsx`<br>- Базовый каркас: `<html><body><main>{children}</main></body></html>`.<br>- Не добавляй лишнюю обертку вокруг `{children}` внутри `<main>` без необходимости. | ## Nuxt App Layout<br>- Используйте `src/nuxt-pages/app.vue` как корневой layout (если нужно)<br>- Или создайте layout components в `src/components/layout/` и подключайте через Nuxt layouts<br>- Пример layout:<br>```vue<template>
+| ## Каркас `app/layout.tsx`<br>- Базовый каркас: `<html><body><main>{children}</main></body></html>`.<br>- Не добавляй лишнюю обертку вокруг `{children}` внутри `<main>` без необходимости. | ## Nuxt App Layout<br>- Используйте `src/app.vue` как корневой компонент<br>- Или создайте layout components в `src/components/layout/` и подключайте через Nuxt layouts<br>- Пример layout:<br>```vue<template>
   <div class="app">
     <slot />
   </div>
@@ -161,7 +161,7 @@ shared/                  # Общие типы и утилиты (автоимп
    - `ui/` - reusable UI components
    - `game/` - game-specific presentation components
 
-6. **Pages** (`src/nuxt-pages/`, `src/pages/`):
+6. **Pages** (`src/pages/`):
    - Nuxt pages с маршрутами
    - Используют stores, composables и components
    - Не содержат бизнес-логику

@@ -18,11 +18,11 @@
 - ✅ **Фаза 4** — application layer чистый (0 импортов Pinia). Реализованы `SPAExecutor` + `GameExecutor`/`GameQueryExecutor` interfaces.
 - 🔄 **Фаза 5** — e2e smoke-test ✅; bridge остаётся deprecated (удаление после server-first стабилизации); docs обновлены.
 
-**Ссылки:** [ADR-0005](../adr/0005-game-world-aggregate-strategy-a.md), [архивный план](../archive/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md)
+**Ссылки:** [ADR-0005](../adr/0005-game-world-aggregate-strategy-a.md), [Spec-kit work item](../../specs/server-first-arch/plan.md)
 
 ### Server-first architecture migration (Stages 1-7)
 
-**Статус:** Stages 1-7 завершены (июль 2026). Stage 8 (выделенный Node.js сервер) отложен.
+**Статус:** Stages 1-7 и M0/M1/M2 завершены (июль 2026). M3 persistence в работе.
 
 **Что сделано:**
 - ✅ **Stage 1** — `GameMode` типы (domain/game-mode), API contract (domain/api-contract), async executor interfaces.
@@ -33,15 +33,15 @@
 - ✅ **Stage 6** — ModeSwitcher dev component, integration tests (state-sync + error-handler).
 - ✅ **Stage 7** — SERVER_MIGRATION.md, docs update (README, ARCHITECTURE_CONTRACT, ARCHITECTURE_OVERVIEW).
 
-**Режимы работы:** SPA (по умолчанию), Server (Nitro API), Hybrid (offline-first). См. [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md).
+**Режимы работы:** Server (по умолчанию для dev), SPA (offline fallback), Hybrid. См. [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md).
 
-**Ссылки:** [архивный план](../archive/plans/server-first_architecture_migration_05bcd970.plan.md)
+**Ссылки:** [Spec-kit work item](../../specs/server-first-arch/plan.md)
 
 ### Dashboard restyle v2 (Linear aesthetic)
 
 **Статус:** Завершено (июль 2026).
 
-**Ссылки:** [архивный план](../archive/plans/dashboard_restyle_v2_0e7aa0b4.plan.md)
+**Ссылки:** [Design system](../guides/DESIGN_SYSTEM.md)
 
 ---
 
@@ -80,7 +80,7 @@
 | **Application Layer** | ✅ Готово | 100% |
 | **Infrastructure Layer** | ✅ Готово | 100% |
 | **GameWorld aggregate** | ✅ Фазы 1-4 завершены | 90% (bridge pending) |
-| **Server-first migration** | ✅ Stages 1-7 завершены | 90% (Stage 8 deferred) |
+| **Server-first migration** | ✅ Stages 1-7 + M0/M1/M2 завершены | 90% (M3 persistence in progress) |
 
 ---
 
@@ -111,7 +111,7 @@
 **Статус:** Полностью готово
 
 **Что реализовано:**
-- ✅ StartPage.vue (создание персонажа)
+- ✅ `src/pages/index.vue` (создание персонажа)
 - ✅ Nuxt Pages структура (`index.vue`, `game/[section].vue`)
 - ✅ MainPage.vue — основной HUD, навигация
 - ✅ Все игровые страницы: Home, Shop, Social, Recovery, Education, Career, Finance, Skills, Events, Hobby, Health, Selfdev, Activity Log
@@ -262,7 +262,7 @@
 **Статус:** Полностью готово
 
 **Что реализовано:**
-- ✅ Nuxt 4 архитектура (SPA mode)
+- ✅ Nuxt 4 архитектура (SPA UI + server-first API)
 - ✅ Vue 3 + TypeScript (строгая типизация)
 - ✅ Pinia state management
 - ✅ Адаптивный UI
@@ -302,19 +302,16 @@
 3. **Модуль 7** — полный список случайных событий + cooldown
 4. **Модуль 8** — семья и дети
 5. **Модуль 9** — хобби (побочный заработок)
-6. **Server-first Stage 8** — выделенный Node.js сервер (когда Яндекс.Игры станут приоритетом)
+6. **Server-first M3** — PostgreSQL/Redis persistence и deployment hardening
 
 ---
 
-## Архивированные документы
+## История архитектуры
 
-Следующие документы перенесены в [`archive/`](../archive/):
-
-- **ECS migration** — `archive/ecs/` (ECS удалена, см. ADR-0002)
-- **Phaser.js architecture** — `archive/phaser-architecture/` (см. ADR-0001)
-- **Legacy system specs** — `archive/legacy-docs/` (CAREER_SYSTEM, EDUCATION_SYSTEM, EVENT_SYSTEM и т.д.)
-- **Old migration plans** — `archive/migration-plans/`, `archive/refresh-plans/`, `archive/plans/`
+Проект мигрировал с Phaser 3 на Nuxt 4 + Vue 3 + Pinia + TypeScript из-за
+потребности в сложном браузерном UI, типизации и удобном state management.
+Решение зафиксировано в [ADR-0001](../adr/0001-phaser-to-nuxt-migration.md).
 
 ---
 
-*Документ создан на основе GDD модулей из `doc/gdd/modules/`*
+*Документ создан на основе GDD модулей из `doc/GDD/modules/`*

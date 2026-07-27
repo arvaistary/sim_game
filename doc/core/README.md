@@ -12,7 +12,7 @@
 4. [Статус реализации](IMPLEMENTATION_STATUS.md) — что готово, что в работе
 5. [Roadmap](ROADMAP.md) — планы разработки
 6. [Справочник страниц](PAGES_REFERENCE.md) — Vue страницы и Nuxt роутинг
-7. [GDD](../gdd/GDD.md) — полное описание механик
+7. [GDD](../GDD/GDD.md) — полное описание механик
 8. [Документация старта игры](START_GAME_DOCUMENTATION.md) — StartPage и инициализация
 
 ## Структура документации
@@ -32,7 +32,7 @@
 
 Полное описание архитектуры сервер-первой миграции: 3 режима работы (SPA/Server/Hybrid), offline-first flow, API endpoints, план Stage 8 (выделенный Node.js сервер).
 
-### Game Design Document (`doc/gdd/`)
+### Game Design Document (`doc/GDD/`)
 
 - **GDD.md** — основной документ со всеми механиками
 - **modules/** — модульные документы по темам (01_general ... 14_conclusion)
@@ -62,16 +62,8 @@
 
 Workflow для постановки задач: spec → plan → tasks. См. [`spec-kit/README.md`](../spec-kit/README.md).
 
-### Архив (`doc/archive/`)
-
-Устаревшие документы по историческим контекстам:
-
-- **ecs/** — ECS-архитектура (удалена, см. ADR-0002)
-- **phaser-architecture/** — Phaser.js (см. ADR-0001)
-- **migration-plans/** — старые планы миграций (Nuxt 4, Vue 3, TypeScript)
-- **refresh-plans/** — выполненные refresh-планы
-- **plans/** — выполненные планы (dashboard restyle, game world aggregate, server-first migration и т.д.)
-- **legacy-docs/** — старые системные спецификации (CAREER_SYSTEM, EDUCATION_SYSTEM, EVENT_SYSTEM, и т.д.)
+История архитектурных решений хранится только в ADR. Миграция Phaser → Nuxt
+описана в [`../adr/0001-phaser-to-nuxt-migration.md`](../adr/0001-phaser-to-nuxt-migration.md).
 
 ## Запуск проекта
 
@@ -79,7 +71,7 @@ Workflow для постановки задач: spec → plan → tasks. См. 
 # Установка зависимостей
 npm install
 
-# Dev-сервер (SPA режим по умолчанию)
+# Dev-сервер (server-first режим)
 npm run dev
 
 # Production build
@@ -99,7 +91,7 @@ Nuxt выведет адрес (часто `http://localhost:3000/`).
 
 ## Технологический стек
 
-- **Nuxt 4** — веб-фреймворк на базе Vue 3 (SPA mode, `ssr: false`)
+- **Nuxt 4** — веб-фреймворк на базе Vue 3; UI работает как SPA (`ssr: false`), game API запускается отдельно
 - **Vue 3** — UI фреймворк (`<script setup lang="ts">`)
 - **TypeScript** — строгая типизация на всех уровнях
 - **Pinia** — state management (13 stores)
@@ -126,8 +118,8 @@ utils/constants → domain → application → infrastructure → stores/composa
 
 Проект поддерживает три режима исполнения game-логики (см. [SERVER_MIGRATION.md](../SERVER_MIGRATION.md)):
 
-- **SPA** (по умолчанию) — локальное исполнение через Pinia + GameWorld bridge
-- **Server** — через Nitro Server API, состояние в сессии
+- **Server** (по умолчанию для `npm run dev`) — standalone Fastify API; Nitro API остается compatibility layer
+- **SPA** — локальное исполнение и offline fallback через Pinia + GameWorld bridge
 - **Hybrid** — Server + offline queue (fallback на SPA при offline)
 
 Переключение через `nuxt.config.ts` `runtimeConfig.public.gameMode` или `.env` (`NUXT_PUBLIC_GAME_MODE`).
@@ -136,7 +128,7 @@ utils/constants → domain → application → infrastructure → stores/composa
 
 ### Core Loop
 
-1. **Создание персонажа** — игрок вводит имя, выбирает возраст и путь образования (StartPage.vue)
+1. **Создание персонажа** — игрок вводит имя, выбирает возраст и путь образования (`src/pages/index.vue`)
 2. **Работа** — игрок выбирает длительность рабочего периода
 3. **Восстановление** — игрок тратит деньги на восстановление шкал (~222 действия в 10 категориях)
 4. **Повтор** — цикл повторяется
@@ -167,9 +159,9 @@ utils/constants → domain → application → infrastructure → stores/composa
 
 ### Создание новой Vue страницы
 
-1. Создайте компонент страницы в `src/pages/<Section>/`
-2. Зарегистрируйте в динамическом роутере `src/nuxt-pages/game/[section].vue` (или создайте новый route)
-3. Добавьте ссылку в навигацию (Topbar/BottomNav)
+1. Создайте route-файл в `src/pages/game/<section>/index.vue`
+2. Создайте page-specific компоненты в `src/components/pages/<section>/`
+3. Добавьте ссылку в навигацию
 4. Обновите [PAGES_REFERENCE.md](PAGES_REFERENCE.md)
 
 ### Добавление новой game-команды
@@ -187,7 +179,7 @@ utils/constants → domain → application → infrastructure → stores/composa
 - [Pinia Documentation](https://pinia.vuejs.org/)
 - [TypeScript Documentation](https://www.typescriptlang.org/)
 - [Vitest Documentation](https://vitest.dev/)
-- GDD модули в `doc/gdd/modules/`
+- GDD модули в `doc/GDD/modules/`
 
 ---
 

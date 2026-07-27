@@ -34,7 +34,7 @@ import type {
   QueuedAction,
   SyncOutcome,
 } from '@/application/game'
-import type { ApiResponse, SyncResponse } from '@/domain/api-contract'
+import type { ApiResponse, SyncResponse } from '@game-life/contracts'
 import { getGameMode, getGameModeConfig } from '@/infrastructure/config/game-mode'
 import type { ActionResult } from '@/stores/actions-store'
 import type {
@@ -47,6 +47,7 @@ import type {
   FinanceSnapshot,
   GameActionItem,
   QuitCareerResult,
+  ServerSessionErrorCandidate,
 } from './game.store.types'
 
 export const useGameStore = defineStore('game', () => {
@@ -134,12 +135,14 @@ export const useGameStore = defineStore('game', () => {
   }
 
   async function refreshServerState(): Promise<void> {
+
     if (gameMode === 'spa') return
     const state: GameWorldJSON = await queryExecutor.getState(null)
     syncFromWorld(GameWorld.fromJSON(state))
   }
 
   async function initializeServerSession(): Promise<void> {
+
     if (gameMode === 'spa') return
 
     try {
@@ -152,7 +155,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function isMissingServerSession(error: unknown): boolean {
-    const candidate = error as { statusCode?: number; data?: { code?: string } }
+    const candidate: ServerSessionErrorCandidate = error as ServerSessionErrorCandidate
     const message: string = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
     return candidate.statusCode === 404
       || candidate.data?.code === 'session_not_found'
@@ -358,6 +361,7 @@ export const useGameStore = defineStore('game', () => {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: ExecuteActionResult = await executor.executeAction(world, actionId)
     await refreshServerState()
+
     if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
@@ -375,6 +379,7 @@ export const useGameStore = defineStore('game', () => {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: string = await executor.simulateWorkShift(world, hours)
     await refreshServerState()
+
     if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
@@ -388,6 +393,7 @@ export const useGameStore = defineStore('game', () => {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: ChangeCareerResult = await executor.changeCareer(world, jobId)
     await refreshServerState()
+
     if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
@@ -401,6 +407,7 @@ export const useGameStore = defineStore('game', () => {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: QuitCareerResult = await executor.quitCareer(world)
     await refreshServerState()
+
     if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
@@ -409,6 +416,7 @@ export const useGameStore = defineStore('game', () => {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: string = await executor.startEducationProgram(world, programId)
     await refreshServerState()
+
     if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
@@ -417,6 +425,7 @@ export const useGameStore = defineStore('game', () => {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: string = await executor.advanceEducation(world)
     await refreshServerState()
+
     if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }
@@ -425,6 +434,7 @@ export const useGameStore = defineStore('game', () => {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     const result: CommandOutcome = await executor.resolveEventDecision(world, eventId, choiceId)
     await refreshServerState()
+
     if (gameMode === 'spa' && world) syncFromWorld(world)
     return result
   }

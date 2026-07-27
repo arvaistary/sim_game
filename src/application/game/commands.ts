@@ -13,7 +13,7 @@ import type {
   ResolveEventResult,
   WorkShiftResult,
 } from '@/domain/game-world/commands/commands.types'
-import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './index.types'
+import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './command.types'
 import type { CareerJob } from '@/domain/balance/types'
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
 import { getActionById } from '@/domain/balance/actions'
@@ -73,6 +73,7 @@ export function simulateWorkShift(world: GameWorld, hours: number): string {
 export function changeCareer(world: GameWorld, jobId: string): { success: boolean; message: string } {
   let job: CareerJob | undefined
   for (const candidate of CAREER_JOBS) {
+
     if (candidate.id === jobId) {
       job = candidate
       break
@@ -188,11 +189,12 @@ export function executeFinanceDecision(world: GameWorld, actionId: string): stri
 }
 
 /**
- * Начать обучение. Education state пока хранит migration-compatible shape,
- * поэтому mutation остаётся application command до выделения отдельного domain aggregate.
+ * @description Начать обучение. Education state пока хранит migration-compatible shape, поэтому mutation остаётся application command до выделения отдельного domain aggregate.
+ * @return { string } Status of started education program.
  */
 export function startEducationProgram(world: GameWorld, programId: string): string {
   const education: Record<string, unknown> = world.education as unknown as Record<string, unknown>
+
   if (education.activeEducation) throw new Error('Уже учитесь')
 
   education.activeEducation = {
@@ -205,10 +207,14 @@ export function startEducationProgram(world: GameWorld, programId: string): stri
   return `Программа ${programId} начата`
 }
 
-/** Продвинуть активную учебную программу на один час. */
+/**
+ * @description Продвинуть активную учебную программу на один час.
+ * @return { string } Status of education progress.
+ */
 export function advanceEducation(world: GameWorld): string {
   const education: Record<string, unknown> = world.education as unknown as Record<string, unknown>
   const active: Record<string, unknown> | null = (education.activeEducation as Record<string, unknown> | undefined) ?? null
+
   if (!active) return 'Нет активного обучения'
 
   const remaining: number = Math.max(0, Number(active.hoursRemaining ?? 0) - 1)
@@ -248,6 +254,7 @@ function getProfessionalismLevel(world: GameWorld): number {
 export function findJobCatalogEntry(jobId: string): JobCatalogEntry | undefined {
   let found: CareerJob | undefined
   for (const candidate of CAREER_JOBS) {
+
     if (candidate.id === jobId) {
       found = candidate
       break

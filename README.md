@@ -10,7 +10,7 @@
 - **🧠 Обзор архитектуры** → [`doc/core/ARCHITECTURE_OVERVIEW.md`](doc/core/ARCHITECTURE_OVERVIEW.md)
 - **📊 Статус реализации** → [`doc/core/IMPLEMENTATION_STATUS.md`](doc/core/IMPLEMENTATION_STATUS.md)
 - **🛣️ План разработки** → [`doc/core/ROADMAP.md`](doc/core/ROADMAP.md)
-- **🎮 Геймдизайн** → [`doc/gdd/GDD.md`](doc/gdd/GDD.md)
+- **🎮 Геймдизайн** → [`doc/GDD/GDD.md`](doc/GDD/GDD.md)
 - **⚙️ Архитектурные решения** → [`doc/adr/`](doc/adr/)
 - **🧩 Spec-kit workflow** → [`doc/spec-kit/README.md`](doc/spec-kit/README.md)
 

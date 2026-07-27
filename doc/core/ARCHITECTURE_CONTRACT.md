@@ -207,7 +207,8 @@ Bridge (`fromStores`/`applyToStores`) остаётся в `src/domain/game-world
 - **Stage 5** ✅: Реальный ServerExecutor (`$fetch`), state-sync, client error-handler, OfflineQueueManager
 - **Stage 6** ✅: ModeSwitcher dev component, integration tests (state-sync + error-handler)
 - **Stage 7** ✅: SERVER_MIGRATION.md, README update, ARCHITECTURE_CONTRACT/OVERVIEW update
-- **Stage 8** (отложен): выделение domain в npm-пакет, отдельный Node.js сервер, Яндекс.Игры интеграция
+- **M0/M1/M2** ✅: npm workspaces, canonical contracts, framework-free packages и standalone Fastify API
+- **M3** 🔄: PostgreSQL/Redis persistence и deployment hardening
 
 **Архитектурные правила server-first:**
 - **`nuxt/server-client-boundary`**: `server/**` не импортируется в `src/**`. API contract типы живут в `src/domain/api-contract/` (нейтральный слой).
@@ -220,7 +221,7 @@ Bridge (`fromStores`/`applyToStores`) остаётся в `src/domain/game-world
 
 Устранение known violations выполняется через стратегию A (ADR-0005): восстановление `GameWorld` aggregate в `src/domain/game-world/` как единого source of truth.
 
-**План:** [archive/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md](../archive/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md)
+**План:** [Spec-kit work item](../../specs/server-first-arch/plan.md)
 
 **Этапы:**
 1. **Фаза 1 — Foundation** ✅: `GameWorld.ts`, `toJSON`/`fromJSON`, `game-facade/`, временный bridge `fromStores`/`applyToStores`.

@@ -48,6 +48,13 @@ export interface GameActionItemRequirements {
   minSkills?: Record<string, number>
 }
 
+export interface ServerSessionErrorCandidate {
+  statusCode?: number
+  data?: {
+    code?: string
+  }
+}
+
 export interface GameActionItem {
   id: string
   title: string

@@ -1,8 +1,8 @@
-# Дизайн-система «Nexus UI»
+﻿# Дизайн-система «Nexus UI»
 
 Визуальный язык и набор токенов для **game_life** (life-sim / игровой дашборд): карточки, метрики, навигация, формы. Референсы дашбордов из `artifact/` (Eduhouse, Alutem, MagicHeal, Intelly, Clarity, Lordbank, Health+, YourEducation и др.) задают **стиль**; паттерны вроде Kanban, Billing, HR из разделов 7–8 — **каталог на будущее**, если появятся соответствующие экраны, а не обязательный объём текущего продукта.
 
-**Источник правды в коде (сейчас):** семантические и примитивные значения в [src/assets/scss/variables.scss](src/assets/scss/variables.scss) и глобальные стили в `src/assets/scss/` (см. [nuxt.config.ts](nuxt.config.ts), блок `css`). Таблицы ниже — спецификация; при расхождении с `variables.scss` сначала правьте SCSS, затем обновляйте этот документ (или наоборот при осознанном изменении дизайна).
+**Источник правды в коде (сейчас):** семантические и примитивные значения в [src/assets/scss/variables.scss](../../src/assets/scss/variables.scss) и глобальные стили в `src/assets/scss/` (см. [nuxt.config.ts](../../nuxt.config.ts), блок `css`). Таблицы ниже — спецификация; при расхождении с `variables.scss` сначала правьте SCSS, затем обновляйте этот документ (или наоборот при осознанном изменении дизайна).
 
 ---
 
@@ -507,7 +507,7 @@ app.vue                          # корневой layout Nuxt; может от
 
 ## 10. CSS Design Tokens (tokens.css)
 
-Пример **CSS custom properties**, согласованный с §2–§7 и с [src/assets/scss/variables.scss](src/assets/scss/variables.scss). Файл пока **опционален**: сейчас токены в основном в SCSS; при добавлении `tokens.css` подключите его в [nuxt.config.ts](nuxt.config.ts) после `reset.scss`, чтобы переменные были доступны глобально.
+Пример **CSS custom properties**, согласованный с §2–§7 и с [src/assets/scss/variables.scss](../../src/assets/scss/variables.scss). Файл пока **опционален**: сейчас токены в основном в SCSS; при добавлении `tokens.css` подключите его в [nuxt.config.ts](../../nuxt.config.ts) после `reset.scss`, чтобы переменные были доступны глобально.
 
 **Тёмная тема:** `@nuxtjs/color-mode` с `dataValue: 'theme'` задаёт на `<html>` атрибут `data-theme="light" | "dark"`. Используйте селектор `html[data-theme="dark"]` (а не только `[data-theme="dark"]`), чтобы совпадать с поведением модуля и избежать коллизий.
 
@@ -790,7 +790,7 @@ import { UiAppLayout, UiTopBar, UiDashboardGrid, UiStatCard, UiMetricCard } from
 ### В коде (CSS / Tailwind / SCSS)
 - Экспорт через **Tokens Studio** или **Style Dictionary** (если настроен конвейер).
 - CSS Custom Properties — опционально в `src/assets/scss/tokens.css` (см. §10).
-- SCSS-переменные — [src/assets/scss/variables.scss](src/assets/scss/variables.scss) (основной слой сейчас).
+- SCSS-переменные — [src/assets/scss/variables.scss](../../src/assets/scss/variables.scss) (основной слой сейчас).
 - Tailwind — только если подключите его в проект; сейчас стиль ведётся через SCSS.
 
 ### Именование
@@ -830,4 +830,4 @@ import { UiAppLayout, UiTopBar, UiDashboardGrid, UiStatCard, UiMetricCard } from
 | Тёмная тема | Селектор совпадает с `@nuxtjs/color-mode` (`dataValue: 'theme'` → `html[data-theme="dark"]`) |
 | Подключение стилей | Список в `nuxt.config.ts` → `css: [...]` |
 | Новые UI-примитивы | Не дублировать: расширить `components/ui` или доменный компонент осознанно |
-| Путь в правилах редактора | В [.cursor/rules/40-styles.mdc](.cursor/rules/40-styles.mdc) указывайте актуальный глобальный SCSS (`src/assets/scss/global.scss`), если правило ссылается на стили |
+| Путь в правилах редактора | В [.cursor/rules/40-styles.mdc](../../.cursor/rules/40-styles.mdc) указывайте актуальный глобальный SCSS (`src/assets/scss/global.scss`), если правило ссылается на стили |

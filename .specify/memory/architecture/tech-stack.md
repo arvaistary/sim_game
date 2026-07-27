@@ -173,7 +173,10 @@
 
 ```json
 {
-  "dev": "nuxt dev",                    // Development server
+  "dev": "node scripts/dev-stack.mjs",  // Server-first client/server development stack
+  "dev:client": "cross-env NUXT_PUBLIC_GAME_MODE=server NUXT_PUBLIC_GAME_API_BASE_URL=http://127.0.0.1:3001 nuxt dev --port 3000",
+  "dev:server": "cross-env NUXT_PUBLIC_GAME_MODE=server NUXT_GAME_CORS_ORIGIN=http://127.0.0.1:3000,http://localhost:3000 nuxt dev --port 3001",
+  "dev:standalone-server": "tsx --tsconfig tsconfig.server.json apps/server/src/index.ts",
   "build": "nuxt build",                // Production build
   "typecheck": "nuxt typecheck",        // Type checking
   "test": "vitest run",                 // Run tests
@@ -199,19 +202,29 @@
   - Load on game start
   - Migration support for schema changes
 
-### Nitro Storage
-- **Binding:** `game-sessions`
-- **Driver:** In-memory storage in current configuration
-- **Purpose:** Cookie-scoped server game sessions with 24-hour TTL
-- **Boundary:** Development/runtime implementation; production persistence needs durable driver
+### Current Server Repository
+- **Runtime:** Standalone Fastify API in `apps/server/` (M2); Nitro handlers remain compatibility layer
+- **Adapter:** In-memory `GameStateRepository` with cookie-scoped identity and 24-hour TTL
+- **Boundary:** Transitional development implementation; process restart loses sessions
+
+### Target Persistence (M3)
+- **PostgreSQL 16:** Authoritative game state and durable persistence
+- **Redis 7:** Cache, locks, rate limits, and operational TTLs only
+- **Status:** Planned; not yet connected to runtime
 
 ## Server API
 
-### Nitro / H3
+### Standalone Fastify
+- **Location:** `apps/server/src/`
+- **Status:** Implemented M2; serves the same `/api/game` contract independently of Nitro
+- **Transport:** Fastify with cookie identity and CORS for local client
+
+### Nitro / H3 Compatibility
 - **Location:** `server/api/game/`
+- **Role:** Compatibility path during extraction; not target standalone server
 - **Endpoints:** initialization, state, action execution, offline sync, investments, career track, finance overview
 - **Session identity:** HTTP-only `gl_session` cookie with `SameSite=Lax`
-- **Contracts:** `src/domain/api-contract/`
+- **Contracts:** `packages/contracts/` with legacy facades in `src/domain/api-contract/`
 
 ## Aliases
 
@@ -253,9 +266,9 @@ Components are auto-imported from:
 
 ## Security Considerations
 
-- UI rendering remains client-side; Nitro API is a separate runtime boundary
+- UI rendering remains client-side; standalone Fastify is authoritative runtime boundary for server mode
 - SPA saves reside in browser LocalStorage
-- Server sessions use HTTP-only cookie identifiers; current in-memory storage is process-local
+- Server sessions use HTTP-only cookie identifiers; current in-memory storage is process-local until M3 persistence
 - API input validation and consistent error envelopes remain required at every endpoint
 - CSP headers are recommended for production
 

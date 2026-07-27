@@ -10,13 +10,13 @@ Build a reproducible audit pipeline and evidence set, inventory every implemente
 ## Technical Context
 
 **Language/Version**: TypeScript 6.0.2 on Node.js 25.x-compatible tooling  
-**Primary Dependencies**: Nuxt 4.4.2, Vue 3.5.32, Pinia 3.0.4, Nitro/H3, SCSS 1.85.1  
-**Storage**: Browser LocalStorage for SPA saves; Nitro `game-sessions` memory storage with 24-hour TTL for server sessions  
+**Primary Dependencies**: Nuxt 4.4.2, Vue 3.5.32, Pinia 3.0.4, standalone Fastify M2, Nitro/H3 compatibility, SCSS 1.85.1
+**Storage**: Browser LocalStorage for SPA saves; standalone Fastify memory repository with 24-hour TTL; PostgreSQL/Redis remain M3 target
 **Testing**: Vitest 4.1.4, Vue Test Utils 2.4.6, happy-dom 17.1.8, Playwright 1.50.1, existing custom rules audit  
 **Target Platform**: Modern desktop and mobile browsers; client-rendered Nuxt UI with same-origin Nitro API  
 **Project Type**: Full-stack web application with client-only rendering and optional local/server/hybrid command execution  
 **Performance Goals**: N/A — product latency, throughput, and memory budgets are outside this integrity audit; existing performance defects may still be recorded when they break specified behavior  
-**Constraints**: Behavioral parity across all three modes; all P0-P3 findings fixed; viewport matrix `390×844`, `768×1024`, `1440×900`; no Stage 8 backend, redesign, new gameplay, or archive rewrites  
+**Constraints**: Behavioral parity across all three modes; all P0-P3 findings fixed; viewport matrix `390×844`, `768×1024`, `1440×900`; no unrelated backend rollout, redesign, or new gameplay
 **Scale/Scope**: 12 current page components/routes, 7 Nitro game endpoints, all implemented game commands/queries, architecture boundaries, quality gates, and working documentation
 
 ## Constitution Check
@@ -140,7 +140,7 @@ test/
 |---|---|
 | In-memory Nitro sessions make tests order-dependent | Isolate session cookie/storage per scenario and reinitialize world explicitly. |
 | Mode-specific transport fields create false parity failures | Compare canonical observable state and UI outcome; exclude only documented transport metadata. |
-| `doc/GDD/GDD.md` contains Phaser-era implementation claims | Use `doc/GDD/GDD.md` only for current product behavior; constitution and accepted ADRs override engine/architecture claims, and archive paths remain historical evidence. |
+| `doc/GDD/GDD.md` contains outdated implementation claims | Use `doc/GDD/GDD.md` only for current product behavior; constitution and accepted ADRs override engine/architecture claims. |
 | Fix-all P0-P3 expands scope | Freeze inventory after baseline; new gameplay remains out of scope, but every confirmed in-scope finding is closed. |
 | Browser tests become flaky | Use deterministic seed/state fixtures, explicit readiness signals, stable selectors, and no arbitrary sleeps. |
 

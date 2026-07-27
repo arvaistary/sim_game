@@ -12,7 +12,7 @@
 
 - **Server-first слоистая архитектура:** `domain → application → infrastructure → stores/composables → components → pages`
 - **`GameWorld` aggregate** (ADR-0005): pure TypeScript state container, единый source of truth в `src/domain/game-world/`
-- **Три режима исполнения:** SPA (по умолчанию), Server (Nitro API), Hybrid (offline-first)
+- **Три режима исполнения:** Server (по умолчанию для dev), SPA (offline fallback), Hybrid
 - **~222 действия в 10 категориях:** полная система восстановления
 - **TypeScript:** строгая типизация на всех уровнях, 0 typecheck-ошибок
 - **210+ unit/integration тестов:** `rules:audit` 0 нарушений
@@ -56,12 +56,12 @@
 
 | Веха | Дата | Документы |
 |------|------|-----------|
-| Nuxt 4 миграция | Апрель 2026 | [`archive/migration-plans/`](../archive/migration-plans/) |
+| Nuxt 4 миграция | Апрель 2026 | ADR-0001 |
 | ECS удаление → Application-first | Апрель-Май 2026 | ADR-0002, ADR-0003 |
-| Dashboard restyle v2 (Linear aesthetic) | Июль 2026 | [`archive/plans/dashboard_restyle_v2_0e7aa0b4.plan.md`](../archive/plans/) |
-| GameWorld aggregate foundation | Июль 2026 | [`archive/plans/game_world_aggregate_foundation_e7a3c2b1.plan.md`](../archive/plans/), ADR-0005 |
-| Server-first architecture migration | Июль 2026 | [`archive/plans/server-first_architecture_migration_05bcd970.plan.md`](../archive/plans/), [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md) |
-| Аудит и рекомендации | Июль 2026 | [`archive/plans/`](../archive/plans/) |
+| Dashboard restyle v2 (Linear aesthetic) | Июль 2026 | [`DESIGN_SYSTEM.md`](../guides/DESIGN_SYSTEM.md) |
+| GameWorld aggregate foundation | Июль 2026 | ADR-0005 |
+| Server-first architecture migration | Июль 2026 | [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md), [`specs/server-first-arch/plan.md`](../../specs/server-first-arch/plan.md) |
+| Аудит и рекомендации | Июль 2026 | соответствующие `specs/` work items |
 
 ---
 
@@ -147,11 +147,11 @@
 
 ### 8. Server-first Stage 8: выделенный Node.js сервер
 
-**Статус:** Отложен (инфраструктура подготовлена)
+**Статус:** В процессе (M0/M1/M2 завершены, M3 persistence в работе)
 
 **Задачи:**
-- [ ] Выделить `src/domain/` в npm-пакет `@game-life/domain`
-- [ ] Создать отдельный сервер (Express/NestJS/Fastify)
+- [x] Выделить контракты, domain и application boundaries в npm workspaces
+- [x] Создать standalone Fastify API
 - [ ] Мигрировать с in-memory storage на БД
 - [ ] Отключить Nitro server-mode в Nuxt
 
@@ -230,7 +230,7 @@
 - **Архитектура:** [`ARCHITECTURE_OVERVIEW.md`](ARCHITECTURE_OVERVIEW.md)
 - **Архитектурный контракт:** [`ARCHITECTURE_CONTRACT.md`](ARCHITECTURE_CONTRACT.md)
 - **Server-first миграция:** [`../SERVER_MIGRATION.md`](../SERVER_MIGRATION.md)
-- **GDD:** [`../gdd/GDD.md`](../gdd/GDD.md)
+- **GDD:** [`../GDD/GDD.md`](../GDD/GDD.md)
 - **ADR:** [`../adr/`](../adr/)
 
 ---

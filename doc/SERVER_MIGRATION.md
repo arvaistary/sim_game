@@ -1,7 +1,7 @@
 # Server-First Architecture Migration
 
 Дата: 2026-07-16
-Статус: Stage 7 завершён; отдельные client/server dev-процессы и server-authoritative cutover реализованы. Stage 8 — production persistence и deployment hardening.
+Статус: Stage 7 завершён; M0/M1/M2 завершены — client/server dev-процессы, package boundaries и standalone Fastify API реализованы. Nitro handlers остаются compatibility layer. M3 — Docker persistence и PostgreSQL/Redis.
 
 ## Цель
 
@@ -17,7 +17,8 @@ Offline-first: буферизация действий при потере се�
 
 - `npm run dev` запускает client на `http://localhost:3000` и API server на `http://localhost:3001`.
 - `npm run dev:client` запускает только client с `NUXT_PUBLIC_GAME_MODE=server` и API base URL `http://127.0.0.1:3001`.
-- `npm run dev:server` запускает только Nitro API process; CORS и cookie credentials настроены для локального client.
+- `npm run dev:server` запускает legacy Nitro API process для обратной совместимости.
+- `npm run dev:standalone-server` запускает независимый Fastify API на `API_PORT` (по умолчанию `3001`); текущий `/api/game/*` envelope сохранён. Именно этот process используется через `npm run dev`.
 - `npm run build:client` создаёт static output для Яндекс Игр (`.output/public`).
 - `npm run build:server` + `npm run start:server` создают Node server deployment.
 - Все successful game API responses используют общий `ApiResponse<T>` envelope; client hydrates Pinia только из server state.
@@ -40,7 +41,7 @@ Application Layer (Executors + offline queue + state-sync)
     ↓
 Domain Layer
     ├─ GameWorld aggregate
-    ├─ api-contract (shared типы для client + server)
+    ├─ `@game-life/contracts` (canonical типы для client + server)
     └─ game-mode (типы режимов)
     ↓
 Infrastructure
@@ -80,7 +81,7 @@ Domain Layer (GameWorld, commands, queries) [общий с client]
 | Модуль | Назначение |
 |--------|------------|
 | `game-mode/` | Типы `GameMode`, `GameModeConfig`, `SyncStatus` |
-| `api-contract/` | Shared типы API (`ApiResponse`, `SyncResponse`, и т.д.) — нейтральный слой |
+| `@game-life/contracts` | Canonical API types (`ApiResponse`, `SyncResponse`, command/version DTO) |
 | `game-world/` | `GameWorld` aggregate + bridge к Pinia |
 
 **Infrastructure (`src/infrastructure/config/`)**
@@ -166,21 +167,22 @@ export default defineEventHandler(async (event) => {
 })
 ```
 
-## Миграция на отдельный Node.js сервер (Stage 8, отложен)
+## Миграция на отдельный Node.js сервер (Stage 8, ongoing)
 
 План долгосрочной миграции:
 
-1. Выделить `src/domain/` + `src/application/game/commands.ts`/`queries.ts` в npm-пакет `@game-life/domain`
-2. Создать сервер (Express/NestJS/Fastify), импортирующий общий domain пакет
-3. Реализовать те же API endpoints, используя БД вместо in-memory storage
-4. Обновить `ServerExecutor` (`apiBaseUrl`) на новый сервер
-5. Отключить Nitro server-mode в Nuxt, оставить только SPA клиент
+1. M0/M1: создать npm workspaces `@game-life/contracts`, `@game-life/domain`, `@game-life/application`.
+2. Перенести canonical API DTO в `@game-life/contracts`; legacy `src/domain/api-contract` оставлен compatibility facade.
+3. Перенести framework-free GameWorld и commands в `@game-life/domain`; application ports уже выделены.
+4. Создать standalone Fastify API, импортирующий packages.
+5. Подключить PostgreSQL/Redis, затем обновить `ServerExecutor` на standalone API.
+6. Отключить Nitro server-mode в Nuxt, оставить static SPA client.
 
-Подготовленные абстракции (executor factory, api-contract, session utils) делают эту миграцию механической.
+M0/M1/M2 завершены. Следующий блок — подключение Docker PostgreSQL/Redis и замена memory repository; Nitro endpoints остаются compatibility layer до полного persistence parity.
 
 ## Архитектурные правила (важные)
 
-- **`nuxt/server-client-boundary`**: `server/**` не импортируется в `src/**`. Поэтому API contract типы живут в `src/domain/api-contract/`, а `server/api/types.ts` их реэкспортирует.
+- **`nuxt/server-client-boundary`**: `server/**` не импортируется в `src/**`. Canonical API contract types живут в `@game-life/contracts`; `src/domain/api-contract` и `server/api/types.ts` — compatibility facades.
 - **`application` не импортирует `infrastructure`**: `executor-factory.ts` принимает `GameMode` параметром (DI), не импортирует `game-mode.ts` хелперы.
 - **`GameMode` типы в `domain/game-mode/`**: нейтральный слой, доступный и application, и infrastructure.
 - **Bridge `fromStores`/`applyToStores` — deprecated**: временный мост между Pinia и GameWorld. Будет удалён, когда stores станут true projections над GameWorld.
@@ -190,7 +192,7 @@ export default defineEventHandler(async (event) => {
 - Unit-тесты: 210+ (16 для server-first modules)
 - Typecheck: 0 ошибок
 - Rules audit: 0 violations
-- Stage 1-6 завершены, Stage 7 (docs) в процессе, Stage 8 отложен
+- Stage 1-7 завершены; M0/M1 завершены; Stage 8 persistence/standalone deployment в работе
 
 ---
 
@@ -224,11 +226,11 @@ Vue UI
 
 ### 2. Текущие разрывы, которые нужно закрыть
 
-- `nuxt.config.ts` использует `gameMode: 'spa'`.
-- UI вызывает синхронные методы `gameStore` и legacy `appGameCommands`.
+- `nuxt.config.ts` использует server mode по умолчанию; legacy SPA path ещё не удалён.
+- Часть UI и legacy `appGameCommands` всё ещё содержит синхронные compatibility вызовы.
 - `ServerExecutor` и async-методы существуют, но не являются единственным путём выполнения.
 - `hybrid` сейчас возвращает SPA fallback, а не полноценный server-online режим.
-- `/api/game/sync` обрабатывает только тип `action`; work/career/education/finance/event требуют общего контракта.
+- `/api/game/sync` уже покрывает основные типы; новый canonical command envelope и idempotency пока не подключены.
 - Server storage использует memory driver и TTL 24 часа; это неприемлемо для production persistence.
 
 Критерий выхода: составлена таблица всех UI-команд и для каждой указан единственный server endpoint/application command.
@@ -259,7 +261,7 @@ Vue UI
 
 ### 4. Стабилизировать API-контракт
 
-Общий контракт хранить в `src/domain/api-contract/`. Для каждого endpoint определить request, response, error code и правила авторизации.
+Общий контракт хранить в `@game-life/contracts/`. Для каждого endpoint определить request, response, error code и правила авторизации.
 
 | Endpoint | Назначение | Требования |
 |---|---|---|
@@ -290,8 +292,8 @@ Vue UI
 ### 5. Подключить production persistence
 
 1. Сохранить repository interface между API и хранилищем.
-2. Оставить Nitro memory storage только для тестов и локального demo.
-3. Для production выбрать Redis или PostgreSQL.
+2. Оставить Nitro memory storage только для compatibility/demo до persistence cutover.
+3. PostgreSQL использовать как source of truth; Redis — для cache, locks и rate limits.
 4. Хранить session/user id, сериализованный `GameWorld`, `stateVersion`, processed idempotency keys, timestamps и schema version.
 5. Добавить миграции save schema и backup/restore policy.
 6. Для serverless использовать внешнее хранилище, не process memory.

@@ -54,5 +54,4 @@
 ---
 
 **Связанные документы:**
-- [doc/archive/FULL_ECS_REMOVAL_PLAN.md](../archive/FULL_ECS_REMOVAL_PLAN.md)
-- [doc/archive/ecs/](../archive/ecs/) — документация ECS (архив)
+- [ADR-0005: GameWorld aggregate](0005-game-world-aggregate-strategy-a.md) — текущая command-pattern модель без ECS

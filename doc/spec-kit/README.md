@@ -58,7 +58,7 @@ specify init --here --ai cursor-agent
 - рабочие артефакты Spec-kit: `specs/` (создаются CLI-потоком);
 - активные ручные спецификации (fallback): `doc/spec-kit/specs/`;
 - долговременная память проекта: `.specify/memory/`;
-- архив завершённых/отменённых: `doc/archive/`;
+- завершённые и отменённые work items не удаляются: их `spec.md`, `plan.md`, `tasks.md` и evidence остаются в `specs/` с финальным статусом;
 - ADR по архитектурным решениям: `doc/adr/`.
 
 ## Правила качества Spec-kit артефактов

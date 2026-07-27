@@ -3,19 +3,17 @@
 ### 13.1. Архитектура приложения
 
 
-Структура сцен Phaser.js:
+Структура Nuxt pages и Vue-компонентов:
 
 ```
 Game (основной класс)
-├── BootScene (загрузка ресурсов)
-├── StartScene (ввод имени, выбор возраста, работа)
-├── MainScene (основной игровой интерфейс)
-├── RecoveryScene (магазин, развлечения, развитие)
-├── EducationScene (школа, институт)
-├── EventScene (случайные события)
-├── WorkEventScene (события на работе, кликер)
-├── DeathScene (финальная статистика)
-└── SettingsScene (настройки, сохранения)
+├── src/pages/index.vue (создание персонажа и старт)
+├── src/pages/game/index.vue (основной игровой интерфейс)
+├── src/pages/game/education/index.vue (образование)
+├── src/pages/game/events/index.vue (случайные события)
+├── src/pages/game/work/index.vue (работа)
+├── src/pages/game/shop/index.vue (магазин)
+└── src/components/pages/ (переиспользуемые секционные компоненты)
 ```
 
 ### 13.2. Производительность

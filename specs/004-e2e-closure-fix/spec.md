@@ -2,7 +2,7 @@
 
 **Feature Branch**: `004-e2e-closure-fix`  
 **Created**: 2026-07-16  
-**Status**: Draft  
+**Status**: Completed
 **Input**: Repair closure evidence for `003-project-integrity-audit` after 60 Playwright checks pass but `npm run test:e2e:integrity` does not exit cleanly.
 
 ## Clarifications

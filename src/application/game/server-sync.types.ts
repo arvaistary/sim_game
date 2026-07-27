@@ -5,7 +5,7 @@
  * typing/types-location.
  */
 import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
-import type { ApiErrorCode } from '@/domain/api-contract'
+import type { ApiErrorCode } from '@game-life/contracts'
 
 export interface StateSyncResult {
   state: GameWorldJSON

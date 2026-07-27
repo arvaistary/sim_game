@@ -8,7 +8,7 @@ import { GameWorld } from '@/domain/game-world/GameWorld'
 import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
 import type { StoresLoadTarget } from '@/domain/game-world/bridge.types'
 import { applyToStores } from '@/domain/game-world/bridge'
-import type { ApiResponse, GameStateResponse } from '@/domain/api-contract'
+import type { ApiResponse, GameStateResponse as ContractGameStateResponse } from '@game-life/contracts'
 import type { ConflictInfo, StateSyncResult } from './server-sync.types'
 
 /**
@@ -18,7 +18,7 @@ import type { ConflictInfo, StateSyncResult } from './server-sync.types'
  * @return { Promise<GameWorldJSON> } состояние мира
  */
 export async function loadWorldFromServer(baseUrl: string = ''): Promise<GameWorldJSON> {
-  const response: ApiResponse<GameStateResponse> = await $fetch<ApiResponse<GameStateResponse>>(
+  const response: ApiResponse<ContractGameStateResponse<GameWorldJSON>> = await $fetch<ApiResponse<ContractGameStateResponse<GameWorldJSON>>>(
     `${baseUrl}/api/game/state`,
   )
 
@@ -86,7 +86,7 @@ export function checkConflict(
  * @return { Promise<GameWorldJSON> } начальное состояние
  */
 export async function initServerWorld(baseUrl: string = ''): Promise<GameWorldJSON> {
-  const response: ApiResponse<GameStateResponse> = await $fetch<ApiResponse<GameStateResponse>>(
+  const response: ApiResponse<ContractGameStateResponse<GameWorldJSON>> = await $fetch<ApiResponse<ContractGameStateResponse<GameWorldJSON>>>(
     `${baseUrl}/api/game/init`,
     {
       method: 'POST',

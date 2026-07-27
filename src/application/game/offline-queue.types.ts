@@ -1,7 +1,7 @@
 /**
  * Типы для OfflineQueueManager (server-first migration, Stage 5.5).
  */
-import type { ApiResponse, SyncResponse } from '@/domain/api-contract'
+import type { ApiResponse, SyncResponse } from '@game-life/contracts'
 
 export type QueuedActionType = 'action' | 'work' | 'event' | 'career' | 'finance' | 'education'
 

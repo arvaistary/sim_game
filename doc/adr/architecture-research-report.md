@@ -1,5 +1,5 @@
-# Архитектурное исследование проекта `game_life`
-
+﻿# Архитектурное исследование проекта `game_life`
+`r`n> **Статус:** исторический анализ до server-first extraction. Для текущего состояния используйте [`doc/core/IMPLEMENTATION_STATUS.md`](../core/IMPLEMENTATION_STATUS.md), [`doc/SERVER_MIGRATION.md`](../SERVER_MIGRATION.md) и [`specs/server-first-arch/plan.md`](../../specs/server-first-arch/plan.md).`r`n
 ## 1. Контекст
 
 Проект находится в переходной точке:
@@ -15,10 +15,10 @@
 
 Текущая архитектура уже содержит полезные заделы:
 
-- есть попытка формализовать слои в [`../.cursor/rules/30-architecture.mdc`](../.cursor/rules/30-architecture.mdc);
-- есть отдельный `domain`-слой с игровыми каталогами и pure-утилитами, например [`../src/domain/balance/actions/index.ts`](../src/domain/balance/actions/index.ts) и [`../src/domain/balance/utils/build-new-game-save.ts`](../src/domain/balance/utils/build-new-game-save.ts);
-- есть зачаток application-слоя в [`../src/application/game/index.ts`](../src/application/game/index.ts);
-- есть порт для сохранений [`../src/application/game/ports/SaveRepository.types.ts`](../src/application/game/ports/SaveRepository.types.ts) и инфраструктурная реализация [`../src/infrastructure/persistence/LocalStorageSaveRepository.ts`](../src/infrastructure/persistence/LocalStorageSaveRepository.ts).
+- есть попытка формализовать слои в [`../.cursor/rules/30-architecture.mdc`](../../.cursor/rules/30-architecture.mdc);
+- есть отдельный `domain`-слой с игровыми каталогами и pure-утилитами, например [`../src/domain/balance/actions/index.ts`](../../src/domain/balance/actions/index.ts) и [`../src/domain/balance/utils/build-new-game-save.ts`](../../src/domain/balance/utils/build-new-game-save.ts);
+- есть зачаток application-слоя в [`../src/application/game/index.ts`](../../src/application/game/index.ts);
+- есть порт для сохранений [`../src/application/game/ports/SaveRepository.types.ts`](../../src/application/game/ports/SaveRepository.types.ts) и инфраструктурная реализация [`../src/infrastructure/persistence/LocalStorageSaveRepository.ts`](../../src/infrastructure/persistence/LocalStorageSaveRepository.ts).
 
 Но в целом по проекту действительно видны разные архитектурные подходы одновременно:
 
@@ -34,7 +34,7 @@
 
 ### 3.1. Фактическая структура
 
-По конфигурации [`../nuxt.config.ts`](../nuxt.config.ts) приложение работает как SPA:
+По конфигурации [`../nuxt.config.ts`](../../nuxt.config.ts) приложение работает как SPA:
 
 - `ssr: false`;
 - нет `server/` директории;
@@ -53,12 +53,12 @@
 
 Хотя серверного слоя нет, часть обязанностей, которые в будущем почти наверняка должны принадлежать серверу, уже присутствует на клиенте:
 
-- orchestration игровой сессии в [`../src/stores/game-store/index.ts`](../src/stores/game-store/index.ts);
-- проверки и применение действий в [`../src/stores/actions-store/index.ts`](../src/stores/actions-store/index.ts) и [`../src/composables/useActions/index.ts`](../src/composables/useActions/index.ts);
-- работа с очередями событий в [`../src/stores/events-store/index.ts`](../src/stores/events-store/index.ts);
-- сборка/восстановление save payload в [`../src/stores/game-store/index.ts`](../src/stores/game-store/index.ts);
-- инициализация игры и загрузка сохранения в [`../src/middleware/game-init.ts`](../src/middleware/game-init.ts);
-- автосохранение и lifecycle-side effects в [`../src/plugins/auto-save.client.ts`](../src/plugins/auto-save.client.ts).
+- orchestration игровой сессии в [`../src/stores/game-store/index.ts`](../../src/stores/game.store.ts);
+- проверки и применение действий в [`../src/stores/actions-store/index.ts`](../../src/stores/actions-store/index.ts) и [`../src/composables/useActions/index.ts`](../../src/composables/useActions/index.ts);
+- работа с очередями событий в [`../src/stores/events-store/index.ts`](../../src/stores/events-store/index.ts);
+- сборка/восстановление save payload в [`../src/stores/game-store/index.ts`](../../src/stores/game.store.ts);
+- инициализация игры и загрузка сохранения в [`../src/middleware/game-init.ts`](../../src/middleware/game-init.ts);
+- автосохранение и lifecycle-side effects в [`../src/plugins/auto-save.client.ts`](../../src/plugins/auto-save.client.ts).
 
 Иначе говоря, сегодня клиент не просто отображает игру, а является источником истины почти для всей игровой сессии.
 
@@ -89,11 +89,11 @@
 
 Сейчас игровая логика распределена между несколькими слоями:
 
-- [`../src/stores/game-store/index.ts`](../src/stores/game-store/index.ts);
-- [`../src/stores/actions-store/index.ts`](../src/stores/actions-store/index.ts);
-- [`../src/composables/useActions/index.ts`](../src/composables/useActions/index.ts);
-- [`../src/application/game/commands.ts`](../src/application/game/commands.ts);
-- [`../src/application/game/queries.ts`](../src/application/game/queries.ts).
+- [`../src/stores/game-store/index.ts`](../../src/stores/game.store.ts);
+- [`../src/stores/actions-store/index.ts`](../../src/stores/actions-store/index.ts);
+- [`../src/composables/useActions/index.ts`](../../src/composables/useActions/index.ts);
+- [`../src/application/game/commands.ts`](../../src/application/game/commands.ts);
+- [`../src/application/game/queries.ts`](../../src/application/game/queries.ts).
 
 Это создает несколько проблем:
 
@@ -106,7 +106,7 @@
 
 ### 5.2. Stores стали не только state, но и application-слоем
 
-[`../src/stores/game-store/index.ts`](../src/stores/game-store/index.ts) сегодня фактически выполняет роль orchestration-сервиса:
+[`../src/stores/game-store/index.ts`](../../src/stores/game.store.ts) сегодня фактически выполняет роль orchestration-сервиса:
 
 - координирует работу множества stores;
 - собирает и грузит save payload;
@@ -125,7 +125,7 @@
 
 Пример:
 
-- [`../src/composables/useActions/index.ts`](../src/composables/useActions/index.ts) одновременно:
+- [`../src/composables/useActions/index.ts`](../../src/composables/useActions/index.ts) одновременно:
   - проверяет возможность действия;
   - мутирует кошелек/время/статы;
   - пишет в activity log;
@@ -143,12 +143,12 @@
 
 Самый явный пример: модалки.
 
-В [`../src/app.vue`](../src/app.vue) одновременно используются:
+В [`../src/app.vue`](../../src/app.vue) одновременно используются:
 
 - `GameModalHost`;
 - `ModalStackHost`.
 
-А в [`../src/composables/useGameModal/index.ts`](../src/composables/useGameModal/index.ts) одновременно сосуществуют:
+А в [`../src/composables/useGameModal/index.ts`](../../src/composables/useGameModal/index.ts) одновременно сосуществуют:
 
 - legacy shared state через `useState`;
 - stack-based API поверх `useModalStack`.
@@ -157,11 +157,11 @@
 
 ### 5.5. Правила архитектуры и реальный код расходятся
 
-В [`../.cursor/rules/30-architecture.mdc`](../.cursor/rules/30-architecture.mdc) описана более строгая архитектура с `domain/engine`, `domain/game-facade` и четким направлением зависимостей.
+В [`../.cursor/rules/30-architecture.mdc`](../../.cursor/rules/30-architecture.mdc) описана более строгая архитектура с `domain/engine`, `domain/game-facade` и четким направлением зависимостей.
 
 Но фактический `domain` сейчас экспортирует только:
 
-- [`../src/domain/index.ts`](../src/domain/index.ts) -> `balance` и `education`.
+- [`../src/domain/index.ts`](../../src/domain/index.ts) -> `balance` и `education`.
 
 Это значит:
 
@@ -175,7 +175,7 @@
 
 Сегодня это естественно, но важно понимать ограничения.
 
-[`../src/plugins/auto-save.client.ts`](../src/plugins/auto-save.client.ts) и [`../src/middleware/game-init.ts`](../src/middleware/game-init.ts) предполагают, что:
+[`../src/plugins/auto-save.client.ts`](../../src/plugins/auto-save.client.ts) и [`../src/middleware/game-init.ts`](../../src/middleware/game-init.ts) предполагают, что:
 
 - игра инициализируется только на клиенте;
 - текущий save store доступен синхронно;
@@ -188,7 +188,7 @@
 
 ### 5.7. API портов пока слишком тонкий для будущего сервера
 
-[`../src/application/game/ports/SaveRepository.types.ts`](../src/application/game/ports/SaveRepository.types.ts) сейчас задает простой synchronous API:
+[`../src/application/game/ports/SaveRepository.types.ts`](../../src/application/game/ports/SaveRepository.types.ts) сейчас задает простой synchronous API:
 
 ```ts
 save(payload: Record<string, unknown>): void

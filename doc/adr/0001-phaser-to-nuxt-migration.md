@@ -56,4 +56,4 @@
 
 **Связанные документы:**
 - [doc/adr/nuxt4-architecture-analysis.md](nuxt4-architecture-analysis.md)
-- [doc/archive/migration-plans/NUXT4_MIGRATION_PLAN.md](../archive/migration-plans/NUXT4_MIGRATION_PLAN.md)
+- [Nuxt 4 architecture analysis](nuxt4-architecture-analysis.md)

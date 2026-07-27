@@ -21,7 +21,7 @@ import type {
   FinanceOverviewDto,
   FinanceSnapshotDto,
 } from './index.types'
-import type { ApiResponse, GameStateResponse } from '@/domain/api-contract'
+import type { ApiResponse, GameStateResponse as ContractGameStateResponse } from '@game-life/contracts'
 import type { ServerQueryExecutorOptions } from './server-executor.types'
 import { DEFAULT_SERVER_QUERY_EXECUTOR_OPTIONS } from './server-executor.types'
 
@@ -38,12 +38,12 @@ export function createServerQueryExecutor(
 
   return {
     async getState(_world: GameWorld | null): Promise<GameWorldJSON> {
-      const data: GameStateResponse = await fetchApi<GameStateResponse>(`${base}/api/game/state`)
+      const data: ContractGameStateResponse<GameWorldJSON> = await fetchApi<ContractGameStateResponse<GameWorldJSON>>(`${base}/api/game/state`)
       return data.state
     },
 
     async initState(_world: GameWorld | null): Promise<GameWorldJSON> {
-      const data: GameStateResponse = await fetchApi<GameStateResponse>(`${base}/api/game/init`, {
+      const data: ContractGameStateResponse<GameWorldJSON> = await fetchApi<ContractGameStateResponse<GameWorldJSON>>(`${base}/api/game/init`, {
         method: 'POST',
         body: {},
       })
