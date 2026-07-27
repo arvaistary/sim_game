@@ -10,7 +10,7 @@ Replace process-local game-session storage with PostgreSQL-backed persistence wh
 ## Technical Context
 
 **Language/Version**: TypeScript, Node.js LTS, strict mode
-**Primary Dependencies**: Nuxt 4/Nitro compatibility layer, standalone Fastify, Drizzle ORM/schema tooling, `pg`, existing npm workspaces
+**Primary Dependencies**: Nuxt 4/Nitro compatibility layer, standalone Fastify, Drizzle ORM/schema tooling, `pg`, `dotenv`, existing npm workspaces
 **Storage**: PostgreSQL 16 as source of truth; Redis 7 optional after baseline for locks/cache/rate limits
 **Testing**: Vitest unit/contract/integration tests, TypeScript package/server checks, Nuxt build, persistence tests against Docker PostgreSQL
 **Target Platform**: Local Docker services; Nuxt/Nitro hosted verification on Vercel; standalone Fastify remains future deploy target
@@ -46,6 +46,9 @@ specs/005-durable-game-state/
 ├── quickstart.md
 ├── contracts/persistence-api.md
 └── checklists/requirements.md
+
+doc/adr/
+└── 0006-durable-game-state-persistence.md  # accepted architecture decision before implementation
 ```
 
 ### Source and tests
@@ -80,6 +83,12 @@ test/
 **Structure Decision**: Keep root Nuxt/Nitro runtime working while adding shared persistence infrastructure. Reuse the same repository semantics in Nitro and standalone Fastify. Do not move all handlers or finish full client/server extraction as part of M3.
 
 ## Design
+
+### Architecture decision gate
+
+Before implementation, create and accept [ADR-0006](../../doc/adr/0006-durable-game-state-persistence.md). The ADR must approve PostgreSQL as authoritative storage, JSONB snapshot strategy, transaction/idempotency boundary, canonical application service location, anonymous M3 identity and Redis deferral. No database, repository or route changes begin before this gate passes.
+
+Canonical mutation orchestration lives in `packages/application/src/game-state-service.ts`. Nitro and standalone Fastify provide transport/runtime adapters only; `apps/server/src/application/game-application-service.ts` must not become a second implementation of command, transaction or conflict rules.
 
 ### Repository boundary
 
@@ -117,40 +126,44 @@ Do not require Redis for first PostgreSQL cutover. When added, use it only for s
 
 ## Implementation Phases
 
-### Phase 0 — Baseline and safety inventory
+### Phase 0 — Architecture decision and baseline gate
 
-1. Record current `server/utils/session.ts` and `apps/server/src/session-repository.ts` behavior.
-2. Inventory all `/api/game/*` mutation callers and current request/response shapes.
-3. Add persistence feature fixtures and test helpers without changing production storage.
-4. Confirm `.env*`, database credentials and generated artifacts remain ignored/uncommitted.
+1. Create and accept `doc/adr/0006-durable-game-state-persistence.md` before implementation.
+2. Resolve canonical application-service ownership and persistence adapter boundary.
+3. Record current `server/utils/session.ts` and `apps/server/src/session-repository.ts` behavior.
+4. Inventory all `/api/game/*` mutation callers and current request/response shapes.
+5. Add persistence feature fixtures and test helpers without changing production storage.
+6. Confirm `.env*`, database credentials and generated artifacts remain ignored/uncommitted.
 
-**Gate**: baseline API contract and current local tests pass; no caller of `init`, `execute` or `sync` is unknown.
+**Gate**: ADR is accepted; baseline API contract and current local tests pass; no caller of `init`, `execute` or `sync` is unknown.
 
 ### Phase 1 — Local PostgreSQL foundation
 
 1. Add `infra/docker-compose.yml` with PostgreSQL 16 named volume and health check.
 2. Add database scripts for start, migration and status without destructive volume reset.
 3. Add Drizzle/`pg` dependencies and server-only database bootstrap.
-4. Add first migration for `players`, `game_sessions`, `processed_commands`.
-5. Add migration smoke test on empty database and repeat application check.
+4. Add `dotenv`-based standalone server environment loading and document server-only variables.
+5. Add first migration for `players`, `game_sessions`, `processed_commands`.
+6. Add migration smoke test on empty database and repeat application check.
 
 **Gate**: clean local database starts, migration applies twice safely, and credentials stay outside repository.
 
 ### Phase 2 — Repository and transaction implementation
 
 1. Extend application persistence ports and error types.
-2. Implement PostgreSQL repository/unit-of-work adapter.
-3. Implement snapshot schema validation and migration hook.
-4. Implement compare-and-swap state update and state version increment.
-5. Implement processed-command lookup, request hash check and cached response.
-6. Keep/update memory adapter as a deterministic test double.
+2. Implement snapshot schema validation and ordered migration hook.
+3. Add old-snapshot/current-snapshot fixtures and migration tests before repository implementation.
+4. Implement PostgreSQL repository/unit-of-work adapter.
+5. Implement compare-and-swap state update and state version increment.
+6. Implement processed-command lookup, request hash check and cached response.
+7. Keep/update memory adapter as a deterministic test double.
 
-**Gate**: repository tests cover create/load, TTL, update, stale version, duplicate command, mismatched payload and rollback after failure.
+**Gate**: migration tests pass before repository tests; repository tests cover create/load, TTL, update, stale version, duplicate command, mismatched payload and rollback after failure.
 
 ### Phase 3 — API wiring and client metadata
 
-1. Route Nitro compatibility layer through shared repository adapter.
-2. Route standalone Fastify application through same repository semantics.
+1. Route Nitro compatibility layer through shared repository adapter and canonical application service.
+2. Route standalone Fastify through the same canonical application service; keep transport adapter thin.
 3. Add `commandId` and `expectedStateVersion` to mutation request paths and sync queue.
 4. Preserve current response envelope and map persistence errors to documented codes.
 5. Update readiness checks to verify PostgreSQL availability without exposing credentials.
@@ -160,22 +173,24 @@ Do not require Redis for first PostgreSQL cutover. When added, use it only for s
 
 ### Phase 4 — Persistence and concurrency verification
 
-1. Test state survival after process restart and second application instance.
+1. Test 10 initialized sessions surviving process restart simulation and second application instance.
 2. Test duplicate request after simulated lost response.
 3. Test two concurrent commands from same state version.
-4. Test unsupported snapshot version and migration fixture.
-5. Test PostgreSQL outage and recovery behavior.
-6. Run full typecheck, unit, integration, architecture, rules and build gates.
+4. Test access through a different session identity is rejected.
+5. Test unsupported snapshot version and migration fixture.
+6. Test PostgreSQL outage and recovery behavior.
+7. Run full typecheck, unit, integration, architecture, rules and build gates.
 
 **Gate**: M3 success criteria pass; no accepted command is applied twice; no stale update overwrites committed state.
 
 ### Phase 5 — Vercel hosted verification
 
 1. Provision provider-neutral managed PostgreSQL through approved Vercel Marketplace integration.
-2. Set `DATABASE_URL` and non-secret persistence settings in Vercel Production Environment only.
-3. Deploy from merged `main` using existing main-only workflow.
-4. Run production smoke: init, action, state reload, redeploy/retry and readiness.
-5. Record provider, region, migration version, deployment commit and known limitations.
+2. Apply reviewed database migrations to Production and verify migration version before application deploy.
+3. Set `DATABASE_URL` and non-secret persistence settings in Vercel Production Environment only.
+4. Deploy from merged `main` using existing main-only workflow.
+5. Run production smoke: init, action, state reload, redeploy/retry, conflict and readiness.
+6. Record provider, region, migration version, deployment commit, rollback path and known limitations.
 
 **Gate**: state created before a new deployment is readable afterward; no secret leakage; hosted runtime reports durable readiness.
 
@@ -184,7 +199,7 @@ Do not require Redis for first PostgreSQL cutover. When added, use it only for s
 1. Decide whether to add Redis for lock/rate-limit/cache concerns.
 2. Add backup/restore rehearsal and retention monitoring.
 3. Add signed/provider-backed identity and cross-device recovery as M5.
-4. Update `doc/SERVER_MIGRATION.md`, implementation status and ADR after cutover.
+4. Update `doc/SERVER_MIGRATION.md` and implementation status after cutover; ADR-0006 must already be accepted.
 
 ## Verification Matrix
 
