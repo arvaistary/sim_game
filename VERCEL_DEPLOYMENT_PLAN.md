@@ -1,9 +1,11 @@
 # План публикации Game Life на Vercel
 
-**Статус:** подготовлен, не выполнен
-**Дата актуализации:** 26 июля 2026
+**Статус:** выбран main-only workflow; первый deploy выполнен
+**Дата актуализации:** 28 июля 2026
 **Ответственный:** агент публикации
-**Цель:** подготовить безопасный Preview на Vercel и определить условия Production-релиза.
+**Цель:** проверять hosted production runtime через deploy после merge в `main`.
+
+> Ежедневный workflow зафиксирован в [Git/Vercel workflow](doc/guides/VERCEL_GIT_WORKFLOW.md). Этот план описывает deployment gate и ограничения production persistence.
 
 ## 1. Главный вывод
 
@@ -16,10 +18,10 @@
 - после cold start, переноса запроса или нового deploy игровая сессия может исчезнуть;
 - целевая архитектура требует PostgreSQL 16 как source of truth и Redis 7 только для cache/locks/rate limits.
 
-Поэтому агент должен пройти два независимых результата:
+Поэтому нужно разделять два результата:
 
-1. **Preview/Demo:** приложение работает на Vercel, UI и `/api/game/*` доступны, но состояние явно помечено как непостоянное.
-2. **Production:** публикация разрешается только после M3 persistence либо после явно подтверждённого владельцем решения принять потерю сессий.
+1. **Hosted verification:** после локальных тестов feature-ветка вливается в `main`, Vercel пересобирает Production Deployment, UI и `/api/game/*` проверяются на hosted runtime.
+2. **Durable production:** постоянный пользовательский прогресс разрешается только после M3 persistence либо после явно подтверждённого владельцем решения принять потерю сессий.
 
 ## 2. Фактическая база проекта
 
@@ -42,11 +44,12 @@
 ## 3. Правила работы агента
 
 - Не удалять и не откатывать пользовательские изменения.
-- Не коммитить, не пушить и не выполнять Production deploy без явного подтверждения владельца.
-- Сначала делать Preview deploy, затем проверку, затем запрашивать решение о Production.
+- Разрабатывать в локальных feature-ветках; feature-ветки не пушить в обычном workflow.
+- После локальных тестов вливать feature-ветку в `main` и пушить только `main`.
+- Рассматривать Vercel deploy из `main` как hosted production verification, но не объявлять durable production-ready.
 - Не помещать секреты в репозиторий, `README`, `nuxt.config.ts` или `NUXT_PUBLIC_*` переменные.
-- Не добавлять `vercel.json`, если Vercel и Nuxt работают с автоматической конфигурацией.
-- Не использовать `npm run build:client` для full-stack Preview: он не проверяет Nitro API.
+- Не добавлять `vercel.json` для текущего workflow, если не включается отдельный PR/Preview процесс.
+- Не использовать `npm run build:client`: он не проверяет Nitro API.
 - Не объявлять Production-ready при memory persistence.
 - Все изменения конфигурации сопровождать проверками и краткой записью причины.
 
@@ -57,8 +60,8 @@
 - [ ] Проверить `git status` и сохранить список уже изменённых файлов.
 - [ ] Проверить, что агент работает с нужным репозиторием и веткой.
 - [ ] Проверить доступ к GitHub и Vercel только чтением.
-- [ ] Уточнить целевой Vercel project, production branch и домен.
-- [ ] Уточнить, нужен Preview/Demo или настоящий Production-релиз.
+- [ ] Проверить целевой Vercel project, production branch `main` и домен.
+- [ ] Подтвердить main-only workflow: локальная разработка, merge в `main`, Vercel deploy.
 
 **Стоп-условие:** нет доступа к нужному Vercel project, неизвестен production domain или не определён режим релиза. Изменения не вносить.
 
@@ -90,9 +93,9 @@ npm run build
 
 ### Этап 2 — Выбор deployment track
 
-#### Track A — Nuxt/Nitro на Vercel, Preview/Demo
+#### Track A — Nuxt/Nitro на Vercel, main-only hosted verification
 
-Использовать для первой публикации текущего проекта.
+Использовать как текущий и основной workflow проекта.
 
 - Vercel Project Root: корень репозитория;
 - Framework Preset: Nuxt, если Vercel не определит его автоматически;
@@ -101,7 +104,9 @@ npm run build
 - Output Directory: оставить автоматическое определение;
 - Node version: выбрать совместимую с lockfile и локальным baseline;
 - не подключать standalone Fastify как отдельный Vercel service на этом этапе;
-- не считать memory storage подходящим для реальных пользовательских сохранений.
+- feature-ветки проверяются локально и не отправляются в GitHub в обычном процессе;
+- merge в `main` запускает единственный обязательный Vercel deployment;
+- memory storage не считать подходящим для реальных пользовательских сохранений.
 
 #### Track B — Vercel static client + внешний API, Production target
 
@@ -118,12 +123,12 @@ npm run build
 
 ### Этап 3 — Environment variables
 
-Для Track A, same-origin Preview:
+Для Track A, same-origin Production verification:
 
 ```text
 NUXT_PUBLIC_GAME_MODE=server
 NUXT_PUBLIC_GAME_API_BASE_URL=
-NUXT_GAME_CORS_ORIGIN=https://<preview-or-production-domain>
+NUXT_GAME_CORS_ORIGIN=https://<production-domain>
 NUXT_GAME_COOKIE_SAME_SITE=lax
 NUXT_GAME_COOKIE_SECURE=true
 ```
@@ -142,16 +147,18 @@ NUXT_GAME_COOKIE_SECURE=true
 
 - `NUXT_PUBLIC_GAME_API_BASE_URL` содержит только публичный URL API;
 - `NUXT_GAME_CORS_ORIGIN` принимает точные origin без wildcard, потому что API использует credentials;
-- Preview и Production variables задаются раздельно;
+- Production variables задаются в Production environment; Preview variables не требуются для main-only workflow;
 - `DATABASE_URL`, `REDIS_URL` и другие секреты не добавлять, пока runtime действительно их не читает;
 - после изменения variables выполнить новый deploy: runtime config собирается из `NUXT_*` переменных.
 
-### Этап 4 — Создание Vercel Preview
+### Этап 4 — Deploy из `main`
 
-- [ ] Импортировать репозиторий в Vercel или использовать согласованный существующий project.
-- [ ] Установить Track A.
-- [ ] Добавить Preview environment variables.
-- [ ] Запустить Preview deployment.
+- [ ] Подключить репозиторий к существующему Vercel project.
+- [ ] Установить Track A и Production Branch `main`.
+- [ ] Добавить Production environment variables.
+- [ ] Выполнить локальные тесты на feature-ветке.
+- [ ] Влить feature-ветку в `main` и выполнить `git push origin main`.
+- [ ] Дождаться автоматического Production deployment.
 - [ ] Сохранить URL deployment и commit SHA.
 - [ ] Проверить build logs и отсутствие secret leakage.
 - [ ] Проверить, что Vercel не заменил команду на `npm run build:client`.
@@ -163,11 +170,12 @@ npx vercel
 npx vercel --prod
 ```
 
-`--prod` не запускать до прохождения Production gate и подтверждения владельца.
+В штатном workflow CLI не используется: основной триггер — `git push origin main`.
+`--prod` оставлять для аварийного или явно согласованного ручного deploy.
 
-### Этап 5 — Preview smoke test
+### Этап 5 — Hosted production smoke test
 
-Проверить на URL Vercel:
+Проверить на Production URL после deploy из `main`:
 
 1. Открывается `/`.
 2. Открываются ключевые маршруты из `doc/core/PAGES_REFERENCE.md`.
@@ -204,36 +212,36 @@ Production gate закрывается только если выполнены 
 - [ ] `/ready` проверяет реальные зависимости.
 - [ ] Cookie/CORS/identity настроены для production domain.
 
-### Этап 7 — Production release
+### Этап 7 — Durable production gate
 
 После письменного подтверждения владельца:
 
 - [ ] Зафиксировать production environment variables.
 - [ ] Проверить custom domain и HTTPS.
-- [ ] Выполнить Production deploy.
+- [ ] После закрытия persistence gate выполнить новый deploy из `main`.
 - [ ] Повторить smoke test на production URL.
 - [ ] Проверить сохранение состояния после redeploy или rollback rehearsal.
 - [ ] Зафиксировать deployment URL, commit SHA, время, результат checks и known limitations.
 - [ ] Настроить Vercel deployment protection, доступ к logs и rollback procedure.
 
-Если persistence gate не пройден, разрешён только Preview/Demo с явной пометкой:
+Если persistence gate не пройден, hosted deployment использовать только как production verification с явной пометкой:
 
 > Игровые сессии временные; deploy не предназначен для хранения пользовательского прогресса.
 
 ## 5. Definition of Done
 
-### Для Preview/Demo
+### Для Hosted verification
 
 - build и все локальные gates проходят;
-- Preview создан из ожидаемого commit;
+- Production deployment создан из ожидаемого commit после push `main`;
 - UI и `/api/game/*` отвечают;
 - cookie session и основной game loop работают;
 - CORS не ломает запросы;
 - known limitation memory persistence зафиксирована.
 
-### Для Production
+### Для Durable production
 
-- все Preview criteria выполнены;
+- все Hosted verification criteria выполнены;
 - persistence gate закрыт;
 - секреты находятся только в Vercel Environment Variables или API provider;
 - после redeploy состояние не теряется;
@@ -252,7 +260,7 @@ Production gate закрывается только если выполнены 
 - команды и результаты проверок;
 - smoke-test matrix;
 - unresolved blockers;
-- явный статус: `Preview ready`, `Production blocked` или `Production ready`.
+- явный статус: `Hosted verification ready`, `Durable production blocked` или `Durable production ready`.
 
 ## 7. Связанные документы
 
