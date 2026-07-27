@@ -9,11 +9,12 @@
 1. [Обзор архитектуры](./core/ARCHITECTURE_OVERVIEW.md) — слоистая архитектура
 2. [Архитектурный контракт](./core/ARCHITECTURE_CONTRACT.md) — куда класть код
 3. [Server-first миграция](./SERVER_MIGRATION.md) — режимы SPA/Server/Hybrid
-4. [Статус реализации](./core/IMPLEMENTATION_STATUS.md) — что готово
-5. [Справочник страниц](./core/PAGES_REFERENCE.md) — Vue страницы и роутинг
-6. [Game Design Document](./GDD/GDD.md) — описание механик
-7. [Composables Reference](./reference/COMPOSABLES_REFERENCE.md) — API composables
-8. [Stores Reference](./reference/STORES_REFERENCE.md) — API stores
+4. [Git/Vercel workflow](./guides/VERCEL_GIT_WORKFLOW.md) — локальные feature-ветки и deploy из `main`
+5. [Статус реализации](./core/IMPLEMENTATION_STATUS.md) — что готово
+6. [Справочник страниц](./core/PAGES_REFERENCE.md) — Vue страницы и роутинг
+7. [Game Design Document](./GDD/GDD.md) — описание механик
+8. [Composables Reference](./reference/COMPOSABLES_REFERENCE.md) — API composables
+9. [Stores Reference](./reference/STORES_REFERENCE.md) — API stores
 
 ## Структура документации
 
@@ -66,7 +67,8 @@ doc/
 ├── guides/                            # Практические руководства
 │   ├── DESIGN_SYSTEM.md               # Design system проекта
 │   ├── MODAL_SYSTEM_GUIDE.md          # Руководство по модальной системе
-│   └── RULES_NUXT_ADAPTATION.md       # Правила адаптации под Nuxt
+│   ├── RULES_NUXT_ADAPTATION.md       # Правила адаптации под Nuxt
+│   └── VERCEL_GIT_WORKFLOW.md         # Локальные feature-ветки и deploy из main
 │
 ├── reference/                         # API Reference
 │   ├── COMPOSABLES_REFERENCE.md       # Справочник Vue composables
@@ -118,6 +120,9 @@ NUXT_PUBLIC_GAME_API_BASE_URL=https://api.example.com
 
 ### Хочу узнать про server-first миграцию
 Архитектура и режимы работы → [`SERVER_MIGRATION.md`](./SERVER_MIGRATION.md)
+
+### Хочу понять процесс разработки и деплоя
+Git/Vercel workflow → [`guides/VERCEL_GIT_WORKFLOW.md`](./guides/VERCEL_GIT_WORKFLOW.md)
 
 ### Хочу узнать, что уже готово
 Статус реализации → [`core/IMPLEMENTATION_STATUS.md`](./core/IMPLEMENTATION_STATUS.md)
