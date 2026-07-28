@@ -110,12 +110,15 @@
 import './index.scss'
 import type { ComputedRef } from 'vue'
 import type { StartMode } from '@/types'
+import { GameWorld } from '@/domain/game-world/GameWorld'
 
 const playerStore = usePlayerStore()
 const timeStore = useTimeStore()
 const statsStore = useStatsStore()
 const walletStore = useWalletStore()
 const skillsStore = useSkillsStore()
+const actionsStore = useActionsStore()
+const gameStore = useGameStore()
 
 const playerName = ref('')
 const startMode = ref<StartMode>('infancy')
@@ -134,7 +137,7 @@ const canStart: ComputedRef<boolean> = computed(() => {
   return true
 })
 
-function startGame() {
+async function startGame(): Promise<void> {
   if (!canStart.value) return
 
   const startAge: number = startMode.value === 'infancy' ? 0 : adultAge.value
@@ -142,12 +145,24 @@ function startGame() {
   playerStore.setName(playerName.value)
   playerStore.showWelcomeScreen()
 
-  timeStore.setTotalHours(startAge * 365 * 24)
+  timeStore.reset()
+  timeStore.setStartAge(startAge)
+  timeStore.setTotalHours(0)
 
   statsStore.reset()
   walletStore.reset()
   skillsStore.reset()
+  actionsStore.reset()
 
-  navigateTo('/game')
+  if (gameStore.gameMode !== 'spa') {
+    const world: GameWorld = GameWorld.createEmpty()
+    world.player.playerName = playerName.value.trim()
+    world.player.startAge = startAge
+    world.player.currentAge = startAge
+    world.wallet.money = 5000
+    await gameStore.initializeServerSession(world.toJSON(), { replace: true })
+  }
+
+  await navigateTo('/game')
 }
 </script>

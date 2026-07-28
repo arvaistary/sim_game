@@ -1,4 +1,5 @@
 import type { AuthSessionResponse } from '@/middleware/auth.types'
+import { createLocalStorageSaveRepository } from '@/infrastructure/persistence/LocalStorageSaveRepository'
 
 export default defineNuxtPlugin(async () => {
   const authSession: AuthSessionResponse = await $fetch('/api/auth/session')
@@ -8,6 +9,8 @@ export default defineNuxtPlugin(async () => {
   const gameStore = useGameStore()
 
   if (gameStore.gameMode !== 'spa') {
-    await gameStore.initializeServerSession()
+    const savedData = createLocalStorageSaveRepository().load()
+    if (savedData) gameStore.load(savedData)
+    await gameStore.initializeServerSession(gameStore.getWorldState())
   }
 })

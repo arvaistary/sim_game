@@ -15,6 +15,7 @@ import type {
   AvailabilityCheck,
   CareerTrackItemDto,
   EventQueueItemDto,
+  InitStateOptions,
 } from './async-executor.types'
 import type {
   CanStartEducationResult,
@@ -42,10 +43,13 @@ export function createServerQueryExecutor(
       return data.state
     },
 
-    async initState(_world: GameWorld | null): Promise<GameWorldJSON> {
+    async initState(_world: GameWorld | null, options?: InitStateOptions): Promise<GameWorldJSON> {
       const data: ContractGameStateResponse<GameWorldJSON> = await fetchApi<ContractGameStateResponse<GameWorldJSON>>(`${base}/api/game/init`, {
         method: 'POST',
-        body: {},
+        body: {
+          ...(options?.saveData ? { saveData: options.saveData } : {}),
+          ...(options?.replace ? { replace: true } : {}),
+        },
       })
       return data.state
     },

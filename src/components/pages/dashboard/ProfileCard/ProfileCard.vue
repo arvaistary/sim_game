@@ -28,7 +28,7 @@
       </div>
       <div class="profile-card__kpi">
         <span class="profile-card__kpi-label">День</span>
-        <span class="profile-card__kpi-value metric">{{ gameDays }}</span>
+        <span class="profile-card__kpi-value metric">{{ formatGameDays(gameDays) }}</span>
       </div>
       <div class="profile-card__kpi">
         <span class="profile-card__kpi-label">Комфорт</span>
@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import './ProfileCard.scss'
 import SkillsModal from '../SkillsModal/SkillsModal.vue'
-import { formatMoney } from '@/utils/format'
+import { formatGameDays, formatMoney } from '@/utils/format'
 
 const timeStore = useTimeStore()
 const walletStore = useWalletStore()
@@ -82,9 +82,7 @@ const jobLabel = computed<string>(() => {
 })
 
 const timeLabel = computed<string>(() => {
-  const gameWeeks = timeStore.gameWeeksFloored
-  const weekHoursRemaining = timeStore.weekHoursRemaining
-  return `Неделя ${gameWeeks} • ${weekHoursRemaining} ч осталось`
+  return `Неделя ${timeStore.gameWeekOfMonth}`
 })
 
 function openSkillsModal(): void {

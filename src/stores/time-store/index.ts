@@ -21,6 +21,8 @@ const INITIAL_STATE: TimeState = {
 }
 
 const START_AGE = 18
+const DAYS_PER_WEEK = 7
+const DAYS_PER_MONTH = 30
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
@@ -32,10 +34,11 @@ export const useTimeStore = defineStore('time', () => {
   const startAge = ref(START_AGE)
 
   const gameDays = computed(() => Math.floor(totalHours.value / 24))
-  const gameWeeks = computed(() => Math.floor(gameDays.value / 7))
-  const gameMonths = computed(() => Math.floor(gameDays.value / 30))
+  const gameWeeks = computed(() => Math.floor(gameDays.value / DAYS_PER_WEEK))
+  const gameMonths = computed(() => Math.floor(gameDays.value / DAYS_PER_MONTH))
   const gameYears = computed(() => Math.floor(gameDays.value / 365))
   const currentAge = computed(() => startAge.value + gameYears.value)
+  const gameWeekOfMonth = computed(() => Math.min(4, Math.floor((gameDays.value % DAYS_PER_MONTH) / DAYS_PER_WEEK) + 1))
 
   const dayHour = computed(() => totalHours.value % 24)
   const dayHoursRemaining = computed(() => 24 - dayHour.value)
@@ -67,9 +70,14 @@ export const useTimeStore = defineStore('time', () => {
     totalHours.value = hours
   }
 
+  function setStartAge(age: number): void {
+    startAge.value = clamp(Math.floor(age), 0, 65)
+  }
+
   function reset() {
     totalHours.value = INITIAL_STATE.totalHours
     sleepDebt.value = INITIAL_STATE.sleepDebt
+    startAge.value = START_AGE
   }
 
   function save(): Record<string, unknown> {
@@ -95,6 +103,7 @@ export const useTimeStore = defineStore('time', () => {
     gameMonths,
     gameYears,
     currentAge,
+    gameWeekOfMonth,
     dayHour,
     dayHoursRemaining,
     weekHour,
@@ -104,6 +113,7 @@ export const useTimeStore = defineStore('time', () => {
     advanceHoursWithSleep,
     reduceSleepDebt,
     setTotalHours,
+    setStartAge,
     reset,
     save,
     load,

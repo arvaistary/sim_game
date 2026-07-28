@@ -4,9 +4,23 @@
       v-model="activeCategory"
       :items="ACTION_CATEGORIES"
     />
+    <div class="action-filters rounded-panel">
+      <div class="action-filters__field">
+        <span>Восполняет ресурс</span>
+        <DropdownSelect v-model="activeStat" :options="resourceOptions" />
+      </div>
+      <div class="action-filters__field action-filters__field--sort">
+        <span>Сортировка</span>
+        <DropdownSelect v-model="sortMode" :options="sortOptions" />
+      </div>
+    </div>
+    <p
+      v-if="activeStat !== 'all'"
+      class="action-filters__hint"
+    >Показываем действия из всех категорий, которые восполняют выбранный ресурс.</p>
     <ActionCardList
       :actions="sortedActions"
-      :empty-text="actionsEmptyHint"
+      :empty-text="emptyText"
       :is-disabled="(a: BalanceAction) => !canExecute(a.id)"
       :get-disabled-reason="getDisabledReason"
       @execute="executeAction"
@@ -25,11 +39,51 @@ definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()
 
-const { getActionsByCategory, canExecute, executeAction, actionsEmptyHint } = useActions()
+const { getActionsByCategory, getAllActions, canExecute, executeAction, actionsEmptyHint } = useActions()
 
-const activeCategory = ref<ActionCategoryId>('fun')
+const activeCategory = ref<string>(ACTION_CATEGORIES[0]?.id ?? 'fun')
+const activeStat = ref<StatFilterId>('all')
+const sortMode = ref<SortMode>('price')
 
-const actions: ComputedRef<BalanceAction[]> = computed(() => getActionsByCategory(activeCategory.value))
+type StatFilterId = 'all' | 'energy' | 'health' | 'mood' | 'stress' | 'hunger' | 'physical'
+type SortMode = 'price' | 'parameter'
+
+const STAT_FILTERS: Array<{ id: Exclude<StatFilterId, 'all'>; label: string }> = [
+  { id: 'energy', label: 'Энергия' },
+  { id: 'health', label: 'Здоровье' },
+  { id: 'mood', label: 'Настроение' },
+  { id: 'stress', label: 'Стресс' },
+  { id: 'hunger', label: 'Голод' },
+  { id: 'physical', label: 'Форма' },
+]
+
+const resourceOptions = [
+  { value: 'all', label: 'Все ресурсы' },
+  ...STAT_FILTERS.map((item) => ({ value: item.id, label: item.label })),
+]
+
+const sortOptions = [
+  { value: 'price', label: 'По цене' },
+  { value: 'parameter', label: 'По параметру' },
+]
+
+const actions: ComputedRef<BalanceAction[]> = computed(() => {
+  const categoryActions = activeStat.value === 'all'
+    ? getActionsByCategory(activeCategory.value as ActionCategoryId)
+    : getAllActions()
+
+  if (activeStat.value === 'all') return categoryActions
+
+  return categoryActions.filter((action) => {
+    const value = action.statChanges?.[activeStat.value]
+    if (typeof value !== 'number') return false
+    return value > 0
+  })
+})
+
+const emptyText: ComputedRef<string> = computed(() => activeStat.value === 'all'
+  ? actionsEmptyHint.value
+  : 'Нет действий, восполняющих выбранный ресурс.')
 
 function getDisabledReason(action: BalanceAction): string {
   const result: CanExecuteActionResult = store.canExecuteAction(action.id)
@@ -38,6 +92,58 @@ function getDisabledReason(action: BalanceAction): string {
 
 const sortedActions: ComputedRef<BalanceAction[]> = computed(() => {
   void store.worldTick
-  return [...actions.value].sort((a, b) => (canExecute(a.id) ? 0 : 1) - (canExecute(b.id) ? 0 : 1))
+  const originalOrder = new Map(actions.value.map((action, index) => [action.id, index]))
+  return [...actions.value].sort((a, b) => {
+    if (sortMode.value === 'parameter') {
+      const parameterA = getPositiveEffect(a)
+      const parameterB = getPositiveEffect(b)
+      if (parameterA !== parameterB) return parameterB - parameterA
+    } else if (a.price !== b.price) {
+      return a.price - b.price
+    }
+
+    return (originalOrder.get(a.id) ?? 0) - (originalOrder.get(b.id) ?? 0)
+  })
 })
+
+function getPositiveEffect(action: BalanceAction): number {
+  if (activeStat.value !== 'all') return action.statChanges?.[activeStat.value] ?? 0
+  return Math.max(0, ...Object.values(action.statChanges ?? {}).filter((value): value is number => typeof value === 'number'))
+}
 </script>
+
+<style scoped lang="scss">
+:deep(.dashboard-shell__content) {
+  gap: $space-3;
+}
+
+.action-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  align-items: flex-end;
+  margin: $space-3 0 $space-2;
+  padding: $space-3;
+}
+
+.action-filters__field {
+  display: flex;
+  flex: 0 1 260px;
+  flex-direction: column;
+  gap: $space-1;
+  color: var(--color-text-secondary);
+  font-size: $font-size-sm;
+}
+
+.action-filters__hint {
+  margin: 0 0 $space-3;
+  color: var(--color-text-secondary);
+  font-size: $font-size-xs;
+}
+
+@include mobile {
+  .action-filters__field {
+    flex-basis: 100%;
+  }
+}
+</style>

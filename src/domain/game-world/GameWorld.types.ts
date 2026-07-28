@@ -35,6 +35,11 @@ export interface ActivityEntry {
   outcome?: string
 }
 
+export interface ActionUsageEntry {
+  count: number
+  lastUsedAt: number
+}
+
 /** Снимок среза time/стартовых параметров персонажа. */
 export interface PlayerSlice {
   playerName: string
@@ -80,6 +85,7 @@ export interface GameWorldSnapshot {
     entries: ActivityEntry[]
     lifetime: LifetimeStatsData
   }
+  actionUsage?: Record<string, ActionUsageEntry>
   tags?: { items: CharacterTag[] }
 }
 

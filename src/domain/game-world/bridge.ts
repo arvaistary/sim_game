@@ -13,6 +13,7 @@ import { GameWorld } from '@/domain/game-world/GameWorld'
 import type { ActivityEntry, GameWorldSnapshot } from '@/domain/game-world/GameWorld.types'
 import type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
 import { recalculateSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
+import { INITIAL_STATS } from '@/domain/balance/constants/initial-stats'
 import type { SkillModifiers } from '@/domain/balance/types'
 
 export type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
@@ -64,6 +65,7 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
   const events: Record<string, unknown> = stores.events ?? {}
   const finance: Record<string, unknown> = stores.finance ?? {}
   const activity: Record<string, unknown> = stores.activity ?? {}
+  const actions: Record<string, unknown> = stores.actions ?? {}
 
   const skillsLevels: Record<string, number | { level: number; xp: number }> = (skillsRaw.skills ?? {}) as Record<string, number | { level: number; xp: number }>
   const skillModifiers: SkillModifiers = recalculateSkillModifiers(skillsLevels)
@@ -86,12 +88,12 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
       sleepDebt: readNumber(time, 'sleepDebt', 0),
     },
     stats: {
-      hunger: readNumber(stats, 'hunger', 70),
-      energy: readNumber(stats, 'energy', 70),
-      stress: readNumber(stats, 'stress', 30),
-      mood: readNumber(stats, 'mood', 60),
-      health: readNumber(stats, 'health', 80),
-      physical: readNumber(stats, 'physical', 50),
+      hunger: readNumber(stats, 'hunger', INITIAL_STATS.hunger),
+      energy: readNumber(stats, 'energy', INITIAL_STATS.energy),
+      stress: readNumber(stats, 'stress', INITIAL_STATS.stress),
+      mood: readNumber(stats, 'mood', INITIAL_STATS.mood),
+      health: readNumber(stats, 'health', INITIAL_STATS.health),
+      physical: readNumber(stats, 'physical', INITIAL_STATS.physical),
     },
     wallet: {
       money: readNumber(wallet, 'money', 0),
@@ -127,10 +129,26 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
     finance: normalizeFinanceStoreSnapshot(finance),
     events: normalizeEventsStoreSnapshot(events),
     activity: normalizeActivityStoreSnapshot(activity),
+    actionUsage: normalizeActionUsageSnapshot(actions),
     tags: { items: [] },
   }
 
   return new GameWorld(snapshot)
+}
+
+function normalizeActionUsageSnapshot(actions: Record<string, unknown>): NonNullable<GameWorldSnapshot['actionUsage']> {
+  const raw = actions.actionUsage
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+
+  const result: NonNullable<GameWorldSnapshot['actionUsage']> = {}
+  for (const [actionId, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!value || typeof value !== 'object') continue
+    const usage = value as { count?: unknown; lastUsedAt?: unknown }
+    if (typeof usage.count === 'number' && typeof usage.lastUsedAt === 'number') {
+      result[actionId] = { count: usage.count, lastUsedAt: usage.lastUsedAt }
+    }
+  }
+  return result
 }
 
 /**
@@ -222,7 +240,10 @@ export function applyToStores(world: GameWorld, stores: StoresLoadTarget): void 
   }
 
   if (stores.time?.load) {
-    stores.time.load(snapshot.time as unknown as Record<string, unknown>)
+    stores.time.load({
+      ...snapshot.time,
+      startAge: snapshot.player.startAge,
+    } as unknown as Record<string, unknown>)
   }
 
   if (stores.stats?.load) {
@@ -282,5 +303,9 @@ export function applyToStores(world: GameWorld, stores: StoresLoadTarget): void 
       entries: snapshot.activity.entries,
       lifetime: snapshot.activity.lifetime,
     })
+  }
+
+  if (stores.actions?.load) {
+    stores.actions.load({ actionUsage: snapshot.actionUsage ?? {} })
   }
 }

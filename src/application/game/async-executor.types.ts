@@ -36,6 +36,11 @@ export interface ActivityLogWindow {
   nextCursor?: number
 }
 
+export interface InitStateOptions {
+  saveData?: GameWorldJSON
+  replace?: boolean
+}
+
 /**
  * Элемент очереди событий для UI.
  */
@@ -65,6 +70,7 @@ export interface CareerTrackItemDto {
  * устраняет `world?` опциональность, которая вела к runtime-проверкам.
  */
 export interface AsyncGameExecutor {
+  resetStateVersion?: () => void
   executeLifestyleAction(world: GameWorld | null, cardData: Record<string, unknown>): Promise<string>
   simulateWorkShift(world: GameWorld | null, hours: number): Promise<string>
   changeCareer(world: GameWorld | null, jobId: string): Promise<CommandOutcome>
@@ -84,7 +90,7 @@ export interface AsyncGameExecutor {
  */
 export interface AsyncGameQueryExecutor {
   getState(world: GameWorld | null): Promise<GameWorldJSON>
-  initState(world: GameWorld | null): Promise<GameWorldJSON>
+  initState(world: GameWorld | null, options?: InitStateOptions): Promise<GameWorldJSON>
   getCareerTrack(world: GameWorld | null): Promise<CareerTrackItemDto[]>
   getActivityLogEntries(world: GameWorld | null, count?: number): Promise<ActivityEntry[]>
   canStartEducationProgram(world: GameWorld | null, programId: string): Promise<boolean>

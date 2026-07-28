@@ -70,6 +70,17 @@ describe('domain command: executeActionCommand', () => {
     expect(world.activity.lifetime).toBeDefined()
   })
 
+  it('сохраняет usage action в мире и после сериализации', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+
+    expect(world.actionUsage.self_morning_routine).toBeUndefined()
+    expect(executeActionCommand(world, 'self_morning_routine').success).toBe(true)
+    expect(executeActionCommand(world, 'self_morning_routine').success).toBe(true)
+
+    expect(world.actionUsage.self_morning_routine).toEqual({ count: 2, lastUsedAt: 2 })
+    expect(GameWorld.fromJSON(world.toJSON()).actionUsage.self_morning_routine).toEqual({ count: 2, lastUsedAt: 2 })
+  })
+
   it('списывает деньги и пишет activity entry для платного action', () => {
     const initialMoney: number = 1_000_000
     const world: GameWorld = GameWorld.createEmpty({ wallet: { money: initialMoney, totalEarnings: initialMoney, totalSpent: 0 } })

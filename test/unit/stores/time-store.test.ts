@@ -32,6 +32,22 @@ describe('time-store', () => {
     expect(time.currentAge).toBe(19)
   })
 
+  it.each([
+    [0, 1], [6, 1], [7, 2], [13, 2], [14, 3], [20, 3], [21, 4], [27, 4], [28, 4], [29, 4],
+  ])('вычисляет неделю месяца для дня %i', (day, expectedWeek) => {
+    const time = useTimeStore()
+    time.setTotalHours(day * 24)
+    expect(time.gameWeekOfMonth).toBe(expectedWeek)
+  })
+
+  it('позволяет задать возраст старта без добавления прошедших дней', () => {
+    const time = useTimeStore()
+    time.setStartAge(16)
+    time.setTotalHours(0)
+    expect(time.currentAge).toBe(16)
+    expect(time.gameDays).toBe(0)
+  })
+
   it('должен увеличивать sleepDebt при обычной деятельности', () => {
     const time = useTimeStore()
     time.advanceHours(8, { actionType: 'work' })

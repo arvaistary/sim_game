@@ -82,6 +82,28 @@ export function spendMoney(world: GameWorld, amount: number): boolean {
   return true
 }
 
+/** Сохранить купленный предмет в общем инвентаре мира. */
+export function grantItem(world: GameWorld, itemId: string): void {
+  if (!itemId) return
+
+  const furniture: Array<Record<string, unknown>> = world.housing.furniture as Array<Record<string, unknown>>
+  if (furniture.some((item: Record<string, unknown>) => item.id === itemId && item.purchased === true)) return
+
+  furniture.push({ id: itemId, name: itemId, comfortBonus: 0, purchased: true })
+}
+
+export function recordActionUsage(world: GameWorld, actionId: string): void {
+  const current = world.actionUsage[actionId] ?? { count: 0, lastUsedAt: 0 }
+  const lastUsedAt = Object.values(world.actionUsage).reduce(
+    (latest, usage) => Math.max(latest, usage.lastUsedAt),
+    0,
+  ) + 1
+  world.actionUsage[actionId] = {
+    count: current.count + 1,
+    lastUsedAt,
+  }
+}
+
 /**
  * Начислить деньги в кошелёк.
  * @description [Domain] - мутирует world.wallet.money и totalEarnings.

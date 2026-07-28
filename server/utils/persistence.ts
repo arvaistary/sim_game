@@ -31,10 +31,12 @@ export function getGameStateService(): GameStateService<GameWorldJSON, CommandRe
 export async function initializePersistentSession(
   sessionId: string,
   state: GameWorldJSON,
+  replace: boolean = false,
 ): Promise<GameStateRecord<GameWorldJSON>> {
   const stateRepository: GameStateRepository<GameWorldJSON> = getPersistenceRepository()
   const existing: GameStateRecord<GameWorldJSON> | null = await stateRepository.findByPlayerId(sessionId)
-  if (existing) return existing
+  if (existing && !replace) return existing
+  if (existing) return stateRepository.saveIfVersionMatches(existing.sessionId, existing.stateVersion, state)
   const now = new Date()
   const record: GameStateRecord<GameWorldJSON> = {
     sessionId,

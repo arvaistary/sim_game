@@ -130,6 +130,7 @@ export const useGameStore = defineStore('game', () => {
       events,
       finance,
       activity,
+      actions,
     }
     applyToStores(world, target)
     worldVersion.value++
@@ -142,15 +143,27 @@ export const useGameStore = defineStore('game', () => {
     syncFromWorld(GameWorld.fromJSON(state))
   }
 
-  async function initializeServerSession(): Promise<void> {
+  async function initializeServerSession(
+    initialState?: GameWorldJSON,
+    options: { replace?: boolean } = {},
+  ): Promise<void> {
 
     if (gameMode === 'spa') return
+
+    if (initialState && options.replace) {
+      const state: GameWorldJSON = await queryExecutor.initState(null, { saveData: initialState, replace: true })
+      syncFromWorld(GameWorld.fromJSON(state))
+      return
+    }
 
     try {
       await refreshServerState()
     } catch (error) {
       if (!isMissingServerSession(error)) throw error
-      const state: GameWorldJSON = await queryExecutor.initState(null)
+      const state: GameWorldJSON = await queryExecutor.initState(
+        null,
+        initialState ? { saveData: initialState } : undefined,
+      )
       syncFromWorld(GameWorld.fromJSON(state))
     }
   }
@@ -158,9 +171,22 @@ export const useGameStore = defineStore('game', () => {
   function isMissingServerSession(error: unknown): boolean {
     const candidate: ServerSessionErrorCandidate = error as ServerSessionErrorCandidate
     const message: string = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
-    return candidate.statusCode === 404
+    return candidate.code === 'session_not_found'
+      || candidate.statusCode === 404
       || candidate.data?.code === 'session_not_found'
       || message.includes('session not found')
+  }
+
+  async function withServerSessionRecovery<T>(operation: () => Promise<T>): Promise<T> {
+    try {
+      return await operation()
+    } catch (error) {
+      if (gameMode === 'spa' || !isMissingServerSession(error)) throw error
+      const resetStateVersion = (executor as AsyncGameExecutor & { resetStateVersion?: () => void }).resetStateVersion
+      resetStateVersion?.()
+      await initializeServerSession(buildWorld().toJSON())
+      return operation()
+    }
   }
 
   const worldTick: ComputedRef<number> = computed(() => worldVersion.value)
@@ -186,6 +212,7 @@ export const useGameStore = defineStore('game', () => {
       events: events.save ? events.save() : {},
       finance: finance.save ? finance.save() : {},
       activity: activity.save ? activity.save() : {},
+      actions: actions.save ? actions.save() : {},
     }
   }
 
@@ -212,12 +239,14 @@ export const useGameStore = defineStore('game', () => {
 
     if (data?.activity) activity.load?.(data.activity as Record<string, unknown>)
 
+    if (data?.actions) actions.load?.(data.actions as Record<string, unknown>)
+
     isInitialized.value = true;
     return true
   }
 
   function resetGame(): void {
-    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset()
+    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset()
     worldVersion.value++
   }
 
@@ -362,7 +391,7 @@ export const useGameStore = defineStore('game', () => {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
     let result: ExecuteActionResult
     try {
-      result = await executor.executeAction(world, actionId)
+      result = await withServerSessionRecovery(() => executor.executeAction(world, actionId))
     } catch (error) {
       const candidate: ServerConflictErrorCandidate = error as ServerConflictErrorCandidate
 
@@ -389,7 +418,7 @@ export const useGameStore = defineStore('game', () => {
     if (!check.canDo) return check.reason ?? 'Ошибка'
 
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
-    const result: string = await executor.simulateWorkShift(world, hours)
+    const result: string = await withServerSessionRecovery(() => executor.simulateWorkShift(world, hours))
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
@@ -403,7 +432,7 @@ export const useGameStore = defineStore('game', () => {
    */
   async function changeCareerAsync(jobId: string): Promise<ChangeCareerResult> {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
-    const result: ChangeCareerResult = await executor.changeCareer(world, jobId)
+    const result: ChangeCareerResult = await withServerSessionRecovery(() => executor.changeCareer(world, jobId))
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
@@ -417,7 +446,7 @@ export const useGameStore = defineStore('game', () => {
    */
   async function quitCareerAsync(): Promise<QuitCareerResult> {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
-    const result: QuitCareerResult = await executor.quitCareer(world)
+    const result: QuitCareerResult = await withServerSessionRecovery(() => executor.quitCareer(world))
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
@@ -426,7 +455,7 @@ export const useGameStore = defineStore('game', () => {
 
   async function startEducationProgramAsync(programId: string): Promise<string> {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
-    const result: string = await executor.startEducationProgram(world, programId)
+    const result: string = await withServerSessionRecovery(() => executor.startEducationProgram(world, programId))
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
@@ -435,7 +464,7 @@ export const useGameStore = defineStore('game', () => {
 
   async function advanceEducationAsync(): Promise<string> {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
-    const result: string = await executor.advanceEducation(world)
+    const result: string = await withServerSessionRecovery(() => executor.advanceEducation(world))
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
@@ -444,7 +473,7 @@ export const useGameStore = defineStore('game', () => {
 
   async function resolveEventDecisionAsync(eventId: string, choiceId: string): Promise<CommandOutcome> {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
-    const result: CommandOutcome = await executor.resolveEventDecision(world, eventId, choiceId)
+    const result: CommandOutcome = await withServerSessionRecovery(() => executor.resolveEventDecision(world, eventId, choiceId))
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
@@ -559,7 +588,7 @@ export const useGameStore = defineStore('game', () => {
     education: computed(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
     housing: computed(() => ({ level: housing.level, comfort: housing.comfort, furniture: housing.furniture })),
     getCareerTrack, getCareerSnapshot, getFinanceSnapshot, getFinanceActions, getActivityLogEntries, getStats: () => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
-    initWorld, save, load, resetGame,
+     initWorld, save, load, resetGame, getWorldState: () => buildWorld().toJSON(),
     canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
     canExecuteAction, executeAction, getNextEvent, applyEventChoice, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment,
     canStartEducationProgramWithReason, startEducationProgram, advanceEducation,

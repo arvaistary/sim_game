@@ -1,5 +1,7 @@
 
 
+import { INITIAL_STATS } from '@/domain/balance/constants/initial-stats'
+
 export interface StatsComponent {
   energy: number
   health: number
@@ -16,15 +18,6 @@ export interface StatsState {
   stress: number
   mood: number
   physical: number
-}
-
-const INITIAL_STATS: StatsState = {
-  energy: 100,
-  health: 100,
-  hunger: 0,
-  stress: 0,
-  mood: 100,
-  physical: 50,
 }
 
 function clamp(value: number, min: number, max: number): number {

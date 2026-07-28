@@ -21,7 +21,7 @@
     "infra:down": "docker compose -f infra/docker-compose.yml down",
     "db:migrate": "node scripts/db-migrate.mjs migrate",
     "db:status": "node scripts/db-migrate.mjs status",
-    "dev:client": "cross-env NUXT_PUBLIC_GAME_MODE=server NUXT_PUBLIC_GAME_API_BASE_URL=http://127.0.0.1:3001 nuxt dev --port 3000",
+    "dev:client": "cross-env NUXT_PUBLIC_GAME_MODE=server NUXT_PUBLIC_GAME_API_BASE_URL=http://localhost:3001 nuxt dev --port 3000",
     "dev:server": "cross-env NUXT_PUBLIC_GAME_MODE=server NUXT_GAME_CORS_ORIGIN=http://127.0.0.1:3000,http://localhost:3000 nuxt dev --port 3001",
     "dev:standalone-server": "tsx --tsconfig tsconfig.server.json apps/server/src/index.ts",
     "build": "nuxt build",

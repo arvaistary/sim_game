@@ -1,6 +1,6 @@
 import type { ComputedRef } from 'vue'
 import type { ExecuteActionCommandResult } from '@/application/game/index.types'
-import { getActionsByCategory, getActionById } from '@/domain/balance/actions'
+import { getActionsByCategory, getActionById, getAllActions as getAllBalanceActions } from '@/domain/balance/actions'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { ActionCategory } from '@/domain/balance/types'
 import type { UseActionsReturn } from './useActions.types'
@@ -41,7 +41,14 @@ export function useActions(): UseActionsReturn {
       return false
     }
 
-    const result: ExecuteActionCommandResult = await gameStore.executeActionAsync(actionId)
+    let result: ExecuteActionCommandResult
+    try {
+      result = await gameStore.executeActionAsync(actionId)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Не удалось выполнить действие'
+      toast.showError(message)
+      return false
+    }
 
     if (!result.success) {
       toast.showError(result.message)
@@ -59,6 +66,10 @@ export function useActions(): UseActionsReturn {
     return filterActionsByAge(actions)
   }
 
+  function getAllActions(): BalanceAction[] {
+    return filterActionsByAge(getAllBalanceActions())
+  }
+
   const allCategories: ComputedRef<ActionCategory[]> = computed<ActionCategory[]>(() => {
     return [
       'shop', 'fun', 'home', 'social', 'education',
@@ -70,6 +81,7 @@ export function useActions(): UseActionsReturn {
     canExecute,
     executeAction,
     getActionsByCategory: getActions,
+    getAllActions,
     allCategories,
     actionsEmptyHint,
   }
