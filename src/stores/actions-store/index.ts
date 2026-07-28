@@ -2,7 +2,7 @@
 import type { Ref, ComputedRef } from 'vue'
 import type { CanApplyWorkShiftResult } from '@/stores/game.store.types'
 import type { ExecuteActionCommandResult } from '@/application/game/index.types'
-import type { GameAction, ActionResult } from './actions-store.types'
+import type { GameAction, ActionResult, ActionUsageEntry } from './actions-store.types'
 import { appGameCommands } from '@/application/game'
 
 export type { GameAction, ActionResult } from './actions-store.types'
@@ -12,6 +12,7 @@ const _ACTION_COOLDOWNS: Record<string, number> = {}
 export const useActionsStore = defineStore('actions', () => {
   const lastExecutedAction: Ref<string | null> = ref<string | null>(null)
   const actionResults: Ref<ActionResult[]> = ref<ActionResult[]>([])
+  const actionUsage: Ref<Record<string, ActionUsageEntry>> = ref<Record<string, ActionUsageEntry>>({})
 
   const timeStore = useTimeStore()
 
@@ -89,17 +90,39 @@ export const useActionsStore = defineStore('actions', () => {
   function reset(): void {
     lastExecutedAction.value = null
     actionResults.value = []
+    actionUsage.value = {}
+  }
+
+  function save(): Record<string, unknown> {
+    return { actionUsage: { ...actionUsage.value } }
+  }
+
+  function load(data: Record<string, unknown>): void {
+    const raw = data.actionUsage
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return
+    const restored: Record<string, ActionUsageEntry> = {}
+    for (const [actionId, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (!value || typeof value !== 'object') continue
+      const usage = value as { count?: unknown; lastUsedAt?: unknown }
+      if (typeof usage.count === 'number' && typeof usage.lastUsedAt === 'number') {
+        restored[actionId] = { count: usage.count, lastUsedAt: usage.lastUsedAt }
+      }
+    }
+    actionUsage.value = restored
   }
 
   return {
     lastExecutedAction,
     actionResults,
+    actionUsage,
     lastResult,
     canExecute,
     canExecuteAction,
     executeAction,
     executeActionById,
     getActionResult,
+    save,
+    load,
     reset,
   }
 })

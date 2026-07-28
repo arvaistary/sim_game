@@ -15,6 +15,8 @@ import {
   applyStatChangesRaw,
   hasSkillLevel,
   spendMoney,
+  grantItem,
+  recordActionUsage,
   advanceHours,
   addActivityEntry,
 } from './mutations'
@@ -101,11 +103,16 @@ export function executeActionCommand(world: GameWorld, actionId: string): Execut
     applySkillChanges(world, action.skillChanges)
   }
 
+  if (action.grantsItem) {
+    grantItem(world, action.grantsItem)
+  }
+
   addActivityEntry(world, 'action', action.title, action.effect || 'Выполнено', {
     category: action.category,
     amount: -moneySpent,
     hours: action.hourCost,
   })
+  recordActionUsage(world, actionId)
 
   return {
     success: true,

@@ -10,6 +10,7 @@ export const useTime = () => {
     gameMonths: computed(() => timeStore.gameMonths),
     gameYears: computed(() => timeStore.gameYears),
     currentAge: computed(() => timeStore.currentAge),
+    gameWeekOfMonth: computed(() => timeStore.gameWeekOfMonth),
     dayHour: computed(() => timeStore.dayHour),
     dayHoursRemaining: computed(() => timeStore.dayHoursRemaining),
     weekHour: computed(() => timeStore.weekHour),
@@ -18,6 +19,7 @@ export const useTime = () => {
     advanceHoursWithSleep: timeStore.advanceHoursWithSleep,
     reduceSleepDebt: timeStore.reduceSleepDebt,
     setTotalHours: timeStore.setTotalHours,
+    setStartAge: timeStore.setStartAge,
     reset: timeStore.reset,
   }
 }

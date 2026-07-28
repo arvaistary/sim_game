@@ -23,4 +23,9 @@ export interface ActionResult {
   summary?: string
 }
 
+export interface ActionUsageEntry {
+  count: number
+  lastUsedAt: number
+}
+
 export type { Ref, ComputedRef, CanApplyWorkShiftResult }

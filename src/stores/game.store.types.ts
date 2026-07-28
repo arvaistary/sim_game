@@ -49,6 +49,7 @@ export interface GameActionItemRequirements {
 }
 
 export interface ServerSessionErrorCandidate {
+  code?: string
   statusCode?: number
   data?: {
     code?: string

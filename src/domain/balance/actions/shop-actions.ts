@@ -137,7 +137,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     grantsItem: 'book_time_management',
     actionType: 'shopping',
     effect: 'Открывает программу чтения «Как управлять временем» в разделе обучения.',
-    mood: '📘 Книга куплена. Можно начинать обучение в библиотеке.',
+    mood: '📘 Станет доступной программа чтения после покупки.',
     ageGroup: AgeGroup.TEEN,
   },
   {
@@ -150,7 +150,7 @@ export const SHOP_ACTIONS: BalanceAction[] = [
     grantsItem: 'book_meditation_foundations',
     actionType: 'shopping',
     effect: 'Открывает пошаговую программу чтения «Основы медитации» в разделе обучения.',
-    mood: '📗 Книга куплена. Можно запускать программу из библиотеки.',
+    mood: '📗 Станет доступной программа медитации после покупки.',
     ageGroup: AgeGroup.TEEN,
   },
   {

@@ -25,6 +25,7 @@ import type {
   TimeData,
 } from '@/domain/balance/constants/default-save'
 import { createBaseSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
+import { INITIAL_STATS } from '@/domain/balance/constants/initial-stats'
 import type { CharacterTag, SkillModifiers } from '@/domain/balance/types'
 
 export class GameWorld {
@@ -40,6 +41,7 @@ export class GameWorld {
   private readonly _finance: FinanceData
   private readonly _events: GameWorldSnapshot['events']
   private readonly _activity: { entries: ActivityEntry[]; lifetime: LifetimeStatsData }
+  private readonly _actionUsage: NonNullable<GameWorldSnapshot['actionUsage']>
   private readonly _tags: { items: CharacterTag[] }
 
   constructor(snapshot: GameWorldSnapshot) {
@@ -74,6 +76,9 @@ export class GameWorld {
       entries: [...snapshot.activity.entries],
       lifetime: { ...snapshot.activity.lifetime },
     }
+    this._actionUsage = Object.fromEntries(
+      Object.entries(snapshot.actionUsage ?? {}).map(([actionId, usage]) => [actionId, { ...usage }]),
+    )
     this._tags = {
       items: snapshot.tags ? snapshot.tags.items.map((tag: CharacterTag) => ({ ...tag })) : [],
     }
@@ -127,6 +132,10 @@ export class GameWorld {
     return this._activity
   }
 
+  get actionUsage(): NonNullable<GameWorldSnapshot['actionUsage']> {
+    return this._actionUsage
+  }
+
   get tags(): { items: CharacterTag[] } {
     return this._tags
   }
@@ -165,6 +174,9 @@ export class GameWorld {
         entries: [...this._activity.entries],
         lifetime: { ...this._activity.lifetime },
       },
+      actionUsage: Object.fromEntries(
+        Object.entries(this._actionUsage).map(([actionId, usage]) => [actionId, { ...usage }]),
+      ),
       tags: { items: this._tags.items.map((tag: CharacterTag) => ({ ...tag })) },
     }
   }
@@ -202,6 +214,7 @@ export class GameWorld {
         entries: [...json.activity.entries],
         lifetime: { ...json.activity.lifetime },
       },
+      actionUsage: json.actionUsage ?? {},
       tags: json.tags ? { items: json.tags.items.map((tag: CharacterTag) => ({ ...tag })) } : undefined,
     }
     return new GameWorld(snapshot)
@@ -228,7 +241,7 @@ export class GameWorld {
         sleepHoursToday: 0,
         sleepDebt: 0,
       },
-      stats: { hunger: 70, energy: 70, stress: 30, mood: 60, health: 80, physical: 50 },
+      stats: { ...INITIAL_STATS },
       wallet: { money: 0, totalEarnings: 0, totalSpent: 0, reserveFund: 0 },
       career: {
         currentJob: {
@@ -295,6 +308,7 @@ export class GameWorld {
           maxMoney: 0,
         },
       },
+      actionUsage: {},
       tags: { items: [] },
     }
 

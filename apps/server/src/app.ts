@@ -132,7 +132,7 @@ function registerGameRoutes(
     const body: InitBody = request.body ?? {}
     const existing: GameStateRecord<GameWorldJSON> | null = await repository.findByPlayerId(sessionId)
 
-    if (existing) {
+    if (existing && !body.replace) {
       const { GameWorld } = await import('@/domain/game-world/GameWorld')
       return reply.send(okResponse(toStateResponse(sessionId, { record: existing, world: GameWorld.fromJSON(existing.state) })))
     }
@@ -148,6 +148,15 @@ function registerGameRoutes(
       createdAt: new Date(),
       updatedAt: new Date(),
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    }
+
+    if (existing && body.replace) {
+      const replaced: GameStateRecord<GameWorldJSON> = await repository.saveIfVersionMatches(
+        existing.sessionId,
+        existing.stateVersion,
+        world.toJSON(),
+      )
+      return reply.send(okResponse(toStateResponse(sessionId, { record: replaced, world })))
     }
 
     await repository.create(record)

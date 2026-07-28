@@ -6,6 +6,7 @@ export type UseActionsReturn = {
   canExecute: (actionId: string) => boolean
   executeAction: (actionId: string) => Promise<boolean>
   getActionsByCategory: (category: ActionCategory) => BalanceAction[]
+  getAllActions: () => BalanceAction[]
   allCategories: ComputedRef<ActionCategory[]>
   actionsEmptyHint: ComputedRef<string>
 }

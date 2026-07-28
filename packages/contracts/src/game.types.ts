@@ -16,6 +16,7 @@ export interface ActionExecuteResponse<TState = unknown> {
 
 export interface InitRequestBody<TState = unknown> {
   saveData?: TState
+  replace?: boolean
 }
 
 export interface MutationMetadata {

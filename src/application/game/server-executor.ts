@@ -56,6 +56,10 @@ export function createServerExecutor(
   }
 
   return {
+    resetStateVersion(): void {
+      stateVersion = undefined
+    },
+
     async executeAction(_world: GameWorld | null, actionId: string): Promise<ExecuteActionCommandResult> {
       const data: ActionExecuteResponse = await sendCommand<ActionExecuteResponse>(
         `${base}/api/game/actions/execute`,

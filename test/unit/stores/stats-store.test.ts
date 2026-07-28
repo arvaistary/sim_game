@@ -9,25 +9,25 @@ describe('stats-store', () => {
 
   it('должен инициализироваться с значениями по умолчанию', () => {
     const stats = useStatsStore()
-    expect(stats.energy).toBe(100)
-    expect(stats.health).toBe(100)
-    expect(stats.hunger).toBe(0)
-    expect(stats.stress).toBe(0)
-    expect(stats.mood).toBe(100)
+    expect(stats.energy).toBe(70)
+    expect(stats.health).toBe(80)
+    expect(stats.hunger).toBe(70)
+    expect(stats.stress).toBe(30)
+    expect(stats.mood).toBe(60)
   })
 
   it('должен применять statChanges корректно', () => {
     const stats = useStatsStore()
     stats.applyStatChanges({ energy: -20, health: -10 })
-    expect(stats.energy).toBe(80)
-    expect(stats.health).toBe(90)
+    expect(stats.energy).toBe(50)
+    expect(stats.health).toBe(70)
   })
 
   it('должен применять statChangesRaw корректно', () => {
     const stats = useStatsStore()
     stats.applyStatChangesRaw({ energy: -30, stress: +20 })
-    expect(stats.energy).toBe(70)
-    expect(stats.stress).toBe(20)
+    expect(stats.energy).toBe(40)
+    expect(stats.stress).toBe(50)
   })
 
   it('должен ограничивать значения в диапазоне 0-100', () => {
@@ -91,7 +91,7 @@ describe('stats-store', () => {
     stats.energy = 50
     stats.stress = 50
     stats.reset()
-    expect(stats.energy).toBe(100)
-    expect(stats.stress).toBe(0)
+    expect(stats.energy).toBe(70)
+    expect(stats.stress).toBe(30)
   })
 })

@@ -1,5 +1,6 @@
 import type { StatChanges } from '@/domain/balance/types'
 import { createBaseSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
+import { INITIAL_STATS } from './initial-stats'
 
 export interface InitialSaveData {
   version: string
@@ -136,13 +137,6 @@ export const INITIAL_SAVE: InitialSaveData = {
     totalMicroEvents: 0,
     maxMoney: 0,
   },
-  stats: {
-    hunger: 80,
-    energy: 80,
-    stress: 20,
-    mood: 70,
-    health: 90,
-    physical: 70,
-  },
+  stats: { ...INITIAL_STATS },
 }
 

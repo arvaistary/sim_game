@@ -23,7 +23,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<GameStateRe
     world = GameWorld.createEmpty()
   }
 
-  const record = await initializePersistentSession(sessionId, world.toJSON())
+  const record = await initializePersistentSession(sessionId, world.toJSON(), body.replace === true)
 
   return okResponse({
     state: record.state,

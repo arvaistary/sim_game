@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-04-10',
   ssr: false,
   srcDir: 'src/',
+  buildDir: '.nuxt-local',
 
   // CSS: SCSS-based design system
   css: [
