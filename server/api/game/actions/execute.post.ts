@@ -6,11 +6,9 @@
  * Загружает мир из session, выполняет action через domain command,
  * сохраняет, возвращает результат + обновлённое состояние.
  */
-import { executeActionCommand } from '@/domain/game-world/commands'
-import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { ApiResponse, ActionExecuteResponse, ActionExecuteRequest } from '../../types'
-import type { ExecuteActionResult } from '@/domain/game-world/commands/commands.types'
 import { okResponse } from '../../../utils/error-handler'
+import { getGameStateService } from '../../../utils/persistence'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<ActionExecuteResponse>> => {
   const sessionId: string = getOrCreateSessionId(event)
@@ -25,21 +23,18 @@ export default defineEventHandler(async (event): Promise<ApiResponse<ActionExecu
     })
   }
 
-  const world: GameWorld | null = await loadWorldForSession(sessionId)
-
-  if (!world) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Session not found',
-      data: { code: 'session_not_found' },
-    })
-  }
-
-  const result: ExecuteActionResult = executeActionCommand(world, actionId)
-  await saveWorldForSession(sessionId, world)
+  const result = await getGameStateService().execute(sessionId, sessionId, {
+    commandId: body.commandId ?? crypto.randomUUID(),
+    expectedStateVersion: body.expectedStateVersion,
+    type: 'action',
+    payload: { actionId },
+  })
 
   return okResponse({
-    result: { success: result.success, message: result.message },
-    state: world.toJSON(),
+    result: result.result,
+    state: result.state,
+    stateVersion: result.stateVersion,
   })
 })
+
+// executeActionCommand is now injected through GameCommandExecutor.

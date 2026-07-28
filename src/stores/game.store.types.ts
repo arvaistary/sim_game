@@ -55,6 +55,11 @@ export interface ServerSessionErrorCandidate {
   }
 }
 
+export interface ServerConflictErrorCandidate extends ServerSessionErrorCandidate {
+  code?: string
+  details?: Record<string, unknown>
+}
+
 export interface GameActionItem {
   id: string
   title: string

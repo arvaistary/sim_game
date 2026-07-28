@@ -105,6 +105,8 @@ git branch -d feature/<short-name>
 
 ## Known limitations
 
+M3 persistence cutover: PostgreSQL is authoritative when `DATABASE_URL` is configured. `npm run db:migrate` must complete before Production deploy; `/api/ready` is release gate. Vercel Environment Variables hold `DATABASE_URL`; it must never appear in `NUXT_PUBLIC_*`, repository files or client output.
+
 - Vercel deployment успешно проверяет runtime, но memory storage не гарантирует сохранение игрового состояния между serverless-инстансами.
 - Production-ready persistence требует PostgreSQL как source of truth и Redis для operational concerns.
 - Текущие tracked `.output/*` следует удалить из Git отдельным cleanup-коммитом; локальные build-артефакты не добавлять в feature merge.

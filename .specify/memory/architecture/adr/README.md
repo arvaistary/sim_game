@@ -53,6 +53,11 @@ Located in `doc/adr/`:
    - Decision: Adopt strict layered architecture with dependency flow
    - Consequence: Clear separation of concerns, maintainable codebase
 
+4. **ADR-0006:** Durable Game-State Persistence
+   - Status: Accepted
+   - Decision: Use PostgreSQL as canonical M3 snapshot storage with application-owned idempotency, compare-and-swap and unit-of-work boundaries; defer Redis and persistent identity
+   - Consequence: State survives process replacement; hosted provisioning and migration rehearsal remain deployment gates
+
 ## Decision Categories
 
 ### Framework & Technology

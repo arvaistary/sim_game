@@ -7,34 +7,30 @@ import type {
   ApiResponse,
   GameStateResponse,
   SyncRequest,
-  SyncResponse,
+  SyncResponse, CommandResultDto 
 } from '@game-life/contracts'
-import { executeActionCommand } from '@/domain/game-world/commands'
-import type { CommandResult, ExecuteActionResult } from '@/domain/game-world/commands/commands.types'
+
+import { GameStateService, CommandIdConflictError, SessionNotFoundError as ApplicationSessionNotFoundError, StateVersionConflictError } from '@game-life/application'
+import type { CommandServiceResult, GameCommandRequest, GameStateRecord, GameStateRepository  } from '@game-life/application'
+import { GameCommandExecutor } from '@/domain/game-command-executor'
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { GameWorldJSON, ActivityEntry } from '@/domain/game-world/GameWorld.types'
-import {
-  applyMonthlySettlement,
-  advanceEducation,
-  changeCareer,
-  collectInvestment,
-  quitCareer,
-  resolveEventDecision,
-  simulateWorkShift,
-  startEducationProgram,
-} from '@/application/game/commands'
 import { getActivityLog, getCareerTrack, getFinanceOverview, getInvestments } from './game-queries'
 import type { StandaloneFinanceOverview, StandaloneInvestments } from './game-queries.types'
 import {
   MemoryGameStateRepository,
+  MemoryUnitOfWork,
   SessionNotFoundError,
   SessionStateConflictError,
 } from './session-repository'
-import type { GameStateRecord, GameStateRepository } from '@game-life/application'
+import { hashCommandRequest } from './infrastructure/persistence/request-hash'
+import { PersistenceError } from './infrastructure/persistence/persistence-errors'
+
 import type {
   ActivityQuery,
   InitBody,
   LoadedWorld,
+  PersistenceReadiness,
   StandaloneApiErrorOptions,
   StandaloneServerOptions,
 } from './app.types'
@@ -64,6 +60,11 @@ export async function createStandaloneApp(
 ): Promise<FastifyInstance> {
   const app: FastifyInstance = Fastify({ logger: true })
   const repository: GameStateRepository<GameWorldJSON> = options.repository ?? new MemoryGameStateRepository()
+  const service: GameStateService<GameWorldJSON, CommandResultDto> = options.service ?? new GameStateService({
+    unitOfWork: options.unitOfWork ?? new MemoryUnitOfWork<CommandResultDto>(repository),
+    executor: new GameCommandExecutor(),
+    requestHash: hashCommandRequest,
+  })
   const corsOrigins: string[] = options.corsOrigins ?? readCorsOrigins()
 
   await app.register(cookie)
@@ -78,8 +79,18 @@ export async function createStandaloneApp(
       ? error.statusCode
       : error instanceof SessionNotFoundError
         ? 404
+        : error instanceof ApplicationSessionNotFoundError
+          ? 404
         : error instanceof SessionStateConflictError
           ? 409
+          : error instanceof CommandIdConflictError || error instanceof StateVersionConflictError
+            ? 409
+            : error instanceof PersistenceError && error.code === 'not_found'
+              ? 404
+              : error instanceof PersistenceError && error.code === 'conflict'
+                ? 409
+                : error instanceof PersistenceError && error.code === 'unavailable'
+                  ? 503
           : error.statusCode && error.statusCode >= 400
             ? error.statusCode
             : 500
@@ -94,18 +105,17 @@ export async function createStandaloneApp(
   }))
 
   app.get('/ready', async (_request, reply) => reply.send({
-    status: 'ready',
-    dependencies: { stateRepository: 'memory' },
-    timestamp: Date.now(),
+    ...(await readyPayload(options.readiness, reply)),
   }))
 
-  registerGameRoutes(app, repository)
+  registerGameRoutes(app, repository, service)
   return app
 }
 
 function registerGameRoutes(
   app: FastifyInstance,
   repository: GameStateRepository<GameWorldJSON>,
+  service: GameStateService<GameWorldJSON, CommandResultDto>,
 ): void {
   app.get('/api/game/state', async (request, reply) => {
     const sessionId: string = getOrCreateSessionId(request, reply)
@@ -120,6 +130,12 @@ function registerGameRoutes(
   app.post('/api/game/init', async (request: FastifyRequest<{ Body: InitBody }>, reply) => {
     const sessionId: string = getOrCreateSessionId(request, reply)
     const body: InitBody = request.body ?? {}
+    const existing: GameStateRecord<GameWorldJSON> | null = await repository.findByPlayerId(sessionId)
+
+    if (existing) {
+      const { GameWorld } = await import('@/domain/game-world/GameWorld')
+      return reply.send(okResponse(toStateResponse(sessionId, { record: existing, world: GameWorld.fromJSON(existing.state) })))
+    }
     const world: GameWorld = body.saveData
       ? (await import('@/domain/game-world/GameWorld')).GameWorld.fromJSON(body.saveData)
       : (await import('@/domain/game-world/GameWorld')).GameWorld.createEmpty()
@@ -129,6 +145,9 @@ function registerGameRoutes(
       state: world.toJSON(),
       schemaVersion: 1,
       stateVersion: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     }
 
     await repository.create(record)
@@ -150,12 +169,17 @@ function registerGameRoutes(
 
     if (!loaded) throw sessionNotFound(sessionId)
 
-    const result: ExecuteActionResult = executeActionCommand(loaded.world, actionId)
-    const saved: GameStateRecord<GameWorldJSON> = await saveWorld(repository, loaded)
+    const command: GameCommandRequest = {
+      commandId: request.body.commandId ?? crypto.randomUUID(),
+      expectedStateVersion: request.body.expectedStateVersion,
+      type: 'action',
+      payload: { actionId },
+    }
+    const result: CommandServiceResult<GameWorldJSON, CommandResultDto> = await service.execute(sessionId, sessionId, command)
     const response: ActionExecuteResponse<GameWorldJSON> = {
-      result: { success: result.success, message: result.message },
-      state: saved.state,
-      stateVersion: saved.stateVersion,
+      result: result.result,
+      state: result.state,
+      stateVersion: result.stateVersion,
     }
     return reply.send(okResponse(response))
   })
@@ -179,70 +203,32 @@ function registerGameRoutes(
 
     for (const queuedAction of body.actions) {
       try {
-        switch (queuedAction.type) {
-          case 'action': {
-            const actionId: string = String(queuedAction.payload.actionId ?? '')
-            const result: ExecuteActionResult = executeActionCommand(loaded.world, actionId)
-
-            if (!result.success) throw new Error(result.message)
-            break
-          }
-          case 'work':
-            simulateWorkShift(loaded.world, Number(queuedAction.payload.hours ?? 0))
-            break
-          case 'career': {
-            const action: string = String(queuedAction.payload.action ?? 'change')
-
-            if (action === 'quit') {
-              const result: CommandResult = quitCareer(loaded.world)
-
-              if (!result.success) throw new Error(result.message)
-            } else {
-              const result: CommandResult = changeCareer(loaded.world, String(queuedAction.payload.jobId ?? ''))
-
-              if (!result.success) throw new Error(result.message)
-            }
-            break
-          }
-          case 'finance':
-
-            if (queuedAction.payload.action === 'collect') {
-              collectInvestment(loaded.world, String(queuedAction.payload.investmentId ?? ''))
-            } else if (queuedAction.payload.action === 'monthly_settlement') {
-              applyMonthlySettlement(loaded.world)
-            }
-            break
-          case 'event': {
-            const result: CommandResult = resolveEventDecision(
-              loaded.world,
-              String(queuedAction.payload.eventId ?? ''),
-              null,
-              String(queuedAction.payload.choiceId ?? ''),
-            )
-
-            if (!result.success) throw new Error(result.message)
-            break
-          }
-          case 'education':
-
-            if (queuedAction.payload.action === 'start') {
-              startEducationProgram(loaded.world, String(queuedAction.payload.programId ?? ''))
-            } else {
-              advanceEducation(loaded.world)
-            }
-            break
+        const command: GameCommandRequest = {
+          commandId: queuedAction.commandId ?? crypto.randomUUID(),
+          expectedStateVersion: queuedAction.expectedStateVersion,
+          type: queuedAction.type,
+          payload: queuedAction.payload,
         }
-        applied++
+        const result: CommandServiceResult<GameWorldJSON, CommandResultDto> = await service.execute(sessionId, sessionId, command)
+
+        if (!result.result.success) {
+          failed++
+          errors.push({ code: 'validation_error', message: result.result.message })
+        } else {
+          applied++
+        }
       } catch (error) {
         failed++
         errors.push({
-          code: 'internal_error',
+          code: error instanceof StateVersionConflictError ? 'state_version_conflict' : 'internal_error',
           message: error instanceof Error ? error.message : String(error),
         })
       }
     }
 
-    const saved: GameStateRecord<GameWorldJSON> = await saveWorld(repository, loaded)
+    const saved: GameStateRecord<GameWorldJSON> = body.actions.length === 0
+      ? await saveWorld(repository, loaded)
+      : (await repository.findByPlayerId(sessionId) ?? loaded.record)
     const response: SyncResponse<GameWorldJSON> = {
       state: saved.state,
       stateVersion: saved.stateVersion,
@@ -387,6 +373,49 @@ function createErrorResponse(error: Error & { statusCode?: number }): ApiRespons
     }
   }
 
+  if (error instanceof ApplicationSessionNotFoundError) {
+    return {
+      success: false,
+      error: { code: 'session_not_found', message: error.message },
+      timestamp: Date.now(),
+    }
+  }
+
+  if (error instanceof CommandIdConflictError) {
+    return {
+      success: false,
+      error: { code: 'command_id_conflict', message: error.message },
+      timestamp: Date.now(),
+    }
+  }
+
+  if (error instanceof StateVersionConflictError) {
+    return {
+      success: false,
+      error: {
+        code: 'state_version_conflict',
+        message: error.message,
+        details: {
+          expectedStateVersion: error.expectedStateVersion,
+          actualStateVersion: error.actualStateVersion,
+        },
+      },
+      timestamp: Date.now(),
+    }
+  }
+
+  if (error instanceof PersistenceError) {
+    return {
+      success: false,
+      error: {
+        code: error.code === 'unavailable' ? 'persistence_unavailable' : error.code === 'conflict' ? 'state_version_conflict' : 'session_not_found',
+        message: error.message,
+        ...(error.details ? { details: error.details } : {}),
+      },
+      timestamp: Date.now(),
+    }
+  }
+
   return {
     success: false,
     error: { code: 'internal_error', message: error.message },
@@ -407,6 +436,32 @@ function readCorsOrigins(): string[] {
     .split(',')
     .map((origin: string) => origin.trim())
     .filter((origin: string) => origin.length > 0)
+}
+
+async function readyPayload(
+  readiness: StandaloneServerOptions['readiness'],
+  reply: FastifyReply,
+): Promise<Record<string, unknown>> {
+  const state: PersistenceReadiness = readiness
+    ? await readiness()
+    : {
+        status: 'ready' as const,
+        schemaVersion: 0,
+        appliedMigrations: 0,
+        pendingMigrations: 0,
+        database: 'reachable' as const,
+      }
+
+  if (state.status !== 'ready') reply.status(503)
+  return {
+    status: state.status,
+    dependencies: { stateRepository: state.database },
+    schemaVersion: state.schemaVersion,
+    appliedMigrations: state.appliedMigrations,
+    pendingMigrations: state.pendingMigrations,
+    timestamp: Date.now(),
+    ...(state.reason ? { reason: state.reason } : {}),
+  }
 }
 
 function readCookieSameSite(): 'lax' | 'strict' | 'none' {

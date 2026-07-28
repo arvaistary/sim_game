@@ -9,6 +9,7 @@
 import { GameWorld } from '@/domain/game-world/GameWorld'
 import type { ApiResponse, GameStateResponse, InitRequestBody } from '../types'
 import { okResponse } from '../../utils/error-handler'
+import { initializePersistentSession } from '../../utils/persistence'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<GameStateResponse>> => {
   const sessionId: string = getOrCreateSessionId(event)
@@ -22,11 +23,14 @@ export default defineEventHandler(async (event): Promise<ApiResponse<GameStateRe
     world = GameWorld.createEmpty()
   }
 
-  await saveWorldForSession(sessionId, world)
+  const record = await initializePersistentSession(sessionId, world.toJSON())
 
   return okResponse({
-    state: world.toJSON(),
+    state: record.state,
     sessionId,
-    version: '1.0',
+    version: record.state.version,
+    stateVersion: record.stateVersion,
   })
 })
+
+// saveWorldForSession remains compatibility API for older Nitro integrations.

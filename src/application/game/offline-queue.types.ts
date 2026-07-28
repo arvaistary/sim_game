@@ -10,6 +10,7 @@ export interface QueuedAction {
   type: QueuedActionType
   timestamp: number
   payload: Record<string, unknown>
+  expectedStateVersion?: number
 }
 
 export interface SyncOutcome {

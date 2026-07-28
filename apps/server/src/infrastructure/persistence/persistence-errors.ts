@@ -1,0 +1,1 @@
+export { PersistenceError } from './errors'

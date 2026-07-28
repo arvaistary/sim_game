@@ -1,6 +1,6 @@
 # Статус реализации игры Game Life
 
-**Последнее обновление:** 2 июля 2026
+**Последнее обновление:** 28 июля 2026
 **Технологический стек:** Nuxt 4 + Vue 3 + TypeScript + Pinia + Nitro Server API
 
 ---
@@ -22,7 +22,7 @@
 
 ### Server-first architecture migration (Stages 1-7)
 
-**Статус:** Stages 1-7 и M0/M1/M2 завершены (июль 2026). M3 persistence в работе.
+**Статус:** Stages 1-7 и M0/M1/M2 завершены (июль 2026). M3 durable persistence implementation и Production PostgreSQL provisioning/migration готовы; hosted smoke и rollback остаются pending.
 
 **Что сделано:**
 - ✅ **Stage 1** — `GameMode` типы (domain/game-mode), API contract (domain/api-contract), async executor interfaces.
@@ -36,6 +36,14 @@
 **Режимы работы:** Server (по умолчанию для dev), SPA (offline fallback), Hybrid. См. [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md).
 
 **Ссылки:** [Spec-kit work item](../../specs/server-first-arch/plan.md)
+
+### M3 durable game-state persistence
+
+**Статус:** Реализованы ADR-0006, Drizzle schema/migration, PostgreSQL pool/repository/Unit of Work, CAS `stateVersion`, processed-command idempotency, shared domain executor, Nitro/Fastify composition, readiness endpoints и command metadata. Local PostgreSQL migration gate и persistence integration tests пройдены.
+
+**Проверки:** `RUN_PERSISTENCE_TESTS=1 npm test` — 53 файла, 257 тестов passed, 5 todo, 1 pre-existing skipped; `npm run db:migrate` — applied successfully; `npm run db:status` — `applied=1, expected=1`; `npm run typecheck`; `npm run typecheck:packages`; `npm run typecheck:standalone-server`; `npm run test:architecture`; `npm run rules:audit`; `npm run audit:integrity:validate`; `npm run build` — passed.
+
+**Ограничение:** перед завершением Vercel Production требуется `/api/ready` = `200`, restart/10-session PostgreSQL smoke и rollback rehearsal.
 
 ### Dashboard restyle v2 (Linear aesthetic)
 

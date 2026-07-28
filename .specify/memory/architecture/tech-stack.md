@@ -203,14 +203,14 @@
   - Migration support for schema changes
 
 ### Current Server Repository
-- **Runtime:** Standalone Fastify API in `apps/server/` (M2); Nitro handlers remain compatibility layer
-- **Adapter:** In-memory `GameStateRepository` with cookie-scoped identity and 24-hour TTL
-- **Boundary:** Transitional development implementation; process restart loses sessions
+- **Runtime:** Standalone Fastify API in `apps/server/`; Nitro handlers remain compatibility layer
+- **Adapter:** PostgreSQL `GameStateRepository` with cookie-scoped identity, JSONB snapshots and 24-hour TTL; memory adapter remains test-only
+- **Boundary:** Application `GameStateService` owns command idempotency, optimistic concurrency and unit-of-work coordination
 
 ### Target Persistence (M3)
 - **PostgreSQL 16:** Authoritative game state and durable persistence
 - **Redis 7:** Cache, locks, rate limits, and operational TTLs only
-- **Status:** Planned; not yet connected to runtime
+- **Status:** PostgreSQL implementation connected locally; managed provider and hosted verification remain pending
 
 ## Server API
 
@@ -268,7 +268,7 @@ Components are auto-imported from:
 
 - UI rendering remains client-side; standalone Fastify is authoritative runtime boundary for server mode
 - SPA saves reside in browser LocalStorage
-- Server sessions use HTTP-only cookie identifiers; current in-memory storage is process-local until M3 persistence
+- Server sessions use HTTP-only cookie identifiers; PostgreSQL stores canonical snapshots and processed-command records
 - API input validation and consistent error envelopes remain required at every endpoint
 - CSP headers are recommended for production
 

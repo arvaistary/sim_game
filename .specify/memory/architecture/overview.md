@@ -99,7 +99,9 @@ Game Life follows a **layered architecture** with strict unidirectional dependen
 
 **Key Components:**
 - `LocalStorageSaveRepository` - LocalStorage implementation
-- Migration scripts - Data schema migrations
+- `PostgresGameStateRepository` - PostgreSQL JSONB snapshot persistence with TTL and compare-and-swap
+- `PostgresUnitOfWork` - Atomic state and processed-command transaction boundary
+- Migration scripts - Append-only Drizzle schema migrations and readiness checks
 
 ### Utilities Layer
 **Location:** `src/utils/`, `src/constants/`

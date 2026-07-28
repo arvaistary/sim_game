@@ -1,6 +1,10 @@
 import type {
+  CommandLogRepository,
   GameStateRecord,
   GameStateRepository,
+  ProcessedCommandRecord,
+  UnitOfWork,
+  UnitOfWorkContext,
 } from '@game-life/application'
 import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
 import type { StoredSession } from './session-repository.types'
@@ -30,10 +34,12 @@ export class MemoryGameStateRepository implements GameStateRepository<GameWorldJ
   private readonly sessions: Map<string, StoredSession> = new Map<string, StoredSession>()
 
   public async findByPlayerId(playerId: string): Promise<GameStateRecord<GameWorldJSON> | null> {
-    const record: StoredSession | undefined = this.sessions.get(playerId)
+    const record: StoredSession | undefined = Array.from(this.sessions.values()).find(
+      (candidate) => candidate.playerId === playerId,
+    )
 
-    if (!record || record.expiresAt <= Date.now()) {
-      this.sessions.delete(playerId)
+    if (!record || (record.expiresAt !== null && record.expiresAt.getTime() <= Date.now())) {
+      if (record) this.sessions.delete(record.sessionId)
       return null
     }
 
@@ -41,9 +47,9 @@ export class MemoryGameStateRepository implements GameStateRepository<GameWorldJ
   }
 
   public async create(record: GameStateRecord<GameWorldJSON>): Promise<void> {
-    this.sessions.set(record.playerId, {
+    this.sessions.set(record.sessionId, {
       ...cloneRecord(record),
-      expiresAt: Date.now() + SESSION_TTL_MS,
+      expiresAt: new Date(Date.now() + SESSION_TTL_MS),
     })
   }
 
@@ -54,7 +60,7 @@ export class MemoryGameStateRepository implements GameStateRepository<GameWorldJ
   ): Promise<GameStateRecord<GameWorldJSON>> {
     const current: StoredSession | undefined = this.sessions.get(sessionId)
 
-    if (!current || current.expiresAt <= Date.now()) {
+    if (!current || (current.expiresAt !== null && current.expiresAt.getTime() <= Date.now())) {
       this.sessions.delete(sessionId)
       throw new SessionNotFoundError(sessionId)
     }
@@ -69,10 +75,42 @@ export class MemoryGameStateRepository implements GameStateRepository<GameWorldJ
       state: cloneState(state),
       schemaVersion: current.schemaVersion,
       stateVersion: current.stateVersion + 1,
-      expiresAt: Date.now() + SESSION_TTL_MS,
+      createdAt: current.createdAt,
+      updatedAt: new Date(),
+      expiresAt: new Date(Date.now() + SESSION_TTL_MS),
     }
     this.sessions.set(sessionId, next)
     return cloneRecord(next)
+  }
+}
+
+export interface MemoryCommandResult {
+  success: boolean
+  message: string
+}
+
+export class MemoryCommandLogRepository<TResult extends MemoryCommandResult = MemoryCommandResult> implements CommandLogRepository<TResult> {
+  private readonly commands: Map<string, ProcessedCommandRecord<TResult>> = new Map()
+
+  public async find(playerId: string, commandId: string): Promise<ProcessedCommandRecord<TResult> | null> {
+    return this.commands.get(`${playerId}:${commandId}`) ?? null
+  }
+
+  public async record(command: ProcessedCommandRecord<TResult>): Promise<void> {
+    this.commands.set(`${command.playerId}:${command.commandId}`, structuredClone(command))
+  }
+}
+
+export class MemoryUnitOfWork<TResult extends MemoryCommandResult = MemoryCommandResult> implements UnitOfWork<GameWorldJSON, TResult> {
+  private readonly commandLogRepository: MemoryCommandLogRepository<TResult> = new MemoryCommandLogRepository<TResult>()
+
+  public constructor(private readonly gameStateRepository: GameStateRepository<GameWorldJSON>) {}
+
+  public async run<T>(work: (context: UnitOfWorkContext<GameWorldJSON, TResult>) => Promise<T>): Promise<T> {
+    return work({
+      gameStateRepository: this.gameStateRepository,
+      commandLogRepository: this.commandLogRepository,
+    })
   }
 }
 
@@ -87,5 +125,8 @@ function cloneRecord(record: GameStateRecord<GameWorldJSON>): GameStateRecord<Ga
     state: cloneState(record.state),
     schemaVersion: record.schemaVersion,
     stateVersion: record.stateVersion,
+    createdAt: new Date(record.createdAt),
+    updatedAt: new Date(record.updatedAt),
+    expiresAt: record.expiresAt === null ? null : new Date(record.expiresAt),
   }
 }

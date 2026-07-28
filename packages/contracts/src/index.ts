@@ -22,6 +22,7 @@ export type {
   GameStateResponse,
   InitRequestBody,
   InvestRequest,
+  MutationMetadata,
   QueuedCommand,
   SyncRequest,
   SyncResponse,

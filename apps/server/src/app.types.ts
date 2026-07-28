@@ -1,7 +1,22 @@
-import type { GameStateRecord, GameStateRepository } from '@game-life/application'
+import type {
+  GameStateRecord,
+  GameStateRepository,
+  GameStateService,
+  UnitOfWork,
+} from '@game-life/application'
+import type { CommandResultDto, InitRequestBody  } from '@game-life/contracts'
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
-import type { InitRequestBody } from '@game-life/contracts'
+
+
+export interface PersistenceReadiness {
+  status: 'ready' | 'not_ready'
+  schemaVersion: number
+  appliedMigrations: number
+  pendingMigrations: number
+  database: 'reachable' | 'unreachable'
+  reason?: string
+}
 
 export type InitBody = InitRequestBody<GameWorldJSON>
 
@@ -20,7 +35,10 @@ export interface StandaloneApiErrorOptions {
 
 export interface StandaloneServerOptions {
   repository?: GameStateRepository<GameWorldJSON>
+  service?: GameStateService<GameWorldJSON, CommandResultDto>
+  unitOfWork?: UnitOfWork<GameWorldJSON, CommandResultDto>
   corsOrigins?: string[]
+  readiness?: () => Promise<PersistenceReadiness>
 }
 
 export interface LoadedWorld {

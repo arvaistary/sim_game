@@ -264,6 +264,21 @@ Production gate закрывается только если выполнены 
 
 ## 7. Связанные документы
 
+## 8. M3 durable persistence gate
+
+M3 runtime now uses PostgreSQL as authoritative storage through shared Nitro/Fastify application service. Before Production deploy:
+
+```text
+npm run infra:up
+npm run db:migrate
+npm run db:status
+npm test
+npm run typecheck
+npm run build
+```
+
+Configure `DATABASE_URL` only as Vercel Production Environment Variable. Verify `/api/ready` is `200` and reports matching `schemaVersion`/`appliedMigrations`; `503` blocks release. Run init → action with `commandId` → retry → stale-version conflict smoke checks. No production migration rollback may delete or rewrite committed state; recovery uses forward-compatible migrations and Vercel rollback only after readiness verification.
+
 - [Nuxt → Vercel](https://nuxt.com/deploy/vercel)
 - [SERVER_MIGRATION.md](doc/SERVER_MIGRATION.md)
 - [IMPLEMENTATION_STATUS.md](doc/core/IMPLEMENTATION_STATUS.md)

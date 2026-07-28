@@ -47,6 +47,7 @@ import type {
   FinanceSnapshot,
   GameActionItem,
   QuitCareerResult,
+  ServerConflictErrorCandidate,
   ServerSessionErrorCandidate,
 } from './game.store.types'
 
@@ -359,7 +360,18 @@ export const useGameStore = defineStore('game', () => {
    */
   async function executeActionAsync(actionId: string): Promise<ExecuteActionResult> {
     const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
-    const result: ExecuteActionResult = await executor.executeAction(world, actionId)
+    let result: ExecuteActionResult
+    try {
+      result = await executor.executeAction(world, actionId)
+    } catch (error) {
+      const candidate: ServerConflictErrorCandidate = error as ServerConflictErrorCandidate
+
+      if (candidate.code === 'state_version_conflict') {
+        await refreshServerState()
+        return { success: false, message: 'Состояние обновлено из-за конфликта версий. Повторите действие.' }
+      }
+      throw error
+    }
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
@@ -476,6 +488,8 @@ export const useGameStore = defineStore('game', () => {
           type: action.type,
           payload: action.payload,
           timestamp: action.timestamp,
+          commandId: action.id,
+          ...(action.expectedStateVersion === undefined ? {} : { expectedStateVersion: action.expectedStateVersion }),
         })),
       },
     })

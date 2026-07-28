@@ -6,14 +6,14 @@
  * клиент должен вызвать POST /api/game/init.
  */
 import type { ApiResponse, GameStateResponse } from '../types'
-import type { GameWorld } from '@/domain/game-world/GameWorld'
 import { okResponse } from '../../utils/error-handler'
+import { getPersistenceRepository } from '../../utils/persistence'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<GameStateResponse>> => {
   const sessionId: string = getOrCreateSessionId(event)
-  const world: GameWorld | null = await loadWorldForSession(sessionId)
+  const record = await getPersistenceRepository().findByPlayerId(sessionId)
 
-  if (!world) {
+  if (!record) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Session not found',
@@ -22,8 +22,11 @@ export default defineEventHandler(async (event): Promise<ApiResponse<GameStateRe
   }
 
   return okResponse({
-    state: world.toJSON(),
+    state: record.state,
     sessionId,
-    version: '1.0',
+    version: record.state.version,
+    stateVersion: record.stateVersion,
   })
 })
+
+// loadWorldForSession remains compatibility API for read-model callers.

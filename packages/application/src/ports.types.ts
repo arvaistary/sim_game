@@ -4,6 +4,9 @@ export interface GameStateRecord<TState = unknown> {
   state: TState
   schemaVersion: number
   stateVersion: number
+  createdAt: Date
+  updatedAt: Date
+  expiresAt: Date | null
 }
 
 export interface GameStateRepository<TState = unknown> {
@@ -22,6 +25,10 @@ export interface ProcessedCommandRecord<TResult = unknown> {
   commandId: string
   requestHash: string
   result: TResult
+  commandType: string
+  stateVersionBefore: number
+  stateVersionAfter: number
+  createdAt: Date
 }
 
 export interface CommandLogRepository<TResult = unknown> {
@@ -29,8 +36,30 @@ export interface CommandLogRepository<TResult = unknown> {
   record(command: ProcessedCommandRecord<TResult>): Promise<void>
 }
 
-export interface UnitOfWork {
-  run<T>(work: () => Promise<T>): Promise<T>
+export interface UnitOfWorkContext<TState = unknown, TResult = unknown> {
+  gameStateRepository: GameStateRepository<TState>
+  commandLogRepository: CommandLogRepository<TResult>
+}
+
+export interface UnitOfWork<TState = unknown, TResult = unknown> {
+  run<T>(work: (context: UnitOfWorkContext<TState, TResult>) => Promise<T>): Promise<T>
+}
+
+export interface DomainCommand {
+  type: string
+  payload: Record<string, unknown>
+}
+
+export interface DomainCommandExecution<TState = unknown, TResult = unknown> {
+  state: TState
+  result: TResult
+}
+
+export interface DomainCommandExecutor<TState = unknown, TResult = unknown> {
+  execute(
+    state: TState,
+    command: DomainCommand,
+  ): Promise<DomainCommandExecution<TState, TResult>> | DomainCommandExecution<TState, TResult>
 }
 
 export interface PlayerIdentity {

@@ -260,9 +260,9 @@ export function executeLifestyleActionCommand(actionId: string): ActionResult {
 Runtime persistence depends on game mode:
 
 - `spa`: stores/application execute locally and persist saves through `LocalStorageSaveRepository`.
-- `server`: client executor calls standalone Fastify `/api/game` endpoints; HTTP-only cookie selects `GameWorld` in current memory repository.
+- `server`: client executor calls standalone Fastify `/api/game` endpoints; HTTP-only cookie selects PostgreSQL-backed `GameWorld` through the application service and unit-of-work boundary.
 - `hybrid`: online commands prefer server execution; offline commands may queue and later flush through `POST /api/game/sync`.
-- Nitro handlers remain compatibility path. Current server storage uses memory adapter with 24-hour TTL, so process restart loses server sessions; M3 will replace it with PostgreSQL 16 plus Redis 7 infrastructure.
+- Nitro handlers remain compatibility path and use the same PostgreSQL repository/application service composition. PostgreSQL is canonical; Redis is deferred and cannot replace snapshot persistence.
 
 Game state is persisted after significant changes:
 
