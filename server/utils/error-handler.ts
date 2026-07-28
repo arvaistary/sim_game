@@ -92,6 +92,11 @@ export function httpStatusForError(code: ApiErrorCode): number {
       return 400
     case 'insufficient_resources':
       return 422
+    case 'command_id_conflict':
+    case 'state_version_conflict':
+      return 409
+    case 'persistence_unavailable':
+      return 503
     case 'network_error':
       return 503
     case 'internal_error':
@@ -104,6 +109,10 @@ function inferErrorCode(error: unknown): ApiErrorCode {
   if (!(error instanceof Error)) return 'internal_error'
 
   const message: string = error.message.toLowerCase()
+
+  if (error.name === 'CommandIdConflictError') return 'command_id_conflict'
+  if (error.name === 'StateVersionConflictError') return 'state_version_conflict'
+  if (error.name === 'PersistenceError') return 'persistence_unavailable'
 
   if (message.includes('session') && message.includes('not found')) return 'session_not_found'
 

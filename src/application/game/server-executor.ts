@@ -30,10 +30,34 @@ export function createServerExecutor(
   options: ServerExecutorOptions = DEFAULT_SERVER_EXECUTOR_OPTIONS,
 ): AsyncGameExecutor {
   const base: string = options.baseUrl
+  let stateVersion: number | undefined
+
+  async function sendCommand<T extends { stateVersion?: number }>(
+    url: string,
+    requestOptions?: { method?: 'GET' | 'POST'; body?: Record<string, unknown> },
+  ): Promise<T> {
+    const body: Record<string, unknown> = { ...(requestOptions?.body ?? {}) }
+
+    if (Array.isArray(body.actions)) {
+      body.actions = (body.actions as Array<Record<string, unknown>>).map((action) => ({
+        ...action,
+        commandId: action.commandId ?? crypto.randomUUID(),
+        ...(stateVersion === undefined ? {} : { expectedStateVersion: stateVersion }),
+      }))
+    } else {
+      body.commandId = body.commandId ?? crypto.randomUUID()
+
+      if (stateVersion !== undefined) body.expectedStateVersion = stateVersion
+    }
+    const data: T = await fetchApi<T>(url, { ...requestOptions, body })
+
+    if (data.stateVersion !== undefined) stateVersion = data.stateVersion
+    return data
+  }
 
   return {
     async executeAction(_world: GameWorld | null, actionId: string): Promise<ExecuteActionCommandResult> {
-      const data: ActionExecuteResponse = await fetchApi<ActionExecuteResponse>(
+      const data: ActionExecuteResponse = await sendCommand<ActionExecuteResponse>(
         `${base}/api/game/actions/execute`,
         {
           method: 'POST',
@@ -44,7 +68,7 @@ export function createServerExecutor(
     },
 
     async simulateWorkShift(_world: GameWorld | null, hours: number): Promise<string> {
-      await fetchApi<SyncResponse>(
+      await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -60,7 +84,7 @@ export function createServerExecutor(
     },
 
     async changeCareer(_world: GameWorld | null, jobId: string): Promise<CommandOutcome> {
-      await fetchApi<SyncResponse>(
+      await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -76,7 +100,7 @@ export function createServerExecutor(
     },
 
     async quitCareer(_world: GameWorld | null): Promise<CommandOutcome> {
-      await fetchApi<SyncResponse>(
+      await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -92,7 +116,7 @@ export function createServerExecutor(
     },
 
     async startEducationProgram(_world: GameWorld | null, programId: string): Promise<string> {
-      await fetchApi<SyncResponse>(
+      await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -108,7 +132,7 @@ export function createServerExecutor(
     },
 
     async advanceEducation(_world: GameWorld | null): Promise<string> {
-      await fetchApi<SyncResponse>(
+      await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -124,7 +148,7 @@ export function createServerExecutor(
     },
 
     async executeFinanceDecision(_world: GameWorld | null, actionId: string): Promise<string> {
-      await fetchApi<SyncResponse>(
+      await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -143,7 +167,7 @@ export function createServerExecutor(
       _world: GameWorld | null,
       cardData: Record<string, unknown>,
     ): Promise<string> {
-      await fetchApi<SyncResponse>(
+      await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -163,7 +187,7 @@ export function createServerExecutor(
       eventId: string,
       choiceId: string,
     ): Promise<CommandOutcome> {
-      await fetchApi<SyncResponse>(
+      await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -195,7 +219,7 @@ export function createServerExecutor(
     },
 
     async advanceTime(_world: GameWorld | null, hours: number): Promise<void> {
-      await fetchApi<SyncResponse>(`${base}/api/game/sync`, {
+      await sendCommand<SyncResponse>(`${base}/api/game/sync`, {
         method: 'POST',
         body: {
           actions: [
@@ -206,7 +230,7 @@ export function createServerExecutor(
     },
 
     async applyMonthlySettlement(_world: GameWorld | null): Promise<string> {
-      await fetchApi<SyncResponse>(
+      await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -237,7 +261,10 @@ async function fetchApi<T>(url: string, options?: { method?: 'GET' | 'POST'; bod
 
   if (!response.success || response.data === undefined) {
     const message: string = response.error?.message ?? 'API request failed'
-    throw new Error(message)
+    const apiError: Error & { code?: string; details?: Record<string, unknown> } = new Error(message) as Error & { code?: string; details?: Record<string, unknown> }
+    apiError.code = response.error?.code
+    apiError.details = response.error?.details
+    throw apiError
   }
 
   const syncData: T & { failed?: number; errors?: Array<{ message: string }> } = response.data as T & { failed?: number; errors?: Array<{ message: string }> }

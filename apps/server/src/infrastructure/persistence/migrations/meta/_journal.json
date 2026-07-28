@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1785231629948,
+      "tag": "0001_durable_game_state",
+      "breakpoints": true
+    }
+  ]
+}

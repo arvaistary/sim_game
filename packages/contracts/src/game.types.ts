@@ -18,24 +18,29 @@ export interface InitRequestBody<TState = unknown> {
   saveData?: TState
 }
 
-export interface ActionExecuteRequest {
+export interface MutationMetadata {
+  commandId?: string
+  expectedStateVersion?: number
+}
+
+export interface ActionExecuteRequest extends MutationMetadata {
   actionId: string
 }
 
-export interface WorkShiftRequest {
+export interface WorkShiftRequest extends MutationMetadata {
   hours: number
 }
 
-export interface EventResolveRequest {
+export interface EventResolveRequest extends MutationMetadata {
   eventId: string
   choiceId: string
 }
 
-export interface CareerChangeRequest {
+export interface CareerChangeRequest extends MutationMetadata {
   jobId: string
 }
 
-export interface InvestRequest {
+export interface InvestRequest extends MutationMetadata {
   amount: number
   type: 'deposit' | 'stocks' | 'business'
   returnRate?: number

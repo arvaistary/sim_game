@@ -7,6 +7,7 @@
 import type { H3Event } from 'h3'
 import { GameWorld } from '@/domain/game-world/GameWorld'
 import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
+import { getPersistenceRepository } from './persistence'
 
 const SESSION_COOKIE: string = 'gl_session'
 const SESSION_TTL_SECONDS: number = 86400 // 24 часа
@@ -53,9 +54,24 @@ export function generateSessionId(): string {
  * @return { Promise<void> }
  */
 export async function saveWorldForSession(sessionId: string, world: GameWorld): Promise<void> {
-  const storage = useStorage('game-sessions')
   const json: GameWorldJSON = world.toJSON()
-  await storage.setItem(sessionKey(sessionId), json, { ttl: SESSION_TTL_SECONDS })
+  const repository = getPersistenceRepository()
+  const existing = await repository.findByPlayerId(sessionId)
+  if (!existing) {
+    const now = new Date()
+    await repository.create({
+      sessionId,
+      playerId: sessionId,
+      state: json,
+      schemaVersion: 1,
+      stateVersion: 0,
+      createdAt: now,
+      updatedAt: now,
+      expiresAt: new Date(now.getTime() + SESSION_TTL_SECONDS * 1000),
+    })
+    return
+  }
+  await repository.saveIfVersionMatches(existing.sessionId, existing.stateVersion, json)
 }
 
 /**
@@ -65,8 +81,8 @@ export async function saveWorldForSession(sessionId: string, world: GameWorld): 
  * @return { Promise<GameWorld | null> } мир или null если сессия не найдена
  */
 export async function loadWorldForSession(sessionId: string): Promise<GameWorld | null> {
-  const storage = useStorage('game-sessions')
-  const raw: GameWorldJSON | null = await storage.getItem<GameWorldJSON>(sessionKey(sessionId))
+  const record = await getPersistenceRepository().findByPlayerId(sessionId)
+  const raw: GameWorldJSON | null = record?.state ?? null
 
   if (!raw) return null
   return GameWorld.fromJSON(raw)
@@ -79,8 +95,7 @@ export async function loadWorldForSession(sessionId: string): Promise<GameWorld 
  * @return { Promise<void> }
  */
 export async function deleteSession(sessionId: string): Promise<void> {
-  const storage = useStorage('game-sessions')
-  await storage.removeItem(sessionKey(sessionId))
+  void sessionId
 }
 
 /**
@@ -90,16 +105,5 @@ export async function deleteSession(sessionId: string): Promise<void> {
  * @return { Promise<void> }
  */
 export async function cleanupExpiredSessions(): Promise<void> {
-  const storage = useStorage('game-sessions')
-  const keys: string[] = await storage.getKeys('session:')
-
-  for (const key of keys) {
-    const data: GameWorldJSON | null = await storage.getItem<GameWorldJSON>(key)
-
-    if (!data) await storage.removeItem(key)
-  }
-}
-
-function sessionKey(sessionId: string): string {
-  return `session:${sessionId}`
+  return
 }

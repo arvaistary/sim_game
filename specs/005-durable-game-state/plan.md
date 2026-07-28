@@ -27,7 +27,7 @@ Replace process-local game-session storage with PostgreSQL-backed persistence wh
 - **Type safety**: PASS. New DTOs and ports use explicit types in `*.types.ts`; strict TypeScript and no `any`.
 - **Separation of concerns**: PASS. Nitro/Fastify handlers call application services/repositories; they do not open connections or implement transaction rules.
 - **Testing**: PASS. Add behavior-focused repository, contract, concurrency, migration and deployment smoke tests before cutover.
-- **Documentation**: PASS. Update migration status, persistence guide and ADR if final architecture decision differs from existing server-first record.
+- **Documentation**: PASS only when ADR-0006 is accepted before implementation and migration status, persistence guide and ADR are updated after cutover.
 
 ## Research Summary
 
@@ -60,11 +60,15 @@ apps/server/src/
 │   ├── schema.ts
 │   ├── migrations/
 │   └── postgres-game-state-repository.ts
-├── application/                 # transaction/use-case orchestration as extraction advances
+├── application/                 # runtime adapters only; canonical service lives in packages/application
 └── http/                        # future route modules; current app.ts compatibility remains
 
+src/domain/
+├── game-command-executor.ts      # concrete DomainCommandExecutor over framework-free game commands
+└── game-command-executor.types.ts
+
 packages/application/src/
-├── ports.types.ts               # repository, command log and unit-of-work contracts
+├── ports.types.ts               # repository, command log, unit-of-work and domain executor contracts
 └── ...
 
 server/
@@ -88,7 +92,24 @@ test/
 
 Before implementation, create and accept [ADR-0006](../../doc/adr/0006-durable-game-state-persistence.md). The ADR must approve PostgreSQL as authoritative storage, JSONB snapshot strategy, transaction/idempotency boundary, canonical application service location, anonymous M3 identity and Redis deferral. No database, repository or route changes begin before this gate passes.
 
-Canonical mutation orchestration lives in `packages/application/src/game-state-service.ts`. Nitro and standalone Fastify provide transport/runtime adapters only; `apps/server/src/application/game-application-service.ts` must not become a second implementation of command, transaction or conflict rules.
+Canonical mutation orchestration lives in `packages/application/src/game-state-service.ts`. It depends on an injected, framework-neutral `DomainCommandExecutor` port defined in `packages/application/src/ports.types.ts`; the concrete executor is supplied by the domain layer. Nitro and standalone Fastify provide transport/runtime adapters only; `apps/server/src/application/game-application-service.ts` must not become a second implementation of command, transaction or conflict rules, and the application layer must not import a concrete domain executor.
+
+The concrete executor is implemented in `src/domain/game-command-executor.ts` over the existing framework-free `src/domain/game-world/commands` surface, with explicit types in `src/domain/game-command-executor.types.ts`. Nitro composition in `server/utils/persistence.ts` and standalone Fastify composition in `apps/server/src/app.ts` inject the same executor into the canonical application service; route handlers do not construct it directly.
+
+### Domain command mapping
+
+Every `GameCommandType` from `packages/contracts/src/command.types.ts` must have one explicit executor mapping before T028:
+
+| Command type | Payload/subcommand | Domain operation |
+|---|---|---|
+| `action` | `actionId` | `executeActionCommand` |
+| `work` | `hours` | `simulateWorkShiftCommand` |
+| `event` | `eventId`, `choiceId` | `resolveEventDecisionCommand` |
+| `career` | `action=change\|quit`, `jobId` | `changeCareer` / `quitCareer` adapter over `startCareerWork` / `endCareerWork` |
+| `finance` | `action=collect\|monthly_settlement`, investment payloads | `collectInvestment` / `applyMonthlySettlement` over `divestFromWorld` / `processMonthlySettlementForWorld`; preserve `executeFinanceDecision` for legacy finance calls |
+| `education` | `action=start\|advance`, `programId` | `startEducationProgram` / `advanceEducation` adapter with typed education payloads |
+
+Mapping tests must cover every row, each supported subcommand and invalid payloads. Any legacy helper in `src/application/game/commands.ts` must be moved behind this mapping, wrapped by the executor, or explicitly classified as non-mutation; no current mutation path may remain unaccounted for.
 
 ### Repository boundary
 
@@ -108,7 +129,7 @@ Create `players`, `game_sessions` and `processed_commands` as described in [data
 
 ### Mutation transaction
 
-Centralize mutation flow in an application service or repository unit-of-work. Route handlers pass validated command envelopes; they do not load, mutate and save independently. The transaction must make state update and processed-command insert atomic. Duplicate command with same request hash returns cached response; duplicate identity with different hash returns `409 command_id_conflict`; stale version returns `409 state_version_conflict`.
+Centralize mutation flow in an application service or repository unit-of-work. Route handlers pass validated command envelopes; they do not load, mutate and save independently. The application service invokes the injected `DomainCommandExecutor` and coordinates persistence; it does not implement domain rules. The transaction must make state update and processed-command insert atomic. Duplicate command with same request hash returns cached response; duplicate identity with different hash returns `409 command_id_conflict`; stale version returns `409 state_version_conflict`.
 
 ### API compatibility
 
@@ -118,7 +139,9 @@ Keep response envelope and existing routes. Extend mutation requests with `comma
 
 ### Runtime wiring
 
-Create one process-local PostgreSQL pool per runtime process and reuse it across requests. Read `DATABASE_URL` and pool limits from server-only environment. Nitro and standalone Fastify must report persistence dependency in `/ready`; `/health` remains liveness. No `DATABASE_URL` value may enter `NUXT_PUBLIC_*`, generated client assets or logs.
+Create one process-local PostgreSQL pool per runtime process and reuse it across requests. Read `DATABASE_URL` and pool limits from server-only environment. Nitro exposes liveness in `server/api/health.get.ts` and readiness in `server/api/ready.get.ts`; standalone Fastify exposes equivalent `/health` and `/ready` routes from `apps/server/src/app.ts`. `/health` checks process liveness only. `/ready` checks PostgreSQL connectivity and expected migration/schema version, returning `503` when authoritative persistence is unavailable or not ready. No `DATABASE_URL` value may enter `NUXT_PUBLIC_*`, generated client assets or logs.
+
+Readiness uses typed `PersistenceReadiness` from `apps/server/src/app.types.ts` and one ordered `MIGRATION_MANIFEST` source in `apps/server/src/infrastructure/persistence/migration-version.ts`. `CURRENT_SCHEMA_VERSION` equals `MIGRATION_MANIFEST.length`; migration filenames are append-only and ordered (`0001_...`, `0002_...`). `apps/server/src/infrastructure/persistence/db.ts` reads `COUNT(*)` from Drizzle's `__drizzle_migrations` bookkeeping table, treats that count as applied ordinal version, and compares it with `CURRENT_SCHEMA_VERSION`. Missing table, connection failure or count mismatch is not ready. A ready response is `200` with dependency and version status; unavailable PostgreSQL or schema mismatch is `503` with the same typed status shape and no credentials.
 
 ### Redis boundary
 
@@ -135,6 +158,8 @@ Do not require Redis for first PostgreSQL cutover. When added, use it only for s
 5. Add persistence feature fixtures and test helpers without changing production storage.
 6. Confirm `.env*`, database credentials and generated artifacts remain ignored/uncommitted.
 
+Baseline commands: `npm run test`, `npm run test:standalone-server`, `npm run test:architecture`, `npm run typecheck:packages` and `npm run typecheck:standalone-server`; every command must exit `0`, and `git check-ignore -v .env .env.local apps/server/.env apps/server/.env.local .output` must confirm server secrets and generated artifacts are ignored.
+
 **Gate**: ADR is accepted; baseline API contract and current local tests pass; no caller of `init`, `execute` or `sync` is unknown.
 
 ### Phase 1 — Local PostgreSQL foundation
@@ -144,26 +169,27 @@ Do not require Redis for first PostgreSQL cutover. When added, use it only for s
 3. Add Drizzle/`pg` dependencies and server-only database bootstrap.
 4. Add `dotenv`-based standalone server environment loading and document server-only variables.
 5. Add first migration for `players`, `game_sessions`, `processed_commands`.
-6. Add migration smoke test on empty database and repeat application check.
+6. Add migration smoke test on empty database and repeat application check; verify applied ordinal equals `MIGRATION_MANIFEST.length`.
 
 **Gate**: clean local database starts, migration applies twice safely, and credentials stay outside repository.
 
 ### Phase 2 — Repository and transaction implementation
 
 1. Extend application persistence ports and error types.
-2. Implement snapshot schema validation and ordered migration hook.
-3. Add old-snapshot/current-snapshot fixtures and migration tests before repository implementation.
-4. Implement PostgreSQL repository/unit-of-work adapter.
-5. Implement compare-and-swap state update and state version increment.
-6. Implement processed-command lookup, request hash check and cached response.
-7. Keep/update memory adapter as a deterministic test double.
+2. Write failing mapping tests for all six `GameCommandType` values and supported subcommands, then define and implement the concrete domain command executor and its typed adapter boundary.
+3. Implement snapshot schema validation and ordered migration hook.
+4. Add old-snapshot/current-snapshot fixtures and migration tests before repository implementation.
+5. Implement PostgreSQL repository/unit-of-work adapter.
+6. Implement compare-and-swap state update and state version increment; this is prerequisite for command service.
+7. Implement processed-command lookup, request hash check and cached response on top of completed CAS behavior.
+8. Keep/update memory adapter as a deterministic test double.
 
 **Gate**: migration tests pass before repository tests; repository tests cover create/load, TTL, update, stale version, duplicate command, mismatched payload and rollback after failure.
 
 ### Phase 3 — API wiring and client metadata
 
-1. Route Nitro compatibility layer through shared repository adapter and canonical application service.
-2. Route standalone Fastify through the same canonical application service; keep transport adapter thin.
+1. Build Nitro composition in `server/utils/persistence.ts` with shared repository, unit-of-work and `DomainCommandExecutor` dependencies, then route compatibility handlers through the canonical application service.
+2. Build standalone Fastify composition in `apps/server/src/app.ts` and `apps/server/src/index.ts` with the same dependencies; keep transport adapter thin.
 3. Add `commandId` and `expectedStateVersion` to mutation request paths and sync queue.
 4. Preserve current response envelope and map persistence errors to documented codes.
 5. Update readiness checks to verify PostgreSQL availability without exposing credentials.
@@ -188,13 +214,22 @@ Do not require Redis for first PostgreSQL cutover. When added, use it only for s
 1. Provision provider-neutral managed PostgreSQL through approved Vercel Marketplace integration.
 2. Apply reviewed database migrations to Production and verify migration version before application deploy.
 3. Set `DATABASE_URL` and non-secret persistence settings in Vercel Production Environment only.
+
+**Migration gate**: Production schema count in `__drizzle_migrations` equals `MIGRATION_MANIFEST.length`, migration output is recorded, and migration failure leaves application deploy blocked.
+
 4. Deploy from merged `main` using existing main-only workflow.
-5. Run production smoke: init, action, state reload, redeploy/retry, conflict and readiness.
-6. Record provider, region, migration version, deployment commit, rollback path and known limitations.
+5. Run production smoke: init, action, state reload, retry, conflict and readiness.
 
-**Gate**: state created before a new deployment is readable afterward; no secret leakage; hosted runtime reports durable readiness.
+**Runtime gate**: State created before deploy is readable afterward; no secret leakage; hosted runtime reports durable readiness.
 
-### Phase 6 — Follow-up operational hardening
+6. Execute rollback/recovery rehearsal and verify state readability, schema compatibility, readiness and documented recovery steps.
+7. Record provider, region, migration version, deployment commit, rollback result and known limitations.
+
+**Rollback gate**: Recovery path is tested and does not require destructive data rollback.
+
+### Phase 6 — Follow-up operational hardening (post-M3, non-blocking)
+
+This phase is outside M3 completion criteria and must not block M3 implementation, migration or deployment gates.
 
 1. Decide whether to add Redis for lock/rate-limit/cache concerns.
 2. Add backup/restore rehearsal and retention monitoring.

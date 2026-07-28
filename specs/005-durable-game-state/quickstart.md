@@ -6,7 +6,7 @@
 - npm
 - Docker Desktop
 
-## Planned first-run flow
+## First-run flow
 
 ```powershell
 npm ci
@@ -14,6 +14,8 @@ npm run infra:up
 npm run db:migrate
 npm run dev
 ```
+
+`npm run db:migrate` is non-destructive and uses Drizzle's migration journal. Run it after `infra:up` and before first API request. `npm run db:status` must report `Everything's fine` and Production must fail readiness until applied migration count equals `CURRENT_SCHEMA_VERSION`.
 
 Expected local services:
 
@@ -51,7 +53,15 @@ npm test
 npm run build
 ```
 
-Persistence-specific tests must additionally cover restart simulation, duplicate command, stale version, malformed snapshot, migration fixture and unavailable database.
+Persistence-specific tests must additionally cover restart simulation, duplicate command, stale version, malformed snapshot, migration fixture and unavailable database. Repository/integration tests run against PostgreSQL when `RUN_PERSISTENCE_TESTS=1`.
+
+## API command metadata
+
+Mutation calls may include `commandId` and `expectedStateVersion`. Server generates compatibility IDs for legacy callers. Repeating same ID with same payload replays cached result; reusing ID with different payload returns `409 command_id_conflict`; stale version returns `409 state_version_conflict`.
+
+## Production/Vercel
+
+Set `DATABASE_URL` only in Vercel Production Environment Variables. Never put it in `NUXT_PUBLIC_*`, `.env` tracked files or client config. Run reviewed migration before deployment, verify `/api/ready` returns `200`, then deploy `main`. `/api/health` checks process liveness only; `/api/ready` checks PostgreSQL and migration count.
 
 ## Destructive operations
 

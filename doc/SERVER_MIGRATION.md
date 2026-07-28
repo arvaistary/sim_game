@@ -374,6 +374,10 @@ Vue UI
 **Фаза F — cutover:** поставить `gameMode: 'server'` по умолчанию, убрать production fallback на SPA.
 **Фаза G — cleanup:** удалить legacy sync path, SPAExecutor, bridge и неиспользуемые offline assumptions.
 
+### M3 durable persistence cutover
+
+M3 adds PostgreSQL/JSONB persistence, CAS state versions and transactional processed-command idempotency. Nitro and standalone Fastify use same application service and domain executor. `DATABASE_URL` is server-only; run `npm run db:migrate` before deployment and require `/api/ready` to report matching migration count. Redis remains deferred and cannot become canonical state. Rollback is application rollback with forward-compatible schema recovery; no destructive migration rollback.
+
 ### Definition of Done
 
 Миграция завершена, когда:

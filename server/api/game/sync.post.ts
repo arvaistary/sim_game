@@ -5,29 +5,16 @@
  * Body: { actions: QueuedAction[] }
  * Применяет действия по очереди, возвращает финальное состояние.
  */
-import { executeActionCommand } from '@/domain/game-world/commands'
-import {
-  applyMonthlySettlement,
-  changeCareer,
-  collectInvestment,
-  quitCareer,
-  resolveEventDecision,
-  startEducationProgram,
-  advanceEducation,
-  simulateWorkShift,
-} from '@/application/game/commands'
-import type { GameWorld } from '@/domain/game-world/GameWorld'
-import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
 import type { ApiResponse, SyncRequest, SyncResponse, ErrorResponse } from '../types'
-import type { ExecuteActionResult } from '@/domain/game-world/commands/commands.types'
 import { okResponse } from '../../utils/error-handler'
+import { getGameStateService, getPersistenceRepository } from '../../utils/persistence'
 
 export default defineEventHandler(async (event): Promise<ApiResponse<SyncResponse>> => {
   const sessionId: string = getOrCreateSessionId(event)
-  const body: SyncRequest = await readBody(event)
-  const world: GameWorld | null = await loadWorldForSession(sessionId)
+  const body: SyncRequest = await readBody(event).catch(() => ({ actions: [] })) ?? { actions: [] }
+  const existing = await getPersistenceRepository().findByPlayerId(sessionId)
 
-  if (!world) {
+  if (!existing) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Session not found',
@@ -38,53 +25,18 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SyncRespons
   let applied: number = 0
   let failed: number = 0
   const errors: ErrorResponse[] = []
+  const service = getGameStateService()
 
   for (const queuedAction of body.actions ?? []) {
     try {
-      switch (queuedAction.type) {
-        case 'action': {
-          const actionId: string = String(queuedAction.payload.actionId ?? '')
-          const result: ExecuteActionResult = executeActionCommand(world, actionId)
-          if (!result.success) throw new Error(result.message)
-          break
-        }
-        case 'work':
-          simulateWorkShift(world, Number(queuedAction.payload.hours ?? 0))
-          break
-        case 'career': {
-          const action: string = String(queuedAction.payload.action ?? 'change')
-          if (action === 'quit') {
-            const quitResult = quitCareer(world)
-            if (!quitResult.success) throw new Error(quitResult.message)
-          } else {
-            const result = changeCareer(world, String(queuedAction.payload.jobId ?? ''))
-            if (!result.success) throw new Error(result.message)
-          }
-          break
-        }
-        case 'finance':
-          if (queuedAction.payload.action === 'collect') {
-            collectInvestment(world, String(queuedAction.payload.investmentId ?? ''))
-          } else if (queuedAction.payload.action === 'monthly_settlement') {
-            applyMonthlySettlement(world)
-          }
-          break
-        case 'event': {
-          const result = resolveEventDecision(
-            world,
-            String(queuedAction.payload.eventId ?? ''),
-            null,
-            String(queuedAction.payload.choiceId ?? ''),
-          )
-          if (!result.success) throw new Error(result.message)
-          break
-        }
-        case 'education':
-          if (queuedAction.payload.action === 'start') {
-            startEducationProgram(world, String(queuedAction.payload.programId ?? ''))
-          } else {
-            advanceEducation(world)
-          }
+      const result = await service.execute(sessionId, sessionId, {
+        commandId: queuedAction.commandId ?? crypto.randomUUID(),
+        expectedStateVersion: queuedAction.expectedStateVersion,
+        type: queuedAction.type,
+        payload: queuedAction.payload,
+      })
+      if (!result.result.success) {
+        throw new Error(result.result.message)
       }
       applied++
     } catch (error) {
@@ -96,8 +48,14 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SyncRespons
     }
   }
 
-  await saveWorldForSession(sessionId, world)
-
-  const state: GameWorldJSON = world.toJSON()
-  return okResponse({ state, applied, failed, errors: errors.length > 0 ? errors : undefined })
+  const current = (await getPersistenceRepository().findByPlayerId(sessionId)) ?? existing
+  return okResponse({
+    state: current.state,
+    stateVersion: current.stateVersion,
+    applied,
+    failed,
+    errors: errors.length > 0 ? errors : undefined,
+  })
 })
+
+// executeActionCommand is now dispatched by injected GameCommandExecutor.

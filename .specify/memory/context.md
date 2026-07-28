@@ -1,6 +1,6 @@
 # Game Life Repository Context
 
-**Last Updated:** 2026-07-26
+**Last Updated:** 2026-07-28
 
 ## Project Overview
 
@@ -12,7 +12,7 @@ Game Life is a cozy turn-based life simulator built with modern web technologies
 - **Language:** TypeScript (strict mode)
 - **State Management:** Pinia
 - **Styling:** SCSS
-- **Persistence:** LocalStorage for SPA saves; current server sessions use memory repository adapters; PostgreSQL 16 and Redis 7 are planned for M3
+- **Persistence:** LocalStorage for SPA saves; PostgreSQL 16 is M3 server authority behind application ports; Redis remains deferred and non-canonical
 - **Testing:** Vitest + Playwright
 - **Build Tool:** Vite
 
@@ -22,7 +22,7 @@ Game Life is a cozy turn-based life simulator built with modern web technologies
 2. **Layered Architecture:** Strict dependency flow: utils/constants → domain → application → infrastructure → stores/composables → components → pages
 3. **Type Safety:** All code is TypeScript with strict mode enabled
 4. **Component Auto-import:** Components from specific directories are auto-imported without prefixes
-5. **Server-first runtime:** Browser/dev defaults to server execution through standalone Fastify on `:3001`; Nitro handlers remain compatibility layer
+5. **Server-first runtime:** Browser/dev defaults to server execution through standalone Fastify on `:3001`; Nitro handlers remain compatibility layer and use same PostgreSQL application boundary
 6. **Composable Auto-import:** All composables and stores are auto-imported by Nuxt
 
 ## Key Directories
@@ -162,4 +162,4 @@ specs/                   # Durable Spec-kit work items and server-first plan
 
 ## Current Status
 
-The game is in active development with core systems implemented. M0-M2 of server-first extraction are complete; M3 durable PostgreSQL/Redis persistence remains in progress. See `doc/core/IMPLEMENTATION_STATUS.md` and `specs/server-first-arch/` for current status. The project follows Spec-kit with durable intermediate artifacts.
+The game is in active development with core systems implemented. M0-M2 server-first extraction and M3 durable persistence implementation are complete locally; managed PostgreSQL provisioning, hosted Vercel verification and rollback rehearsal remain operational gates. See `doc/core/IMPLEMENTATION_STATUS.md` and `specs/005-durable-game-state/` for current status. The project follows Spec-kit with durable intermediate artifacts.

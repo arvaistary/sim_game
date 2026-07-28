@@ -30,6 +30,9 @@ const DEFAULT_MESSAGES: Record<ApiErrorCode, string> = {
   insufficient_resources: 'Недостаточно ресурсов.',
   internal_error: 'Внутренняя ошибка сервера. Попробуйте позже.',
   network_error: 'Ошибка сети. Проверьте подключение.',
+  command_id_conflict: 'Command id already used with different payload.',
+  state_version_conflict: 'State changed on server. Refresh and retry.',
+  persistence_unavailable: 'Game persistence is temporarily unavailable.',
 }
 
 /**
