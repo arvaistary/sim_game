@@ -9,27 +9,51 @@
     }"
     @mouseenter="onEnter"
     @mouseleave="onLeave"
+    @mouseover="onEnter"
+    @pointerenter="onEnter"
+    @pointerleave="onLeave"
     @mousemove="onMove"
+    @pointermove="onMove"
     @click="onWrapperClick"
   >
     <slot />
-    <Teleport to="body">
-      <Transition name="tooltip">
-        <div
-          v-if="show && text"
-          ref="tooltipEl"
-          class="tooltip"
-          :class="{
-            'tooltip--multiline': multiline,
-            'tooltip--follow': followCursor,
-            'tooltip--interactive': pinOnClick && pinned,
-          }"
-          :style="tooltipStyle"
-        >
-          {{ text }}
-        </div>
-      </Transition>
-    </Teleport>
+    <template v-if="shouldTeleport">
+      <Teleport to="body">
+        <Transition name="tooltip">
+          <div
+            v-if="show && text"
+            ref="tooltipEl"
+            class="tooltip"
+            :class="{
+              'tooltip--multiline': multiline,
+              'tooltip--follow': followCursor,
+              'tooltip--interactive': pinOnClick && pinned,
+            }"
+            :style="tooltipStyle"
+          >
+            {{ text }}
+          </div>
+        </Transition>
+      </Teleport>
+    </template>
+    <Transition
+      v-else
+      name="tooltip"
+    >
+      <div
+        v-if="show && text"
+        ref="tooltipEl"
+        class="tooltip"
+        :class="{
+          'tooltip--multiline': multiline,
+          'tooltip--follow': followCursor,
+          'tooltip--interactive': pinOnClick && pinned,
+        }"
+        :style="tooltipStyle"
+      >
+        {{ text }}
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -52,6 +76,7 @@ const props = withDefaults(defineProps<{
    */
   pinOnClick?: boolean
 }>(), {
+  text: '',
   placement: 'top',
 })
 
@@ -60,6 +85,8 @@ const pinned = ref(false)
 const wrapperRef = ref<HTMLElement | null>(null)
 const mouseX = ref(0)
 const mouseY = ref(0)
+
+const shouldTeleport = computed<boolean>(() => props.followCursor || props.placement === 'follow')
 
 const tooltipStyle = computed(() => {
   if (props.followCursor || props.placement === 'follow') {

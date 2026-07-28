@@ -22,6 +22,7 @@ export interface MilestoneReward {
 }
 
 export interface ActiveCourseStep {
+  id?: string
   title: string
   progressPercent?: number
   hoursRequired?: number
@@ -42,9 +43,12 @@ export interface ActiveCourse {
 export interface ActiveEducation {
   id: string
   name: string
+  type?: string
   progress: number
   hoursTotal: number
   hoursRemaining: number
+  currentStepIndex?: number
+  steps?: ActiveCourseStep[]
 }
 
 export interface NeedsState {
