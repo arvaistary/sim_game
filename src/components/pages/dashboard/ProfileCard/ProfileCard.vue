@@ -27,8 +27,8 @@
         <span class="profile-card__kpi-value metric">{{ formatMoney(money) }}<span class="profile-card__kpi-unit">₽</span></span>
       </div>
       <div class="profile-card__kpi">
-        <span class="profile-card__kpi-label">День</span>
-        <span class="profile-card__kpi-value metric">{{ formatGameDays(gameDays) }}</span>
+        <span class="profile-card__kpi-label">{{ gameTimeUnit }}</span>
+        <span class="profile-card__kpi-value metric">{{ gameTimeValue }}</span>
       </div>
       <div class="profile-card__kpi">
         <span class="profile-card__kpi-label">Комфорт</span>
@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import './ProfileCard.scss'
 import SkillsModal from '../SkillsModal/SkillsModal.vue'
-import { formatGameDays, formatMoney } from '@/utils/format'
+import { formatMoney } from '@/utils/format'
 
 const timeStore = useTimeStore()
 const walletStore = useWalletStore()
@@ -73,6 +73,9 @@ const initials = computed<string>(() => {
 const money = computed<number>(() => walletStore.money)
 const comfort = computed<number>(() => housingStore.comfort)
 const gameDays = computed<number>(() => timeStore.gameDays)
+const gameTimeUnit = computed<string>(() => gameDays.value >= 365 ? 'Год' : 'День')
+const gameTimeValue = computed<number>(() => gameDays.value >= 365 ? timeStore.gameYears : gameDays.value)
+const weekHoursRemaining = computed<number>(() => Math.max(0, Math.ceil(timeStore.weekHoursRemaining)))
 const currentAge = computed<number>(() => timeStore.currentAge)
 
 const jobLabel = computed<string>(() => {
@@ -82,7 +85,7 @@ const jobLabel = computed<string>(() => {
 })
 
 const timeLabel = computed<string>(() => {
-  return `Неделя ${timeStore.gameWeekOfMonth}`
+  return `Неделя ${timeStore.gameWeekOfMonth} • ${weekHoursRemaining.value} ч осталось`
 })
 
 function openSkillsModal(): void {

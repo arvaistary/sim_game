@@ -1,11 +1,15 @@
 <template>
-  <div class="stat-bar">
-    <div class="stat-bar__header">
-      <span class="stat-bar__label">{{ label }}</span>
-      <span class="stat-bar__value metric">{{ Math.round(value) }}</span>
+  <Tooltip
+    :text="`${Math.round(value)} / ${max}`"
+    stretch
+  >
+    <div class="stat-bar">
+      <div class="stat-bar__header">
+        <span class="stat-bar__label">{{ label }}</span>
+      </div>
+      <ProgressBar :value="value" :max="max" :color="barColor" :height="6" />
     </div>
-    <ProgressBar :value="value" :color="barColor" :height="6" />
-  </div>
+  </Tooltip>
 </template>
 
 <script setup lang="ts">
@@ -14,11 +18,13 @@ import './StatBar.scss'
 interface StatBarProps {
   label: string
   value: number
+  max?: number
   color?: string
 }
 
 const props = withDefaults(defineProps<StatBarProps>(), {
   color: '',
+  max: 100,
 })
 
 const barColor = computed<string>(() => {

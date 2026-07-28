@@ -19,6 +19,7 @@ import type {
 import type { CommandOutcome, ExecuteActionCommandResult } from './index.types'
 import type { ServerExecutorOptions } from './server-executor.types'
 import { DEFAULT_SERVER_EXECUTOR_OPTIONS } from './server-executor.types'
+import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 
 /**
  * Создать ServerExecutor, вызывающий Nitro API.
@@ -132,7 +133,8 @@ export function createServerExecutor(
         },
       )
 
-      return `Программа ${programId} начата`
+      const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
+      return `Программа ${program?.title ?? programId} начата`
     },
 
     async advanceEducation(_world: GameWorld | null): Promise<string> {

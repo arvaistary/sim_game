@@ -187,6 +187,7 @@ import {
   resolveStudySessionHours,
 } from '@/stores/education-store'
 import type { CourseTile } from './EducationLevel.types'
+import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 
 const store = useGameStore()
 
@@ -206,9 +207,32 @@ const activeCourse: ComputedRef<ActiveCourse | null> = computed(() => {
   if (!courses || courses.length === 0) return null
 
   const source: ActiveCourse = courses[0]!
+  const catalog = EDUCATION_PROGRAMS.find(program => program.id === source.id)
+  const hasStoredSteps = Array.isArray(source.steps) && source.steps.length > 0
+  const catalogSteps: ActiveCourseStep[] = (catalog?.steps ?? []).map(step => ({
+    id: step.id,
+    title: step.title,
+    hoursRequired: step.hoursRequired,
+    progressPercent: 0,
+    ...(step.milestoneReward ? { milestoneReward: step.milestoneReward } : {}),
+  }))
+  const steps: ActiveCourseStep[] = hasStoredSteps
+    ? source.steps!.map(step => ({ ...step }))
+    : catalogSteps
+  const totalHours = steps.reduce((total, step) => total + (step.hoursRequired ?? 0), 0)
   return {
     ...source,
-    steps: source.steps?.map((s: ActiveCourseStep) => ({ ...s })) ?? [],
+    name: source.name && source.name !== source.id ? source.name : (catalog?.title ?? source.id),
+    type: source.type ?? catalog?.typeLabel,
+    steps,
+    ...(hasStoredSteps || totalHours <= 0
+      ? {}
+      : {
+          progress: 0,
+          hoursTotal: totalHours,
+          hoursRemaining: totalHours,
+          currentStepIndex: 0,
+        }),
   } as ActiveCourse
 })
 

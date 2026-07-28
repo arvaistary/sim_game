@@ -14,8 +14,9 @@ import type {
   WorkShiftResult,
 } from '@/domain/game-world/commands/commands.types'
 import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './command.types'
-import type { CareerJob } from '@/domain/balance/types'
+import type { CareerJob, EducationProgram, ProgramStep } from '@/domain/balance/types'
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
+import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 import { getActionById } from '@/domain/balance/actions'
 import {
   executeActionCommand,
@@ -27,6 +28,8 @@ import {
   investInWorld,
   processMonthlySettlementForWorld,
   startCareerWork,
+  applySkillChanges,
+  applyStatChangesRaw,
 } from '@/domain/game-world/commands'
 
 /**
@@ -197,14 +200,40 @@ export function startEducationProgram(world: GameWorld, programId: string): stri
 
   if (education.activeEducation) throw new Error('Уже учитесь')
 
+  const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(
+    candidate => candidate.id === programId,
+  )
+  const sourceSteps: ProgramStep[] = program?.steps ?? [{
+    id: `${programId}_step_1`,
+    title: program?.title ?? programId,
+    hoursRequired: program?.hoursRequired ?? 1,
+    progressPercent: 0,
+  }]
+  const steps: ProgramStep[] = sourceSteps.map(
+    (step: ProgramStep): ProgramStep => ({
+      id: step.id,
+      title: step.title,
+      hoursRequired: step.hoursRequired,
+      progressPercent: 0,
+      ...(step.milestoneReward ? { milestoneReward: step.milestoneReward } : {}),
+    }),
+  )
+  const totalHours: number = steps.reduce(
+    (total: number, step: ProgramStep): number => total + step.hoursRequired,
+    0,
+  )
+
   education.activeEducation = {
     id: programId,
-    name: programId,
+    name: program?.title ?? programId,
+    type: program?.typeLabel ?? 'Программа',
     progress: 0,
-    hoursTotal: 100,
-    hoursRemaining: 100,
+    hoursTotal: totalHours,
+    hoursRemaining: totalHours,
+    currentStepIndex: 0,
+    steps,
   }
-  return `Программа ${programId} начата`
+  return `Программа ${program?.title ?? programId} начата`
 }
 
 /**
@@ -217,16 +246,82 @@ export function advanceEducation(world: GameWorld): string {
 
   if (!active) return 'Нет активного обучения'
 
-  const remaining: number = Math.max(0, Number(active.hoursRemaining ?? 0) - 1)
+  const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(
+    candidate => candidate.id === String(active.id ?? ''),
+  )
+  const catalogSteps: ProgramStep[] = program?.steps ?? [{
+    id: `${String(active.id ?? 'program')}_step_1`,
+    title: program?.title ?? String(active.name ?? 'Программа'),
+    hoursRequired: program?.hoursRequired ?? 1,
+    progressPercent: 0,
+  }]
+  const rawSteps: unknown[] = Array.isArray(active.steps) && active.steps.length > 0 ? active.steps : catalogSteps
+  const steps: ProgramStep[] = rawSteps.map(
+    (step: unknown, index: number): ProgramStep => {
+      const stepRecord: Record<string, unknown> = typeof step === 'object' && step !== null
+        ? step as Record<string, unknown>
+        : {}
+      const catalogStep: ProgramStep | undefined = catalogSteps[index]
+
+      return {
+        id: String(stepRecord.id ?? catalogStep?.id ?? `${active.id}_step_${index + 1}`),
+        title: String(stepRecord.title ?? catalogStep?.title ?? 'Шаг программы'),
+        hoursRequired: Math.max(1, Number(stepRecord.hoursRequired ?? catalogStep?.hoursRequired ?? 1)),
+        progressPercent: Math.max(0, Math.min(1, Number(stepRecord.progressPercent ?? 0))),
+        ...(stepRecord.milestoneReward
+          ? { milestoneReward: stepRecord.milestoneReward as ProgramStep['milestoneReward'] }
+          : {}),
+      }
+    },
+  )
+  active.steps = steps
+
+  const totalHours: number = steps.reduce(
+    (total: number, step: ProgramStep): number => total + step.hoursRequired,
+    0,
+  )
+  let currentStepIndex: number = Math.max(0, Math.min(steps.length - 1, Number(active.currentStepIndex ?? 0)))
+  let hoursToSpend: number = 1
+  while (hoursToSpend > 0 && currentStepIndex < steps.length) {
+    const step: ProgramStep = steps[currentStepIndex]!
+    const completedHours: number = step.hoursRequired * step.progressPercent
+    const spend: number = Math.min(hoursToSpend, Math.max(0, step.hoursRequired - completedHours))
+    step.progressPercent = Math.min(1, (completedHours + spend) / step.hoursRequired)
+    hoursToSpend -= spend
+
+    if (step.progressPercent >= 1) currentStepIndex++
+  }
+
+  const completedHours: number = steps.reduce(
+    (total: number, step: ProgramStep): number => total + step.hoursRequired * step.progressPercent,
+    0,
+  )
+  const remaining: number = Math.max(0, totalHours - completedHours)
+  active.currentStepIndex = currentStepIndex
+  active.hoursTotal = totalHours
   active.hoursRemaining = remaining
-  active.progress = Math.min(100, Number(active.progress ?? 0) + 1)
+  active.progress = totalHours > 0 ? completedHours / totalHours : 1
   education.cognitiveLoad = Math.min(100, Number(education.cognitiveLoad ?? 0) + 10)
 
   if (remaining === 0) {
     const completed: Array<Record<string, unknown>> = Array.isArray(education.completedPrograms)
       ? education.completedPrograms as Array<Record<string, unknown>>
       : []
-    completed.push({ id: String(active.id ?? ''), name: String(active.name ?? '') })
+    completed.push({
+      id: String(active.id ?? ''),
+      name: String(active.name ?? ''),
+      typeLabel: program?.typeLabel,
+      completedAtGameDay: Math.floor(world.time.totalHours / 24),
+    })
+
+    if (program?.completionStatChanges) {
+      const statChanges: Record<string, number> = Object.fromEntries(
+        Object.entries(program.completionStatChanges).filter(([, value]) => typeof value === 'number'),
+      ) as Record<string, number>
+      applyStatChangesRaw(world, statChanges)
+    }
+
+    if (program?.completionSkillChanges) applySkillChanges(world, program.completionSkillChanges)
     education.completedPrograms = completed
     education.activeEducation = null
   }

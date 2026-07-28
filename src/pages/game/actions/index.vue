@@ -38,15 +38,16 @@ import type { CanExecuteActionResult } from '@/stores/game.store.types'
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()
+const actionsStore = useActionsStore()
 
 const { getActionsByCategory, getAllActions, canExecute, executeAction, actionsEmptyHint } = useActions()
 
 const activeCategory = ref<string>(ACTION_CATEGORIES[0]?.id ?? 'fun')
 const activeStat = ref<StatFilterId>('all')
-const sortMode = ref<SortMode>('price')
+const sortMode = ref<SortMode>('usage')
 
 type StatFilterId = 'all' | 'energy' | 'health' | 'mood' | 'stress' | 'hunger' | 'physical'
-type SortMode = 'price' | 'parameter'
+type SortMode = 'usage' | 'price' | 'parameter'
 
 const STAT_FILTERS: Array<{ id: Exclude<StatFilterId, 'all'>; label: string }> = [
   { id: 'energy', label: 'Энергия' },
@@ -63,6 +64,7 @@ const resourceOptions = [
 ]
 
 const sortOptions = [
+  { value: 'usage', label: 'По использованию' },
   { value: 'price', label: 'По цене' },
   { value: 'parameter', label: 'По параметру' },
 ]
@@ -94,7 +96,12 @@ const sortedActions: ComputedRef<BalanceAction[]> = computed(() => {
   void store.worldTick
   const originalOrder = new Map(actions.value.map((action, index) => [action.id, index]))
   return [...actions.value].sort((a, b) => {
-    if (sortMode.value === 'parameter') {
+    if (sortMode.value === 'usage') {
+      const usageA = actionsStore.actionUsage[a.id] ?? { count: 0, lastUsedAt: 0 }
+      const usageB = actionsStore.actionUsage[b.id] ?? { count: 0, lastUsedAt: 0 }
+      if (usageA.count !== usageB.count) return usageB.count - usageA.count
+      if (usageA.lastUsedAt !== usageB.lastUsedAt) return usageB.lastUsedAt - usageA.lastUsedAt
+    } else if (sortMode.value === 'parameter') {
       const parameterA = getPositiveEffect(a)
       const parameterB = getPositiveEffect(b)
       if (parameterA !== parameterB) return parameterB - parameterA

@@ -30,6 +30,35 @@ describe('GameCommandExecutor', () => {
     )
   })
 
+  it('keeps catalog steps and completes meditation book after all study hours', () => {
+    const started = executor.execute(GameWorld.createEmpty().toJSON(), {
+      type: 'education',
+      payload: { operation: 'start', programId: 'meditation_foundations_book' },
+    })
+    const active = (started.state.education as Record<string, unknown>).activeEducation as Record<string, unknown>
+
+    expect(active).toEqual(expect.objectContaining({
+      id: 'meditation_foundations_book',
+      name: 'Книга «Основы медитации»',
+      hoursTotal: 14,
+      currentStepIndex: 0,
+    }))
+    expect(active.steps).toHaveLength(5)
+
+    let state = started.state
+    for (let hour = 0; hour < 14; hour += 1) {
+      state = executor.execute(state, { type: 'education', payload: { action: 'advance' } }).state
+    }
+
+    const education = state.education as Record<string, unknown>
+    expect(education.activeEducation).toBeNull()
+    expect(education.completedPrograms).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'meditation_foundations_book', name: 'Книга «Основы медитации»' }),
+    ]))
+    expect(((state.skills as Record<string, unknown>).levels as Record<string, { level: number }>).meditation.level).toBe(0)
+    expect(((state.skills as Record<string, unknown>).levels as Record<string, { xp: number }>).meditation.xp).toBe(50)
+  })
+
   it('returns validation result for invalid payload instead of mutating state', () => {
     const state = GameWorld.createEmpty().toJSON()
     const result = executor.execute(state, { type: 'work', payload: { hours: '8' } as unknown as Record<string, unknown> })
