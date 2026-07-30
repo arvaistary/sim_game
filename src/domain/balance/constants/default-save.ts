@@ -104,6 +104,8 @@ export const DEFAULT_SAVE: SaveData = {
     institute: 'none',
     educationLevel: 'Среднее',
     activeCourses: [],
+    cognitiveLoad: 0,
+    studyHoursSinceLastSleep: 0,
     completedPrograms: [],
   },
   relationships: [

@@ -1,5 +1,7 @@
 import type { SkillDef, SkillTab, SkillCategory } from '@/domain/balance/types'
 
+export const MAX_SKILL_LEVEL = 1000
+
 export const SKILLS_TABS: SkillTab[] = [
   { id: 'basic', label: 'Базовые' },
   { id: 'professional', label: 'Профессиональные' },
@@ -15,7 +17,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Способность быстро восстанавливаться после неудач',
     category: 'basic',
     color: 0x7ED9A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       negativeEventMitigation: (lvl) => 1 - (lvl * 0.03),
       moodRecoveryMultiplier: (lvl) => 1 + (lvl * 0.04),
@@ -30,7 +32,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Умение глубоко погружаться в задачу',
     category: 'basic',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       workEfficiency: (lvl) => 1 + (lvl * 0.025),
       learningSpeedMultiplier: (lvl) => 1 + (lvl * 0.035),
@@ -45,7 +47,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Умение планировать и распределять время',
     category: 'basic',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       energyDrainMultiplier: (lvl) => 1 - (lvl * 0.025),
       stressGainMultiplier: (lvl) => 1 - (lvl * 0.02),
@@ -63,7 +65,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Способность общаться и договариваться',
     category: 'basic',
     color: 0xE8B4A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       positiveEventChance: (lvl) => 0.08 + (lvl * 0.012),
       relationshipGainMultiplier: (lvl) => 1 + (lvl * 0.04),
@@ -79,7 +81,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Понимание основ управления деньгами',
     category: 'basic',
     color: 0xA8CABA,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       shopPriceMultiplier: (lvl) => 1 - (lvl * 0.018),
       investmentReturnMultiplier: (lvl) => 1 + (lvl * 0.035),
@@ -95,7 +97,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Привычки, поддерживающие здоровье',
     category: 'basic',
     color: 0x7ED9A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       hungerDrainMultiplier: (lvl) => 1 - (lvl * 0.022),
       healthDecayMultiplier: (lvl) => 1 - (lvl * 0.03),
@@ -111,7 +113,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Способность быстро адаптироваться к изменениям',
     category: 'basic',
     color: 0xF4D95F,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       negativeEventPenaltyReduction: (lvl) => lvl * 0.04,
       jobChangeCostReduction: (lvl) => 1 - (lvl * 0.033),
@@ -126,7 +128,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Способность следовать плану и правилам',
     category: 'basic',
     color: 0x9E9E9E,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       learningSpeedMultiplier: (lvl) => 1 + (lvl * 0.025),
       workPeriodBonusChance: (lvl) => lvl * 0.015,
@@ -141,7 +143,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Общая физическая подготовка',
     category: 'basic',
     color: 0x7ED9A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       maxEnergyBonus: (lvl) => lvl * 4,
       stressResistanceFromWork: (lvl) => 1 - (lvl * 0.018),
@@ -156,7 +158,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Понимание собственных и чужих эмоций',
     category: 'basic',
     color: 0xE87D7D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       moodRecoveryMultiplier: (lvl) => 1 + (lvl * 0.045),
       negativeEventMitigation: (lvl) => 1 - (lvl * 0.025),
@@ -171,7 +173,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Практика осознанности и ментального покоя',
     category: 'basic',
     color: 0x9E9E9E,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       stressGainMultiplier: (lvl) => 1 - (lvl * 0.04),
       moodRecoveryMultiplier: (lvl) => 1 + (lvl * 0.06),
@@ -189,7 +191,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Умение поддерживать порядок в делах',
     category: 'basic',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       homeComfortMultiplier: (lvl) => 1 + (lvl * 0.025),
       dailyExpenseMultiplier: (lvl) => 1 - (lvl * 0.015),
@@ -204,7 +206,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Способность мыслить нестандартно',
     category: 'basic',
     color: 0xF4D95F,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       hobbyIncomeMultiplier: (lvl) => 1 + (lvl * 0.04),
       positiveEventChance: (lvl) => lvl * 0.01,
@@ -219,7 +221,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Способность противостоять стрессу',
     category: 'basic',
     color: 0xE87D7D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       stressGainMultiplier: (lvl) => 1 - (lvl * 0.035),
       stressEventImmunity: (lvl) => lvl >= 6 ? 0.5 : 0,
@@ -234,7 +236,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Контроль над эмоциями и действиями',
     category: 'basic',
     color: 0x9E9E9E,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       lowMoodPenaltyReduction: (lvl) => 1 - (lvl * 0.02),
       autoRecoveryWeekly: (lvl) => lvl >= 10 ? 5 : 0,
@@ -249,7 +251,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Интерес к новому и неизведанному',
     category: 'basic',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       learningSpeedMultiplier: (lvl) => 1 + (lvl * 0.03),
       randomSkillGainChance: (lvl) => lvl >= 6 ? 0.02 : 0,
@@ -264,7 +266,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Способность понимать чувства других',
     category: 'basic',
     color: 0xE8B4A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       relationshipQualityMultiplier: (lvl) => 1 + (lvl * 0.05),
       friendHelpChance: (lvl) => lvl >= 10 ? 0.15 : 0,
@@ -279,7 +281,7 @@ export const BASIC_SKILLS: SkillDef[] = [
     description: 'Способность запоминать информацию',
     category: 'basic',
     color: 0xA8CABA,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       educationDecayReduction: (lvl) => 1 - (lvl * 0.015),
       relearningBonus: (lvl) => lvl >= 6 ? 0.1 : 0,
@@ -297,7 +299,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Организация и контроль сложных проектов',
     category: 'professional',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       workEfficiencyMultiplier: (lvl) => 1 + (lvl * 0.04),
       teamEventBonus: (lvl) => 1 + (lvl * 0.05),
@@ -312,7 +314,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Качественное выполнение рабочих задач',
     category: 'professional',
     color: 0xE8B4A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       salaryMultiplier: (lvl) => 1 + (lvl * 0.04),
       workEfficiencyMultiplier: (lvl) => 1 + (lvl * 0.02),
@@ -327,7 +329,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Способность вести за собой других',
     category: 'professional',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       promotionChance: (lvl) => lvl * 0.035,
       teamEventBonus: (lvl) => 1 + (lvl * 0.05),
@@ -342,7 +344,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Умение договариваться и убеждать',
     category: 'professional',
     color: 0xE87D7D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       jobSalaryOnHire: (lvl) => 1 + (lvl * 0.06),
       shopPriceMultiplier: (lvl) => 1 - (lvl * 0.008),
@@ -357,7 +359,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Способность анализировать информацию',
     category: 'professional',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       investmentReturnMultiplier: (lvl) => 1 + (lvl * 0.04),
       investmentRiskReduction: (lvl) => 1 - (lvl * 0.04),
@@ -372,7 +374,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Глубокие знания в конкретной области',
     category: 'professional',
     color: 0xA8CABA,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       jobSpecificSalaryBonus: (lvl) => 1 + (lvl * 0.07),
     },
@@ -386,7 +388,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Профессиональная устойчивость к стрессу',
     category: 'professional',
     color: 0xE87D7D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       stressGainFromWork: (lvl) => 1 - (lvl * 0.035),
       overtimeImmunity: (lvl) => lvl >= 6 ? 1 : 0,
@@ -401,7 +403,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Работа с технологиями',
     category: 'professional',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       learningTechSpeed: (lvl) => 1 + (lvl * 0.06),
       homeTechBonus: (lvl) => 1 + (lvl * 0.04),
@@ -416,7 +418,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Умение готовить',
     category: 'professional',
     color: 0xF4D95F,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       foodRecoveryMultiplier: (lvl) => 1 + (lvl * 0.07),
       dailyExpenseMultiplier: (lvl) => 1 - (lvl * 0.02),
@@ -431,7 +433,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Продвижение и продажи',
     category: 'professional',
     color: 0xE87D7D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       hobbyIncomeMultiplier: (lvl) => 1 + (lvl * 0.09),
       passiveIncomeBonus: (lvl) => lvl * 120,
@@ -446,7 +448,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Анализ финансовых инструментов',
     category: 'professional',
     color: 0xA8CABA,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       investmentReturnMultiplier: (lvl) => 1 + (lvl * 0.05),
       taxReduction: (lvl) => lvl >= 6 ? 0.1 : 0,
@@ -461,7 +463,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Управление подчинёнными',
     category: 'professional',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       subordinateEfficiency: (lvl) => 1 + (lvl * 0.04),
     },
@@ -475,7 +477,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Навыки продаж и торговли',
     category: 'professional',
     color: 0xE8B4A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       salesSuccess: (lvl) => 1 + (lvl * 0.055),
       shopPriceMultiplier: (lvl) => 1 - (lvl * 0.01),
@@ -490,7 +492,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Долгосрочное планирование',
     category: 'professional',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       overallEfficiency: (lvl) => 1 + (lvl * 0.03),
     },
@@ -504,7 +506,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Знание законов и прав',
     category: 'professional',
     color: 0xA8CABA,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       legalPenaltyReduction: (lvl) => 1 - (lvl * 0.03),
     },
@@ -518,7 +520,7 @@ export const PROFESSIONAL_SKILLS: SkillDef[] = [
     description: 'Знания о здоровье и лечении',
     category: 'professional',
     color: 0x7ED9A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       healthRecoveryMultiplier: (lvl) => 1 + (lvl * 0.08),
       agingSpeedMultiplier: (lvl) => 1 - (lvl * 0.04),
@@ -536,7 +538,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Умение заводить и поддерживать полезные знакомства',
     category: 'social',
     color: 0xE8B4A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       relationshipGainMultiplier: (lvl) => 1 + (lvl * 0.05),
       positiveEventChance: (lvl) => 0.05 + (lvl * 0.01),
@@ -551,7 +553,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Привлекательность и обаяние',
     category: 'social',
     color: 0xE8B4A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       relationshipGainMultiplier: (lvl) => 1 + (lvl * 0.06),
     },
@@ -565,7 +567,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Чувство юмора',
     category: 'social',
     color: 0xF4D95F,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       moodRecoveryMultiplier: (lvl) => 1 + (lvl * 0.05),
       positiveEventChance: (lvl) => lvl >= 6 ? 0.2 : 0,
@@ -580,7 +582,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Способность ждать и терпеть',
     category: 'social',
     color: 0x9E9E9E,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       routinePenaltyReduction: (lvl) => 1 - (lvl * 0.03),
     },
@@ -594,7 +596,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Позитивный взгляд на жизнь',
     category: 'social',
     color: 0xF4D95F,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       allRecoveryMultiplier: (lvl) => 1 + (lvl * 0.025),
       negativeEventChance: (lvl) => 1 - (lvl >= 6 ? 0.15 : 0),
@@ -609,7 +611,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Надёжность и обязательность',
     category: 'social',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       missedActionPenalty: (lvl) => 1 - (lvl * 0.025),
     },
@@ -623,7 +625,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Адаптивность мышления',
     category: 'social',
     color: 0xA8CABA,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       agingPenaltyReduction: (lvl) => 1 - (lvl * 0.035),
     },
@@ -637,7 +639,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Готовность делиться',
     category: 'social',
     color: 0xE8B4A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       giftQualityBonus: (lvl) => 1 + (lvl * 0.04),
     },
@@ -651,7 +653,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Устойчивость к рутине и умение держать курс',
     category: 'social',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       autoRecoveryWeekly: (lvl) => lvl >= 10 ? 5 : lvl * 0.5,
       workPeriodBonusChance: (lvl) => lvl * 0.01,
@@ -666,7 +668,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Способность чувствовать правильное решение',
     category: 'social',
     color: 0xE87D7D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       eventChoiceHint: (lvl) => lvl * 0.03,
     },
@@ -680,7 +682,7 @@ export const SOCIAL_SKILLS: SkillDef[] = [
     description: 'Глубокое понимание жизни',
     category: 'social',
     color: 0x9E9E9E,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       agePenaltyAfter50: (lvl) => 1 - (lvl * 0.05),
       lifeExpectancyBonus: (lvl) => lvl >= 10 ? 1 : 0,
@@ -698,7 +700,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Создание произведений искусства',
     category: 'creative',
     color: 0xE87D7D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       hobbyIncomeMultiplier: (lvl) => 1 + (lvl * 0.08),
     },
@@ -712,7 +714,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Игра на инструментах и вокал',
     category: 'creative',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       moodRecoveryMultiplier: (lvl) => 1 + (lvl * 0.07),
     },
@@ -726,7 +728,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Написание текстов и книг',
     category: 'creative',
     color: 0xA8CABA,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       hobbyIncomeMultiplier: (lvl) => 1 + (lvl * 0.06),
       passiveIncomeBonus: (lvl) => lvl >= 10 ? lvl * 100 : 0,
@@ -741,7 +743,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Фотографирование и обработка',
     category: 'creative',
     color: 0x9E9E9E,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       socialEventBonus: (lvl) => 1 + (lvl * 0.05),
     },
@@ -755,7 +757,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Выращивание растений',
     category: 'creative',
     color: 0x7ED9A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       homeComfortMultiplier: (lvl) => 1 + (lvl * 0.04),
       healthBonus: (lvl) => lvl * 0.5,
@@ -770,7 +772,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Работа руками и ремонт',
     category: 'creative',
     color: 0xF4D95F,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       repairCostReduction: (lvl) => 1 - (lvl * 0.03),
     },
@@ -784,7 +786,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Танцевальное искусство',
     category: 'creative',
     color: 0xE8B4A0,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       energyRecoveryFromActivity: (lvl) => 1 + (lvl * 0.055),
     },
@@ -796,7 +798,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Игра на сцене и в кино',
     category: 'creative',
     color: 0xE87D7D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       publicEventSuccess: (lvl) => 1 + (lvl * 0.04),
     },
@@ -810,7 +812,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Оформление пространства',
     category: 'creative',
     color: 0x6D9DC5,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       furnitureComfortBonus: (lvl) => 1 + (lvl * 0.06),
     },
@@ -824,7 +826,7 @@ export const CREATIVE_SKILLS: SkillDef[] = [
     description: 'Высокая кухня',
     category: 'creative',
     color: 0xF4D95F,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       homeFoodRecovery: (lvl) => 1 + (lvl * 0.1),
     },
@@ -841,7 +843,7 @@ export const NEGATIVE_SKILLS: SkillDef[] = [
     description: 'Частая забывчивость и рассеянность',
     category: 'negative',
     color: 0xD14D4D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       learningSpeedMultiplier: (lvl) => 1 - (lvl * 0.025),
       memoryDecaySpeed: (lvl) => 1 + (lvl * 0.04),
@@ -858,7 +860,7 @@ export const NEGATIVE_SKILLS: SkillDef[] = [
     description: 'Склонность откладывать дела на потом',
     category: 'negative',
     color: 0xD14D4D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       workEfficiency: (lvl) => 1 - (lvl * 0.03),
       stressGainMultiplier: (lvl) => 1 + (lvl * 0.025),
@@ -873,7 +875,7 @@ export const NEGATIVE_SKILLS: SkillDef[] = [
     description: 'Стремление делать всё идеально',
     category: 'negative',
     color: 0xE8B94A,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       workEfficiency: (lvl) => 1 - (lvl * 0.02),        // тратит больше времени
       stressGainMultiplier: (lvl) => 1 + (lvl * 0.03),
@@ -889,7 +891,7 @@ export const NEGATIVE_SKILLS: SkillDef[] = [
     description: 'Склонность действовать не подумав',
     category: 'negative',
     color: 0xD14D4D,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       shopPriceMultiplier: (lvl) => 1 + (lvl * 0.015),   // чаще переплачиваешь
       negativeEventChance: (lvl) => 0.04 + (lvl * 0.01),
@@ -904,7 +906,7 @@ export const NEGATIVE_SKILLS: SkillDef[] = [
     description: 'Низкая мотивация к действию',
     category: 'negative',
     color: 0x9E9E9E,
-    maxLevel: 10,
+    maxLevel: MAX_SKILL_LEVEL,
     effects: {
       learningSpeedMultiplier: (lvl) => 1 - (lvl * 0.04),
       workEfficiency: (lvl) => 1 - (lvl * 0.035),
@@ -950,4 +952,3 @@ export function getSkillByKey(key: string): SkillDef | undefined {
 export function getSkillsByCategory(category: SkillCategory): SkillDef[] {
   return SKILLS_BY_CATEGORY[category] || []
 }
-

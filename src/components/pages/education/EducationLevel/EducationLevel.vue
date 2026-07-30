@@ -14,128 +14,75 @@
             'course-tile--active-book': tile.status === 'active' && isBookCourse,
             'course-tile--active-course': tile.status === 'active' && !isBookCourse,
           }"
+          :role="tile.status === 'active' && canOpenStudyModal ? 'button' : undefined"
+          :tabindex="tile.status === 'active' && canOpenStudyModal ? 0 : undefined"
+          @click="tile.status === 'active' && openStudyModal()"
+          @keydown.enter.prevent="tile.status === 'active' && openStudyModal()"
+          @keydown.space.prevent="tile.status === 'active' && openStudyModal()"
         >
           <template v-if="tile.status === 'active'">
-            <span
-              class="course-tile__badge"
-              :class="isBookCourse ? 'course-tile__badge--book' : 'course-tile__badge--course'"
-            >
-              {{ isBookCourse ? 'Читаем' : 'Изучаем' }}
-            </span>
-            <h4 class="course-tile__title">{{ activeCourse?.name }}</h4>
-            <p v-if="activeCourse?.type" class="course-tile__type">{{ activeCourse.type }}</p>
-            <p v-if="currentLearningFocus" class="course-tile__meta">
-              Сейчас изучаете: {{ currentLearningFocus }}
-            </p>
-            <div class="study-status-row">
-              <span class="study-status-pill" :class="`study-status-pill--${studyStatusTone}`">
-                {{ studyStatusLabel }}
-              </span>
-              <span class="study-status-copy">{{ studyStatusHint }}</span>
-            </div>
-            <div class="course-progress">
+            <div class="active-study-card__info">
+              <div class="active-study-card__heading">
+                <span class="active-study-card__icon" aria-hidden="true">{{ isBookCourse ? '📖' : '🎓' }}</span>
+                <div class="active-study-card__heading-copy">
+                  <div class="active-study-card__pills">
+                    <span
+                      class="course-tile__badge"
+                      :class="isBookCourse ? 'course-tile__badge--book' : 'course-tile__badge--course'"
+                    >
+                      {{ isBookCourse ? 'Читаем' : 'Изучаем' }}
+                    </span>
+                    <span v-if="activeCourse?.type" class="course-tile__badge course-tile__badge--type">{{ activeCourse.type }}</span>
+                    <span class="study-status-pill" :class="`study-status-pill--${studyStatusTone}`">{{ studyStatusLabel }}</span>
+                  </div>
+                  <h4 class="course-tile__title">{{ activeCourse?.name }}</h4>
+                  <p class="active-study-card__step">{{ activeStepSummary }}</p>
+                </div>
+              </div>
+
               <div v-if="!currentStep" class="step-info step-info--pending">
                 <span class="step-label">Не удалось загрузить шаги программы</span>
-                <span class="step-counter">Сохранение будет исправлено при следующей загрузке или обновите страницу</span>
+                <span class="step-counter">Обновите страницу или дождитесь следующей загрузки сохранения</span>
               </div>
-              <div v-else class="step-info">
-                <span class="step-label">{{ currentStep.title }}</span>
-                <span class="step-counter">Шаг {{ currentStepIndex + 1 }} из {{ totalSteps }}</span>
-              </div>
-              <div v-if="currentStep" class="progress-bar">
-                <div
-                  class="progress-fill"
-                  :class="efficiencyClass"
-                  :style="{ width: `${overallProgress}%` }"
-                />
-              </div>
-              <div v-if="currentStep" class="progress-details">
-                <span class="progress-text">Прогресс: {{ overallProgress.toFixed(1) }}%</span>
-                <span v-if="hoursRemaining > 0" class="hours-remaining">Осталось: {{ hoursRemaining.toFixed(1) }}ч</span>
-              </div>
-
-              <div v-if="inlineStudyWarning" class="study-inline-warning">
-                {{ inlineStudyWarning }}
-              </div>
-
-              <Tooltip
-                v-if="showStudyWakeHints"
-                :text="studyWakeBudgetTooltipText"
-                multiline
-                placement="bottom"
-                stretch
-                pin-on-click
-              >
-                <div
-                  class="study-wake-budget-line"
-                  tabindex="0"
-                  role="button"
-                  :aria-label="studyWakeBudgetAriaLabel"
-                >
-                  <span class="study-wake-budget-line__label">Учёба до сна</span>
-                  <span class="study-wake-budget-line__value">{{ studyHoursSinceLastSleepDisplay }}/{{ maxStudyHoursCycleDisplay }} ч</span>
-                  <span class="study-wake-budget-line__hint" aria-hidden="true">?</span>
+              <div v-else class="active-study-card__progress">
+                <div class="progress-details">
+                  <span>Шаг {{ currentStepIndex + 1 }} из {{ totalSteps }}</span>
+                  <span v-if="hoursRemaining > 0">Осталось {{ hoursRemaining.toFixed(1) }} ч</span>
                 </div>
-              </Tooltip>
-
-              <div
-                v-if="studyCycleBlockedWithCourseHoursLeft"
-                class="study-cycle-course-mismatch"
-              >
-                <span class="study-cycle-course-mismatch__icon" aria-hidden="true">&#x26a0;&#xfe0f;</span>
-                <p class="study-cycle-course-mismatch__text">
-                  По курсу ещё есть часы, но в этом цикле бодрствования вы не можете взять следующий сеанс
-                  ({{ studySessionHoursDisplay }} ч). Поспите — счётчик «учёбы до сна» сбросится.
-                </p>
+                <div class="progress-bar" aria-label="Прогресс обучения">
+                  <div class="progress-fill" :class="efficiencyClass" :style="{ width: `${overallProgress}%` }" />
+                </div>
               </div>
 
-              <button
-                class="study-button"
-                :class="{ 'study-button--disabled': !canOpenStudyModal }"
-                :disabled="!canOpenStudyModal"
-                @click="openStudyModal"
-              >
-                <span class="study-icon" aria-hidden="true">&#x1f4d6;</span>
-                <span class="study-text">{{ studyButtonText }}</span>
-              </button>
+              <div v-if="inlineStudyWarning" class="study-inline-warning">{{ inlineStudyWarning }}</div>
+              <div v-if="studyCycleBlockedWithCourseHoursLeft" class="study-cycle-course-mismatch">
+                <span class="study-cycle-course-mismatch__icon" aria-hidden="true">⚠️</span>
+                <p class="study-cycle-course-mismatch__text">По курсу ещё есть часы, но следующий сеанс доступен после сна.</p>
+              </div>
 
-              <div v-if="currentStep?.milestoneReward" class="milestone-reward">
-                <span class="milestone-icon" aria-hidden="true">&#x1f381;</span>
-                <span class="milestone-text">Награда за шаг:</span>
-                <div v-if="currentStep.milestoneReward.statChanges" class="milestone-stats">
-                  <span
-                    v-for="(value, stat) in currentStep.milestoneReward.statChanges"
-                    :key="stat"
-                    class="stat-change"
-                  >
-                    {{ formatStatChange(stat, value) }}
-                  </span>
-                </div>
-                <div v-if="currentStep.milestoneReward.skillChanges" class="milestone-skills">
-                  <span
-                    v-for="(value, skill) in currentStep.milestoneReward.skillChanges"
-                    :key="skill"
-                    class="skill-change"
-                  >
-                    {{ formatSkillChange(skill, value) }}
-                  </span>
-                </div>
-                <p v-if="currentStep.milestoneReward.message" class="milestone-message">
-                  {{ currentStep.milestoneReward.message }}
-                </p>
-              </div>
-              <div v-if="showTimeHints && timeHint" class="time-hint">
-                <span class="time-icon" aria-hidden="true">&#x23f0;</span>
-                <span class="time-text">{{ timeHint }}</span>
-              </div>
-              <div v-if="showCognitiveHints && cognitiveLoadStatus" class="cognitive-load-hint">
-                <div class="cognitive-load-hint__head">
-                  <span class="cognitive-icon" aria-hidden="true">&#x1f9e0;</span>
-                  <span class="cognitive-text">{{ cognitiveLoadStatus.label }}: {{ Math.round(cognitiveLoadValue) }}%</span>
-                </div>
-                <p class="cognitive-description">{{ cognitiveLoadStatus.description }}</p>
+              <div class="active-study-card__secondary">
+                <span>🌙 Учёба до сна: {{ studyHoursSinceLastSleepDisplay }}/{{ maxStudyHoursCycleDisplay }} ч</span>
+                <span>🗓️ Свободно на неделе: {{ weekHoursRemainingDisplay }} ч</span>
               </div>
             </div>
+
+            <div class="active-study-card__divider" aria-hidden="true" />
+
+            <button
+              class="active-study-card__action"
+              type="button"
+              :aria-label="`Открыть ${isBookCourse ? `главу ${currentStepIndex + 1}` : `шаг ${currentStepIndex + 1}`}`"
+              @click.stop="openStudyModal"
+            >
+              <svg class="progress-ring" viewBox="0 0 76 76" role="img" :aria-label="`Прогресс: шаг ${currentStepIndex + 1} из ${totalSteps}`">
+                <circle class="progress-ring__track" cx="38" cy="38" r="32" />
+                <circle class="progress-ring__value" cx="38" cy="38" r="32" :stroke-dashoffset="progressRingDashOffset" />
+                <text x="38" y="34" text-anchor="middle" class="progress-ring__number">{{ currentStepIndex + 1 }}/{{ totalSteps }}</text>
+                <text x="38" y="48" text-anchor="middle" class="progress-ring__label">шагов</text>
+              </svg>
+              <span class="active-study-card__action-label">{{ isBookCourse ? `Глава ${currentStepIndex + 1}` : `Шаг ${currentStepIndex + 1}` }}</span>
+              <span class="active-study-card__action-hint">Нажмите, чтобы читать</span>
+            </button>
           </template>
 
           <template v-else>
@@ -156,13 +103,16 @@
 
     <StudyModal
       :is-open="isStudyModalOpen"
-      :course-name="activeCourse?.name ?? ''"
-      :course-description="activeCourseDescription"
-      :current-step="currentStepIndex"
-      :total-steps="totalSteps"
-      :hours-remaining="hoursRemaining"
-      :can-continue="canContinueStudy"
-      :can-finish="canFinishStudy"
+      :course-name="modalCourse?.name ?? ''"
+      :course-description="modalCourseDescription"
+      :current-step="modalCurrentStepIndex"
+      :total-steps="modalTotalSteps"
+      :is-book="modalIsBookCourse"
+      :step-content="modalStepContent"
+      :hours-remaining="modalHoursRemaining"
+      :can-continue="canContinueStudy && !!activeCourse"
+      :is-reading="isReading"
+      :can-finish="!!activeCourse"
       :resource-warning="resourceWarning"
       @read="handleRead"
       @finish="handleFinishStudy"
@@ -173,31 +123,22 @@
 
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
-import Tooltip from '@/components/ui/Tooltip/index.vue'
-import type { ActiveCourse, ActiveCourseStep, CanAddStudyHoursResult, CognitiveLoadStatus, CompletedProgramRecord, NeedsState } from '@/stores/education-store'
-import { AgeGroup } from '@/composables/useAgeRestrictions'
+import type { ActiveCourse, ActiveCourseStep, CanAddStudyHoursResult, CompletedProgramRecord, NeedsState } from '@/stores/education-store'
 import {
-  EDUCATION_LONG_PROGRAM_STEP_HOURS,
   EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN,
   ENERGY_EXHAUSTION_THRESHOLD_STUDY,
   COGNITIVE_LOAD_CONSTANTS,
   canAddStudyHours,
-  getCognitiveLoadStatus,
   getNeedsStateFromComponents,
-  resolveStudySessionHours,
 } from '@/stores/education-store'
 import type { CourseTile } from './EducationLevel.types'
-import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
+import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from '@/domain/balance/constants/education-programs'
 
 const store = useGameStore()
 
 const educationStore = useEducationStore()
 
-const currentAge: ComputedRef<number> = computed(() => store.age ?? 0)
-const currentAgeGroup: ComputedRef<AgeGroup> = computed(() => getAgeGroup(currentAge.value))
-
-const showTimeHints: ComputedRef<boolean> = computed(() => true)
-const showCognitiveHints: ComputedRef<boolean> = computed(() => currentAgeGroup.value >= AgeGroup.TEEN)
+const toast = useToast()
 
 const activeCourse: ComputedRef<ActiveCourse | null> = computed(() => {
   void store.worldTick
@@ -216,17 +157,30 @@ const activeCourse: ComputedRef<ActiveCourse | null> = computed(() => {
     progressPercent: 0,
     ...(step.milestoneReward ? { milestoneReward: step.milestoneReward } : {}),
   }))
-  const steps: ActiveCourseStep[] = hasStoredSteps
-    ? source.steps!.map(step => ({ ...step }))
+  const storedSteps: ActiveCourseStep[] = hasStoredSteps ? source.steps!.map(step => ({ ...step })) : []
+  const upgradedBookSteps = upgradeBookChapterSteps(catalog, storedSteps)
+  const steps: ActiveCourseStep[] = upgradedBookSteps
+    ? upgradedBookSteps.map(step => ({ ...step }))
+    : hasStoredSteps
+      ? storedSteps
     : catalogSteps
   const totalHours = steps.reduce((total, step) => total + (step.hoursRequired ?? 0), 0)
+  const completedHours = steps.reduce((total, step) => total + (step.hoursRequired ?? 0) * (step.progressPercent ?? 0), 0)
+  const migratedCurrentStepIndex = Math.max(0, steps.findIndex(step => (step.progressPercent ?? 0) < 1))
   return {
     ...source,
     name: source.name && source.name !== source.id ? source.name : (catalog?.title ?? source.id),
     type: source.type ?? catalog?.typeLabel,
     steps,
-    ...(hasStoredSteps || totalHours <= 0
-      ? {}
+    ...(upgradedBookSteps
+      ? {
+          progress: totalHours > 0 ? completedHours / totalHours : 1,
+          hoursTotal: totalHours,
+          hoursRemaining: Math.max(0, totalHours - completedHours),
+          currentStepIndex: migratedCurrentStepIndex,
+        }
+      : hasStoredSteps || totalHours <= 0
+        ? {}
       : {
           progress: 0,
           hoursTotal: totalHours,
@@ -253,17 +207,6 @@ const currentStep: ComputedRef<ActiveCourseStep | null> = computed(() => {
   return steps.value[currentStepIndex.value] ?? null
 })
 
-const currentLearningFocus: ComputedRef<string> = computed(() => {
-
-  if (!activeCourse.value) return ''
-
-  if (currentStep.value?.title) {
-    return `${activeCourse.value.name} - ${currentStep.value.title}`
-  }
-
-  return activeCourse.value.name
-})
-
 const isBookCourse: ComputedRef<boolean> = computed(() => {
   const type: string = activeCourse.value?.type?.toLowerCase() ?? ''
 
@@ -279,6 +222,17 @@ const overallProgress: ComputedRef<number> = computed(() => {
   return Math.max(0, Math.min(100, progress * 100))
 })
 
+const activeStepSummary: ComputedRef<string> = computed(() => {
+  if (!currentStep.value) return 'Подготавливаем программу обучения'
+
+  return `Этап ${currentStepIndex.value + 1} из ${totalSteps.value} — ${currentStep.value.title}`
+})
+
+const progressRingDashOffset: ComputedRef<number> = computed(() => {
+  const circumference: number = 201
+  return circumference * (1 - (overallProgress.value / 100))
+})
+
 const hoursRemaining: ComputedRef<number> = computed(() => {
 
   if (!steps.value.length) return 0
@@ -291,15 +245,6 @@ const hoursRemaining: ComputedRef<number> = computed(() => {
     return total + ((step.hoursRequired ?? 0) * (1 - stepProgress))
   }, 0)
 })
-
-const studySessionHours: ComputedRef<number> = computed(() => {
-
-  if (!currentStep.value) return EDUCATION_LONG_PROGRAM_STEP_HOURS
-
-  return resolveStudySessionHours(cognitiveLoadValue.value, store.energy ?? 0, currentStep.value.hoursRequired)
-})
-
-const studySessionHoursDisplay: ComputedRef<number> = computed(() => Math.round(studySessionHours.value))
 
 const cognitiveLoadValue: ComputedRef<number> = computed(() => {
   return educationStore.cognitiveLoad
@@ -315,40 +260,11 @@ const studyHoursSinceLastSleepDisplay: ComputedRef<number> = computed(() => Math
 const maxStudyHoursCycle = COGNITIVE_LOAD_CONSTANTS.MAX_STUDY_HOURS_CYCLE
 const maxStudyHoursCycleDisplay: number = Math.round(maxStudyHoursCycle)
 
-const studyWakeBudgetTooltipText: ComputedRef<string> = computed(() => {
-  const session: number = studySessionHours.value
-
-  const used: number = studyHoursSinceLastSleep.value
-
-  return [
-    'Учёба до сна (отдельный лимит)',
-    '',
-    `Сейчас ${Math.round(used)}/${maxStudyHoursCycleDisplay} ч. Следующий сеанс чтения — до ${Math.round(session)} ч. в этом цикле.`,
-    '',
-    'Шкала «когнитивная нагрузка» ниже — про другой показатель (усталость в %), а не про этот лимит часов.',
-  ].join('\n')
-})
-
-const studyWakeBudgetAriaLabel: ComputedRef<string> = computed(
-  () =>
-    `Учёба до сна: ${studyHoursSinceLastSleepDisplay.value} из ${maxStudyHoursCycleDisplay} часов. Подробности — в подсказке (наведите или нажмите)`,
-)
-
-const showStudyWakeHints: ComputedRef<boolean> = computed(
-  () => showCognitiveHints.value && !!activeCourse.value && !!currentStep.value,
-)
-
 const canOpenStudyModal: ComputedRef<boolean> = computed(() => !!activeCourse.value && !!currentStep.value)
 
 /** Блокировка по накопительной усталости */
 const dailyStudyHoursBlocked: ComputedRef<boolean> = computed(() => {
-  const cognitiveValue: number = cognitiveLoadValue.value
-
-  if (!cognitiveValue) return false
-
-  const canStudyCheck: CanAddStudyHoursResult = canAddStudyHours(cognitiveValue, (store.energy ?? 0))
-
-  return !canStudyCheck.canDo
+  return studyHoursSinceLastSleep.value >= maxStudyHoursCycle
 })
 
 /** Лимит «учёбы до сна» исчерпан (или не хватает часов под сеанс), но по курсу ещё есть бюджет часов */
@@ -366,19 +282,6 @@ const energyExhaustedForStudy: ComputedRef<boolean> = computed(() => (store.ener
 /** Пессимистичная проверка: при макс. расходе за шаг энергия не должна уходить в 0 */
 const energyWouldHitZeroOnStep: ComputedRef<boolean> = computed(() => (store.energy ?? 0) <= EDUCATION_LONG_STEP_MAX_ENERGY_DRAIN)
 
-const cognitiveLoadStatus: ComputedRef<{ label: string; description: string } | null> = computed(() => {
-  const cognitiveValue: number = cognitiveLoadValue.value
-
-  if (!cognitiveValue) return null
-
-  const status: CognitiveLoadStatus = getCognitiveLoadStatus(cognitiveValue)
-
-  return {
-    label: status.label,
-    description: status.description,
-  }
-})
-
 const canStudy: ComputedRef<boolean> = computed(() => {
 
   if (!activeCourse.value) return false
@@ -388,6 +291,8 @@ const canStudy: ComputedRef<boolean> = computed(() => {
   if (energyExhaustedForStudy.value) return false
 
   if (energyWouldHitZeroOnStep.value) return false
+
+  if (!canAddStudyHours(cognitiveLoadValue.value, store.energy ?? 0).canDo) return false
 
   if (dailyStudyHoursBlocked.value) return false
 
@@ -414,52 +319,51 @@ const studyStatusLabel: ComputedRef<string> = computed(() => {
   return 'Пауза'
 })
 
-const studyStatusHint: ComputedRef<string> = computed(() => {
-
-  if (!activeCourse.value || !currentStep.value) return 'Выберите программу ниже'
-
-  if (canStudy.value) {
-    return isBookCourse.value
-      ? `Следующий сеанс: ${studySessionHoursDisplay.value} ч.`
-      : `Следующий шаг: ${studySessionHoursDisplay.value} ч.`
-  }
-
-  if (dailyStudyHoursBlocked.value) {
-    return `Лимит до сна: ${studyHoursSinceLastSleepDisplay.value}/${maxStudyHoursCycleDisplay} ч.`
-  }
-
-  if (energyExhaustedForStudy.value || energyWouldHitZeroOnStep.value) {
-    return 'Нужно восстановить силы'
-  }
-
-  return 'Есть временные ограничения'
-})
-
-const studyButtonText: ComputedRef<string> = computed(() => {
-
-  if (!activeCourse.value) return 'Выбрать курс'
-
-  if (!currentStep.value) return 'Ожидание шагов программы'
-
-  if (!canStudy.value) {
-    return isBookCourse.value ? 'Почему нельзя читать?' : 'Почему нельзя продолжить?'
-  }
-
-  if (currentStepIndex.value === 0) {
-    return isBookCourse.value ? 'Начать читать' : 'Начать обучение'
-  }
-
-  return isBookCourse.value ? 'Продолжить чтение' : 'Продолжить курс'
-})
-
 const isStudyModalOpen = ref(false)
+const isReading = ref(false)
+const modalCourseSnapshot = ref<ActiveCourse | null>(null)
+
+const modalCourse: ComputedRef<ActiveCourse | null> = computed(() => activeCourse.value ?? modalCourseSnapshot.value)
+
+const modalCurrentStepIndex: ComputedRef<number> = computed(() => {
+  if (activeCourse.value) return currentStepIndex.value
+
+  return Math.max(0, (modalCourse.value?.steps?.length ?? 1) - 1)
+})
+
+const modalTotalSteps: ComputedRef<number> = computed(() => modalCourse.value?.steps?.length ?? 0)
+
+const modalIsBookCourse: ComputedRef<boolean> = computed(() => {
+  return (modalCourse.value?.type?.toLowerCase() ?? '').includes('книга')
+})
 
 const activeCourseDescription: ComputedRef<string> = computed(() => {
-
   if (!activeCourse.value) return ''
 
-  return 'Погрузитесь в материал и развивайте свои навыки. Каждая страница приближает вас к новым знаниям.'
+  return EDUCATION_PROGRAMS.find(program => program.id === activeCourse.value?.id)?.description
+    ?? 'Изучайте материал в своём темпе и возвращайтесь к шагу, когда будете готовы.'
 })
+
+const modalCourseDescription: ComputedRef<string> = computed(() => {
+  if (!modalCourse.value) return ''
+
+  return EDUCATION_PROGRAMS.find(program => program.id === modalCourse.value?.id)?.description
+    ?? activeCourseDescription.value
+})
+
+const weekHoursRemainingDisplay: ComputedRef<number> = computed(() => {
+  const time: Record<string, number> | null = store.time as unknown as Record<string, number> | null
+  return Math.round(time?.weekHoursRemaining ?? 0)
+})
+
+const modalStepContent: ComputedRef<string> = computed(() => {
+  const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === modalCourse.value?.id)
+  const content = program?.steps?.[modalCurrentStepIndex.value]?.content
+
+  return content ?? modalCourse.value?.steps?.[modalCurrentStepIndex.value]?.title ?? modalCourseDescription.value
+})
+
+const modalHoursRemaining: ComputedRef<number> = computed(() => activeCourse.value ? hoursRemaining.value : 0)
 
 const canContinueStudy: ComputedRef<boolean> = computed(() => {
 
@@ -470,6 +374,8 @@ const canContinueStudy: ComputedRef<boolean> = computed(() => {
   if (energyExhaustedForStudy.value) return false
 
   if (energyWouldHitZeroOnStep.value) return false
+
+  if (!canAddStudyHours(cognitiveLoadValue.value, store.energy ?? 0).canDo) return false
 
   if (dailyStudyHoursBlocked.value) return false
 
@@ -492,6 +398,9 @@ const resourceWarning: ComputedRef<string | null | undefined> = computed(() => {
   if (energyWouldHitZeroOnStep.value) {
     return 'Этого занятия не хватает: при текущей энергии шаг опустил бы запас до нуля или ниже.'
   }
+
+  const cognitiveCheck: CanAddStudyHoursResult = canAddStudyHours(cognitiveLoadValue.value, store.energy ?? 0)
+  if (!cognitiveCheck.canDo) return cognitiveCheck.reason ?? 'Когнитивная нагрузка слишком высока'
 
   if (dailyStudyHoursBlocked.value) {
     const canStudyCheck: CanAddStudyHoursResult = canAddStudyHours(cognitiveLoadValue.value, store.energy ?? 0)
@@ -545,17 +454,31 @@ const courseTiles = computed<CourseTile[]>(() => {
 function openStudyModal() {
   if (!canOpenStudyModal.value) return
 
+  modalCourseSnapshot.value = activeCourse.value
+    ? { ...activeCourse.value, steps: activeCourse.value.steps?.map(step => ({ ...step })) }
+    : null
   isStudyModalOpen.value = true
 }
 
 function closeStudyModal() {
   isStudyModalOpen.value = false
+  modalCourseSnapshot.value = null
 }
 
 async function handleRead(): Promise<void> {
-  if (!canContinueStudy.value) return
+  if (!canContinueStudy.value || isReading.value) return
 
-  await store.advanceEducationAsync()
+  isReading.value = true
+  try {
+    await store.advanceEducationAsync()
+    if (!activeCourse.value) {
+      toast.showSuccess('Обучение завершено')
+    }
+  } catch (error) {
+    toast.showError(error instanceof Error ? error.message : 'Не удалось продолжить обучение')
+  } finally {
+    isReading.value = false
+  }
 }
 
 function handleFinishStudy() {
@@ -576,55 +499,6 @@ const efficiencyClass: ComputedRef<string> = computed(() => {
   return 'efficiency-very-low'
 })
 
-const timeHint: ComputedRef<string | null> = computed(() => {
-  const time: Record<string, number> | null = store.time as unknown as Record<string, number> | null
-
-  if (!time) return null
-
-  const weekHoursRemaining: number = time.weekHoursRemaining ?? 168
-
-  if (weekHoursRemaining < 40) {
-    return `В недельном бюджете мало свободных часов (осталось ${Math.round(weekHoursRemaining)} ч.).`
-  }
-
-  if (weekHoursRemaining >= 100) {
-    return `В недельном бюджете много свободных часов (осталось ${Math.round(weekHoursRemaining)} ч.).`
-  }
-
-  return null
-})
-
-/** @description [EducationLevel] - Formats a stat key and numeric value into a human-readable label with sign. @return { string } Formatted string like "Энергия +5" or "Стресс -3". */
-function formatStatChange(stat: string, value: number): string {
-  const statNames: Record<string, string> = {
-    energy: 'Энергия',
-    stress: 'Стресс',
-    mood: 'Настроение',
-    health: 'Здоровье',
-    money: 'Деньги',
-  }
-
-  const name: string = statNames[stat] || stat
-  const sign: string = value >= 0 ? '+' : ''
-
-  return `${name} ${sign}${value}`
-}
-
-/** @description [EducationLevel] - Formats a skill key and numeric value into a human-readable label with sign. @return { string } Formatted string like "Обучение +2" or "Программирование -1". */
-function formatSkillChange(skill: string, value: number): string {
-  const skillNames: Record<string, string> = {
-    learning: 'Обучение',
-    programming: 'Программирование',
-    management: 'Менеджмент',
-    communication: 'Коммуникация',
-    finance: 'Финансы',
-  }
-
-  const name: string = skillNames[skill] || skill
-  const sign: string = value >= 0 ? '+' : ''
-
-  return `${name} ${sign}${value}`
-}
 </script>
 
 <style scoped lang="scss" src="./EducationLevel.scss"></style>

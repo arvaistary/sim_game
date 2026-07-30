@@ -54,12 +54,23 @@
   perspective: 1000px;
   cursor: pointer;
 
+  &:focus-visible {
+    outline: 3px solid var(--color-action-primary);
+    outline-offset: 4px;
+    border-radius: var(--radius-md);
+  }
+
   &:active {
     transform: scale(0.98);
   }
 }
 
 .book-container--flipping {
+  pointer-events: none;
+}
+
+.book-container--busy {
+  cursor: progress;
   pointer-events: none;
 }
 
@@ -146,37 +157,3 @@
   white-space: pre-line;
 }
 
-.action-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $space-2;
-  padding: $space-3 $space-4;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  font-family: $font-family-sans;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  cursor: pointer;
-  transition: background-color var(--transition-fast), transform var(--transition-fast);
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.action-btn--read {
-  background: var(--color-action-primary);
-  color: var(--color-text-on-primary);
-
-  &:hover:not(:disabled) {
-    background: var(--color-action-primary-hover);
-    transform: translateY(-2px);
-  }
-}
-
-.btn-icon {
-  font-size: $font-size-base;
-}

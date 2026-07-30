@@ -2,6 +2,7 @@
  * Конфигурация модели прогрессии навыков
  * Определяет, какая модель используется в системе
  */
+import { MAX_SKILL_LEVEL } from './skills-constants'
 
 export interface SkillProgressionConfig {
   /**
@@ -92,14 +93,14 @@ export function isLevelOnlyModelActive(): boolean {
  * Получить максимальный уровень навыка
  */
 export function getMaxSkillLevel(): number {
-  return 10
+  return MAX_SKILL_LEVEL
 }
 
 /**
  * Получить максимальный proficiency score (для двухконтурной модели)
  */
 export function getMaxProficiencyScore(): number {
-  return 100
+  return MAX_SKILL_LEVEL
 }
 
 /**

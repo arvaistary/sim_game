@@ -16,6 +16,7 @@ import { useActivityStore } from './activity-store'
 import type { GameEvent } from './events-store/events-store.types'
 import { getActionById, type BalanceAction } from '@/domain/balance/actions'
 import type { CareerTrackJobItem } from '@/domain/balance/types'
+import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 import { GameWorld } from '@/domain/game-world/GameWorld'
 import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
 import { fromStores, applyToStores } from '@/domain/game-world/bridge'
@@ -34,7 +35,7 @@ import type {
   QueuedAction,
   SyncOutcome,
 } from '@/application/game'
-import type { ApiResponse, SyncResponse } from '@game-life/contracts'
+import type { ApiResponse, GameStateResponse, SyncResponse } from '@game-life/contracts'
 import { getGameMode, getGameModeConfig } from '@/infrastructure/config/game-mode'
 import type { ActionResult } from '@/stores/actions-store'
 import type {
@@ -246,8 +247,22 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function resetGame(): void {
-    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset()
+    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset()
+    offlineQueue?.clear()
     worldVersion.value++
+  }
+
+  async function resetServerSession(): Promise<void> {
+    if (gameMode === 'spa') return
+
+    const response = await $fetch<ApiResponse<GameStateResponse<GameWorldJSON>>>(
+      `${gameModeConfig.apiBaseUrl}/api/game/reset`,
+      { method: 'POST', credentials: 'include' },
+    )
+    if (!response.success || !response.data) throw new Error(response.error?.message ?? 'Не удалось очистить игровую сессию')
+
+    executor.resetStateVersion?.()
+    syncFromWorld(GameWorld.fromJSON(response.data.state))
   }
 
   function canApplyWorkShift(hours: number): CanApplyWorkShiftResult {
@@ -311,7 +326,7 @@ export const useGameStore = defineStore('game', () => {
       statChanges: action.statChanges as Record<string, number> | undefined,
       skillChanges: action.skillChanges,
       cooldown: action.cooldown,
-      requirements: action.requirements as { minAge?: number; minSkills?: Record<string, number> } | undefined,
+      requirements: action.requirements as { minAge?: number; minSkills?: Record<string, number>; requiresCompletedProgramId?: string } | undefined,
     }
   }
 
@@ -355,6 +370,14 @@ export const useGameStore = defineStore('game', () => {
 
     if (education.activeEducation) {
       return { ok: false, reason: 'Уже учитесь' }
+    }
+
+    const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
+    const completions = education.completedPrograms.filter(completed => completed.id === programId).length
+    const maxCompletions = 1 + (program?.maxRepeats ?? 0)
+
+    if (program?.track === 'book' && completions >= maxCompletions) {
+      return { ok: false, reason: `Достигнут лимит повторного чтения: ${maxCompletions} прохождения` }
     }
 
     return { ok: true }
@@ -585,10 +608,10 @@ export const useGameStore = defineStore('game', () => {
     wallet: computed(() => ({ money: wallet.money, reserveFund: wallet.reserveFund, totalEarned: wallet.totalEarned, totalSpent: wallet.totalSpent })),
     skills: computed(() => skills.skills),
     career: computed(() => career.currentJob),
-    education: computed(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
+    education: computed(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, studyHoursSinceLastSleep: education.studyHoursSinceLastSleep, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
     housing: computed(() => ({ level: housing.level, comfort: housing.comfort, furniture: housing.furniture })),
     getCareerTrack, getCareerSnapshot, getFinanceSnapshot, getFinanceActions, getActivityLogEntries, getStats: () => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
-     initWorld, save, load, resetGame, getWorldState: () => buildWorld().toJSON(),
+     initWorld, save, load, resetGame, resetServerSession, getWorldState: () => buildWorld().toJSON(),
     canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
     canExecuteAction, executeAction, getNextEvent, applyEventChoice, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment,
     canStartEducationProgramWithReason, startEducationProgram, advanceEducation,

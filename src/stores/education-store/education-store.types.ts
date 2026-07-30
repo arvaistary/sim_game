@@ -5,6 +5,8 @@ export interface CompletedProgram {
   name: string
   typeLabel?: string
   completedAtGameDay?: number
+  completionNumber?: number
+  rewardMultiplier?: number
 }
 
 export interface CompletedProgramRecord {
@@ -13,6 +15,8 @@ export interface CompletedProgramRecord {
   typeLabel?: string
   completedAt: number
   completedAtGameDay?: number
+  completionNumber?: number
+  rewardMultiplier?: number
 }
 
 export interface MilestoneReward {
@@ -24,6 +28,7 @@ export interface MilestoneReward {
 export interface ActiveCourseStep {
   id?: string
   title: string
+  content?: string
   progressPercent?: number
   hoursRequired?: number
   milestoneReward?: MilestoneReward

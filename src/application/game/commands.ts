@@ -16,7 +16,7 @@ import type {
 import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './command.types'
 import type { CareerJob, EducationProgram, ProgramStep } from '@/domain/balance/types'
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
-import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
+import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from '@/domain/balance/constants/education-programs'
 import { getActionById } from '@/domain/balance/actions'
 import {
   executeActionCommand,
@@ -203,6 +203,17 @@ export function startEducationProgram(world: GameWorld, programId: string): stri
   const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(
     candidate => candidate.id === programId,
   )
+  const completedPrograms: Array<Record<string, unknown>> = Array.isArray(education.completedPrograms)
+    ? education.completedPrograms as Array<Record<string, unknown>>
+    : []
+  const completionNumber: number = completedPrograms.filter(completed => completed.id === programId).length + 1
+  const maxCompletions: number = 1 + (program?.maxRepeats ?? 0)
+
+  if (program?.track === 'book' && completionNumber > maxCompletions) {
+    throw new Error(`Достигнут лимит повторного чтения: ${maxCompletions} прохождения`)
+  }
+
+  const rewardMultiplier: number = completionNumber === 1 ? 1 : (program?.repeatRewardMultiplier ?? 0.5)
   const sourceSteps: ProgramStep[] = program?.steps ?? [{
     id: `${programId}_step_1`,
     title: program?.title ?? programId,
@@ -213,6 +224,7 @@ export function startEducationProgram(world: GameWorld, programId: string): stri
     (step: ProgramStep): ProgramStep => ({
       id: step.id,
       title: step.title,
+      ...(step.content ? { content: step.content } : {}),
       hoursRequired: step.hoursRequired,
       progressPercent: 0,
       ...(step.milestoneReward ? { milestoneReward: step.milestoneReward } : {}),
@@ -231,6 +243,8 @@ export function startEducationProgram(world: GameWorld, programId: string): stri
     hoursTotal: totalHours,
     hoursRemaining: totalHours,
     currentStepIndex: 0,
+    completionNumber,
+    rewardMultiplier,
     steps,
   }
   return `Программа ${program?.title ?? programId} начата`
@@ -245,6 +259,12 @@ export function advanceEducation(world: GameWorld): string {
   const active: Record<string, unknown> | null = (education.activeEducation as Record<string, unknown> | undefined) ?? null
 
   if (!active) return 'Нет активного обучения'
+  if (Number(education.studyHoursSinceLastSleep ?? 0) >= 8) {
+    return 'Лимит учёбы исчерпан. Поспите для восстановления.'
+  }
+  if (Number(education.cognitiveLoad ?? 0) >= 80) {
+    return 'Когнитивная нагрузка слишком высока. Поспите для восстановления.'
+  }
 
   const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(
     candidate => candidate.id === String(active.id ?? ''),
@@ -255,7 +275,11 @@ export function advanceEducation(world: GameWorld): string {
     hoursRequired: program?.hoursRequired ?? 1,
     progressPercent: 0,
   }]
-  const rawSteps: unknown[] = Array.isArray(active.steps) && active.steps.length > 0 ? active.steps : catalogSteps
+  const storedSteps: Array<{ hoursRequired?: unknown; progressPercent?: unknown }> = Array.isArray(active.steps)
+    ? active.steps as Array<{ hoursRequired?: unknown; progressPercent?: unknown }>
+    : []
+  const upgradedBookSteps = upgradeBookChapterSteps(program, storedSteps)
+  const rawSteps: unknown[] = upgradedBookSteps ?? (storedSteps.length > 0 ? storedSteps : catalogSteps)
   const steps: ProgramStep[] = rawSteps.map(
     (step: unknown, index: number): ProgramStep => {
       const stepRecord: Record<string, unknown> = typeof step === 'object' && step !== null
@@ -266,6 +290,9 @@ export function advanceEducation(world: GameWorld): string {
       return {
         id: String(stepRecord.id ?? catalogStep?.id ?? `${active.id}_step_${index + 1}`),
         title: String(stepRecord.title ?? catalogStep?.title ?? 'Шаг программы'),
+        ...(typeof stepRecord.content === 'string'
+          ? { content: stepRecord.content }
+          : catalogStep?.content ? { content: catalogStep.content } : {}),
         hoursRequired: Math.max(1, Number(stepRecord.hoursRequired ?? catalogStep?.hoursRequired ?? 1)),
         progressPercent: Math.max(0, Math.min(1, Number(stepRecord.progressPercent ?? 0))),
         ...(stepRecord.milestoneReward
@@ -302,26 +329,37 @@ export function advanceEducation(world: GameWorld): string {
   active.hoursRemaining = remaining
   active.progress = totalHours > 0 ? completedHours / totalHours : 1
   education.cognitiveLoad = Math.min(100, Number(education.cognitiveLoad ?? 0) + 10)
+  education.studyHoursSinceLastSleep = Math.min(8, Number(education.studyHoursSinceLastSleep ?? 0) + 1)
 
   if (remaining === 0) {
     const completed: Array<Record<string, unknown>> = Array.isArray(education.completedPrograms)
       ? education.completedPrograms as Array<Record<string, unknown>>
       : []
+    const completionNumber: number = Number(active.completionNumber ?? completed.filter(completed => completed.id === active.id).length + 1)
+    const rewardMultiplier: number = Math.max(0, Number(active.rewardMultiplier ?? 1))
     completed.push({
       id: String(active.id ?? ''),
       name: String(active.name ?? ''),
       typeLabel: program?.typeLabel,
       completedAtGameDay: Math.floor(world.time.totalHours / 24),
+      completionNumber,
+      rewardMultiplier,
     })
 
     if (program?.completionStatChanges) {
       const statChanges: Record<string, number> = Object.fromEntries(
-        Object.entries(program.completionStatChanges).filter(([, value]) => typeof value === 'number'),
+        Object.entries(program.completionStatChanges)
+          .filter(([, value]) => typeof value === 'number')
+          .map(([key, value]) => [key, (value as number) * rewardMultiplier]),
       ) as Record<string, number>
       applyStatChangesRaw(world, statChanges)
     }
 
-    if (program?.completionSkillChanges) applySkillChanges(world, program.completionSkillChanges)
+    if (program?.completionSkillChanges) {
+      applySkillChanges(world, Object.fromEntries(
+        Object.entries(program.completionSkillChanges).map(([key, value]) => [key, value * rewardMultiplier]),
+      ))
+    }
     education.completedPrograms = completed
     education.activeEducation = null
   }

@@ -15,12 +15,12 @@
           <Tooltip
             :text="skillDetailTooltip(skill)"
             multiline
-            placement="bottom"
+            follow-cursor
             stretch
           >
             <span class="skills-list__row">
               <span class="skills-list__name">{{ skill.label }}</span>
-              <span class="skills-list__level">{{ level }} ур.</span>
+              <span class="skills-list__level">{{ level }} / {{ skill.maxLevel }}</span>
             </span>
           </Tooltip>
         </li>

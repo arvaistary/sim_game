@@ -78,6 +78,7 @@ const ALLOWED_REQUIREMENTS_FIELDS: readonly string[] = [
   'housingLevel',
   'hasMortgage',
   'hasDebt',
+  'requiresCompletedProgramId',
 ]
 
 /**

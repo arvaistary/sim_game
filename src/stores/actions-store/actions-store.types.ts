@@ -14,6 +14,7 @@ export interface GameAction {
   requirements?: {
     minAge?: number
     minSkills?: Record<string, number>
+    requiresCompletedProgramId?: string
   }
 }
 

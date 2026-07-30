@@ -48,10 +48,12 @@
 }
 
 .badge {
-  font-size: 10px;
+  font-size: $badge-font-size;
   padding: 2px $space-2;
   border-radius: $radius-xs;
-  font-weight: $font-weight-semibold;
+  font-weight: $badge-font-weight;
+  line-height: 1;
+  text-transform: lowercase;
 }
 
 .current-badge {

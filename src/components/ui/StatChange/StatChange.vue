@@ -1,28 +1,28 @@
 <template>
-  <div class="stat-change">
-    <div class="stat-change__main">
-      <span class="stat-change__icon">{{ change.icon }}</span>
-      <span class="stat-change__name">{{ change.name }}</span>
-      <span
-        v-if="change.value !== 0"
-        :class="[
-          'stat-change__value',
-          change.isPositive ? 'stat-change__value--positive' : 'stat-change__value--negative'
-        ]"
-      >
-        {{ change.isPositive ? '+' : '' }}{{ change.value }}
-      </span>
+  <Tooltip :text="explanationText">
+    <div class="stat-change" tabindex="0">
+      <div class="stat-change__main">
+        <span class="stat-change__icon">{{ change.icon }}</span>
+        <span class="stat-change__name">{{ change.name }}</span>
+        <span
+          v-if="change.value !== 0"
+          :class="[
+            'stat-change__value',
+            change.isPositive ? 'stat-change__value--positive' : 'stat-change__value--negative'
+          ]"
+        >
+          {{ change.isPositive ? '+' : '' }}{{ change.value }}
+        </span>
+      </div>
     </div>
-    <div v-if="explanationText" class="stat-change__explanation">
-      {{ explanationText }}
-    </div>
-  </div>
+  </Tooltip>
 </template>
 
 <script setup lang="ts">
 import './StatChange.scss'
 import type { ComputedRef } from 'vue'
 import { STAT_LABELS_RU, METRIC_LABELS } from '@/constants/metric-labels'
+import Tooltip from '@/components/ui/Tooltip/index.vue'
 import type { StatChangeDisplay, StatChangeProps } from './StatChange.types'
 
 const props = defineProps<StatChangeProps>()
@@ -141,6 +141,9 @@ const change = computed<StatChangeDisplay>(() => {
 })
 
 const explanationText: ComputedRef<string> = computed(() => {
-  return props.explanation ?? ''
+  if (props.explanation) return props.explanation
+
+  const direction: string = change.value.value >= 0 ? 'Увеличивает' : 'Уменьшает'
+  return `${direction} «${change.value.name}» на ${Math.abs(change.value.value)} за действие.`
 })
 </script>

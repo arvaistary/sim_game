@@ -45,6 +45,7 @@ export type CommandRejectionReason =
 export interface DomainActionRequirements {
   minAge?: number
   minSkills?: Record<string, number>
+  requiresCompletedProgramId?: string
 }
 
 /** Минимальный набор полей GameEvent для domain-обработки (без UI-only полей). */

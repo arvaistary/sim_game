@@ -1,8 +1,8 @@
 import type { GameWorldJSON } from './game-world/GameWorld.types'
 import { GameWorld } from './game-world/GameWorld'
-import type { CareerJob } from './balance/types'
+import type { CareerJob, ProgramStep } from './balance/types'
 import { CAREER_JOBS } from './balance/constants/career-jobs'
-import { EDUCATION_PROGRAMS } from './balance/constants/education-programs'
+import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from './balance/constants/education-programs'
 import { getActionById, type BalanceAction } from './balance/actions'
 import {
   executeActionCommand,
@@ -148,15 +148,23 @@ export class GameCommandExecutor {
       const active: Record<string, unknown> | undefined = education.activeEducation as Record<string, unknown> | undefined
 
       if (!active) return { success: false, message: 'Нет активного обучения' }
+      if (Number(education.studyHoursSinceLastSleep ?? 0) >= 8) {
+        return { success: false, message: 'Лимит учёбы исчерпан. Поспите для восстановления.' }
+      }
+      if (Number(education.cognitiveLoad ?? 0) >= 80) {
+        return { success: false, message: 'Когнитивная нагрузка слишком высока. Поспите для восстановления.' }
+      }
       const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === String(active.id ?? ''))
       const storedSteps = Array.isArray(active.steps) ? active.steps as Array<Record<string, unknown>> : []
-      const sourceSteps = storedSteps.length > 0
-        ? storedSteps
+      const upgradedBookSteps = upgradeBookChapterSteps(program, storedSteps)
+      const sourceSteps: Array<Record<string, unknown> | ProgramStep> = storedSteps.length > 0
+        ? (upgradedBookSteps ?? storedSteps)
         : (program?.steps ?? [{ id: `${String(active.id ?? 'program')}_step_1`, title: String(active.name ?? active.id ?? 'Обучение'), hoursRequired: Number(active.hoursTotal ?? 100) }])
       const steps = sourceSteps.map((step, index) => ({
         ...step,
         id: String(step.id ?? `${String(active.id ?? 'program')}_step_${index + 1}`),
         title: String(step.title ?? active.name ?? active.id ?? 'Обучение'),
+        ...(typeof step.content === 'string' ? { content: step.content } : {}),
         hoursRequired: Math.max(1, Number(step.hoursRequired ?? 1)),
         progressPercent: Math.max(0, Math.min(1, Number(step.progressPercent ?? 0))),
       }))
@@ -175,22 +183,35 @@ export class GameCommandExecutor {
       active.hoursRemaining = remaining
       active.progress = totalHours > 0 ? (totalHours - remaining) / totalHours : 1
       education.cognitiveLoad = Math.min(100, Number(education.cognitiveLoad ?? 0) + 10)
+      education.studyHoursSinceLastSleep = Math.min(8, Number(education.studyHoursSinceLastSleep ?? 0) + 1)
 
       if (remaining <= 0.0001) {
         const completed: unknown[] = Array.isArray(education.completedPrograms) ? education.completedPrograms as unknown[] : []
+        const completionNumber: number = Number(active.completionNumber ?? completed.filter(completed => {
+          return typeof completed === 'object' && completed !== null && (completed as Record<string, unknown>).id === active.id
+        }).length + 1)
+        const rewardMultiplier: number = Math.max(0, Number(active.rewardMultiplier ?? 1))
         completed.push({
           id: String(active.id ?? ''),
           name: String(active.name ?? program?.title ?? active.id ?? ''),
           typeLabel: program?.typeLabel,
           completedAtGameDay: Math.floor(world.time.totalHours / 24),
+          completionNumber,
+          rewardMultiplier,
         })
         if (program?.completionStatChanges) {
           const statChanges = Object.fromEntries(
-            Object.entries(program.completionStatChanges).filter(([, value]) => typeof value === 'number'),
+            Object.entries(program.completionStatChanges)
+              .filter(([, value]) => typeof value === 'number')
+              .map(([key, value]) => [key, (value as number) * rewardMultiplier]),
           ) as Record<string, number>
           applyStatChangesRaw(world, statChanges)
         }
-        if (program?.completionSkillChanges) applySkillChanges(world, program.completionSkillChanges)
+        if (program?.completionSkillChanges) {
+          applySkillChanges(world, Object.fromEntries(
+            Object.entries(program.completionSkillChanges).map(([key, value]) => [key, value * rewardMultiplier]),
+          ))
+        }
         education.completedPrograms = completed
         education.activeEducation = null
       }
@@ -201,11 +222,25 @@ export class GameCommandExecutor {
 
     if (education.activeEducation) return { success: false, message: 'Уже учитесь' }
     const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
+    const completedPrograms: unknown[] = Array.isArray(education.completedPrograms) ? education.completedPrograms as unknown[] : []
+    const completionNumber: number = completedPrograms.filter(completed => {
+      return typeof completed === 'object' && completed !== null && (completed as Record<string, unknown>).id === programId
+    }).length + 1
+    const maxCompletions: number = 1 + (program?.maxRepeats ?? 0)
+
+    if (program?.track === 'book' && completionNumber > maxCompletions) {
+      return { success: false, message: `Достигнут лимит повторного чтения: ${maxCompletions} прохождения` }
+    }
+
+    const rewardMultiplier: number = completionNumber === 1 ? 1 : (program?.repeatRewardMultiplier ?? 0.5)
     const steps = (program?.steps ?? [{ id: `${programId}_step_1`, title: program?.title ?? programId, hoursRequired: program?.hoursRequired ?? 100 }]).map(step => {
       const milestoneReward = (step as { milestoneReward?: unknown }).milestoneReward
       return {
         id: step.id,
         title: step.title,
+        ...(typeof (step as { content?: unknown }).content === 'string'
+          ? { content: (step as { content: string }).content }
+          : {}),
         hoursRequired: step.hoursRequired,
         progressPercent: 0,
         ...(milestoneReward ? { milestoneReward } : {}),
@@ -220,6 +255,8 @@ export class GameCommandExecutor {
       hoursTotal,
       hoursRemaining: hoursTotal,
       currentStepIndex: 0,
+      completionNumber,
+      rewardMultiplier,
       steps,
     }
     return { success: true, message: `Программа ${program?.title ?? programId} начата` }

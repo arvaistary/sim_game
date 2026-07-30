@@ -339,12 +339,15 @@
   gap: $space-1;
   padding: $badge-padding-y $badge-padding-x;
   border-radius: $badge-radius;
-  font-size: $badge-font-size;
-  font-weight: $badge-font-weight;
   background-color: $bg-color;
   color: $text-color;
 
   @include typography-caption;
+
+  font-size: $badge-font-size;
+  font-weight: $badge-font-weight;
+  line-height: 1;
+  text-transform: lowercase;
 }
 
 // ===== Avatar base styles =====

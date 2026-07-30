@@ -29,8 +29,13 @@
       <!-- Book / Course click area with flip animation -->
       <div
         class="book-container"
-        :class="{ 'book-container--flipping': isFlipping }"
-        @click="handleReadClick"
+        :class="{ 'book-container--flipping': isFlipping, 'book-container--busy': isReading }"
+        role="button"
+        tabindex="0"
+        :aria-label="isFlipped ? 'Вернуться к обложке следующей главы' : `Прочитать: ${bookLabel}`"
+        @click="handleCardClick"
+        @keydown.enter.prevent="handleCardClick"
+        @keydown.space.prevent="handleCardClick"
       >
         <div class="book" :class="{ 'book--flipped': isFlipped }">
           <div class="book-cover">
@@ -39,7 +44,7 @@
           </div>
           <div class="book-pages">
             <div class="page-content">
-              <p class="page-text">{{ currentPageContent }}</p>
+            <p class="page-text">{{ pageContent }}</p>
             </div>
           </div>
         </div>
@@ -53,26 +58,6 @@
       </div>
     </div>
 
-    <!-- Action buttons -->
-    <template #actions>
-      <button
-        class="action-btn action-btn--read"
-        :disabled="!canContinue"
-        @click="handleReadClick"
-      >
-        <span class="btn-icon">📄</span>
-        <span class="btn-text">{{ readButtonText }}</span>
-      </button>
-
-      <!-- <button
-        class="action-btn action-btn--finish"
-        :disabled="!canFinish"
-        @click="handleFinish"
-      >
-        <span class="btn-icon">✅</span>
-        <span class="btn-text">{{ finishButtonText }}</span>
-      </button> -->
-    </template>
   </Modal>
 </template>
 
@@ -82,26 +67,30 @@ import type { ComputedRef } from 'vue'
 import type { StudyModalProps, StudyModalEmits } from './StudyModal.types'
 
 const props = withDefaults(defineProps<StudyModalProps>(), {
-  resourceWarning: null
+  resourceWarning: null,
+  isBook: false,
+  isReading: false,
 })
 
 const emit = defineEmits<StudyModalEmits>()
 
 const isFlipping = ref(false)
 const isFlipped = ref(false)
+const lastReadPageContent = ref('')
+const wasLastChapter = ref(false)
 
 const bookLabel: ComputedRef<string> = computed(() => {
+  const unit = props.isBook ? 'глава' : 'раздел'
+  if (props.currentStep >= props.totalSteps - 1) {
+    return props.isBook ? `Глава ${props.currentStep + 1} · последняя` : `Раздел ${props.currentStep + 1} · последний`
+  }
 
-  if (props.currentStep === 0) return 'Начать чтение'
-
-  if (props.currentStep >= props.totalSteps - 1) return 'Последняя страница'
-
-  return `Страница ${props.currentStep + 1}`
-
-  return `Страница ${props.currentStep + 1}`
+  return `${unit[0]?.toUpperCase()}${unit.slice(1)} ${props.currentStep + 1}`
 })
 
 const currentPageContent: ComputedRef<string> = computed(() => {
+  if (props.stepContent) return props.stepContent
+
   const contents = [
     'Вы начинаете погружаться в материал. Первые страницы открывают основные концепции...',
     'Автор объясняет ключевые принципы управления временем. Интересные примеры из практики...',
@@ -113,33 +102,35 @@ const currentPageContent: ComputedRef<string> = computed(() => {
   return contents[Math.min(props.currentStep, contents.length - 1)] ?? contents[0]!
 })
 
-const readButtonText: ComputedRef<string> = computed(() => {
-  if (!props.canContinue) {
-    const warning: string = (props.resourceWarning ?? '').toLowerCase()
-
-    if (warning.includes('голод')) return 'Сначала поешьте'
-
-    if (warning.includes('энерг')) return 'Нужно отдохнуть'
-
-    if (warning.includes('поспите') || warning.includes('учёбы до сна')) return 'Сначала поспите'
-
-    return 'Пока нельзя читать'
-  }
-
-  return props.currentStep === 0 ? 'Начать читать' : 'Читать дальше'
+const pageContent: ComputedRef<string> = computed(() => {
+  return isFlipped.value && lastReadPageContent.value ? lastReadPageContent.value : currentPageContent.value
 })
 
-function handleReadClick() {
-  if (!props.canContinue) return
-
-  // Trigger flip animation
+function flipCard(): void {
   isFlipping.value = true
   isFlipped.value = !isFlipped.value
 
   setTimeout(() => {
     isFlipping.value = false
   }, 600)
+}
 
+function handleCardClick(): void {
+  if (props.isReading) return
+
+  if (isFlipped.value) {
+    flipCard()
+    if (wasLastChapter.value) {
+      setTimeout(() => emit('close'), 600)
+    }
+    return
+  }
+
+  if (!props.canContinue) return
+
+  lastReadPageContent.value = currentPageContent.value
+  wasLastChapter.value = props.currentStep >= props.totalSteps - 1
+  flipCard()
   emit('read')
 }
 
@@ -152,6 +143,8 @@ watch(() => props.isOpen, (newVal: boolean) => {
   if (newVal) {
     isFlipped.value = false
     isFlipping.value = false
+    lastReadPageContent.value = ''
+    wasLastChapter.value = false
   }
 })
 </script>

@@ -4,8 +4,11 @@ export interface StudyModalProps {
   courseDescription: string
   currentStep: number
   totalSteps: number
+  isBook?: boolean
+  stepContent?: string
   hoursRemaining: number
   canContinue: boolean
+  isReading?: boolean
   canFinish: boolean
   resourceWarning?: string | null
 }

@@ -123,6 +123,8 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
       institute: 'none',
       educationLevel: 'Нет',
       activeCourses: [],
+      cognitiveLoad: 0,
+      studyHoursSinceLastSleep: 0,
       completedPrograms: [],
     },
     relationships: [],

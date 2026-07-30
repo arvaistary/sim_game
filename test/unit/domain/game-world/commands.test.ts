@@ -70,6 +70,24 @@ describe('domain command: executeActionCommand', () => {
     expect(world.activity.lifetime).toBeDefined()
   })
 
+  it('открывает медитацию только после завершения книги', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+
+    expect(executeActionCommand(world, 'self_meditation_practice')).toEqual(
+      expect.objectContaining({ success: false, message: 'Сначала завершите книгу «Основы медитации»' }),
+    )
+
+    world.education.completedPrograms = [{
+      id: 'meditation_foundations_book',
+      name: 'Книга «Основы медитации»',
+      completedAtGameDay: 0,
+    }]
+
+    expect(executeActionCommand(world, 'self_meditation_practice')).toEqual(
+      expect.objectContaining({ success: true }),
+    )
+  })
+
   it('сохраняет usage action в мире и после сериализации', () => {
     const world: GameWorld = GameWorld.createEmpty()
 
