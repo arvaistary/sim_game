@@ -158,7 +158,10 @@
 }
 
 .meta-tag {
-  font-size: 10px;
+  font-size: $badge-font-size;
+  font-weight: $badge-font-weight;
+  line-height: 1;
+  text-transform: lowercase;
   background: var(--color-bg-surface-2);
   padding: 2px $space-2;
   border-radius: var(--radius-sm);

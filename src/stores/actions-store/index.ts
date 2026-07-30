@@ -20,6 +20,8 @@ export const useActionsStore = defineStore('actions', () => {
 
   const skillsStore = useSkillsStore()
 
+  const educationStore = useEducationStore()
+
   const canExecute = (action: GameAction): CanApplyWorkShiftResult => {
 
     if (action.price > 0 && !walletStore.canAfford(action.price)) {
@@ -40,6 +42,12 @@ export const useActionsStore = defineStore('actions', () => {
           return { canDo: false, reason: `Требуется навык ${skill} уровня ${level}` }
         }
       }
+    }
+
+    if (action.requirements?.requiresCompletedProgramId && !educationStore.completedPrograms.some(
+      program => program.id === action.requirements?.requiresCompletedProgramId,
+    )) {
+      return { canDo: false, reason: 'Сначала завершите книгу «Основы медитации»' }
     }
 
     return { canDo: true }

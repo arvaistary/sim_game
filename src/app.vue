@@ -32,11 +32,11 @@
 
 <script setup lang="ts">
 import './App.scss'
+import { useNewGame } from '@/composables/useNewGame'
 import type { AppMenuActionId, AppMenuActionItem } from '#shared/types'
 
 const route = useRoute()
-const { $autoSave } = useNuxtApp()
-const playerStore = usePlayerStore()
+const { startNewGame } = useNewGame()
 
 const isMenuOpen = ref<boolean>(false)
 
@@ -71,10 +71,8 @@ function handleOpenMenu(): void {
 
 function handleMenuAction(actionId: AppMenuActionId): void {
   if (actionId === 'newGame') {
-    $autoSave.clear()
-    playerStore.reset()
     handleCloseMenu()
-    navigateTo('/')
+    startNewGame()
   }
 }
 

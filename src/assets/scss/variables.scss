@@ -6,7 +6,7 @@
 // ===== Colors: Primitive =====
 
 // Brand / Accent
-$color-brand-primary: #00C896;     // яркий emerald (сочный акцент)
+$color-brand-primary: #0fab97;     // яркий emerald (сочный акцент)
 $color-brand-primary-hover: #00B386; // hover — чуть темнее
 $color-brand-primary-active: #009E73; // active — ещё темнее для press-эффекта
 $color-brand-accent: #FF6B6B;      // кораллово-оранжевый (вторичный акцент)
@@ -36,7 +36,7 @@ $color-danger: #EF4444;
 $color-danger-strong: #DC2626;    // red-600 — насыщеннее, лучше читается
 $color-danger-bright: #F87171;
 $color-info: #3B82F6;
-$color-brand-primary-bright: #2DD4BF; // emerald-300, ярче для dark bg акцентов
+$color-brand-primary-bright: #0fab97; // emerald-300, ярче для dark bg акцентов
 
 // Pastel accents (for cards and badges)
 $color-pastel-purple: #EDE9FE;
@@ -116,7 +116,7 @@ $color-dark-border: #475569;
 $color-dark-border-subtle: #334155;
 
 // Interactive - emerald stays consistent, slight brighten for dark
-$color-dark-action-primary: #2DD4BF;     // emerald-300, ярче для dark bg
+$color-dark-action-primary: #0fab97;     // emerald-300, ярче для dark bg
 $color-dark-action-primary-hover: #00C896; // яркий emerald base
 $color-dark-action-primary-active: #00B386; // hover base
 $color-dark-action-secondary: #7B68D1;
@@ -283,7 +283,7 @@ $badge-radius: $radius-sm;
 $badge-padding-x: $space-2;
 $badge-padding-y: $space-1;
 $badge-font-size: $font-size-xs;
-$badge-font-weight: $font-weight-medium;
+$badge-font-weight: $font-weight-semibold;
 
 // ===== v2: Density variants =====
 // Used by html[data-density="compact"] override in global.scss

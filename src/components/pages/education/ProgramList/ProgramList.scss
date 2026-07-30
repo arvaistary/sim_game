@@ -95,11 +95,20 @@
 
 .program-type {
   margin-left: $space-4;
-  font-size: $font-size-xs;
+  font-size: $badge-font-size;
+  font-weight: $badge-font-weight;
+  line-height: 1;
+  text-transform: lowercase;
   background: var(--color-pastel-green);
   padding: 2px $space-2;
   border-radius: $radius-xs;
   color: var(--color-action-primary);
+
+  @include dark-theme {
+    background: rgb(45 212 191 / 34%);
+    border: 1px solid rgb(94 234 212 / 52%);
+    color: #ccfbf1;
+  }
 }
 
 .program-subtitle {
@@ -115,7 +124,10 @@
 }
 
 .meta-tag {
-  font-size: $font-size-xs;
+  font-size: $badge-font-size;
+  font-weight: $badge-font-weight;
+  line-height: 1;
+  text-transform: lowercase;
   background: var(--color-bg-surface-2);
   padding: 2px $space-2;
   border-radius: $radius-xs;
@@ -149,9 +161,34 @@
   color: var(--color-text-secondary);
 }
 
+.program-restart-button {
+  width: 100%;
+  padding: $space-2 $space-3;
+  border: 1px solid var(--color-action-primary);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-action-primary);
+  font: inherit;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+  }
+}
+
 .age-tag {
   background: var(--color-pastel-orange);
   color: var(--color-text-primary);
+
+  @include dark-theme {
+    background: rgb(251 191 36 / 26%);
+    border: 1px solid rgb(253 230 138 / 44%);
+    color: #fde68a;
+  }
 }
 
 .program-lock-reason {

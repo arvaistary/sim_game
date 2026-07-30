@@ -97,6 +97,21 @@
             </div>
           </section>
 
+          <section class="settings-section">
+            <h3 class="settings-section__title">Игра</h3>
+            <div class="settings-section__row settings-section__row--start-new-game">
+              <div class="settings-section__copy">
+                <p class="settings-section__label">Начать новую игру</p>
+                <p class="settings-section__hint">Текущий прогресс будет удалён</p>
+              </div>
+              <button
+                class="settings-section__danger-button"
+                type="button"
+                @click="handleStartNewGame"
+              >Начать</button>
+            </div>
+          </section>
+
           <!-- О программе -->
           <section class="settings-section">
             <h3 class="settings-section__title">О программе</h3>
@@ -115,9 +130,12 @@
 
 <script setup lang="ts">
 import './SettingsDrawer.scss'
+import { useNewGame } from '@/composables/useNewGame'
 
 const settings = useSettingsStore()
 const { state, close } = useSettingsDrawer()
+const { startNewGame } = useNewGame()
+const gameModal = useGameModal()
 const route = useRoute()
 
 const isOpen = computed<boolean>(() => state.value.isOpen)
@@ -148,5 +166,23 @@ function handleReplayOnboarding(): void {
   settings.resetOnboarding()
   close()
   navigateTo('/game')
+}
+
+function handleStartNewGame(): void {
+  gameModal.show({
+    title: 'Начать новую игру?',
+    message: 'Текущий прогресс, книги и обучение будут удалены без возможности восстановления.',
+    buttons: [
+      { label: 'Отмена' },
+      {
+        label: 'Начать заново',
+        accent: true,
+        action: () => {
+          close()
+          void startNewGame()
+        },
+      },
+    ],
+  })
 }
 </script>

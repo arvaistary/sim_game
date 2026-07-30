@@ -70,6 +70,19 @@ export function executeActionCommand(world: GameWorld, actionId: string): Execut
     const isSleep: boolean = action.actionType === 'sleep'
     const isWork: boolean = action.actionType === 'work'
     advanceHours(world, action.hourCost, isSleep ? 'sleep' : isWork ? 'work' : 'default')
+    if (isSleep) {
+      world.education.studyHoursSinceLastSleep = 0
+      world.education.cognitiveLoad = 0
+    }
+  }
+
+  if (requirements?.requiresCompletedProgramId) {
+    const completedPrograms = world.education.completedPrograms ?? []
+    const hasCompletedProgram = completedPrograms.some(program => program.id === requirements.requiresCompletedProgramId)
+
+    if (!hasCompletedProgram) {
+      return { success: false, message: 'Сначала завершите книгу «Основы медитации»' }
+    }
   }
 
   if (action.statChanges) {

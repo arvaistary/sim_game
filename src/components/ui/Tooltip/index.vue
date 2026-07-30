@@ -14,6 +14,8 @@
     @pointerleave="onLeave"
     @mousemove="onMove"
     @pointermove="onMove"
+    @focusin="onEnter"
+    @focusout="onLeave"
     @click="onWrapperClick"
   >
     <slot />
@@ -100,8 +102,12 @@ const tooltipStyle = computed(() => {
   return {}
 })
 
-function onEnter() {
+function onEnter(event?: Event) {
   if (props.pinOnClick && pinned.value) return
+  if (event instanceof MouseEvent && (props.followCursor || props.placement === 'follow')) {
+    mouseX.value = event.clientX
+    mouseY.value = event.clientY
+  }
   show.value = true
 }
 

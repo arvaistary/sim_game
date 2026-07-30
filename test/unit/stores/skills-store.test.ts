@@ -32,8 +32,8 @@ describe('skills-store', () => {
     skills.setSkillLevel('communication', 2)
     // Положительные изменения увеличивают XP
     skills.applySkillChanges({ professionalism: 2 })
-    // professionalizm 3 = 300 XP, + 100 XP/level = 500 = level 4
-    expect(skills.getSkillLevel('professionalism')).toBe(4)
+    // professionalism 3 = 300 XP, + 2 × 100 XP = 500 XP = level 5
+    expect(skills.getSkillLevel('professionalism')).toBe(5)
     // Негативные изменения уменьшают
     skills.applySkillChanges({ communication: -1 })
     expect(skills.getSkillLevel('communication')).toBe(1)
@@ -60,10 +60,10 @@ describe('skills-store', () => {
     expect(skills.getSkillLevel('communication')).toBe(5)
   })
 
-  it('должен ограничивать уровень в диапазоне 0-10', () => {
+  it('должен ограничивать уровень в диапазоне 0-1000', () => {
     const skills = useSkillsStore()
-    skills.setSkillLevel('professionalism', 15)
-    expect(skills.getSkillLevel('professionalism')).toBe(10)
+    skills.setSkillLevel('professionalism', 1500)
+    expect(skills.getSkillLevel('professionalism')).toBe(1000)
 
     skills.setSkillLevel('professionalism', -5)
     expect(skills.getSkillLevel('professionalism')).toBe(0)

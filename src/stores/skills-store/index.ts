@@ -2,11 +2,12 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { SkillModifiers } from '@/domain/balance/types'
 import { recalculateSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
+import { MAX_SKILL_LEVEL } from '@/domain/balance/constants/skills-constants'
 import type { SkillEntry } from './skills-store.types'
 
 export type { SkillsComponent, SkillEntry } from './skills-store.types'
 
-const MAX_LEVEL: number = 10
+const MAX_LEVEL: number = MAX_SKILL_LEVEL
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
@@ -17,13 +18,7 @@ function xpForLevel(level: number): number {
 }
 
 function levelFromXp(xp: number): number {
-  let level: number = 0
-
-  while (xp >= xpForLevel(level + 1)) {
-    level++
-  }
-
-  return clamp(level, 0, MAX_LEVEL)
+  return clamp(Math.floor(xp / xpForLevel(1)), 0, MAX_LEVEL)
 }
 
 export const useSkillsStore = defineStore('skills', () => {
@@ -75,11 +70,11 @@ export const useSkillsStore = defineStore('skills', () => {
   function applySkillChanges(changes: Record<string, number>): void {
     for (const [key, delta] of Object.entries(changes)) {
       if (delta > 0) {
-        addSkillXp(key, delta * 50)
+        addSkillXp(key, delta * 100)
       } else {
         if (!skills.value[key]) continue
 
-        const newXp: number = Math.max(0, (skills.value[key]!.xp ?? 0) + delta * 50)
+        const newXp: number = Math.max(0, (skills.value[key]!.xp ?? 0) + delta * 100)
         skills.value[key]!.xp = newXp
         skills.value[key]!.level = levelFromXp(newXp)
       }

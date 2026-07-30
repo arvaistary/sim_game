@@ -24,6 +24,19 @@ export function getOrCreateSessionId(event: H3Event): string {
   if (existing) return existing
 
   const sessionId: string = generateSessionId()
+  setSessionCookie(event, sessionId)
+  return sessionId
+}
+
+/** Issue a new cookie-backed game session, making any prior world unreachable. */
+export function rotateSessionId(event: H3Event): string {
+  deleteCookie(event, SESSION_COOKIE, { path: '/' })
+  const sessionId: string = generateSessionId()
+  setSessionCookie(event, sessionId)
+  return sessionId
+}
+
+function setSessionCookie(event: H3Event, sessionId: string): void {
   const config = useRuntimeConfig()
   const sameSite = String(config.gameCookieSameSite ?? 'lax') as 'lax' | 'strict' | 'none'
   const secure = config.gameCookieSecure === true || String(config.gameCookieSecure) === 'true'
@@ -34,7 +47,6 @@ export function getOrCreateSessionId(event: H3Event): string {
     maxAge: SESSION_TTL_SECONDS,
     path: '/',
   })
-  return sessionId
 }
 
 /**

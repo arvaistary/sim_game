@@ -31,6 +31,7 @@
         :empty-text="actionsEmptyHint"
         :is-disabled="(a: BalanceAction) => !canExecute(a.id)"
         :get-disabled-reason="getDisabledReason"
+        show-details
         @execute="executeAction"
       />
       </template>

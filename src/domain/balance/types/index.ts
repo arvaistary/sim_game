@@ -162,6 +162,8 @@ export interface ProgramStep {
   hoursRequired: number
   /** Прогресс шага (0..1) */
   progressPercent: number
+  /** Содержимое текущего шага для экрана обучения. */
+  content?: string
   /** Опциональная награда за milestone */
   milestoneReward?: {
     statChanges?: Record<string, number>
@@ -201,8 +203,10 @@ export interface EducationProgram {
   ageReason?: string
   /** Опциональное определение шагов программы. Если не указано, шаги генерируются автоматически. */
   steps?: ProgramStep[]
-  /** Если true, после завершения программа не может быть начата снова (как одноразовая книга). */
-  preventRepeat?: boolean
+  /** Максимальное число повторных прохождений после первого. */
+  maxRepeats?: number
+  /** Коэффициент награды для повторного прохождения. */
+  repeatRewardMultiplier?: number
 }
 
 export interface EducationPathResult {

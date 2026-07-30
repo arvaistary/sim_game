@@ -8,6 +8,7 @@ import type {
   CognitiveLoadStatus,
   CanAddStudyHoursResult,
 } from './education-store.types'
+import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from '@/domain/balance/constants/education-programs'
 
 export type {
   EducationLevel,
@@ -55,6 +56,30 @@ export const COGNITIVE_LOAD_CONSTANTS: Readonly<{
   HIGH: 80,
   MAX_STUDY_HOURS_CYCLE: 8,
 } as const
+
+function normalizeActiveEducation(data: ActiveEducation): ActiveEducation {
+  const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === data.id)
+  const storedSteps = Array.isArray(data.steps) ? data.steps : []
+  const upgradedSteps = upgradeBookChapterSteps(program, storedSteps)
+
+  if (!upgradedSteps) return data
+
+  const hoursTotal = upgradedSteps.reduce((total, step) => total + step.hoursRequired, 0)
+  const completedHours = upgradedSteps.reduce(
+    (total, step) => total + step.hoursRequired * step.progressPercent,
+    0,
+  )
+  const currentStepIndex = Math.max(0, upgradedSteps.findIndex(step => step.progressPercent < 1))
+
+  return {
+    ...data,
+    steps: upgradedSteps,
+    hoursTotal,
+    hoursRemaining: Math.max(0, hoursTotal - completedHours),
+    progress: hoursTotal > 0 ? completedHours / hoursTotal : 1,
+    currentStepIndex,
+  }
+}
 
 /**
  * Извлекает состояние needs из компонент статов.
@@ -256,13 +281,16 @@ export const useEducationStore = defineStore('education', () => {
 
     if (data.educationLevel) educationLevel.value = data.educationLevel as EducationLevel
 
-    if (data.activeEducation) activeEducation.value = data.activeEducation as ActiveEducation | null
+    if ('activeEducation' in data) {
+      const active = data.activeEducation as ActiveEducation | null
+      activeEducation.value = active ? normalizeActiveEducation(active) : null
+    }
 
-    if (data.completedPrograms) completedPrograms.value = data.completedPrograms as CompletedProgram[]
+    if (Array.isArray(data.completedPrograms)) completedPrograms.value = data.completedPrograms as CompletedProgram[]
 
-    if (data.cognitiveLoad) cognitiveLoad.value = data.cognitiveLoad as number
+    if (typeof data.cognitiveLoad === 'number') cognitiveLoad.value = data.cognitiveLoad
 
-    if (data.studyHoursSinceLastSleep) studyHoursSinceLastSleep.value = data.studyHoursSinceLastSleep as number
+    if (typeof data.studyHoursSinceLastSleep === 'number') studyHoursSinceLastSleep.value = data.studyHoursSinceLastSleep
   }
 
   return {

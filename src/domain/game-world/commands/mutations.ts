@@ -28,11 +28,7 @@ function xpForLevel(level: number): number {
 }
 
 function levelFromXp(xp: number): number {
-  let level: number = 0
-  while (xp >= xpForLevel(level + 1)) {
-    level++
-  }
-  return clamp(level, 0, MAX_SKILL_LEVEL)
+  return clamp(xp / xpForLevel(1), 0, MAX_SKILL_LEVEL)
 }
 
 /**
@@ -155,11 +151,11 @@ export function applySkillChanges(world: GameWorld, changes: Record<string, numb
       : (current?.xp ?? 0)
 
     if (delta > 0) {
-      const newXp: number = currentXp + delta * 50
+      const newXp: number = currentXp + delta * 100
       const newLevel: number = levelFromXp(newXp)
       levels[key] = { level: newLevel, xp: newXp }
     } else {
-      const newXp: number = Math.max(0, currentXp + delta * 50)
+      const newXp: number = Math.max(0, currentXp + delta * 100)
       const newLevel: number = levelFromXp(newXp)
 
       if (current === undefined) continue

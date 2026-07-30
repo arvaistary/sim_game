@@ -70,6 +70,14 @@
             {{ getBookStatusDescription(program) }}
           </p>
           <p class="program-reward">{{ program.rewardText }}</p>
+          <button
+            v-if="canRestartBook(program)"
+            type="button"
+            class="program-restart-button"
+            @click.stop="startProgram(program)"
+          >
+            Перечитать за {{ Math.round((program.repeatRewardMultiplier ?? 0.5) * 100) }}% награды
+          </button>
         </RoundedPanel>
       </Tooltip>
     </div>
@@ -155,7 +163,8 @@ function getBookStatusLabel(program: EducationProgram): string {
 
   if (activeCourseId.value === program.id) return 'Читаю'
 
-  if (completedProgramIds.value.has(program.id)) return 'Прочитано'
+  const completions = getBookCompletionCount(program.id)
+  if (completions > 0) return `Прочитано: ${completions}`
 
   return 'Куплено'
 }
@@ -169,16 +178,36 @@ function getBookStatusClass(program: EducationProgram): string {
   return 'meta-tag--owned'
 }
 
+function getBookCompletionCount(programId: string): number {
+  void store.worldTick
+  const education: Record<string, unknown> | null = store.education as unknown as Record<string, unknown> | null
+  const completedPrograms: CompletedProgramRecord[] = (education?.completedPrograms ?? []) as CompletedProgramRecord[]
+  return completedPrograms.filter(program => program.id === programId).length
+}
+
 function getBookStatusDescription(program: EducationProgram): string {
   if (activeCourseId.value === program.id) {
     return 'Книга остаётся в библиотеке, пока вы читаете её по модулям.'
   }
 
-  if (completedProgramIds.value.has(program.id)) {
-    return 'Книга уже прочитана и остаётся в библиотеке как завершённая.'
+  const completions = getBookCompletionCount(program.id)
+  if (completions > 0) {
+    const maxCompletions = 1 + (program.maxRepeats ?? 0)
+    if (completions >= maxCompletions) {
+      return `Достигнут лимит: ${maxCompletions} прохождения.`
+    }
+
+    return `Можно перечитать ещё ${maxCompletions - completions} раз(а): награда составит ${Math.round((program.repeatRewardMultiplier ?? 0.5) * 100)}%.`
   }
 
   return 'Книга куплена и доступна для запуска из библиотеки.'
+}
+
+function canRestartBook(program: EducationProgram): boolean {
+  const completions = getBookCompletionCount(program.id)
+  const maxCompletions = 1 + (program.maxRepeats ?? 0)
+
+  return completions > 0 && completions < maxCompletions && isProgramAvailable(program)
 }
 
 /** Получить причину блокировки программы (для tooltip) */

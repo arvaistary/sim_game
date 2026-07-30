@@ -121,7 +121,7 @@ export function createServerExecutor(
     },
 
     async startEducationProgram(_world: GameWorld | null, programId: string): Promise<string> {
-      await sendCommand<SyncResponse>(
+      const response = await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -132,13 +132,14 @@ export function createServerExecutor(
           },
         },
       )
+      throwIfSyncFailed(response)
 
       const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
       return `Программа ${program?.title ?? programId} начата`
     },
 
     async advanceEducation(_world: GameWorld | null): Promise<string> {
-      await sendCommand<SyncResponse>(
+      const response = await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
@@ -149,6 +150,7 @@ export function createServerExecutor(
           },
         },
       )
+      throwIfSyncFailed(response)
 
       return 'Обучение продвинуто'
     },
@@ -259,6 +261,12 @@ export function createServerExecutor(
  * @param response API response envelope
  * @return { T } data
  */
+function throwIfSyncFailed(response: SyncResponse): void {
+  if (response.failed === 0) return
+
+  throw new Error(response.errors?.[0]?.message ?? 'Команда не выполнена')
+}
+
 async function fetchApi<T>(url: string, options?: { method?: 'GET' | 'POST'; body?: Record<string, unknown> }): Promise<T> {
   const response: ApiResponse<T> = await $fetch<ApiResponse<T>>(url, {
     ...options,

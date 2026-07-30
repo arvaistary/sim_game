@@ -8,6 +8,7 @@
       :disabled-reason="getDisabledReason ? getDisabledReason(action) : ''"
       :button-label="buttonLabel"
       :show-price-when-zero="showPriceWhenZero"
+      :show-details="showDetails"
       :use-format-effect="useFormatEffect"
       @execute="$emit('execute', $event)"
     />
@@ -16,26 +17,16 @@
 </template>
 
 <script setup lang="ts">
-import type { BalanceAction } from '@/domain/balance/actions/types'
+import './ActionCardList.scss'
+import type { ActionCardListEmits, ActionCardListProps } from './ActionCardList.types'
 
-withDefaults(defineProps<{
-  actions: BalanceAction[]
-  isDisabled: (action: BalanceAction) => boolean
-  getDisabledReason?: (action: BalanceAction) => string
-  buttonLabel?: string
-  showPriceWhenZero?: boolean
-  useFormatEffect?: boolean
-  emptyText?: string
-}>(), {
+withDefaults(defineProps<ActionCardListProps>(), {
   buttonLabel: 'Выполнить',
   showPriceWhenZero: false,
+  showDetails: true,
   useFormatEffect: false,
   emptyText: 'Нет доступных действий',
 })
 
-defineEmits<{
-  execute: [id: string]
-}>()
+defineEmits<ActionCardListEmits>()
 </script>
-
-<style scoped lang="scss" src="./ActionCardList.scss"></style>

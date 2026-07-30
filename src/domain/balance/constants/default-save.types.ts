@@ -70,11 +70,16 @@ export interface EducationData {
   institute: string
   educationLevel: string
   activeCourses: unknown[]
+  activeEducation?: unknown
+  cognitiveLoad?: number
+  studyHoursSinceLastSleep?: number
   completedPrograms?: Array<{
     id: string
     name: string
     typeLabel?: string
     completedAtGameDay?: number
+    completionNumber?: number
+    rewardMultiplier?: number
   }>
 }
 

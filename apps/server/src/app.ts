@@ -163,6 +163,26 @@ function registerGameRoutes(
     return reply.send(okResponse(toStateResponse(sessionId, { record, world })))
   })
 
+  app.post('/api/game/reset', async (_request, reply) => {
+    const sessionId: string = crypto.randomUUID()
+    setSessionCookie(reply, sessionId)
+    const { GameWorld } = await import('@/domain/game-world/GameWorld')
+    const world: GameWorld = GameWorld.createEmpty()
+    const record: GameStateRecord<GameWorldJSON> = {
+      sessionId,
+      playerId: sessionId,
+      state: world.toJSON(),
+      schemaVersion: 1,
+      stateVersion: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    }
+
+    await repository.create(record)
+    return reply.send(okResponse(toStateResponse(sessionId, { record, world })))
+  })
+
   app.post('/api/game/actions/execute', async (
     request: FastifyRequest<{ Body: ActionExecuteRequest }>,
     reply: FastifyReply,
@@ -322,6 +342,11 @@ function getOrCreateSessionId(request: FastifyRequest, reply: FastifyReply): str
   if (existing) return existing
 
   const sessionId: string = crypto.randomUUID()
+  setSessionCookie(reply, sessionId)
+  return sessionId
+}
+
+function setSessionCookie(reply: FastifyReply, sessionId: string): void {
   reply.setCookie(SESSION_COOKIE, sessionId, {
     httpOnly: true,
     sameSite: readCookieSameSite(),
@@ -329,7 +354,6 @@ function getOrCreateSessionId(request: FastifyRequest, reply: FastifyReply): str
     maxAge: 86400,
     path: '/',
   })
-  return sessionId
 }
 
 function getSessionId(request: FastifyRequest): string {

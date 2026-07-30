@@ -46,6 +46,7 @@ export interface GameActionItemCooldown {
 export interface GameActionItemRequirements {
   minAge?: number
   minSkills?: Record<string, number>
+  requiresCompletedProgramId?: string
 }
 
 export interface ServerSessionErrorCandidate {

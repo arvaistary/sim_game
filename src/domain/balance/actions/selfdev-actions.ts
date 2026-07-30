@@ -126,7 +126,7 @@ export const SELFDEV_ACTIONS: BalanceAction[] = [
     effect: 'Голод +1.1, Энергия -1.8, Стресс -16.5, Настроение +10.5, Здоровье +1.5, Физическая форма -0.2, Медитация +1.5, Эмоциональный интеллект +0.5, Терпение +0.5',
     mood: '🧘‍♂️ 10–15 минут тишины творят чудеса с разумом',
     ageGroup: AgeGroup.CHILD,
-    requirements: { requiresItem: 'book_meditation_foundations' },
+    requirements: { requiresCompletedProgramId: 'meditation_foundations_book' },
   },
   {
     id: 'self_goal_setting',
