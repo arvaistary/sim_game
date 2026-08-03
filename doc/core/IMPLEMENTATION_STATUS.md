@@ -18,7 +18,7 @@
 - ✅ **Фаза 4** — application layer чистый (0 импортов Pinia). Реализованы `SPAExecutor` + `GameExecutor`/`GameQueryExecutor` interfaces.
 - 🔄 **Фаза 5** — e2e smoke-test ✅; bridge остаётся deprecated (удаление после server-first стабилизации); docs обновлены.
 
-**Ссылки:** [ADR-0005](../adr/0005-game-world-aggregate-strategy-a.md), [Spec-kit work item](../../specs/server-first-arch/plan.md)
+**Ссылки:** [ADR-0005](../adr/0005-game-world-aggregate-strategy-a.md); рабочий план хранится локально в `specs/server-first-arch/plan.md`.
 
 ### Server-first architecture migration (Stages 1-7)
 
@@ -35,7 +35,7 @@
 
 **Режимы работы:** Server (по умолчанию для dev), SPA (offline fallback), Hybrid. См. [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md).
 
-**Ссылки:** [Spec-kit work item](../../specs/server-first-arch/plan.md)
+**Ссылки:** рабочий план хранится локально в `specs/server-first-arch/plan.md`.
 
 ### M3 durable game-state persistence
 

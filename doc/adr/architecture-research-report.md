@@ -1,5 +1,5 @@
 ﻿# Архитектурное исследование проекта `game_life`
-`r`n> **Статус:** исторический анализ до server-first extraction. Для текущего состояния используйте [`doc/core/IMPLEMENTATION_STATUS.md`](../core/IMPLEMENTATION_STATUS.md), [`doc/SERVER_MIGRATION.md`](../SERVER_MIGRATION.md) и [`specs/server-first-arch/plan.md`](../../specs/server-first-arch/plan.md).`r`n
+`r`n> **Статус:** исторический анализ до server-first extraction. Для текущего состояния используйте [`doc/core/IMPLEMENTATION_STATUS.md`](../core/IMPLEMENTATION_STATUS.md), [`doc/SERVER_MIGRATION.md`](../SERVER_MIGRATION.md) и локальный work item `specs/server-first-arch/plan.md`.`r`n
 ## 1. Контекст
 
 Проект находится в переходной точке:

@@ -73,7 +73,7 @@ ADR-0002 удалил ECS **как реализацию** (Phaser-зависим
 ---
 
 **Связанные документы:**
-- [Spec-kit server-first plan](../../specs/server-first-arch/plan.md) — текущая техническая декомпозиция
+- Локальный Spec-kit server-first plan `specs/server-first-arch/plan.md` — текущая техническая декомпозиция
 - [doc/core/ARCHITECTURE_CONTRACT.md](../core/ARCHITECTURE_CONTRACT.md) — §application не импортирует stores
 - [doc/adr/0002-ecs-removal.md](0002-ecs-removal.md) — почему ADR-0005 НЕ откат ECS
 - [doc/adr/0003-layered-architecture.md](0003-layered-architecture.md) — слоистая архитектура

@@ -60,8 +60,8 @@
 | ECS удаление → Application-first | Апрель-Май 2026 | ADR-0002, ADR-0003 |
 | Dashboard restyle v2 (Linear aesthetic) | Июль 2026 | [`DESIGN_SYSTEM.md`](../guides/DESIGN_SYSTEM.md) |
 | GameWorld aggregate foundation | Июль 2026 | ADR-0005 |
-| Server-first architecture migration | Июль 2026 | [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md), [`specs/server-first-arch/plan.md`](../../specs/server-first-arch/plan.md) |
-| Аудит и рекомендации | Июль 2026 | соответствующие `specs/` work items |
+| Server-first architecture migration | Июль 2026 | [`SERVER_MIGRATION.md`](../SERVER_MIGRATION.md); рабочий план локально в `specs/` |
+| Аудит и рекомендации | Июль 2026 | локальные `specs/` work items |
 
 ---
 

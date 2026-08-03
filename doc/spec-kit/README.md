@@ -55,10 +55,10 @@ specify init --here --ai cursor-agent
 
 ## Где хранить документы
 
-- рабочие артефакты Spec-kit: `specs/` (создаются CLI-потоком);
-- активные ручные спецификации (fallback): `doc/spec-kit/specs/`;
+- рабочие артефакты Spec-kit: `specs/` (создаются CLI-потоком, локально);
+- активные ручные спецификации (fallback): `doc/spec-kit/specs/` (локально, кроме `README.md`);
 - долговременная память проекта: `.specify/memory/`;
-- завершённые и отменённые work items не удаляются: их `spec.md`, `plan.md`, `tasks.md` и evidence остаются в `specs/` с финальным статусом;
+- завершённые и отменённые work items не удаляются локально: их `spec.md`, `plan.md`, `tasks.md` и evidence остаются в `specs/` с финальным статусом;
 - ADR по архитектурным решениям: `doc/adr/`.
 
 ## Правила качества Spec-kit артефактов
@@ -84,7 +84,7 @@ specify init --here --ai cursor-agent
 3. Для сложной задачи используйте full-поток.
 4. Если нужен ручной режим, скопируйте шаблоны из `doc/spec-kit/templates/`.
 5. Создайте файлы:
-   - `doc/spec-kit/specs/<feature-name>.spec.md`
-   - `doc/spec-kit/specs/<feature-name>.plan.md`
-   - `doc/spec-kit/specs/<feature-name>.tasks.md`
+   - `doc/spec-kit/specs/<feature-name>.spec.md` (локально)
+   - `doc/spec-kit/specs/<feature-name>.plan.md` (локально)
+   - `doc/spec-kit/specs/<feature-name>.tasks.md` (локально)
 6. Заполните документы и только после этого начинайте реализацию.
