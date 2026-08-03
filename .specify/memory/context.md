@@ -50,7 +50,7 @@ server/
 └── utils/               # Cookie session, storage, and API error helpers
 apps/server/             # Standalone Fastify API (M2)
 packages/                # Framework-free contracts, domain, and application packages
-specs/                   # Durable Spec-kit work items and server-first plan
+specs/                   # Local-only Spec-kit work items and server-first plan
 ```
 
 ## Game Systems
@@ -108,7 +108,7 @@ specs/                   # Durable Spec-kit work items and server-first plan
 - `adr/` - Architecture Decision Records
 - `guides/` - Practical guides (design system, modals, etc.)
 - `reference/` - API reference (composables, stores)
-- `specs/` - Durable Spec-kit specifications, plans, tasks, and evidence
+- `specs/` - Local-only Spec-kit specifications, plans, tasks, and evidence
 
 ## Project Conventions
 
@@ -151,7 +151,7 @@ specs/                   # Durable Spec-kit work items and server-first plan
 ## Important Notes
 
 - The project migrated from Phaser.js to Nuxt 4; ADR-0001 is the only retained migration rationale
-- Archived documentation is intentionally removed; completed or superseded Spec-kit work items remain under `specs/`
+- Archived documentation is intentionally removed; completed or superseded Spec-kit work items remain locally under `specs/` and are excluded from Git
 - ECS architecture was removed in favor of layered architecture
 - All game balance data is in `src/domain/balance/constants/`
 - Game actions are defined in `src/domain/balance/actions/`
@@ -162,4 +162,4 @@ specs/                   # Durable Spec-kit work items and server-first plan
 
 ## Current Status
 
-The game is in active development with core systems implemented. M0-M2 server-first extraction and M3 durable persistence implementation are complete locally; managed PostgreSQL provisioning, hosted Vercel verification and rollback rehearsal remain operational gates. See `doc/core/IMPLEMENTATION_STATUS.md` and `specs/005-durable-game-state/` for current status. The project follows Spec-kit with durable intermediate artifacts.
+The game is in active development with core systems implemented. M0-M2 server-first extraction and M3 durable persistence implementation are complete locally; managed PostgreSQL provisioning, hosted Vercel verification and rollback rehearsal remain operational gates. See `doc/core/IMPLEMENTATION_STATUS.md` and local `specs/005-durable-game-state/` for current status. The project follows Spec-kit with local intermediate artifacts and durable conclusions promoted into `doc/` or `.specify/memory/`.

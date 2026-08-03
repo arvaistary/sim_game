@@ -54,6 +54,16 @@ coverage/
 # Spec Kit work items
 specs/
 
+# Local work documents and plans (keep on developer machine only)
+doc/plans/
+doc/spec-kit/specs/*
+!doc/spec-kit/specs/
+!doc/spec-kit/specs/README.md
+doc/manual-testing-bugs.md
+doc/manual-testing-improvements.md
+VERCEL_DEPLOYMENT_PLAN.md
+.specify/.active-work-item.json
+
 # CCE (code-context-engine)
 # CCE local cache (per-machine, not for version control)
 .cce/

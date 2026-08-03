@@ -79,12 +79,13 @@ doc/
 │   ├── ADOPTION_CHECKLIST.md          # Чеклист внедрения
 │   ├── CURSOR_RULES_BRIDGE.md         # Маппинг project rules → Spec-kit
 │   ├── templates/                     # Шаблоны spec/plan/tasks
-│   └── specs/                         # Активные спецификации
+│   └── specs/                         # Описание формата; рабочие файлы локальны
 │
 └── adr/                               # Архитектурные решения, включая Phaser → Nuxt
 ```
 
-Активные планы (Spec-kit): создаются через `spec-kit/` workflow и хранятся в `.cursor/plans/` (вне `doc/`).
+Рабочие планы и Spec-kit артефакты хранятся локально в `specs/`, `doc/plans/`, `doc/spec-kit/specs/` и `.cursor/plans/`.
+Граница Git/local описана в [`WORKING_DOCUMENTS.md`](./WORKING_DOCUMENTS.md).
 
 ## Режимы работы (Server-First Migration)
 
@@ -149,7 +150,7 @@ ADR → [`adr/`](./adr/) (Architecture Decision Records)
 ### Хочу добавить новую функцию
 1. Проверьте [`GDD/GDD.md`](./GDD/GDD.md) — возможно, это уже описано
 2. Изучите [`core/IMPLEMENTATION_STATUS.md`](./core/IMPLEMENTATION_STATUS.md)
-3. Создайте Spec-kit артефакты в [`spec-kit/specs/`](./spec-kit/specs/) по шаблонам [`spec-kit/templates/`](./spec-kit/templates/)
+3. Создайте Spec-kit артефакты локально в `specs/` по шаблонам [`spec-kit/templates/`](./spec-kit/templates/)
 4. Следуйте архитектуре проекта: `domain → application → infrastructure → stores/composables → components → pages`
 5. Проверьте `npm run typecheck` и `npm run rules:audit`
 
@@ -224,7 +225,7 @@ ADR → [`adr/`](./adr/) (Architecture Decision Records)
 
 2. **Соблюдайте структуру**
    - Используйте существующие папки и файлы
-   - Промежуточные и завершенные work items → `../specs/`
+   - Промежуточные и завершенные work items → локальная папка `../specs/`
    - Новые ADR → `adr/`
    - Новые планы → через Spec-kit workflow в `.cursor/plans/`
 

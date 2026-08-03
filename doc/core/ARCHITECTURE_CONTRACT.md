@@ -221,7 +221,7 @@ Bridge (`fromStores`/`applyToStores`) остаётся в `src/domain/game-world
 
 Устранение known violations выполняется через стратегию A (ADR-0005): восстановление `GameWorld` aggregate в `src/domain/game-world/` как единого source of truth.
 
-**План:** [Spec-kit work item](../../specs/server-first-arch/plan.md)
+**План:** локальный Spec-kit work item `specs/server-first-arch/plan.md`; устойчивое архитектурное решение зафиксировано в ADR-0005.
 
 **Этапы:**
 1. **Фаза 1 — Foundation** ✅: `GameWorld.ts`, `toJSON`/`fromJSON`, `game-facade/`, временный bridge `fromStores`/`applyToStores`.
