@@ -106,12 +106,14 @@ export const useActionsStore = defineStore('actions', () => {
   }
 
   function load(data: Record<string, unknown>): void {
-    const raw = data.actionUsage
+    const raw: unknown = data.actionUsage
+
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return
     const restored: Record<string, ActionUsageEntry> = {}
     for (const [actionId, value] of Object.entries(raw as Record<string, unknown>)) {
       if (!value || typeof value !== 'object') continue
-      const usage = value as { count?: unknown; lastUsedAt?: unknown }
+      const usage: Record<string, unknown> = value as Record<string, unknown>
+
       if (typeof usage.count === 'number' && typeof usage.lastUsedAt === 'number') {
         restored[actionId] = { count: usage.count, lastUsedAt: usage.lastUsedAt }
       }

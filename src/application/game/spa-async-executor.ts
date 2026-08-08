@@ -7,7 +7,7 @@
  */
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { ActivityEntry } from '@/domain/game-world/GameWorld.types'
-import type { GameEventPayload } from '@/domain/game-world/commands/commands.types'
+import type { DayPlanInput, DayPlanResult, GameEventPayload } from '@/domain/game-world/commands/commands.types'
 import type {
   AsyncGameExecutor,
   AsyncGameQueryExecutor,
@@ -22,6 +22,7 @@ import {
   changeCareer,
   quitCareer,
   executeAction,
+  planDay,
   resolveEventDecision,
   collectInvestment,
   advanceTime,
@@ -96,6 +97,11 @@ export function createSPAAsyncExecutor(): AsyncGameExecutor {
     executeAction(world: GameWorld | null, actionId: string): Promise<ExecuteActionCommandResult> {
       if (!world) return reject(world)
       return Promise.resolve(executeAction(world, actionId))
+    },
+
+    planDay(world: GameWorld | null, planInput: DayPlanInput): Promise<DayPlanResult> {
+      if (!world) return reject(world)
+      return Promise.resolve(planDay(world, planInput))
     },
 
     resolveEventDecision(world: GameWorld | null, eventId: string, choiceId: string): Promise<CommandOutcome> {

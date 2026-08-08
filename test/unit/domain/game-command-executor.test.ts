@@ -171,6 +171,18 @@ describe('GameCommandExecutor', () => {
     expect(result.state).toEqual(state)
   })
 
+  it('advances neutral time without sleep debt and recalculates age', () => {
+    const world = GameWorld.createEmpty()
+    world.time.totalHours = 365 * 24
+    world.time.sleepDebt = 20
+
+    const result = executor.execute(world.toJSON(), { type: 'time', payload: { hours: 24 } })
+
+    expect(result.result.success).toBe(true)
+    expect(result.state.time.sleepDebt).toBe(20)
+    expect(result.state.player.currentAge).toBe(19)
+  })
+
   it('supports career quit, finance settlement and education advance subcommands', () => {
     const started = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'education',

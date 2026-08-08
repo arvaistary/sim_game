@@ -15,10 +15,11 @@ import type { ActivityEntry } from './activity-store'
 import { useActivityStore } from './activity-store'
 import type { GameEvent } from './events-store/events-store.types'
 import { getActionById, type BalanceAction } from '@/domain/balance/actions'
-import type { CareerTrackJobItem } from '@/domain/balance/types'
+import type { CareerTrackJobItem, EducationProgram } from '@/domain/balance/types'
 import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 import { GameWorld } from '@/domain/game-world/GameWorld'
 import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
+import type { DayPlanInput, DayPlanResult } from '@/domain/game-world/commands/commands.types'
 import { fromStores, applyToStores } from '@/domain/game-world/bridge'
 import type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
 import type { GameMode, GameModeConfig, SyncStatus } from '@/domain/game-mode'
@@ -255,10 +256,11 @@ export const useGameStore = defineStore('game', () => {
   async function resetServerSession(): Promise<void> {
     if (gameMode === 'spa') return
 
-    const response = await $fetch<ApiResponse<GameStateResponse<GameWorldJSON>>>(
+    const response: ApiResponse<GameStateResponse<GameWorldJSON>> = await $fetch<ApiResponse<GameStateResponse<GameWorldJSON>>>(
       `${gameModeConfig.apiBaseUrl}/api/game/reset`,
       { method: 'POST', credentials: 'include' },
     )
+
     if (!response.success || !response.data) throw new Error(response.error?.message ?? 'Не удалось очистить игровую сессию')
 
     executor.resetStateVersion?.()
@@ -372,9 +374,9 @@ export const useGameStore = defineStore('game', () => {
       return { ok: false, reason: 'Уже учитесь' }
     }
 
-    const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
-    const completions = education.completedPrograms.filter(completed => completed.id === programId).length
-    const maxCompletions = 1 + (program?.maxRepeats ?? 0)
+    const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
+    const completions: number = education.completedPrograms.filter(completed => completed.id === programId).length
+    const maxCompletions: number = 1 + (program?.maxRepeats ?? 0)
 
     if (program?.track === 'book' && completions >= maxCompletions) {
       return { ok: false, reason: `Достигнут лимит повторного чтения: ${maxCompletions} прохождения` }
@@ -424,6 +426,15 @@ export const useGameStore = defineStore('game', () => {
       }
       throw error
     }
+    await refreshServerState()
+
+    if (gameMode === 'spa' && world) syncFromWorld(world)
+    return result
+  }
+
+  async function planDayAsync(plan: DayPlanInput): Promise<DayPlanResult> {
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
+    const result: DayPlanResult = await withServerSessionRecovery(() => executor.planDay(world, plan))
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
@@ -619,7 +630,7 @@ export const useGameStore = defineStore('game', () => {
     executor, queryExecutor,
     gameMode,
     isOnline, pendingSyncCount, syncStatus,
-    executeActionAsync, applyWorkShiftAsync, changeCareerAsync, quitCareerAsync,
+    executeActionAsync, planDayAsync, applyWorkShiftAsync, changeCareerAsync, quitCareerAsync,
     startEducationProgramAsync, advanceEducationAsync, resolveEventDecisionAsync,
     initializeServerSession,
     getFinanceOverviewAsync, getInvestmentsAsync,

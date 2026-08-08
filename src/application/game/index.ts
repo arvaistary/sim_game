@@ -4,6 +4,7 @@ export {
   changeCareer,
   quitCareer,
   executeAction,
+  planDay,
   resolveEventDecision,
   collectInvestment,
   advanceTime,
@@ -64,6 +65,7 @@ export type {
   CareerTrackItemDto,
   EventQueueItemDto,
 } from './async-executor.types'
+export type { DayPlanInput, DayPlanResult, DayPlanStepResult } from '@/domain/game-world/commands/commands.types'
 export { appGameCommands, appGameQueries } from './legacy'
 export type { SaveRepository } from './ports/SaveRepository.types'
 export type * from './index.types'

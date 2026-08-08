@@ -4,7 +4,7 @@
  * Команды мутируют GameWorld и возвращают result-модель.
  * Signature: (world: GameWorld, params) => CommandResult.
  */
-import type { StatChangeBreakdownEntry } from '@/domain/balance/types'
+import type { StatChangeBreakdownEntry, StatChanges } from '@/domain/balance/types'
 
 /** Базовый результат команды. */
 export interface CommandResult {
@@ -28,6 +28,36 @@ export interface WorkShiftResult extends CommandResult {
   earnedAmount: number
   /** Сколько часов отработано. */
   hoursWorked: number
+}
+
+export interface DayPlanInput {
+  sleepHours: number
+  workHours?: number
+  actionIds: string[]
+}
+
+export interface DayPlanStepResult {
+  kind: 'sleep' | 'work' | 'action' | 'idle'
+  actionId?: string
+  success: boolean
+  message: string
+  hoursSpent: number
+}
+
+export interface DayPlanResult {
+  success: boolean
+  message: string
+  steps: DayPlanStepResult[]
+  statChanges: StatChanges
+  moneyDelta: number
+  plannedHours: number
+  idleHours: number
+  totalHoursSpent: number
+  dayNumber: number
+  crossedWeekBoundary: boolean
+  crossedMonthBoundary: boolean
+  crossedYearBoundary: boolean
+  ageChanged: boolean
 }
 
 /** Причина отклонения команды (для UI-сообщений и tests). */

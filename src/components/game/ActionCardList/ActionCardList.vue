@@ -10,6 +10,7 @@
       :show-price-when-zero="showPriceWhenZero"
       :show-details="showDetails"
       :use-format-effect="useFormatEffect"
+      :show-add-to-plan="showAddToPlan"
       @execute="$emit('execute', $event)"
     />
     <EmptyState v-if="actions.length === 0" :text="emptyText" />
@@ -25,6 +26,7 @@ withDefaults(defineProps<ActionCardListProps>(), {
   showPriceWhenZero: false,
   showDetails: true,
   useFormatEffect: false,
+  showAddToPlan: true,
   emptyText: 'Нет доступных действий',
 })
 

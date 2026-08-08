@@ -9,6 +9,8 @@ import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type {
   ExecuteActionResult,
+  DayPlanInput,
+  DayPlanResult,
   GameEventPayload,
   ResolveEventResult,
   WorkShiftResult,
@@ -20,6 +22,7 @@ import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from '@/domain/balance/co
 import { getActionById } from '@/domain/balance/actions'
 import {
   executeActionCommand,
+  planDayCommand,
   resolveEventDecisionCommand,
   simulateWorkShiftCommand,
   advanceHours,
@@ -128,6 +131,15 @@ export function quitCareer(world: GameWorld): { success: boolean; message: strin
 export function executeAction(world: GameWorld, actionId: string): ExecuteActionCommandResult {
   const result: ExecuteActionResult = executeActionCommand(world, actionId)
   return { success: result.success, message: result.message }
+}
+
+/**
+ * Выполнить план игрового дня на уровне application.
+ * @description [Application] - делегирует агрегированное выполнение в domain command.
+ * @return { DayPlanResult } результат выполнения плана
+ */
+export function planDay(world: GameWorld, plan: DayPlanInput): DayPlanResult {
+  return planDayCommand(world, plan)
 }
 
 /**
@@ -259,9 +271,11 @@ export function advanceEducation(world: GameWorld): string {
   const active: Record<string, unknown> | null = (education.activeEducation as Record<string, unknown> | undefined) ?? null
 
   if (!active) return 'Нет активного обучения'
+
   if (Number(education.studyHoursSinceLastSleep ?? 0) >= 8) {
     return 'Лимит учёбы исчерпан. Поспите для восстановления.'
   }
+
   if (Number(education.cognitiveLoad ?? 0) >= 80) {
     return 'Когнитивная нагрузка слишком высока. Поспите для восстановления.'
   }
@@ -278,7 +292,7 @@ export function advanceEducation(world: GameWorld): string {
   const storedSteps: Array<{ hoursRequired?: unknown; progressPercent?: unknown }> = Array.isArray(active.steps)
     ? active.steps as Array<{ hoursRequired?: unknown; progressPercent?: unknown }>
     : []
-  const upgradedBookSteps = upgradeBookChapterSteps(program, storedSteps)
+  const upgradedBookSteps: ProgramStep[] | null = upgradeBookChapterSteps(program, storedSteps)
   const rawSteps: unknown[] = upgradedBookSteps ?? (storedSteps.length > 0 ? storedSteps : catalogSteps)
   const steps: ProgramStep[] = rawSteps.map(
     (step: unknown, index: number): ProgramStep => {

@@ -78,19 +78,29 @@ export function spendMoney(world: GameWorld, amount: number): boolean {
   return true
 }
 
-/** Сохранить купленный предмет в общем инвентаре мира. */
+/**
+ * Сохранить купленный предмет в общем инвентаре мира.
+ * @description [Domain] - добавляет предмет только если он ещё не куплен.
+ * @return { void }
+ */
 export function grantItem(world: GameWorld, itemId: string): void {
   if (!itemId) return
 
   const furniture: Array<Record<string, unknown>> = world.housing.furniture as Array<Record<string, unknown>>
+
   if (furniture.some((item: Record<string, unknown>) => item.id === itemId && item.purchased === true)) return
 
   furniture.push({ id: itemId, name: itemId, comfortBonus: 0, purchased: true })
 }
 
+/**
+ * Записать использование действия в агрегате мира.
+ * @description [Domain] - увеличивает count и обновляет монотонный маркер последнего использования.
+ * @return { void }
+ */
 export function recordActionUsage(world: GameWorld, actionId: string): void {
-  const current = world.actionUsage[actionId] ?? { count: 0, lastUsedAt: 0 }
-  const lastUsedAt = Object.values(world.actionUsage).reduce(
+  const current: GameWorld['actionUsage'][string] = world.actionUsage[actionId] ?? { count: 0, lastUsedAt: 0 }
+  const lastUsedAt: number = Object.values(world.actionUsage).reduce(
     (latest, usage) => Math.max(latest, usage.lastUsedAt),
     0,
   ) + 1
@@ -121,17 +131,21 @@ export function earnMoney(world: GameWorld, amount: number): void {
  * @description [Domain] - мутирует world.time, обновляет totalHours/sleepDebt и т.д.
  * @return { void }
  */
-export function advanceHours(world: GameWorld, hours: number, actionType: 'sleep' | 'work' | 'default' = 'default'): void {
+export function advanceHours(world: GameWorld, hours: number, actionType: 'sleep' | 'work' | 'idle' | 'default' = 'default'): void {
   if (hours <= 0) return
   const time: TimeData = world.time
   time.totalHours += hours
-  time.weekHoursSpent += hours
-  time.weekHoursRemaining = Math.max(0, 168 - time.weekHoursSpent)
-  time.dayHoursSpent += hours
-  time.dayHoursRemaining = Math.max(0, 24 - time.dayHoursSpent)
+  time.weekHoursSpent = time.totalHours % 168
+  time.weekHoursRemaining = time.weekHoursSpent === 0
+    ? 168
+    : 168 - time.weekHoursSpent
+  time.dayHoursSpent = time.totalHours % 24
+  time.dayHoursRemaining = time.dayHoursSpent === 0
+    ? 24
+    : 24 - time.dayHoursSpent
   time.hourOfDay = time.totalHours % 24
 
-  if (actionType !== 'sleep') {
+  if (actionType !== 'sleep' && actionType !== 'idle') {
     const debtGain: number = hours * 0.5
     time.sleepDebt = clamp(time.sleepDebt + debtGain, 0, 100)
   }

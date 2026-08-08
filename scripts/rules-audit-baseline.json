@@ -133,6 +133,10 @@
   },
   {
     "rule": "styles/global-scss-location",
+    "filePath": "src\\components\\pages\\dashboard\\DayPlannerPanel\\DayPlannerPanel.scss"
+  },
+  {
+    "rule": "styles/global-scss-location",
     "filePath": "src\\components\\pages\\dashboard\\ProfileCard\\ProfileCard.scss"
   },
   {

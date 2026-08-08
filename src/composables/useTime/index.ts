@@ -1,4 +1,6 @@
 
+import { useTimeStore } from '@/stores/time-store'
+
 export const useTime = () => {
   const timeStore = useTimeStore()
 

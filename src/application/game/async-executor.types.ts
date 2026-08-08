@@ -8,7 +8,7 @@
  * sync GameExecutor/GameQueryExecutor остаются для backwards compat.
  */
 import type { ActivityEntry, GameWorldJSON } from '@/domain/game-world/GameWorld.types'
-import type { GameEventPayload } from '@/domain/game-world/commands/commands.types'
+import type { DayPlanInput, DayPlanResult, GameEventPayload } from '@/domain/game-world/commands/commands.types'
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type {
   CanStartEducationResult,
@@ -79,6 +79,7 @@ export interface AsyncGameExecutor {
   advanceEducation(world: GameWorld | null): Promise<string>
   executeFinanceDecision(world: GameWorld | null, actionId: string): Promise<string>
   executeAction(world: GameWorld | null, actionId: string): Promise<ExecuteActionCommandResult>
+  planDay(world: GameWorld | null, plan: DayPlanInput): Promise<DayPlanResult>
   resolveEventDecision(world: GameWorld | null, eventId: string, choiceId: string): Promise<CommandOutcome>
   collectInvestment(world: GameWorld | null, investmentId: string): Promise<string>
   advanceTime(world: GameWorld | null, hours: number): Promise<void>

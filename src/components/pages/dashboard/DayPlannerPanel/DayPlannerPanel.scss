@@ -1,0 +1,82 @@
+.day-planner {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.day-planner__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.day-planner__title,
+.day-planner__section h3 {
+  margin: 0;
+  font-size: $font-size-lg;
+}
+
+.day-planner__section h3 {
+  margin-bottom: $space-2;
+  font-size: $font-size-sm;
+}
+
+.day-planner__meta,
+.day-planner__empty {
+  margin: $space-1 0 0;
+  color: var(--color-text-secondary);
+  font-size: $font-size-xs;
+}
+
+.day-planner__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.day-planner__reset,
+.day-planner__actions button {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.day-planner__warning {
+  margin: 0;
+  color: var(--color-status-danger);
+  font-size: $font-size-xs;
+}
+
+.day-planner__actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.day-planner__actions li {
+  display: flex;
+  justify-content: space-between;
+  gap: $space-2;
+  font-size: $font-size-sm;
+}
+
+.day-planner__result {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-2;
+  border-radius: var(--radius-sm);
+  background: var(--color-pastel-green);
+  font-size: $font-size-sm;
+}
+
+.day-planner__skipped {
+  padding-left: $space-4;
+  margin: 0;
+  color: var(--color-status-danger);
+}

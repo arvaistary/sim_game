@@ -4,11 +4,13 @@ import type {
   EducationLevel,
   CompletedProgram,
   ActiveEducation,
+  ActiveCourseStep,
   NeedsState,
   CognitiveLoadStatus,
   CanAddStudyHoursResult,
 } from './education-store.types'
 import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from '@/domain/balance/constants/education-programs'
+import type { EducationProgram, ProgramStep } from '@/domain/balance/types'
 
 export type {
   EducationLevel,
@@ -58,18 +60,21 @@ export const COGNITIVE_LOAD_CONSTANTS: Readonly<{
 } as const
 
 function normalizeActiveEducation(data: ActiveEducation): ActiveEducation {
-  const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === data.id)
-  const storedSteps = Array.isArray(data.steps) ? data.steps : []
-  const upgradedSteps = upgradeBookChapterSteps(program, storedSteps)
+  const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(candidate => candidate.id === data.id)
+  const storedSteps: ActiveCourseStep[] = Array.isArray(data.steps) ? data.steps : []
+  const upgradedSteps: ProgramStep[] | null = upgradeBookChapterSteps(program, storedSteps)
 
   if (!upgradedSteps) return data
 
-  const hoursTotal = upgradedSteps.reduce((total, step) => total + step.hoursRequired, 0)
-  const completedHours = upgradedSteps.reduce(
+  const hoursTotal: number = upgradedSteps.reduce(
+    (total, step) => total + step.hoursRequired,
+    0,
+  )
+  const completedHours: number = upgradedSteps.reduce(
     (total, step) => total + step.hoursRequired * step.progressPercent,
     0,
   )
-  const currentStepIndex = Math.max(0, upgradedSteps.findIndex(step => step.progressPercent < 1))
+  const currentStepIndex: number = Math.max(0, upgradedSteps.findIndex(step => step.progressPercent < 1))
 
   return {
     ...data,
@@ -282,7 +287,7 @@ export const useEducationStore = defineStore('education', () => {
     if (data.educationLevel) educationLevel.value = data.educationLevel as EducationLevel
 
     if ('activeEducation' in data) {
-      const active = data.activeEducation as ActiveEducation | null
+      const active: ActiveEducation | null = data.activeEducation as ActiveEducation | null
       activeEducation.value = active ? normalizeActiveEducation(active) : null
     }
 

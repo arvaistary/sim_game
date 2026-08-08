@@ -45,7 +45,7 @@ export function useActions(): UseActionsReturn {
     try {
       result = await gameStore.executeActionAsync(actionId)
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Не удалось выполнить действие'
+      const message: string = error instanceof Error ? error.message : 'Не удалось выполнить действие'
       toast.showError(message)
       return false
     }

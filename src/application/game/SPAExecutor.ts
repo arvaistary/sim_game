@@ -21,6 +21,7 @@ import type {
   LoadTarget,
   SnapshotProvider,
 } from './index.types'
+import type { DayPlanInput, DayPlanResult } from '@/domain/game-world/commands/commands.types'
 import {
   canExecuteAction as canExecuteActionQuery,
   getActivityLog as getActivityLogQuery,
@@ -39,6 +40,7 @@ import {
   changeCareer,
   quitCareer,
   executeAction,
+  planDay,
   resolveEventDecision,
   collectInvestment,
   advanceTime,
@@ -140,6 +142,13 @@ export function createSPAExecutor(
     executeAction(_world: GameWorld, actionId: string): ExecuteActionCommandResult {
       const world: GameWorld = buildWorld(snapshotProvider)
       const result: ExecuteActionCommandResult = executeAction(world, actionId)
+      commitWorld(world, loadTarget)
+      return result
+    },
+
+    planDay(_world: GameWorld, planInput: DayPlanInput): DayPlanResult {
+      const world: GameWorld = buildWorld(snapshotProvider)
+      const result: DayPlanResult = planDay(world, planInput)
       commitWorld(world, loadTarget)
       return result
     },

@@ -164,8 +164,14 @@ const activeCourse: ComputedRef<ActiveCourse | null> = computed(() => {
     : hasStoredSteps
       ? storedSteps
     : catalogSteps
-  const totalHours = steps.reduce((total, step) => total + (step.hoursRequired ?? 0), 0)
-  const completedHours = steps.reduce((total, step) => total + (step.hoursRequired ?? 0) * (step.progressPercent ?? 0), 0)
+  const totalHours = steps.reduce(
+    (total, step) => total + (step.hoursRequired ?? 0),
+    0,
+  )
+  const completedHours = steps.reduce(
+    (total, step) => total + (step.hoursRequired ?? 0) * (step.progressPercent ?? 0),
+    0,
+  )
   const migratedCurrentStepIndex = Math.max(0, steps.findIndex(step => (step.progressPercent ?? 0) < 1))
   return {
     ...source,

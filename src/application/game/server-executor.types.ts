@@ -1,3 +1,5 @@
+import type { DayEndHooks } from '@/domain/game-world/commands'
+
 /**
  * Типы для ServerExecutor (server-first migration, Stage 5).
  *
@@ -11,6 +13,8 @@
 export interface ServerExecutorOptions {
   /** Базовый URL API (пустая строка = тот же origin). */
   baseUrl: string
+  /** Hooks, вызываемые после успешного фактического закрытия дня server executor-ом. */
+  dayEndHooks?: DayEndHooks
 }
 
 /**

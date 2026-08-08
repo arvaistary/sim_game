@@ -1,6 +1,6 @@
 import type { GameWorldJSON } from './game-world/GameWorld.types'
 
-export type PersistedGameCommandType = 'action' | 'work' | 'event' | 'career' | 'finance' | 'education'
+export type PersistedGameCommandType = 'action' | 'work' | 'event' | 'career' | 'finance' | 'education' | 'time'
 
 export interface PersistedGameCommand {
   type: PersistedGameCommandType

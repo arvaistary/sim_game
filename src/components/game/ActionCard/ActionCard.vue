@@ -19,6 +19,13 @@
             small
             @click="handleButtonClick"
           />
+          <GameButton
+            v-if="showAddToPlan && action.actionType !== 'sleep' && action.actionType !== 'work'"
+            label="В план дня"
+            variant="secondary"
+            small
+            @click="handleAddToPlan"
+          />
         </div>
       </div>
     </RoundedPanel>
@@ -88,6 +95,7 @@ import { formatEffect, formatMoney } from '@/utils/format'
 import StatChange from '@/components/ui/StatChange/StatChange.vue'
 import Modal from '@/components/ui/Modal/index.vue'
 import type { ActionCardEmits, ActionCardProps, ActionEffectDisplay } from './ActionCard.types'
+import { useDayPlanner } from '@/composables/useDayPlanner'
 
 const props = withDefaults(defineProps<ActionCardProps>(), {
   disabled: false,
@@ -101,6 +109,7 @@ const props = withDefaults(defineProps<ActionCardProps>(), {
 const emit = defineEmits<ActionCardEmits>()
 
 const toast = useToast()
+const planner = useDayPlanner()
 
 const isDetailsOpen = ref<boolean>(false)
 
@@ -191,5 +200,11 @@ function closeDetails(): void {
 function handleModalButtonClick(event?: MouseEvent): void {
   closeDetails()
   handleButtonClick(event)
+}
+
+function handleAddToPlan(event?: MouseEvent): void {
+  event?.stopPropagation()
+  const added = planner.addFreeAction(props.action.id)
+  toast.showInfo(added ? 'Действие добавлено в план дня' : 'В плане уже три действия или действие недоступно')
 }
 </script>

@@ -31,9 +31,9 @@ describe('domain skills mutations', () => {
   it('addSkillXp: добавляет XP и пересчитывает уровень', () => {
     const world: GameWorld = GameWorld.createEmpty()
 
-    addSkillXp(world, 'programming', 250) // level 2 (200), почти 3 (300)
+    addSkillXp(world, 'programming', 250) // level 2.5
 
-    expect(getSkillLevel(world, 'programming')).toBe(2)
+    expect(getSkillLevel(world, 'programming')).toBe(2.5)
     expect(getSkillXp(world, 'programming')).toBe(250)
 
     addSkillXp(world, 'programming', 50) // 300 → level 3

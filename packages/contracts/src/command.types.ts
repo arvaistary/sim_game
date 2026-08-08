@@ -9,6 +9,7 @@ export type GameCommandType =
   | 'career'
   | 'finance'
   | 'education'
+  | 'time'
 
 export interface CommandEnvelope<TPayload extends Record<string, unknown> = Record<string, unknown>> {
   commandId: string

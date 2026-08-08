@@ -7,6 +7,9 @@
 export { executeActionCommand } from './execute-action'
 export { simulateWorkShiftCommand } from './simulate-work-shift'
 export { resolveEventDecisionCommand } from './resolve-event-decision'
+export { planDayCommand } from './plan-day'
+export { createNoopDayEndHooks } from './day-end-hooks'
+export type { DayEndHooks } from './day-end-hooks'
 
 export {
   addActivityEntry,
@@ -62,6 +65,9 @@ export {
 export type {
   CommandRejectionReason,
   CommandResult,
+  DayPlanInput,
+  DayPlanResult,
+  DayPlanStepResult,
   DomainActionRequirements,
   EventChoicePayload,
   ExecuteActionResult,

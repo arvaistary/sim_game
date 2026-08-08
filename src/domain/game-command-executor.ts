@@ -1,6 +1,6 @@
 import type { GameWorldJSON } from './game-world/GameWorld.types'
 import { GameWorld } from './game-world/GameWorld'
-import type { CareerJob, ProgramStep } from './balance/types'
+import type { CareerJob, EducationProgram, ProgramStep } from './balance/types'
 import { CAREER_JOBS } from './balance/constants/career-jobs'
 import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from './balance/constants/education-programs'
 import { getActionById, type BalanceAction } from './balance/actions'
@@ -15,6 +15,7 @@ import {
   investInWorld,
   applySkillChanges,
   applyStatChangesRaw,
+  advanceHours,
 } from './game-world/commands'
 import type {
   GameCommandExecution,
@@ -56,6 +57,10 @@ export class GameCommandExecutor {
         return this.executeFinance(world, command.payload)
       case 'education':
         return this.executeEducation(world, command.payload)
+      case 'time':
+        advanceHours(world, numberValue(command.payload.hours, 'hours'), 'idle')
+        world.player.currentAge = world.player.startAge + Math.floor(world.time.totalHours / (365 * 24))
+        return { success: true, message: 'Время прошло' }
       default:
         return { success: false, message: `Unknown command type: ${command.type}` }
     }
@@ -148,35 +153,45 @@ export class GameCommandExecutor {
       const active: Record<string, unknown> | undefined = education.activeEducation as Record<string, unknown> | undefined
 
       if (!active) return { success: false, message: 'Нет активного обучения' }
+
       if (Number(education.studyHoursSinceLastSleep ?? 0) >= 8) {
         return { success: false, message: 'Лимит учёбы исчерпан. Поспите для восстановления.' }
       }
+
       if (Number(education.cognitiveLoad ?? 0) >= 80) {
         return { success: false, message: 'Когнитивная нагрузка слишком высока. Поспите для восстановления.' }
       }
-      const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === String(active.id ?? ''))
-      const storedSteps = Array.isArray(active.steps) ? active.steps as Array<Record<string, unknown>> : []
-      const upgradedBookSteps = upgradeBookChapterSteps(program, storedSteps)
+      const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(candidate => candidate.id === String(active.id ?? ''))
+      const storedSteps: Array<Record<string, unknown>> = Array.isArray(active.steps) ? active.steps as Array<Record<string, unknown>> : []
+      const upgradedBookSteps: ProgramStep[] | null = upgradeBookChapterSteps(program, storedSteps)
       const sourceSteps: Array<Record<string, unknown> | ProgramStep> = storedSteps.length > 0
         ? (upgradedBookSteps ?? storedSteps)
         : (program?.steps ?? [{ id: `${String(active.id ?? 'program')}_step_1`, title: String(active.name ?? active.id ?? 'Обучение'), hoursRequired: Number(active.hoursTotal ?? 100) }])
-      const steps = sourceSteps.map((step, index) => ({
+      const steps: ProgramStep[] = sourceSteps.map(
+        (step, index) => ({
         ...step,
         id: String(step.id ?? `${String(active.id ?? 'program')}_step_${index + 1}`),
         title: String(step.title ?? active.name ?? active.id ?? 'Обучение'),
         ...(typeof step.content === 'string' ? { content: step.content } : {}),
         hoursRequired: Math.max(1, Number(step.hoursRequired ?? 1)),
         progressPercent: Math.max(0, Math.min(1, Number(step.progressPercent ?? 0))),
-      }))
-      let currentStepIndex = Math.max(0, Math.min(steps.length - 1, Number(active.currentStepIndex ?? 0)))
+        }),
+      )
+      let currentStepIndex: number = Math.max(0, Math.min(steps.length - 1, Number(active.currentStepIndex ?? 0)))
       while (currentStepIndex < steps.length - 1 && steps[currentStepIndex]!.progressPercent >= 1) currentStepIndex += 1
 
-      const currentStep = steps[currentStepIndex]!
+      const currentStep: ProgramStep = steps[currentStepIndex]!
       currentStep.progressPercent = Math.min(1, currentStep.progressPercent + (1 / currentStep.hoursRequired))
       while (currentStepIndex < steps.length - 1 && steps[currentStepIndex]!.progressPercent >= 1) currentStepIndex += 1
 
-      const totalHours: number = steps.reduce((total, step) => total + step.hoursRequired, 0)
-      const remaining: number = steps.reduce((total, step) => total + step.hoursRequired * (1 - step.progressPercent), 0)
+      const totalHours: number = steps.reduce(
+        (total, step) => total + step.hoursRequired,
+        0,
+      )
+      const remaining: number = steps.reduce(
+        (total, step) => total + step.hoursRequired * (1 - step.progressPercent),
+        0,
+      )
       active.steps = steps
       active.currentStepIndex = currentStepIndex
       active.hoursTotal = totalHours
@@ -199,14 +214,16 @@ export class GameCommandExecutor {
           completionNumber,
           rewardMultiplier,
         })
+
         if (program?.completionStatChanges) {
-          const statChanges = Object.fromEntries(
+          const statChanges: Record<string, number> = Object.fromEntries(
             Object.entries(program.completionStatChanges)
               .filter(([, value]) => typeof value === 'number')
               .map(([key, value]) => [key, (value as number) * rewardMultiplier]),
           ) as Record<string, number>
           applyStatChangesRaw(world, statChanges)
         }
+
         if (program?.completionSkillChanges) {
           applySkillChanges(world, Object.fromEntries(
             Object.entries(program.completionSkillChanges).map(([key, value]) => [key, value * rewardMultiplier]),
@@ -221,7 +238,8 @@ export class GameCommandExecutor {
     const programId: string = stringValue(payload.programId, 'programId')
 
     if (education.activeEducation) return { success: false, message: 'Уже учитесь' }
-    const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
+
+    const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
     const completedPrograms: unknown[] = Array.isArray(education.completedPrograms) ? education.completedPrograms as unknown[] : []
     const completionNumber: number = completedPrograms.filter(completed => {
       return typeof completed === 'object' && completed !== null && (completed as Record<string, unknown>).id === programId
@@ -233,8 +251,9 @@ export class GameCommandExecutor {
     }
 
     const rewardMultiplier: number = completionNumber === 1 ? 1 : (program?.repeatRewardMultiplier ?? 0.5)
-    const steps = (program?.steps ?? [{ id: `${programId}_step_1`, title: program?.title ?? programId, hoursRequired: program?.hoursRequired ?? 100 }]).map(step => {
-      const milestoneReward = (step as { milestoneReward?: unknown }).milestoneReward
+    const steps: ProgramStep[] = (program?.steps ?? [{ id: `${programId}_step_1`, title: program?.title ?? programId, hoursRequired: program?.hoursRequired ?? 100 }]).map(
+      step => {
+      const milestoneReward: unknown = (step as { milestoneReward?: unknown }).milestoneReward
       return {
         id: step.id,
         title: step.title,
@@ -245,8 +264,12 @@ export class GameCommandExecutor {
         progressPercent: 0,
         ...(milestoneReward ? { milestoneReward } : {}),
       }
-    })
-    const hoursTotal = steps.reduce((total, step) => total + step.hoursRequired, 0)
+      },
+    )
+    const hoursTotal: number = steps.reduce(
+      (total, step) => total + step.hoursRequired,
+      0,
+    )
     education.activeEducation = {
       id: programId,
       name: program?.title ?? programId,

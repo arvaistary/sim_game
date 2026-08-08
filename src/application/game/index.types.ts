@@ -1,6 +1,6 @@
 import type { Investment } from '@/domain/balance/constants/default-save'
 import type { ActivityEntry } from '@/domain/game-world/GameWorld.types'
-import type { GameEventPayload } from '@/domain/game-world/commands/commands.types'
+import type { DayPlanInput, DayPlanResult, GameEventPayload } from '@/domain/game-world/commands/commands.types'
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge'
 
@@ -86,6 +86,7 @@ export interface GameExecutor {
   advanceEducation(): string
   executeFinanceDecision(actionId: string): string
   executeAction(world: GameWorld, actionId: string): ExecuteActionCommandResult
+  planDay(world: GameWorld, plan: DayPlanInput): DayPlanResult
   resolveEventDecision(world: GameWorld, eventId: string, choiceId: string): CommandOutcome
   collectInvestment(world: GameWorld, investmentId: string): string
   advanceTime(world: GameWorld, hours: number): void
