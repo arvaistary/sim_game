@@ -33,7 +33,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Execution Steps
 
-1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS list.
+1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly` on Windows or `.specify/scripts/bash/check-prerequisites.sh --json --paths-only` on POSIX; this workflow may run before `plan.md` exists. Parse JSON for FEATURE_DIR and load `spec.md` when present.
    - All file paths must be absolute.
    - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
@@ -91,7 +91,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Generate unique checklist filename:
      - Use short, descriptive name based on domain (e.g., `ux.md`, `api.md`, `security.md`)
      - Format: `[domain].md`
-     - If file exists, append to existing file
+     - If file exists, add numeric or timestamp suffix to keep this run isolated
    - Number items sequentially starting from CHK001
    - Each `/speckit.checklist` run creates a NEW file (never overwrites existing checklists)
 

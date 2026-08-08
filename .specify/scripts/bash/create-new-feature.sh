@@ -164,12 +164,20 @@ clean_branch_name() {
 # to searching for repository markers so the workflow still functions in repositories that
 # were initialised with --no-git.
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
-if git rev-parse --show-toplevel >/dev/null 2>&1; then
+REPO_ROOT="$(get_repo_root)"
+SPEC_ROOT="$REPO_ROOT"
+PRODUCT_ROOT="$(get_product_root)"
+PRODUCT_GIT_ROOT="$(get_product_git_root)"
+ARTIFACT_MODE="$(get_artifact_mode)"
+
+if [ "$ARTIFACT_MODE" = "external" ]; then
+    HAS_GIT=false
+elif git rev-parse --show-toplevel >/dev/null 2>&1; then
     REPO_ROOT=$(git rev-parse --show-toplevel)
     HAS_GIT=true
 else
-    REPO_ROOT="$(find_repo_root "$SCRIPT_DIR")"
     if [ -z "$REPO_ROOT" ]; then
         echo "Error: Could not determine repository root. Please run this script from within the repository." >&2
         exit 1
@@ -276,6 +284,13 @@ if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
     >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
 fi
 
+FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
+if [ -e "$FEATURE_DIR" ]; then
+    echo "Error: Feature directory already exists: $FEATURE_DIR" >&2
+    echo "Choose a different --number/--short-name or explicitly update existing artifacts." >&2
+    exit 1
+fi
+
 if [ "$HAS_GIT" = true ] && [ "$NO_BRANCH" = false ]; then
     git checkout -b "$BRANCH_NAME"
 elif [ "$HAS_GIT" = true ] && [ "$NO_BRANCH" = true ]; then
@@ -284,21 +299,38 @@ else
     >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
 fi
 
-FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
 mkdir -p "$FEATURE_DIR"
 
 TEMPLATE="$REPO_ROOT/.specify/templates/spec-template.md"
 SPEC_FILE="$FEATURE_DIR/spec.md"
 if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
 
-# Set the SPECIFY_FEATURE environment variable for the current session
+# Persist active work-item state; child-process environment export is not visible to caller.
+ACTIVE_STATE_FILE="$REPO_ROOT/.specify/.active-work-item.json"
+CREATED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+mkdir -p "$(dirname "$ACTIVE_STATE_FILE")"
+cat > "$ACTIVE_STATE_FILE" <<EOF
+{
+  "name": "$(escape_json "$BRANCH_NAME")",
+  "path": "$(escape_json "specs/$BRANCH_NAME/")",
+  "mode": "full",
+  "description": "$(escape_json "$FEATURE_DESCRIPTION")",
+  "created": "$(escape_json "$CREATED_AT")"
+}
+EOF
+
 export SPECIFY_FEATURE="$BRANCH_NAME"
 
 if $JSON_MODE; then
-    printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s"}\n' "$BRANCH_NAME" "$SPEC_FILE" "$FEATURE_NUM"
+    printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s","SPEC_ROOT":"%s","PRODUCT_ROOT":"%s","PRODUCT_GIT_ROOT":"%s","ARTIFACT_MODE":"%s"}\n' \
+        "$BRANCH_NAME" "$SPEC_FILE" "$FEATURE_NUM" "$SPEC_ROOT" "$PRODUCT_ROOT" "$PRODUCT_GIT_ROOT" "$ARTIFACT_MODE"
 else
     echo "BRANCH_NAME: $BRANCH_NAME"
     echo "SPEC_FILE: $SPEC_FILE"
     echo "FEATURE_NUM: $FEATURE_NUM"
     echo "SPECIFY_FEATURE environment variable set to: $BRANCH_NAME"
+    echo "SPEC_ROOT: $SPEC_ROOT"
+    echo "PRODUCT_ROOT: $PRODUCT_ROOT"
+    echo "PRODUCT_GIT_ROOT: $PRODUCT_GIT_ROOT"
+    echo "ARTIFACT_MODE: $ARTIFACT_MODE"
 fi

@@ -1,7 +1,6 @@
 ---
 name: speckit-start
 description: Start a work item in lite mode (default) or full mode.
-compatibility: Requires spec-kit project structure with .specify/ directory
 metadata:
   author: github-spec-kit
   source: templates/commands/start.md
@@ -31,7 +30,8 @@ The text after `start` is the work-item description.
    - Accept `--short-name <name>` and `--number <N>` and forward them to script.
 
 3. Create the work-item directory and active context by running:
-   - `.specify/scripts/bash/start-work-item.sh --json --mode <lite|full> [--short-name ...] [--number ...] "<description>"`
+   - Windows: `& powershell -NoProfile -ExecutionPolicy Bypass -File .specify/scripts/powershell/start-work-item.ps1 -Json -Mode <lite|full> [-ShortName ...] [-Number ...] "<description>"`
+   - POSIX: `.specify/scripts/bash/start-work-item.sh --json --mode <lite|full> [--short-name ...] [--number ...] "<description>"`
    - Parse JSON response with `WORK_ITEM_NAME`, `WORK_ITEM_DIR`, and `MODE`.
 
 4. Escalation trigger detection (for lite mode only):

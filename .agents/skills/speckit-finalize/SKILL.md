@@ -1,7 +1,6 @@
 ---
 name: speckit-finalize
 description: Verify implementation quality and sync durable knowledge.
-compatibility: Requires spec-kit project structure with .specify/ directory
 metadata:
   author: github-spec-kit
   source: templates/commands/finalize.md

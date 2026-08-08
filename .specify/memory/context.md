@@ -1,6 +1,6 @@
 # Game Life Repository Context
 
-**Last Updated:** 2026-07-28
+**Last Updated:** 2026-08-03
 
 ## Project Overview
 
@@ -56,7 +56,7 @@ specs/                   # Local-only Spec-kit work items and server-first plan
 ## Game Systems
 
 **Implemented Pages:**
-- Dashboard - character overview, stats, activity log, work choice
+- Dashboard - character overview, stats, activity log, day planning
 - Home - recovery actions (health, fun, social, self-dev, hobby)
 - Actions - integrated recovery system with tabs
 - Work - jobs, career, income, work shifts
@@ -68,6 +68,7 @@ specs/                   # Local-only Spec-kit work items and server-first plan
 
 **Key Mechanics:**
 - Time-based progression system
+- Day planning orchestration with neutral end-of-day closure and boundary hooks
 - Action execution with stat changes
 - Career advancement with work shifts
 - Education progression system

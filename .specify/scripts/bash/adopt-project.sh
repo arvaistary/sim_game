@@ -59,11 +59,16 @@ while [ $# -gt 0 ]; do
 done
 
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(find_repo_root "$SCRIPT_DIR")"
+source "$SCRIPT_DIR/common.sh"
+REPO_ROOT="$(get_repo_root)"
 if [ -z "$REPO_ROOT" ]; then
     echo "Error: Could not determine repository root." >&2
     exit 1
 fi
+SPEC_ROOT="$REPO_ROOT"
+PRODUCT_ROOT="$(get_product_root)"
+PRODUCT_GIT_ROOT="$(get_product_git_root)"
+ARTIFACT_MODE="$(get_artifact_mode)"
 cd "$REPO_ROOT"
 
 TEMPLATES_DIR="$REPO_ROOT/.specify/templates"
@@ -71,8 +76,9 @@ MEMORY_DIR="$REPO_ROOT/.specify/memory"
 ARCH_DIR="$MEMORY_DIR/architecture"
 ADR_DIR="$ARCH_DIR/adr"
 DEV_DIR="$MEMORY_DIR/development"
+UI_DIR="$MEMORY_DIR/ui"
 
-mkdir -p "$MEMORY_DIR" "$ARCH_DIR" "$ADR_DIR" "$DEV_DIR"
+mkdir -p "$MEMORY_DIR" "$ARCH_DIR" "$ADR_DIR" "$DEV_DIR" "$UI_DIR"
 
 declare -a FILES_CREATED=()
 declare -a FILES_SKIPPED=()
@@ -108,6 +114,9 @@ copy_template "$TEMPLATES_DIR/memory-tech-stack.md" "$ARCH_DIR/tech-stack.md" "a
 copy_template "$TEMPLATES_DIR/memory-data-flow.md" "$ARCH_DIR/data-flow.md" "architecture/data-flow.md" "true"
 copy_template "$TEMPLATES_DIR/memory-adr-readme.md" "$ADR_DIR/README.md" "architecture/adr/README.md" "true"
 copy_template "$TEMPLATES_DIR/memory-code-style.md" "$DEV_DIR/code-style.md" "development/code-style.md" "true"
+copy_template "$TEMPLATES_DIR/memory-ui-screens.md" "$UI_DIR/screens.md" "ui/screens.md" "true"
+copy_template "$TEMPLATES_DIR/memory-ui-navigation.md" "$UI_DIR/navigation.md" "ui/navigation.md" "true"
+copy_template "$TEMPLATES_DIR/memory-ui-conventions.md" "$UI_DIR/conventions.md" "ui/conventions.md" "true"
 
 CONSTITUTION_TEMPLATE="$TEMPLATES_DIR/constitution-template.md"
 CONSTITUTION_TARGET="$MEMORY_DIR/constitution.md"
@@ -143,10 +152,14 @@ if $JSON_MODE; then
         skipped_json="[]"
     fi
 
-    printf '{"REPO_ROOT":"%s","FILES_CREATED":%s,"FILES_SKIPPED":%s,"CONSTITUTION_STATUS":"%s"}\n' \
-        "$(escape_json "$REPO_ROOT")" "$created_json" "$skipped_json" "$(escape_json "$CONSTITUTION_STATUS")"
+    printf '{"REPO_ROOT":"%s","SPEC_ROOT":"%s","PRODUCT_ROOT":"%s","PRODUCT_GIT_ROOT":"%s","ARTIFACT_MODE":"%s","FILES_CREATED":%s,"FILES_SKIPPED":%s,"CONSTITUTION_STATUS":"%s"}\n' \
+        "$(escape_json "$REPO_ROOT")" "$(escape_json "$SPEC_ROOT")" "$(escape_json "$PRODUCT_ROOT")" "$(escape_json "$PRODUCT_GIT_ROOT")" "$(escape_json "$ARTIFACT_MODE")" "$created_json" "$skipped_json" "$(escape_json "$CONSTITUTION_STATUS")"
 else
     echo "REPO_ROOT: $REPO_ROOT"
+    echo "SPEC_ROOT: $SPEC_ROOT"
+    echo "PRODUCT_ROOT: $PRODUCT_ROOT"
+    echo "PRODUCT_GIT_ROOT: $PRODUCT_GIT_ROOT"
+    echo "ARTIFACT_MODE: $ARTIFACT_MODE"
     echo "FILES_CREATED:"
     if [ ${#FILES_CREATED[@]} -eq 0 ]; then
         echo "  (none)"

@@ -241,28 +241,45 @@ if ($branchName.Length -gt $maxBranchLength) {
     Write-Warning "[specify] Truncated to: $branchName ($($branchName.Length) bytes)"
 }
 
+if ($hasGit -and (git show-ref --verify --quiet "refs/heads/$branchName")) {
+    throw "Feature branch already exists: $branchName"
+}
+$featureDir = Join-Path $specsDir $branchName
+if (Test-Path -LiteralPath $featureDir) {
+    throw "Feature directory already exists: $featureDir. Choose a different -Number/-ShortName or explicitly update existing artifacts."
+}
+
 if ($hasGit) {
     try {
         git checkout -b $branchName | Out-Null
     } catch {
-        Write-Warning "Failed to create git branch: $branchName"
+        throw "Failed to create git branch: $branchName. Feature creation aborted."
     }
 } else {
     Write-Warning "[specify] Warning: Git repository not detected; skipped branch creation for $branchName"
 }
 
-$featureDir = Join-Path $specsDir $branchName
 New-Item -ItemType Directory -Path $featureDir -Force | Out-Null
 
 $template = Join-Path $repoRoot '.specify/templates/spec-template.md'
 $specFile = Join-Path $featureDir 'spec.md'
 if (Test-Path $template) {
-    Copy-Item $template $specFile -Force
+    Copy-Item $template $specFile
 } else {
     New-Item -ItemType File -Path $specFile | Out-Null
 }
 
-# Set the SPECIFY_FEATURE environment variable for the current session
+# Persist active work-item state; child-process environment changes are not visible to caller.
+$activeStateFile = Join-Path $repoRoot '.specify/.active-work-item.json'
+$state = [ordered]@{
+    name = $branchName
+    path = "specs/$branchName/"
+    mode = 'full'
+    description = ($FeatureDescription -join ' ').Trim()
+    created = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+}
+$state | ConvertTo-Json | Set-Content -LiteralPath $activeStateFile -Encoding UTF8
+
 $env:SPECIFY_FEATURE = $branchName
 
 if ($Json) {

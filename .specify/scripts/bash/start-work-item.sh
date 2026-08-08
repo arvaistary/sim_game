@@ -159,11 +159,16 @@ if [ -n "$WORK_ITEM_NUMBER" ] && ! [[ "$WORK_ITEM_NUMBER" =~ ^[0-9]+$ ]]; then
 fi
 
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(find_repo_root "$SCRIPT_DIR")"
+source "$SCRIPT_DIR/common.sh"
+REPO_ROOT="$(get_repo_root)"
 if [ -z "$REPO_ROOT" ]; then
     echo "Error: Could not determine repository root." >&2
     exit 1
 fi
+SPEC_ROOT="$REPO_ROOT"
+PRODUCT_ROOT="$(get_product_root)"
+PRODUCT_GIT_ROOT="$(get_product_git_root)"
+ARTIFACT_MODE="$(get_artifact_mode)"
 cd "$REPO_ROOT"
 
 SPECS_DIR="$REPO_ROOT/specs"
@@ -188,6 +193,11 @@ fi
 FEATURE_NUM=$(printf "%03d" "$((10#$WORK_ITEM_NUMBER))")
 WORK_ITEM_NAME="${FEATURE_NUM}-${SUFFIX}"
 WORK_ITEM_DIR="$SPECS_DIR/$WORK_ITEM_NAME"
+if [ -e "$WORK_ITEM_DIR" ]; then
+    echo "Error: Work-item directory already exists: $WORK_ITEM_DIR" >&2
+    echo "Choose a different --number/--short-name or explicitly update existing artifacts." >&2
+    exit 1
+fi
 mkdir -p "$WORK_ITEM_DIR"
 
 if [ "$MODE" = "full" ]; then
@@ -216,11 +226,15 @@ cat > "$ACTIVE_STATE_FILE" <<EOF
 EOF
 
 if $JSON_MODE; then
-    printf '{"WORK_ITEM_NAME":"%s","WORK_ITEM_DIR":"%s","MODE":"%s"}\n' \
-        "$WORK_ITEM_NAME" "$WORK_ITEM_DIR" "$MODE"
+    printf '{"WORK_ITEM_NAME":"%s","WORK_ITEM_DIR":"%s","MODE":"%s","SPEC_ROOT":"%s","PRODUCT_ROOT":"%s","PRODUCT_GIT_ROOT":"%s","ARTIFACT_MODE":"%s"}\n' \
+        "$WORK_ITEM_NAME" "$WORK_ITEM_DIR" "$MODE" "$SPEC_ROOT" "$PRODUCT_ROOT" "$PRODUCT_GIT_ROOT" "$ARTIFACT_MODE"
 else
     echo "WORK_ITEM_NAME: $WORK_ITEM_NAME"
     echo "WORK_ITEM_DIR: $WORK_ITEM_DIR"
     echo "MODE: $MODE"
     echo "ACTIVE_STATE: $ACTIVE_STATE_FILE"
+    echo "SPEC_ROOT: $SPEC_ROOT"
+    echo "PRODUCT_ROOT: $PRODUCT_ROOT"
+    echo "PRODUCT_GIT_ROOT: $PRODUCT_GIT_ROOT"
+    echo "ARTIFACT_MODE: $ARTIFACT_MODE"
 fi

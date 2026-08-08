@@ -13,7 +13,8 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## Outline
 
 1. Run deterministic scaffolding:
-   - `.specify/scripts/bash/adopt-project.sh --json`
+   - Windows: `& powershell -NoProfile -ExecutionPolicy Bypass -File .specify/scripts/powershell/adopt-project.ps1 -Json`
+   - POSIX: `.specify/scripts/bash/adopt-project.sh --json`
    - Parse JSON summary (`REPO_ROOT`, `FILES_CREATED`, `FILES_SKIPPED`, `CONSTITUTION_STATUS`).
 
 2. Analyze repository context (read-only analysis only):
