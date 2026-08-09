@@ -91,7 +91,7 @@ export interface GameWorldSnapshot {
 
 /** JSON-форма для сериализации. Совпадает со snapshot + version для schema evolution. */
 export interface GameWorldJSON extends GameWorldSnapshot {
-  /** Версия формата JSON. При несовпадении — миграция в event-migration.ts. */
+  /** Версия формата JSON. При несовпадении — миграция через infrastructure/persistence. */
   version: string
 }
 

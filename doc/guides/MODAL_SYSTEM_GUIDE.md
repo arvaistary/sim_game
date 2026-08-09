@@ -140,7 +140,8 @@ closeAllModals()
 ```ts
 import { useEventModal } from '@/composables/useEventModal'
 
-const { openEventModal, closeEventModal } = useEventModal()
+const { openEventModal } = useEventModal()
+openEventModal()
 openEventModal()
 ```
 

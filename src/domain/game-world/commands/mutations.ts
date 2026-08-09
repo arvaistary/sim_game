@@ -398,6 +398,17 @@ export function collectCareerSalary(world: GameWorld): number {
 }
 
 /**
+ * Применить постоянный множитель к текущей почасовой ставке.
+ * @description [Domain] - мутирует world.career.currentJob.salaryPerHour для трудоустроенного персонажа.
+ * @return { void }
+ */
+export function applyPermanentSalaryMultiplier(world: GameWorld, multiplier: number): void {
+  if (!world.career.currentJob.employed) return
+
+  world.career.currentJob.salaryPerHour *= (1 + multiplier)
+}
+
+/**
  * Сбросить недельные счётчики работы.
  * @description [Domain] - мутирует world.career.currentJob.workedHoursCurrentWeek.
  * @return { void }
@@ -680,6 +691,16 @@ export function setTotalHoursInWorld(world: GameWorld, hours: number): void {
 const MAX_EVENT_QUEUE: number = 10
 const MAX_EVENT_HISTORY: number = 50
 
+function isInstanceIdInPendingQueue(world: GameWorld, instanceId: string): boolean {
+  return world.events.pending.some((queuedEvent: unknown) => {
+    if (typeof queuedEvent !== 'object' || queuedEvent === null) return false
+
+    const record: { instanceId?: string } = queuedEvent as { instanceId?: string }
+
+    return record.instanceId === instanceId
+  })
+}
+
 /**
  * Добавить событие в очередь (если не seen и есть место).
  * @description [Domain] - мутирует world.events.pending и state.seenEventIds.
@@ -687,6 +708,8 @@ const MAX_EVENT_HISTORY: number = 50
  */
 export function addEventToQueue(world: GameWorld, instanceId: string, event: unknown): boolean {
   if (world.events.state.seenEventIds.includes(instanceId)) return false
+
+  if (isInstanceIdInPendingQueue(world, instanceId)) return false
 
   if (world.events.pending.length >= MAX_EVENT_QUEUE) return false
 

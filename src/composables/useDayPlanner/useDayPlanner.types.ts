@@ -5,6 +5,9 @@ export interface UseDayPlanner {
   result: Readonly<Ref<DayPlanResult | null>>
   canConfirm: ComputedRef<boolean>
   sleepDebtWarning: ComputedRef<boolean>
+  /** Ненавязчивый индикатор отложенных (не work/micro) событий в очереди. */
+  hasDeferredEventBadge: ComputedRef<boolean>
+  pendingEventsCount: ComputedRef<number>
   getActionTitle(actionId: string): string
   addFreeAction(actionId: string): boolean
   removeFreeAction(actionId: string): void

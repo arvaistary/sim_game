@@ -8,6 +8,9 @@
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { ActivityEntry } from '@/domain/game-world/GameWorld.types'
 import type { DayPlanInput, DayPlanResult, GameEventPayload } from '@/domain/game-world/commands/commands.types'
+import type { DayEndHooks } from '@/domain/game-world/commands'
+import { createNoopDayEndHooks } from '@/domain/game-world/commands'
+import { findPendingEventPayload } from '@/domain/game-world/pending-event'
 import type {
   AsyncGameExecutor,
   AsyncGameQueryExecutor,
@@ -50,7 +53,8 @@ import {
  * @description [Application] - SPA-mode async adapter.
  * @return { AsyncGameExecutor }
  */
-export function createSPAAsyncExecutor(): AsyncGameExecutor {
+export function createSPAAsyncExecutor(dayEndHooks?: DayEndHooks): AsyncGameExecutor {
+  const hooks: DayEndHooks = dayEndHooks ?? createNoopDayEndHooks()
   const reject = (world: GameWorld | null): Promise<never> => {
     const error: Error = world
       ? new Error('Unexpected error')
@@ -101,12 +105,15 @@ export function createSPAAsyncExecutor(): AsyncGameExecutor {
 
     planDay(world: GameWorld | null, planInput: DayPlanInput): Promise<DayPlanResult> {
       if (!world) return reject(world)
-      return Promise.resolve(planDay(world, planInput))
+      return Promise.resolve(planDay(world, planInput, hooks))
     },
 
     resolveEventDecision(world: GameWorld | null, eventId: string, choiceId: string): Promise<CommandOutcome> {
       if (!world) return reject(world)
-      return Promise.resolve(resolveEventDecision(world, eventId, null, choiceId))
+
+      const payloadEvent: GameEventPayload | null = findPendingEventPayload(world, eventId)
+
+      return Promise.resolve(resolveEventDecision(world, eventId, payloadEvent, choiceId))
     },
 
     collectInvestment(world: GameWorld | null, investmentId: string): Promise<string> {

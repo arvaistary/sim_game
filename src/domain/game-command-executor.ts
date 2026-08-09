@@ -16,7 +16,11 @@ import {
   applySkillChanges,
   applyStatChangesRaw,
   advanceHours,
+  applyDayEndHookEffects,
 } from './game-world/commands'
+import type { GameEventPayload } from './game-world/commands/commands.types'
+import { findPendingEventPayload } from './game-world/pending-event'
+import type { DayEndHookEffectsPayload } from './game-world/commands/apply-day-end-hook-effects.types'
 import type {
   GameCommandExecution,
   PersistedCommandResult,
@@ -46,11 +50,7 @@ export class GameCommandExecutor {
       case 'work':
         return simulateWorkShiftCommand(world, numberValue(command.payload.hours, 'hours'))
       case 'event':
-        return resolveEventDecisionCommand(
-          world,
-          command.payload.event as Parameters<typeof resolveEventDecisionCommand>[1] ?? null,
-          stringValue(command.payload.choiceId, 'choiceId'),
-        )
+        return this.executeEvent(world, command.payload)
       case 'career':
         return this.executeCareer(world, command.payload)
       case 'finance':
@@ -61,8 +61,44 @@ export class GameCommandExecutor {
         advanceHours(world, numberValue(command.payload.hours, 'hours'), 'idle')
         world.player.currentAge = world.player.startAge + Math.floor(world.time.totalHours / (365 * 24))
         return { success: true, message: 'Время прошло' }
+      case 'day_end_hooks':
+        return this.executeDayEndHooks(world, command.payload)
       default:
         return { success: false, message: `Unknown command type: ${command.type}` }
+    }
+  }
+
+  private executeEvent(world: GameWorld, payload: Record<string, unknown>): PersistedCommandResult {
+    const choiceId: string = stringValue(payload.choiceId, 'choiceId')
+    const explicitEvent: GameEventPayload | null =
+      payload.event && typeof payload.event === 'object'
+        ? (payload.event as GameEventPayload)
+        : null
+    const templateId: string | undefined = typeof payload.eventId === 'string'
+      ? payload.eventId
+      : explicitEvent?.id
+    const event: GameEventPayload | null = explicitEvent
+      ?? (templateId ? findPendingEventPayload(world, templateId) : null)
+
+    return resolveEventDecisionCommand(world, event, choiceId)
+  }
+
+  private executeDayEndHooks(world: GameWorld, payload: Record<string, unknown>): PersistedCommandResult {
+    try {
+      const effects: DayEndHookEffectsPayload = {
+        dayNumber: nonNegativeInteger(payload.dayNumber, 'dayNumber'),
+        events: payload.events as DayEndHookEffectsPayload['events'],
+        wallet: payload.wallet as DayEndHookEffectsPayload['wallet'],
+        finance: payload.finance as DayEndHookEffectsPayload['finance'],
+        career: payload.career as DayEndHookEffectsPayload['career'],
+      }
+      applyDayEndHookEffects(world, effects)
+      return { success: true, message: 'Эффекты конца дня применены' }
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Не удалось применить эффекты конца дня',
+      }
     }
   }
 
@@ -294,4 +330,9 @@ function stringValue(value: unknown, field: string): string {
 function numberValue(value: unknown, field: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) throw new Error(`Invalid ${field}`)
   return value
+}
+
+function nonNegativeInteger(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new Error(`Invalid ${field}`)
+  return Math.floor(value)
 }

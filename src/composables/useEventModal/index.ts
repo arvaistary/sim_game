@@ -1,28 +1,21 @@
-import { openModal, closeModal } from '../useGameModal'
-import { EventModal } from '#components'
+import { openModal } from '../useGameModal'
+import EventModal from '@/components/pages/events/EventModal/EventModal.vue'
 
 /**
- * Открывает событие как модальное окно
- *
- * @example
- * ```ts
- * import { useEventModal } from '@/composables/useEventModal'
- *
- * const { openEventModal } = useEventModal()
- * openEventModal()
- * ```
+ * Открывает событие как модальное окно.
+ * @description [Composable] - тонкая обёртка над useGameModal для EventModal.
+ * @return { { openEventModal: () => void } }
  */
-export function useEventModal() {
+export function useEventModal(): { openEventModal: () => void } {
   let modalId: symbol | null = null
 
   /**
-   * Открывает модальное окно с событием
+   * Открывает модальное окно с событием.
+   * @description [Composable] - идемпотентно: повторный вызов при открытом окне no-op.
+   * @return { void }
    */
   function openEventModal(): void {
-    if (modalId) {
-      // Уже открыто
-      return
-    }
+    if (modalId) return
 
     modalId = openModal(EventModal, {
       onClose: () => {
@@ -31,18 +24,7 @@ export function useEventModal() {
     })
   }
 
-  /**
-   * Закрывает модальное окно с событием
-   */
-  function closeEventModal(): void {
-    if (modalId) {
-      closeModal(modalId)
-      modalId = null
-    }
-  }
-
   return {
     openEventModal,
-    closeEventModal,
   }
 }

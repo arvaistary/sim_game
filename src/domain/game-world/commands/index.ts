@@ -8,8 +8,17 @@ export { executeActionCommand } from './execute-action'
 export { simulateWorkShiftCommand } from './simulate-work-shift'
 export { resolveEventDecisionCommand } from './resolve-event-decision'
 export { planDayCommand } from './plan-day'
-export { createNoopDayEndHooks } from './day-end-hooks'
-export type { DayEndHooks } from './day-end-hooks'
+export { applyDayEndHookEffects } from './apply-day-end-hook-effects'
+export { createNoopDayEndHooks, createLiveDayEndHooks } from './day-end-hooks'
+export type { AgeChangeContext, DayEndHooks } from './day-end-hooks'
+export {
+  rollAgeEvents,
+  rollMicroEvents,
+  rollMonthlyEvents,
+  rollWeeklyEvents,
+  rollWorkEvent,
+  rollYearlyEvents,
+} from './event-rolls'
 
 export {
   addActivityEntry,
@@ -18,6 +27,7 @@ export {
   addEventActivityEntry,
   addEventToQueue,
   addMoneyInWorld,
+  applyPermanentSalaryMultiplier,
   addSkillXp,
   addWorkActivityEntry,
   advanceHours,
@@ -61,6 +71,8 @@ export {
   transferFromReserveInWorld,
   transferToReserveInWorld,
 } from './mutations'
+
+export { findPendingEventPayload, completePendingEventResolution } from '../pending-event'
 
 export type {
   CommandRejectionReason,

@@ -32,7 +32,6 @@ export { createServerQueryExecutor } from './server-query-executor'
 export {
   createExecutor,
   createQueryExecutor,
-  createSPAExecutorAsync,
 } from './executor-factory'
 export type { ServerExecutorOptions, ServerQueryExecutorOptions } from './executor-factory'
 export {

@@ -163,20 +163,7 @@ export function createServerExecutor(
       const crossedMonthBoundary: boolean = Math.floor(endDay / 30) !== Math.floor(startTotalHours / 24 / 30)
       const crossedYearBoundary: boolean = Math.floor(endDay / 365) !== Math.floor(startTotalHours / 24 / 365)
       const ageChanged: boolean = working.player.currentAge !== before.player.currentAge
-
-      if (didCloseDay) {
-        dayEndHooks.onDayEnd(working)
-
-        if (crossedWeekBoundary) dayEndHooks.onWeekEnd(working)
-
-        if (crossedMonthBoundary) dayEndHooks.onMonthEnd(working)
-
-        if (crossedYearBoundary) dayEndHooks.onYearEnd(working)
-
-        if (ageChanged) dayEndHooks.onAgeChanged(working)
-      }
-
-      return {
+      const result: DayPlanResult = {
         success: didCloseDay,
         message: didCloseDay ? 'День завершён' : 'Не удалось закрыть день',
         steps,
@@ -191,6 +178,48 @@ export function createServerExecutor(
         crossedYearBoundary,
         ageChanged,
       }
+
+      if (didCloseDay) {
+        dayEndHooks.onDayEnd(working, result)
+
+        if (crossedWeekBoundary) dayEndHooks.onWeekEnd(working)
+
+        if (crossedMonthBoundary) dayEndHooks.onMonthEnd(working)
+
+        if (crossedYearBoundary) dayEndHooks.onYearEnd(working)
+
+        if (ageChanged) {
+          dayEndHooks.onAgeChanged(working, {
+            previousAge: before.player.currentAge,
+            currentAge: working.player.currentAge,
+          })
+        }
+
+        const hookSnapshot = working.toSnapshot()
+        const hooksResponse: SyncResponse<GameWorldJSON> = await sendCommand<SyncResponse<GameWorldJSON>>(
+          `${base}/api/game/sync`,
+          {
+            method: 'POST',
+            body: {
+              actions: [{
+                commandId: `day_end_hooks_${endDay}`,
+                type: 'day_end_hooks',
+                payload: {
+                  dayNumber: endDay,
+                  events: hookSnapshot.events,
+                  wallet: hookSnapshot.wallet,
+                  finance: hookSnapshot.finance,
+                  career: hookSnapshot.career,
+                },
+                timestamp: Date.now(),
+              }],
+            },
+          },
+        )
+        working = GameWorld.fromJSON(hooksResponse.state)
+      }
+
+      return result
     },
 
     async simulateWorkShift(_world: GameWorld | null, hours: number): Promise<string> {

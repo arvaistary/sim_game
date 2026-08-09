@@ -1,6 +1,15 @@
+import type { RandomSource } from '@/domain/game-world/random-source.types'
 import type { DayEndHooks } from './day-end-hooks.types'
+import {
+  rollAgeEvents,
+  rollMicroEvents,
+  rollMonthlyEvents,
+  rollWeeklyEvents,
+  rollWorkEvent,
+  rollYearlyEvents,
+} from './event-rolls'
 
-export type { DayEndHooks } from './day-end-hooks.types'
+export type { AgeChangeContext, DayEndHooks } from './day-end-hooks.types'
 
 /**
  * Создать набор безопасных no-op хуков завершения дня.
@@ -14,5 +23,31 @@ export function createNoopDayEndHooks(): DayEndHooks {
     onMonthEnd: () => {},
     onYearEnd: () => {},
     onAgeChanged: () => {},
+  }
+}
+
+/**
+ * Создать live-хуки событийной системы.
+ * @description [Domain] - подключает роллы work/micro/week/month/year/age к DayEndHooks.
+ * @return { DayEndHooks } обработчики с роллами событий
+ */
+export function createLiveDayEndHooks(rng: RandomSource): DayEndHooks {
+  return {
+    onDayEnd: (world, dayResult) => {
+      rollWorkEvent(world, rng, { dayResult })
+      rollMicroEvents(world, rng, { dayResult })
+    },
+    onWeekEnd: (world) => {
+      rollWeeklyEvents(world)
+    },
+    onMonthEnd: (world) => {
+      rollMonthlyEvents(world)
+    },
+    onYearEnd: (world) => {
+      rollYearlyEvents(world)
+    },
+    onAgeChanged: (world, context) => {
+      rollAgeEvents(world, rng, context)
+    },
   }
 }

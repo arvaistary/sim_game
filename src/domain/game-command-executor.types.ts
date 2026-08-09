@@ -1,6 +1,7 @@
+import type { GameCommandType } from '@game-life/contracts'
 import type { GameWorldJSON } from './game-world/GameWorld.types'
 
-export type PersistedGameCommandType = 'action' | 'work' | 'event' | 'career' | 'finance' | 'education' | 'time'
+export type PersistedGameCommandType = GameCommandType
 
 export interface PersistedGameCommand {
   type: PersistedGameCommandType

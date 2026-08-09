@@ -181,8 +181,9 @@ function normalizeFinanceStoreSnapshot(finance: Record<string, unknown>): GameWo
 
 /**
  * Адаптер events-store snapshot → GameWorldSnapshot['events'].
- * events-store сохраняет { eventQueue, eventHistory, seenEventIds, eventState? },
+ * events-store сохраняет { eventQueue, eventHistory, seenEventIds, currentEvent?, eventState? },
  * GameWorld хранит { state, history, pending }.
+ * currentEvent — UI-only; в pending не кладём (resolve берёт payload из store/SPAExecutor).
  */
 function normalizeEventsStoreSnapshot(events: Record<string, unknown>): GameWorldSnapshot['events'] {
   const stateRaw: Partial<GameWorldSnapshot['events']['state']> = (events.eventState ?? events.state ?? {}) as Partial<GameWorldSnapshot['events']['state']>

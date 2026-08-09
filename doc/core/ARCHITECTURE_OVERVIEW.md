@@ -281,7 +281,7 @@ Application layer чистый: 0 импортов Pinia, 0 импортов inf
 src/infrastructure/persistence/
 ├── LocalStorageSaveRepository.ts # Реализация SaveRepository через localStorage
 ├── constants.ts                   # Константы persistence
-└── event-migration.ts             # Миграция событий
+└── save-event-migration.ts        # Миграция event schema в save load-path
 ```
 
 ### Реализация

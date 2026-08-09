@@ -102,16 +102,16 @@ function handleCollect(portfolioId: string) {
 ```typescript
 export function useEvents() {
   // Текущее событие
-  currentEvent: Ref<EventQueueItem | null>
+  currentEvent: Ref<GameEvent | null>
 
   // Проверка наличия следующего события
   hasNextEvent: ComputedRef<boolean>
 
   // Загрузка следующего события
-  loadNextEvent(): EventQueueItem | null
+  loadNextEvent(): GameEvent | null
 
   // Применение выбора решения
-  applyChoice(choiceId: string): boolean
+  applyChoice(choiceId: string): Promise<boolean>
 }
 ```
 

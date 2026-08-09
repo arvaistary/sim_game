@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { GameWorld } from '@/domain/game-world/GameWorld'
 import { GameCommandExecutor } from '@/domain/game-command-executor'
+import { advanceHours } from '@/domain/game-world/commands'
 
 describe('GameCommandExecutor', () => {
   const executor: GameCommandExecutor = new GameCommandExecutor()
@@ -198,5 +199,73 @@ describe('GameCommandExecutor', () => {
     expect(advanced.result.success).toBe(true)
     expect(quit.result.success).toBe(true)
     expect(settled.result.success).toBe(true)
+  })
+
+  it('applies day_end_hooks command to events wallet finance and career slices', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+    advanceHours(world, 24, 'idle')
+    const snapshot = world.toSnapshot()
+
+    snapshot.events.pending.push({
+      id: 'weekly_summary',
+      instanceId: 'weekly_summary_1',
+      type: 'weekly',
+      title: 'Summary',
+      description: 'Week done',
+      choices: [],
+    })
+    snapshot.events.state.lastWeeklyEventWeek = 1
+    snapshot.career.currentJob.workedHoursCurrentWeek = 12
+
+    const result = executor.execute(world.toJSON(), {
+      type: 'day_end_hooks',
+      payload: {
+        dayNumber: 1,
+        events: snapshot.events,
+        wallet: snapshot.wallet,
+        finance: snapshot.finance,
+        career: snapshot.career,
+      },
+    })
+
+    expect(result.result.success).toBe(true)
+    expect(result.state.events.pending).toHaveLength(1)
+    expect((result.state.events.pending[0] as { id: string }).id).toBe('weekly_summary')
+    expect(result.state.events.state.lastWeeklyEventWeek).toBe(1)
+    expect(result.state.career.currentJob.workedHoursCurrentWeek).toBe(12)
+  })
+
+  it('resolves event by eventId from pending queue without explicit payload', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+    world.events.pending.push({
+      id: 'micro_break',
+      instanceId: 'micro_break_1',
+      type: 'micro',
+      title: 'Перерыв',
+      choices: [
+        {
+          id: 'rest',
+          text: 'Отдохнуть',
+          statChanges: { energy: 3 },
+        },
+      ],
+    })
+
+    const result = executor.execute(world.toJSON(), {
+      type: 'event',
+      payload: { eventId: 'micro_break', choiceId: 'rest' },
+    })
+
+    expect(result.result.success).toBe(true)
+    expect(result.state.events.pending).toHaveLength(0)
+    expect(result.state.events.state.seenEventIds).toContain('micro_break_1')
+    expect(result.state.events.history).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          templateId: 'micro_break',
+          choiceId: 'rest',
+        }),
+      ]),
+    )
   })
 })

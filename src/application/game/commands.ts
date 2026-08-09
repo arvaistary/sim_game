@@ -15,7 +15,8 @@ import type {
   ResolveEventResult,
   WorkShiftResult,
 } from '@/domain/game-world/commands/commands.types'
-import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './command.types'
+import type { DayEndHooks } from '@/domain/game-world/commands'
+import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './index.types'
 import type { CareerJob, EducationProgram, ProgramStep } from '@/domain/balance/types'
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
 import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from '@/domain/balance/constants/education-programs'
@@ -33,6 +34,7 @@ import {
   startCareerWork,
   applySkillChanges,
   applyStatChangesRaw,
+  createNoopDayEndHooks,
 } from '@/domain/game-world/commands'
 
 /**
@@ -138,8 +140,12 @@ export function executeAction(world: GameWorld, actionId: string): ExecuteAction
  * @description [Application] - делегирует агрегированное выполнение в domain command.
  * @return { DayPlanResult } результат выполнения плана
  */
-export function planDay(world: GameWorld, plan: DayPlanInput): DayPlanResult {
-  return planDayCommand(world, plan)
+export function planDay(
+  world: GameWorld,
+  plan: DayPlanInput,
+  hooks: DayEndHooks = createNoopDayEndHooks(),
+): DayPlanResult {
+  return planDayCommand(world, plan, hooks)
 }
 
 /**
@@ -149,10 +155,14 @@ export function planDay(world: GameWorld, plan: DayPlanInput): DayPlanResult {
  */
 export function resolveEventDecision(
   world: GameWorld,
-  _eventId: string,
+  eventId: string,
   event: GameEventPayload | null,
   choiceId: string,
 ): { success: boolean; message: string } {
+  if (event && event.id !== eventId) {
+    return { success: false, message: 'Событие не совпадает' }
+  }
+
   const result: ResolveEventResult = resolveEventDecisionCommand(world, event, choiceId)
   return { success: result.success, message: result.message }
 }

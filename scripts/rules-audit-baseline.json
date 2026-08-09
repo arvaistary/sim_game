@@ -473,22 +473,6 @@
   },
   {
     "rule": "style/blank-line-before-if",
-    "filePath": "src\\config\\event-feature-flags.ts"
-  },
-  {
-    "rule": "typing/types-location",
-    "filePath": "src\\config\\event-feature-flags.ts"
-  },
-  {
-    "rule": "typing/explicit-variable-annotation",
-    "filePath": "src\\config\\event-feature-flags.ts"
-  },
-  {
-    "rule": "style/exported-function-tsdoc-format",
-    "filePath": "src\\config\\event-feature-flags.ts"
-  },
-  {
-    "rule": "style/blank-line-before-if",
     "filePath": "src\\config\\feature-flags.ts"
   },
   {
@@ -721,19 +705,19 @@
   },
   {
     "rule": "style/blank-line-before-if",
-    "filePath": "src\\infrastructure\\persistence\\event-migration.ts"
+    "filePath": "src\\infrastructure\\persistence\\save-event-migration.ts"
   },
   {
     "rule": "typing/types-location",
-    "filePath": "src\\infrastructure\\persistence\\event-migration.ts"
+    "filePath": "src\\infrastructure\\persistence\\save-event-migration.ts"
   },
   {
     "rule": "typing/explicit-variable-annotation",
-    "filePath": "src\\infrastructure\\persistence\\event-migration.ts"
+    "filePath": "src\\infrastructure\\persistence\\save-event-migration.ts"
   },
   {
     "rule": "style/exported-function-tsdoc-format",
-    "filePath": "src\\infrastructure\\persistence\\event-migration.ts"
+    "filePath": "src\\infrastructure\\persistence\\save-event-migration.ts"
   },
   {
     "rule": "style/blank-line-before-if",

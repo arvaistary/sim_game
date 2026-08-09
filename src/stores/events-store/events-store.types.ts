@@ -1,16 +1,6 @@
-export interface EventChoice {
-  id: string
-  text: string
-  effects?: Record<string, number>
-  outcome?: string
-}
+import type { EventChoiceCanonical } from '@/domain/balance/constants/event-choice.types'
 
-export interface EventQueueItem {
-  id: string
-  title: string
-  description: string
-  choices?: EventChoice[]
-}
+export type EventChoice = EventChoiceCanonical
 
 export interface GameEvent {
   id: string
@@ -20,7 +10,7 @@ export interface GameEvent {
   description: string
   choices?: EventChoice[]
   data?: Record<string, unknown>
-  priority: string
+  priority?: string
 }
 
 export interface EventHistoryEntry {
@@ -31,3 +21,5 @@ export interface EventHistoryEntry {
   choiceText?: string
   effects?: Record<string, number>
 }
+
+export type { EventChoiceCanonical } from '@/domain/balance/constants/event-choice.types'

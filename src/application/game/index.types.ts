@@ -20,11 +20,6 @@ export type SnapshotProvider = () => StoresSnapshot
  */
 export type LoadTarget = StoresLoadTarget
 
-export interface EventChoiceInput {
-  eventId: string
-  choiceId: string
-}
-
 export interface ExecuteActionCommandResult {
   success: boolean
   message: string

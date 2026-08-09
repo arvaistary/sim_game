@@ -130,7 +130,13 @@ export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayE
     const beforeWorkStats: GameWorld['stats'] = { ...world.stats }
     const beforeWorkMoney: number = world.wallet.money
     const workResult: WorkShiftResult = simulateWorkShiftCommand(world, workHours)
-    run({ kind: 'work', success: workResult.success, message: workResult.message, hoursSpent: workResult.success ? workResult.hoursWorked : 0 }, beforeWorkStats, beforeWorkMoney)
+    run({
+      kind: 'work',
+      success: workResult.success,
+      message: workResult.message,
+      hoursSpent: workResult.success ? workResult.hoursWorked : 0,
+      earnedAmount: workResult.success ? workResult.earnedAmount : undefined,
+    }, beforeWorkStats, beforeWorkMoney)
   }
 
   for (const actionId of actionIds) {
@@ -159,7 +165,7 @@ export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayE
   world.player.currentAge = world.player.startAge + endYear
   result.ageChanged = world.player.currentAge !== startAge
 
-  hooks.onDayEnd(world)
+  hooks.onDayEnd(world, result)
 
   if (result.crossedWeekBoundary) hooks.onWeekEnd(world)
 
@@ -167,7 +173,7 @@ export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayE
 
   if (result.crossedYearBoundary) hooks.onYearEnd(world)
 
-  if (result.ageChanged) hooks.onAgeChanged(world)
+  if (result.ageChanged) hooks.onAgeChanged(world, { previousAge: startAge, currentAge: world.player.currentAge })
 
   return result
 }

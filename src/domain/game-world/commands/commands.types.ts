@@ -5,6 +5,7 @@
  * Signature: (world: GameWorld, params) => CommandResult.
  */
 import type { StatChangeBreakdownEntry, StatChanges } from '@/domain/balance/types'
+import type { EventChoiceCanonical } from '@/domain/balance/constants/event-choice.types'
 
 /** Базовый результат команды. */
 export interface CommandResult {
@@ -42,6 +43,13 @@ export interface DayPlanStepResult {
   success: boolean
   message: string
   hoursSpent: number
+  /** Заработок успешной рабочей смены (для event.data.earnedAmount). */
+  earnedAmount?: number
+}
+
+/** Контекст day-роллов событий (work/micro). Без age-полей. */
+export interface EventRollContext {
+  dayResult: DayPlanResult
 }
 
 export interface DayPlanResult {
@@ -81,17 +89,14 @@ export interface DomainActionRequirements {
 /** Минимальный набор полей GameEvent для domain-обработки (без UI-only полей). */
 export interface GameEventPayload {
   id: string
+  instanceId?: string
   title: string
   choices?: EventChoicePayload[]
+  data?: Record<string, unknown>
 }
 
 /** Минимальный набор полей EventChoice для domain-обработки. */
-export interface EventChoicePayload {
-  id: string
-  text: string
-  effects?: Record<string, number>
-  outcome?: string
-}
+export type EventChoicePayload = EventChoiceCanonical
 
 /** Результат resolveEventDecision. */
 export interface ResolveEventResult extends CommandResult {
