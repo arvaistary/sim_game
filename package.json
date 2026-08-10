@@ -46,13 +46,7 @@
     "typecheck:packages": "tsc --noEmit --ignoreConfig --strict --target ES2022 --module ESNext --moduleResolution bundler packages/contracts/src/index.ts packages/domain/src/index.ts packages/application/src/index.ts",
     "typecheck:standalone-server": "tsc --noEmit --project tsconfig.server.json",
     "typecheck:watch": "nuxt typecheck --watch",
-    "prepare": "husky",
-    "mem": "node scripts/mempalace.mjs",
-    "mem:init": "node scripts/mempalace.mjs init . --yes",
-    "mem:mine": "node scripts/mempalace.mjs mine .",
-    "mem:status": "node scripts/mempalace.mjs status",
-    "mem:wakeup": "node scripts/mempalace.mjs wake-up",
-    "mem:search": "node scripts/mempalace.mjs search"
+    "prepare": "husky"
   },
   "lint-staged": {
     "*.{ts,vue}": [

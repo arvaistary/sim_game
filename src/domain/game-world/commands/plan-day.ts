@@ -80,10 +80,6 @@ export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayE
     return emptyResult(world, 'Некорректная длительность работы', plannedHours)
   }
 
-  if (actionIds.length > 3) {
-    return emptyResult(world, 'Можно запланировать не более трёх действий', plannedHours)
-  }
-
   if (hasInvalidFreeAction) {
     return emptyResult(world, 'План содержит недопустимое свободное действие', plannedHours)
   }

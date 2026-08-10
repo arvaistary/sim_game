@@ -20,6 +20,8 @@
 | 12 | `12_technical.md` | Технические требования | 61 |
 | 13 | `13_roadmap.md` | Roadmap разработки | 47 |
 | 14 | `14_conclusion.md` | Заключение | 12 |
+| 15 | `15_calendar_planner.md` | Календарь и планировщик периода | 296 |
+| 16 | `16_skill_depth.md` | Глубина навыков и эталонный навык | 250 |
 
 ## Краткое описание модулей
 
@@ -65,6 +67,12 @@
 ### 14_conclusion.md
 Заключение и итоговая информация о документе.
 
+### 15_calendar_planner.md
+Календарь как способ подачи планирования и упрощённый планировщик периода: горизонт по навыку тайм-менеджмента, прогноз характеристик при добавлении действия, жёсткие и мягкие ограничения бюджета, освоение действий за серии повторов, монотонность внутри дня, синергия локаций, пошаговый прогон с прерыванием на дефиците, десктопная и мобильная подача.
+
+### 16_skill_depth.md
+Глубина системы навыков: около десяти максимальных навыков за жизнь, опыт как час практики, нелинейная кривая порогов до 10 000 опыта, ускоряющаяся награда с капстоуном на десятом уровне, деградация и стоимость удержания мастерства, синергии родственных навыков. Содержит полностью описанный эталонный навык «Кулинария» и чек-лист для подгонки остальных.
+
 ## Как использовать модули
 
 ### Для разработки:
@@ -89,7 +97,7 @@
 
 ```bash
 cd game_life/doc/GDD/modules
-cat 01_general.md 02_implementation.md 03_core_mechanics.md 04_balance.md 05_save_system.md 06_death_system.md 07_random_events.md 08_family.md 09_hobbies.md 10_achievements.md 11_seasonal.md 12_technical.md 13_roadmap.md 14_conclusion.md > ../GDD.md
+cat 01_general.md 02_implementation.md 03_core_mechanics.md 04_balance.md 05_save_system.md 06_death_system.md 07_random_events.md 08_family.md 09_hobbies.md 10_achievements.md 11_seasonal.md 12_technical.md 13_roadmap.md 15_calendar_planner.md 16_skill_depth.md 14_conclusion.md > ../GDD.md
 ```
 
 ## Версия документа

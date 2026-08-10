@@ -5,6 +5,8 @@
  * Application layer НЕ импортирует Pinia — только domain и utils.
  * SPAExecutor (legacy.ts) поставляет stores для совместимости со старым API.
  */
+import { getActionAvailabilityBlockReason } from '@/domain/game-world/action-availability'
+
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { GameEventPayload } from '@/domain/game-world/commands/commands.types'
 import type { ActivityEntry, GameWorldSnapshot } from '@/domain/game-world/GameWorld.types'
@@ -86,6 +88,10 @@ export function canExecuteAction(world: GameWorld, actionId: string): { canExecu
   if (world.wallet.money < action.price) return { canExecute: false, reason: 'Недостаточно денег' }
 
   if (world.time.weekHoursRemaining < action.hourCost) return { canExecute: false, reason: 'Недостаточно времени' }
+
+  const availabilityBlockReason: string | null = getActionAvailabilityBlockReason(world, action, actionId)
+
+  if (availabilityBlockReason) return { canExecute: false, reason: availabilityBlockReason }
 
   return { canExecute: true }
 }

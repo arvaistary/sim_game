@@ -4,6 +4,7 @@
 .log-card {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   height: 100%;
   cursor: default;
 }
@@ -29,6 +30,7 @@
   display: flex;
   align-items: baseline;
   gap: $space-2;
+  min-width: 0;
   font-size: $font-size-sm;
   line-height: 1.4;
 }
@@ -45,6 +47,7 @@
 
 .log-card__text {
   flex: 1;
+  min-width: 0;
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;

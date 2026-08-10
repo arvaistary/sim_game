@@ -183,12 +183,7 @@
   "test:watch": "vitest",               // Watch mode tests
   "test:coverage": "vitest --coverage", // Coverage report
   "rules:audit": "node scripts/rules-audit.mjs",  // Audit code rules
-  "rules:fix": "node scripts/fix-code.mjs",      // Auto-fix code style
-  "mem:init": "node scripts/mempalace.mjs init . --yes",  // MemPalace init
-  "mem:mine": "node scripts/mempalace.mjs mine .",        // MemPalace mine
-  "mem:status": "node scripts/mempalace.mjs status",      // MemPalace status
-  "mem:wakeup": "node scripts/mempalace.mjs wake-up",     // MemPalace wakeup
-  "mem:search": "node scripts/mempalace.mjs search"       // MemPalace search
+  "rules:fix": "node scripts/fix-code.mjs"       // Auto-fix code style
 }
 ```
 

@@ -31,7 +31,6 @@ doc/
 │   ├── ROADMAP.md                     # План разработки
 │   ├── PAGES_REFERENCE.md             # Справочник Vue страниц и роутинга
 │   ├── START_GAME_DOCUMENTATION.md    # Документация старта игры
-│   ├── MEMPALACE_SETUP.md             # Настройка MemPalace
 │   └── SKILLS.md                      # Справочник по навыкам
 │
 ├── gdd/                               # Game Design Document

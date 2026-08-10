@@ -125,7 +125,7 @@ const startMode = ref<StartMode>('infancy')
 const adultAge = ref(18)
 
 const adultAgeMin: number = 16
-const ageMax: number = 18
+const ageMax: number = 20
 
 const canStart: ComputedRef<boolean> = computed(() => {
   if (!playerName.value.trim()) return false

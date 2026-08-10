@@ -9,6 +9,8 @@ import type { BalanceAction } from '@/domain/balance/actions/types'
 import type { StatChanges } from '@/domain/balance/types'
 import { getActionById } from '@/domain/balance/actions'
 import { calculateStatChanges } from '@/domain/balance/utils/hourly-rates'
+import { getActionAvailabilityBlockReason } from '@/domain/game-world/action-availability'
+
 import type { DomainActionRequirements, ExecuteActionResult } from './commands.types'
 import {
   applySkillChanges,
@@ -64,6 +66,12 @@ export function executeActionCommand(world: GameWorld, actionId: string): Execut
     if (!hasCompletedProgram) {
       return { success: false, message: 'Сначала завершите книгу «Основы медитации»' }
     }
+  }
+
+  const availabilityBlockReason: string | null = getActionAvailabilityBlockReason(world, action, actionId)
+
+  if (availabilityBlockReason) {
+    return { success: false, message: availabilityBlockReason }
   }
 
   let moneySpent: number = 0

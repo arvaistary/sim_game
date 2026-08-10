@@ -22,7 +22,21 @@ export const useActionsStore = defineStore('actions', () => {
 
   const educationStore = useEducationStore()
 
+  const housingStore = useHousingStore()
+
   const canExecute = (action: GameAction): CanApplyWorkShiftResult => {
+
+    if (action.oneTime) {
+      if (action.grantsItem && housingStore.hasFurniture(action.grantsItem)) {
+        return { canDo: false, reason: 'Уже куплено' }
+      }
+
+      const usage: ActionUsageEntry | undefined = actionUsage.value[action.id]
+
+      if (usage && usage.count > 0) {
+        return { canDo: false, reason: 'Действие уже выполнено' }
+      }
+    }
 
     if (action.price > 0 && !walletStore.canAfford(action.price)) {
       return { canDo: false, reason: 'Недостаточно денег' }

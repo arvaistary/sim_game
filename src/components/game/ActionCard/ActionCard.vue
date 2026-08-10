@@ -205,6 +205,6 @@ function handleModalButtonClick(event?: MouseEvent): void {
 function handleAddToPlan(event?: MouseEvent): void {
   event?.stopPropagation()
   const added = planner.addFreeAction(props.action.id)
-  toast.showInfo(added ? 'Действие добавлено в план дня' : 'В плане уже три действия или действие недоступно')
+  toast.showInfo(added ? 'Действие добавлено в план дня' : 'Недостаточно часов в плане дня или действие недоступно')
 }
 </script>

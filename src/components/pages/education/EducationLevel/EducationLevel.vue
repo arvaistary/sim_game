@@ -62,7 +62,7 @@
 
               <div class="active-study-card__secondary">
                 <span>🌙 Учёба до сна: {{ studyHoursSinceLastSleepDisplay }}/{{ maxStudyHoursCycleDisplay }} ч</span>
-                <span>🗓️ Свободно на неделе: {{ weekHoursRemainingDisplay }} ч</span>
+                <span>📖 Осталось учиться до сна: {{ studyHoursRemainingDisplay }} ч</span>
               </div>
             </div>
 
@@ -262,6 +262,8 @@ const studyHoursSinceLastSleep: ComputedRef<number> = computed(() => {
 
 const studyHoursSinceLastSleepDisplay: ComputedRef<number> = computed(() => Math.round(studyHoursSinceLastSleep.value))
 
+const studyHoursRemainingDisplay: ComputedRef<number> = computed(() => Math.max(0, Math.round(maxStudyHoursCycle - studyHoursSinceLastSleep.value)))
+
 /** Максимальное количество учебных часов в одном цикле (константа) */
 const maxStudyHoursCycle = COGNITIVE_LOAD_CONSTANTS.MAX_STUDY_HOURS_CYCLE
 const maxStudyHoursCycleDisplay: number = Math.round(maxStudyHoursCycle)
@@ -357,11 +359,6 @@ const modalCourseDescription: ComputedRef<string> = computed(() => {
     ?? activeCourseDescription.value
 })
 
-const weekHoursRemainingDisplay: ComputedRef<number> = computed(() => {
-  const time: Record<string, number> | null = store.time as unknown as Record<string, number> | null
-  return Math.round(time?.weekHoursRemaining ?? 0)
-})
-
 const modalStepContent: ComputedRef<string> = computed(() => {
   const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === modalCourse.value?.id)
   const content = program?.steps?.[modalCurrentStepIndex.value]?.content
@@ -409,17 +406,7 @@ const resourceWarning: ComputedRef<string | null | undefined> = computed(() => {
   if (!cognitiveCheck.canDo) return cognitiveCheck.reason ?? 'Когнитивная нагрузка слишком высока'
 
   if (dailyStudyHoursBlocked.value) {
-    const canStudyCheck: CanAddStudyHoursResult = canAddStudyHours(cognitiveLoadValue.value, store.energy ?? 0)
-
-    if (canStudyCheck.canDo) {
-      if (hoursRemaining.value > 0) {
-        return `${canStudyCheck.reason}\n\nШкала «когнитивной нагрузки» может быть в норме — она не отражает лимит «учёбы до сна» (${studyHoursSinceLastSleepDisplay.value}/${maxStudyHoursCycleDisplay} ч).`
-      }
-
-      return canStudyCheck.reason
-    }
-
-    return 'Лимит учёбы исчерпан. Поспите для восстановления.'
+    return `Лимит учёбы до сна исчерпан (${studyHoursSinceLastSleepDisplay.value}/${maxStudyHoursCycleDisplay} ч). Поспите, чтобы продолжить.`
   }
 
   return null

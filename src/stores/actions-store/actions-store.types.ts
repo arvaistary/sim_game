@@ -16,6 +16,8 @@ export interface GameAction {
     minSkills?: Record<string, number>
     requiresCompletedProgramId?: string
   }
+  oneTime?: boolean
+  grantsItem?: string
 }
 
 export interface ActionResult {

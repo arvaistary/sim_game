@@ -11,6 +11,7 @@ import { useEventsStore } from './events-store'
 import { useActionsStore } from './actions-store'
 import type { Investment } from './finance-store'
 import { useFinanceStore } from './finance-store'
+import { useDayPlannerStore } from '@/stores/day-planner-store'
 import type { ActivityEntry } from './activity-store'
 import { useActivityStore } from './activity-store'
 import type { GameEvent } from './events-store/events-store.types'
@@ -18,7 +19,7 @@ import { getActionById, type BalanceAction } from '@/domain/balance/actions'
 import type { CareerTrackJobItem, EducationProgram } from '@/domain/balance/types'
 import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 import { GameWorld } from '@/domain/game-world/GameWorld'
-import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
+import type { GameWorldJSON, GameWorldSnapshot } from '@/domain/game-world/GameWorld.types'
 import type { DayPlanInput, DayPlanResult, GameEventPayload } from '@/domain/game-world/commands/commands.types'
 import type { DayEndHooks } from '@/domain/game-world/commands'
 import { createLiveDayEndHooks } from '@/domain/game-world/commands'
@@ -82,6 +83,8 @@ export const useGameStore = defineStore('game', () => {
   const actions = useActionsStore()
 
   const finance = useFinanceStore()
+
+  const dayPlanner = useDayPlannerStore()
 
   const activity = useActivityStore()
 
@@ -148,7 +151,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function syncEventsFromWorld(world: GameWorld): void {
-    const snapshot = world.toSnapshot()
+    const snapshot: GameWorldSnapshot = world.toSnapshot()
 
     events.load({
       eventState: snapshot.events.state,
@@ -278,6 +281,7 @@ export const useGameStore = defineStore('game', () => {
       finance: finance.save ? finance.save() : {},
       activity: activity.save ? activity.save() : {},
       actions: actions.save ? actions.save() : {},
+      dayPlanner: dayPlanner.save(),
     }
   }
 
@@ -306,12 +310,14 @@ export const useGameStore = defineStore('game', () => {
 
     if (data?.actions) actions.load?.(data.actions as Record<string, unknown>)
 
-    isInitialized.value = true;
+    if (data?.dayPlanner) dayPlanner.load(data.dayPlanner as Record<string, unknown>)
+
+    isInitialized.value = true
     return true
   }
 
   function resetGame(): void {
-    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset()
+    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset(); dayPlanner.reset()
     offlineQueue?.clear()
     worldVersion.value++
   }
@@ -392,6 +398,8 @@ export const useGameStore = defineStore('game', () => {
       skillChanges: action.skillChanges,
       cooldown: action.cooldown,
       requirements: action.requirements as { minAge?: number; minSkills?: Record<string, number>; requiresCompletedProgramId?: string } | undefined,
+      oneTime: action.oneTime,
+      grantsItem: action.grantsItem,
     }
   }
 

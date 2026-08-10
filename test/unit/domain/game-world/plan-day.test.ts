@@ -79,13 +79,16 @@ describe('planDayCommand', () => {
     expect(world.time.totalHours).toBe(24)
   })
 
-  it('rejects invalid plans without side effects', () => {
+  it('rejects plans that exceed remaining day hours without side effects', () => {
     const world: GameWorld = employedWorld()
     const before: GameWorldJSON = world.toJSON()
-    const result: DayPlanResult = planDayCommand(world, { sleepHours: 7, actionIds: ['fun_park_walk', 'fun_park_walk', 'fun_park_walk', 'fun_park_walk'] })
+    const result: DayPlanResult = planDayCommand(world, {
+      sleepHours: 7,
+      actionIds: ['fun_park_walk', 'fun_park_walk', 'fun_park_walk', 'fun_park_walk', 'fun_park_walk', 'fun_park_walk', 'fun_park_walk', 'fun_park_walk', 'fun_park_walk'],
+    })
 
     expect(result.success).toBe(false)
-    expect(result.message).toBe('Можно запланировать не более трёх действий')
+    expect(result.message).toBe('План превышает оставшееся время дня')
     expect(result.steps).toEqual([])
     expect(world.toJSON()).toEqual(before)
   })

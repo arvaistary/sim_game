@@ -3,7 +3,10 @@
     <div class="day-planner__header">
       <div>
         <h2 class="day-planner__title">План дня</h2>
-        <p class="day-planner__meta">Осталось часов: {{ dayHoursRemaining }}</p>
+        <p class="day-planner__meta">
+          Осталось часов: {{ formatHours(dayHoursRemaining) }}
+          <span v-if="dayHoursSpent > 0"> · Потрачено сегодня: {{ formatHours(dayHoursSpent) }} ч</span>
+        </p>
       </div>
       <button class="day-planner__reset" type="button" @click="planner.resetPlan">Сбросить</button>
     </div>
@@ -38,17 +41,24 @@
     </div>
 
     <div class="day-planner__section">
-      <h3>Свободные действия ({{ plan.actionIds.length }}/3)</h3>
+      <h3>Свободные действия · {{ plannedActionHours }} ч из {{ freeActionHoursBudget }} ч</h3>
       <ul v-if="plan.actionIds.length" class="day-planner__actions">
-        <li v-for="actionId in plan.actionIds" :key="actionId">
+        <li
+          v-for="(actionId, actionIndex) in plan.actionIds"
+          :key="`${actionId}-${actionIndex}`"
+        >
           <span>{{ planner.getActionTitle(actionId) }}</span>
-          <button type="button" @click="planner.removeFreeAction(actionId)">Убрать</button>
+          <button type="button" @click="planner.removeFreeActionAt(actionIndex)">Убрать</button>
         </li>
       </ul>
       <p v-else class="day-planner__empty">Добавьте действия из каталога.</p>
+      <p
+        v-if="freeActionHoursRemaining === 0 && freeActionHoursBudget > 0"
+        class="day-planner__meta"
+      >Свободные часы дня распределены.</p>
     </div>
 
-    <GameButton label="Прожить день" :disabled="!canConfirm" accent-key="accent" @click="confirm" />
+    <GameButton class="day-planner__confirm" label="Прожить день" :disabled="!canConfirm" accent-key="accent" @click="confirm" />
     <p v-if="!canConfirm" class="day-planner__warning">План превышает доступное время или содержит неподдерживаемые параметры.</p>
 
     <button
@@ -59,32 +69,28 @@
     >
       События ждут решения: {{ pendingEventsCount }}
     </button>
-
-    <div v-if="result" class="day-planner__result">
-      <strong>{{ result.success ? 'День завершён' : 'План отклонён' }}</strong>
-      <span v-if="!result.success">{{ result.message }}</span>
-      <span>Потрачено: {{ result.totalHoursSpent }} ч, нейтрально: {{ result.idleHours }} ч</span>
-      <span>Деньги: {{ formatDelta(result.moneyDelta) }}</span>
-      <span>Статы: {{ formatStatChanges(result.statChanges) }}</span>
-      <ul v-if="failedSteps.length" class="day-planner__skipped">
-        <li v-for="step in failedSteps" :key="`${step.kind}-${step.actionId ?? 'none'}`">{{ step.message }}</li>
-      </ul>
-    </div>
   </RoundedPanel>
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { useDayPlanner } from '@/composables/useDayPlanner'
+import { useDayPlannerStore } from '@/stores/day-planner-store'
 import { useTime } from '@/composables/useTime'
 import { useWorkShiftOptions } from '@/composables/useWorkShiftOptions'
 import { useCareerStore } from '@/stores/career-store'
-import type { DayPlanStepResult } from '@/composables/useDayPlanner'
+import { showGameResultModal } from '@/composables/useGameModal'
+import type { DayPlanResult } from '@/domain/game-world/commands/commands.types'
 import './DayPlannerPanel.scss'
 
 const planner: ReturnType<typeof useDayPlanner> = useDayPlanner()
-const { plan, result, canConfirm, sleepDebtWarning, hasDeferredEventBadge, pendingEventsCount } = planner
-const { dayHoursRemaining } = useTime()
+const dayPlannerStore = useDayPlannerStore()
+const { plan } = storeToRefs(dayPlannerStore)
+const { canConfirm, plannedActionHours, freeActionHoursBudget, freeActionHoursRemaining, sleepDebtWarning, hasDeferredEventBadge, pendingEventsCount } = planner
+const { dayHoursRemaining, dayHour } = useTime()
 const careerStore: ReturnType<typeof useCareerStore> = useCareerStore()
+
+const dayHoursSpent: ComputedRef<number> = computed<number>(() => dayHour.value)
 
 const { workOptions }: ReturnType<typeof useWorkShiftOptions> = useWorkShiftOptions()
 
@@ -94,12 +100,41 @@ const workPresets: ComputedRef<number[]> = computed<number[]>(() => workOptions.
     (hours: number, index: number, values: number[]) => hours > 0 && values.indexOf(hours) === index,
   )
   : [])
-const failedSteps: ComputedRef<DayPlanStepResult[]> = computed<DayPlanStepResult[]>(
-  () => planner.result.value?.steps.filter((step: DayPlanStepResult) => !step.success) ?? [],
-)
-
 async function confirm(): Promise<void> {
-  await planner.confirmDay()
+  const dayResult: DayPlanResult | null = await planner.confirmDay()
+
+  if (!dayResult) return
+
+  showDayPlanResultModal(dayResult)
+  planner.clearResult()
+}
+
+function showDayPlanResultModal(dayResult: DayPlanResult): void {
+  const lines: string[] = []
+
+  if (!dayResult.success) {
+    lines.push(dayResult.message)
+  }
+
+  lines.push(`Потрачено: ${formatHours(dayResult.totalHoursSpent)} ч, нейтрально: ${formatHours(dayResult.idleHours)} ч`)
+  lines.push(`Деньги: ${formatDelta(dayResult.moneyDelta)}`)
+
+  const statLine: string = formatStatChanges(dayResult.statChanges)
+
+  if (statLine) {
+    lines.push(`Статы: ${statLine}`)
+  }
+
+  for (const step of dayResult.steps) {
+    if (!step.success) {
+      lines.push(step.message)
+    }
+  }
+
+  showGameResultModal(
+    dayResult.success ? 'День завершён' : 'План отклонён',
+    lines.join('\n'),
+  )
 }
 
 function openEventsPage(): void {
@@ -108,6 +143,10 @@ function openEventsPage(): void {
 
 function formatDelta(value: number): string {
   return value > 0 ? `+${value}` : String(value)
+}
+
+function formatHours(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1)
 }
 
 function formatStatChanges(changes: Record<string, number | undefined>): string {

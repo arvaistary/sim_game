@@ -32,7 +32,12 @@
 .day-planner__presets {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: $space-2;
+}
+
+.day-planner__confirm {
+  align-self: flex-end;
 }
 
 .day-planner__reset,

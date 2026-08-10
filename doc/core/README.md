@@ -26,7 +26,6 @@
 - **ROADMAP.md** — кратко-/средне-/долгосрочные планы
 - **PAGES_REFERENCE.md** — таблица Vue страниц и Nuxt роутинга
 - **START_GAME_DOCUMENTATION.md** — документация старта игры
-- **MEMPALACE_SETUP.md** — настройка MemPalace (локальная память команды)
 
 ### Server-first миграция (`doc/SERVER_MIGRATION.md`)
 
