@@ -96,12 +96,28 @@ export const useSkillsStore = defineStore('skills', () => {
   }
 
   function save(): Record<string, unknown> {
-    return { skills: skills.value }
+    const snapshot: Record<string, SkillEntry> = {}
+
+    for (const [key, entry] of Object.entries(skills.value)) {
+      snapshot[key] = {
+        level: entry.level,
+        xp: entry.xp,
+      }
+    }
+
+    return {
+      skills: snapshot,
+    }
   }
 
   function load(data: Record<string, unknown>): void {
-    if (data?.skills) {
+    if (data.skills && typeof data.skills === 'object') {
       skills.value = data.skills as Record<string, SkillEntry>
+      return
+    }
+
+    if (data.entries && typeof data.entries === 'object') {
+      skills.value = data.entries as Record<string, SkillEntry>
     }
   }
 

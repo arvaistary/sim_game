@@ -201,6 +201,8 @@ export const useGameStore = defineStore('game', () => {
   function initWorld(): void { worldVersion.value++ }
 
   function save(): Record<string, unknown> {
+    const prologueStore = usePrologueStore()
+
     return {
       player: player.save(),
       time: time.save(),
@@ -214,6 +216,7 @@ export const useGameStore = defineStore('game', () => {
       finance: finance.save ? finance.save() : {},
       activity: activity.save ? activity.save() : {},
       actions: actions.save ? actions.save() : {},
+      ...prologueStore.save(),
     }
   }
 
@@ -242,12 +245,15 @@ export const useGameStore = defineStore('game', () => {
 
     if (data?.actions) actions.load?.(data.actions as Record<string, unknown>)
 
+    usePrologueStore().load(data)
+
     isInitialized.value = true;
     return true
   }
 
   function resetGame(): void {
     time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset()
+    usePrologueStore().reset()
     offlineQueue?.clear()
     worldVersion.value++
   }

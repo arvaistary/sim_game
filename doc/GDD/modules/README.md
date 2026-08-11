@@ -20,6 +20,7 @@
 | 12 | `12_technical.md` | Технические требования | 61 |
 | 13 | `13_roadmap.md` | Roadmap разработки | 47 |
 | 14 | `14_conclusion.md` | Заключение | 12 |
+| 17 | `17_life_education_prologue.md` | Пролог образования (supersedes §4.12.1 start) | — |
 
 ## Краткое описание модулей
 

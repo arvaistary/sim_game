@@ -36,8 +36,8 @@ export const EDUCATION_RANK: Record<EducationLevel, number> = {
 export const RANK_LABELS: Record<EducationLevel, string> = {
   none: 'Нет',
   school: 'Школа',
-  college: 'Колледж',
-  bachelor: 'Бакалавриат',
+  college: 'Среднее профессиональное',
+  bachelor: 'Высшее',
   master: 'Магистратура',
   phd: 'Аспирантура',
 }

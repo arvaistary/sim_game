@@ -1,0 +1,47 @@
+.prologue-fork {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.prologue-fork__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+}
+
+.prologue-fork__lead {
+  margin: 0 0 1.25rem;
+  color: var(--color-text-secondary, #334155);
+  line-height: 1.5;
+}
+
+.prologue-fork__options {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.prologue-fork__option {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: 0.5rem;
+  background: var(--color-surface, #fff);
+  text-align: left;
+  cursor: pointer;
+}
+
+.prologue-fork__option:hover,
+.prologue-fork__option:focus-visible {
+  border-color: var(--color-accent, #0f766e);
+  outline: none;
+}
+
+.prologue-fork__option-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.prologue-fork__option-desc {
+  color: var(--color-text-muted, #64748b);
+}

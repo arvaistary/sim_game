@@ -1,0 +1,21 @@
+.prologue-tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.prologue-tag-chips__chip {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent, #0f766e) 12%, white);
+  color: var(--color-text, #0f172a);
+  font-size: 0.85rem;
+}
+
+.prologue-tag-chips__dots {
+  letter-spacing: 0.05em;
+  color: var(--color-accent, #0f766e);
+}
