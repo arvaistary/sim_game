@@ -1,0 +1,20 @@
+// Accent palette: cobalt
+html[data-palette="cobalt"] {
+  --color-action-primary: #2B5AED;
+  --color-action-primary-hover: #1E4AD4;
+  --color-action-primary-active: #163CB3;
+  --color-action-secondary: #7C3AED;
+  --color-brand-primary: var(--color-action-primary);
+  --color-brand-secondary: var(--color-action-secondary);
+  --color-status-info: var(--color-action-primary);
+  --shadow-button-hover: 0 6px 16px rgb(43 90 237 / 30%);
+  --color-blue: var(--color-action-primary);
+}
+
+html[data-palette="cobalt"][data-theme="dark"] {
+  --color-action-primary: #5B8CFF;
+  --color-action-primary-hover: #7AA3FF;
+  --color-action-primary-active: #4A7AF0;
+  --color-action-secondary: #A78BFA;
+  --shadow-button-hover: 0 6px 16px rgb(91 140 255 / 35%);
+}

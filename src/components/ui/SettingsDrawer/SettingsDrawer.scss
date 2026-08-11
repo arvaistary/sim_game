@@ -216,3 +216,35 @@
 .switch--on .switch__thumb {
   transform: translateX(18px);
 }
+
+// ===== Palette swatches =====
+.settings-section__row--palette {
+  align-items: flex-start;
+}
+
+.palette-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  justify-content: flex-end;
+}
+
+.palette-swatch {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-full);
+  background: var(--swatch);
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+
+  &:hover {
+    transform: scale(1.06);
+  }
+
+  &.palette-swatch--active {
+    border-color: var(--color-text-primary);
+    box-shadow: 0 0 0 2px var(--color-bg-card), 0 0 0 4px var(--swatch);
+  }
+}

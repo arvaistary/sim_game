@@ -2,6 +2,10 @@
 
 @use 'variables' as *;
 @use 'mixins' as *;
+@use 'tokens/palettes/cobalt';
+@use 'tokens/palettes/emerald';
+@use 'tokens/palettes/sunset';
+@use 'tokens/palettes/violet';
 
 // ===== Root CSS Custom Properties (for JS runtime theming) =====
 :root {

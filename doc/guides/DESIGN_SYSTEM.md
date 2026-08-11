@@ -2,7 +2,7 @@
 
 Визуальный язык и набор токенов для **game_life** (life-sim / игровой дашборд): карточки, метрики, навигация, формы. Референсы дашбордов из `artifact/` (Eduhouse, Alutem, MagicHeal, Intelly, Clarity, Lordbank, Health+, YourEducation и др.) задают **стиль**; паттерны вроде Kanban, Billing, HR из разделов 7–8 — **каталог на будущее**, если появятся соответствующие экраны, а не обязательный объём текущего продукта.
 
-**Источник правды в коде (сейчас):** семантические и примитивные значения в [src/assets/scss/variables.scss](../../src/assets/scss/variables.scss) и глобальные стили в `src/assets/scss/` (см. [nuxt.config.ts](../../nuxt.config.ts), блок `css`). Таблицы ниже — спецификация; при расхождении с `variables.scss` сначала правьте SCSS, затем обновляйте этот документ (или наоборот при осознанном изменении дизайна).
+**Источник правды в коде (сейчас):** семантические и примитивные значения в [src/assets/scss/variables.scss](../../src/assets/scss/variables.scss) и глобальные стили в `src/assets/scss/` (см. [nuxt.config.ts](../../nuxt.config.ts), блок `css`). Accent-палитры переключаются через `html[data-palette]` и файлы в `src/assets/scss/tokens/palettes/**` (Settings → Палитра). Таблицы ниже — спецификация; при расхождении с `variables.scss` сначала правьте SCSS, затем обновляйте этот документ (или наоборот при осознанном изменении дизайна).
 
 ---
 

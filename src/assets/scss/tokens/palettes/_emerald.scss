@@ -1,0 +1,20 @@
+// Accent palette: emerald (default brand)
+html[data-palette="emerald"] {
+  --color-action-primary: #0fab97;
+  --color-action-primary-hover: #00B386;
+  --color-action-primary-active: #009E73;
+  --color-action-secondary: #7B61FF;
+  --color-brand-primary: var(--color-action-primary);
+  --color-brand-secondary: var(--color-action-secondary);
+  --color-status-info: var(--color-action-primary);
+  --shadow-button-hover: 0 6px 16px rgb(0 200 150 / 30%);
+  --color-blue: var(--color-action-primary);
+}
+
+html[data-palette="emerald"][data-theme="dark"] {
+  --color-action-primary: #0fab97;
+  --color-action-primary-hover: #00C896;
+  --color-action-primary-active: #00B386;
+  --color-action-secondary: #7B68D1;
+  --shadow-button-hover: 0 6px 16px rgb(45 212 191 / 30%);
+}
