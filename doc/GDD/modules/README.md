@@ -22,6 +22,7 @@
 | 14 | `14_conclusion.md` | Заключение | 12 |
 | 15 | `15_calendar_planner.md` | Календарь и планировщик периода | 296 |
 | 16 | `16_skill_depth.md` | Глубина навыков и эталонный навык | 250 |
+| 17 | `17_life_education_prologue.md` | Пролог образования (supersedes §4.12.1 start) | — |
 
 ## Краткое описание модулей
 
@@ -97,7 +98,7 @@
 
 ```bash
 cd game_life/doc/GDD/modules
-cat 01_general.md 02_implementation.md 03_core_mechanics.md 04_balance.md 05_save_system.md 06_death_system.md 07_random_events.md 08_family.md 09_hobbies.md 10_achievements.md 11_seasonal.md 12_technical.md 13_roadmap.md 15_calendar_planner.md 16_skill_depth.md 14_conclusion.md > ../GDD.md
+cat 01_general.md 02_implementation.md 03_core_mechanics.md 04_balance.md 05_save_system.md 06_death_system.md 07_random_events.md 08_family.md 09_hobbies.md 10_achievements.md 11_seasonal.md 12_technical.md 13_roadmap.md 15_calendar_planner.md 16_skill_depth.md 17_life_education_prologue.md 14_conclusion.md > ../GDD.md
 ```
 
 ## Версия документа

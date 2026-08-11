@@ -1,0 +1,39 @@
+.prologue-summary {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.prologue-summary__title {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.prologue-summary__fantasy {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.prologue-summary__education {
+  margin: 0;
+  color: var(--color-text-secondary, #334155);
+}
+
+.prologue-summary__traits {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.prologue-summary__cta {
+  justify-self: start;
+  padding: 0.75rem 1.25rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--color-accent, #0f766e);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}

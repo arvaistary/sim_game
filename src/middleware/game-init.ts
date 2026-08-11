@@ -11,6 +11,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const playerStore = usePlayerStore()
 
   const gameStore = useGameStore()
+  const prologueStore = usePrologueStore()
 
   const { $autoSave } = useNuxtApp()
 
@@ -23,6 +24,20 @@ export default defineNuxtRouteMiddleware((to) => {
     }
     // Включаем автосохранение после первой инициализации
     $autoSave.enable()
+  }
+
+  const isPrologueRoute: boolean = to.path === '/game/prologue' || to.path.startsWith('/game/prologue/')
+
+  if (prologueStore.isActive && !isPrologueRoute) {
+    return navigateTo('/game/prologue')
+  }
+
+  if (isPrologueRoute && !prologueStore.isActive) {
+    return navigateTo('/game')
+  }
+
+  if (isPrologueRoute) {
+    return
   }
 
   const { isTabVisible } = useAgeRestrictions()

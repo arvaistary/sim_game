@@ -5,11 +5,11 @@
   >
     <div class="newborn-welcome__content">
       <div class="newborn-welcome__icon">👶</div>
-      <h1 class="newborn-welcome__title">Добро пожаловать в мир, {{ playerName }}.</h1>
+      <h1 class="newborn-welcome__title">Добро пожаловать в мир, {{ name }}.</h1>
 
       <p class="newborn-welcome__description">
-        Ты только что родился. Ты ничего не умеешь, у тебя нет денег, нет навыков.
-        Вся жизнь перед тобой. Пройди все этапы взросления, стань тем кем хочешь.
+        Ты только что родился. Впереди короткий путь: детство, школа и выбор — техникум или университет.
+        К 18 годам ты войдёшь во взрослую жизнь с историей, а не с чистого листа.
       </p>
 
       <button
@@ -17,7 +17,7 @@
         type="button"
         @click="onStart"
       >
-        Начать
+        Начать пролог
       </button>
     </div>
   </div>
@@ -25,24 +25,29 @@
 
 <script setup lang="ts">
 import './NewbornWelcomeScreen.scss'
+import type { ComputedRef, Ref } from 'vue'
+import type {
+  NewbornWelcomeScreenEmits,
+  NewbornWelcomeScreenProps,
+} from './NewbornWelcomeScreen.types'
 
-const visible = ref(false)
-const playerName = ref('Алексей')
-const welcomeScreenShown = ref(false)
+const props = withDefaults(defineProps<NewbornWelcomeScreenProps>(), {
+  playerName: 'Алексей',
+})
+
+const emit = defineEmits<NewbornWelcomeScreenEmits>()
+
+const visible: Ref<boolean> = ref(false)
+const name: ComputedRef<string> = computed(() => props.playerName)
 
 onMounted(() => {
-  setTimeout(() => {
+  window.setTimeout(() => {
     visible.value = true
   }, 100)
 })
 
-function onStart() {
+function onStart(): void {
   visible.value = false
-  welcomeScreenShown.value = true
+  emit('start')
 }
-
-defineExpose({
-  visible,
-  welcomeScreenShown,
-})
 </script>
