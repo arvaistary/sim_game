@@ -37,6 +37,10 @@ declare global {
   var onUnmounted: typeof import('vue').onUnmounted
    
   var nextTick: typeof import('vue').nextTick
+
+  var useHousingStore: typeof import('@/stores/housing-store').useHousingStore
+
+  var usePrologueStore: typeof import('@/stores/prologue-store').usePrologueStore
 }
 
 globalThis.defineStore = defineStore
@@ -48,5 +52,9 @@ globalThis.watchEffect = watchEffect
 globalThis.onMounted = onMounted
 globalThis.onUnmounted = onUnmounted
 globalThis.nextTick = nextTick
+const { useHousingStore } = await import('@/stores/housing-store')
+const { usePrologueStore } = await import('@/stores/prologue-store')
+globalThis.useHousingStore = useHousingStore
+globalThis.usePrologueStore = usePrologueStore
 
 export {}

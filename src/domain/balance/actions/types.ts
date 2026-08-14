@@ -1,4 +1,5 @@
 import type { ActionCategory, StatChanges } from '@/domain/balance/types'
+import type { LearningMethod } from '@/domain/balance/skills'
 
 /**
  * Возрастная группа персонажа.
@@ -25,6 +26,7 @@ export interface BalanceAction {
   mood?: string
   statChanges?: StatChanges
   skillChanges?: Record<string, number>
+  learningMethod?: LearningMethod
   relationshipDelta?: number
   housingComfortDelta?: number
   oneTime?: boolean

@@ -127,7 +127,7 @@ describe('bridge fromStores', () => {
     expect(world.wallet.money).toBe(30000)
     expect(world.wallet.totalEarnings).toBe(60000)
     expect(world.career.currentJob.id).toBe('office_worker')
-    expect(world.skills.levels.professionalism).toBe(3)
+    expect(world.skills.levels.professionalism?.level).toBe(3)
   })
 
   it('пересчитывает skillModifiers из skill levels', () => {
@@ -215,6 +215,6 @@ describe('bridge round-trip', () => {
     expect(restored.stats?.energy).toBe(65)
     expect(restored.wallet?.money).toBe(25000)
     expect(restored.wallet?.totalEarned).toBe(50000)
-    expect((restored.skills?.skills as Record<string, number>).professionalism).toBe(2)
+    expect((restored.skills?.skills as Record<string, { level: number }>).professionalism?.level).toBe(2)
   })
 })

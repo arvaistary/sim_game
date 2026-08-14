@@ -13,18 +13,18 @@
         <p v-if="action.mood" class="card-description">{{ action.mood }}</p>
         <div class="card-footer">
           <GameButton
+            v-if="showAddToPlan && action.actionType !== 'sleep' && action.actionType !== 'work'"
+            label="В календарь"
+            variant="secondary"
+            small
+            @click="handleAddToPlan"
+          />
+          <GameButton
             :label="buttonLabel"
             :disabled="disabled"
             variant="primary"
             small
             @click="handleButtonClick"
-          />
-          <GameButton
-            v-if="showAddToPlan && action.actionType !== 'sleep' && action.actionType !== 'work'"
-            label="В план дня"
-            variant="secondary"
-            small
-            @click="handleAddToPlan"
           />
         </div>
       </div>
@@ -90,12 +90,12 @@
 <script setup lang="ts">
 import './ActionCard.scss'
 import { METRIC_LABELS } from '@/constants/metric-labels'
-import { getSkillByKey } from '@/domain/balance/constants/skills-constants'
 import { formatEffect, formatMoney } from '@/utils/format'
 import StatChange from '@/components/ui/StatChange/StatChange.vue'
 import Modal from '@/components/ui/Modal/index.vue'
 import type { ActionCardEmits, ActionCardProps, ActionEffectDisplay } from './ActionCard.types'
-import { useDayPlanner } from '@/composables/useDayPlanner'
+import { useCalendarPlanActions } from '@/composables/useCalendarPlan'
+import { createSkillEffects } from './action-card-effects'
 
 const props = withDefaults(defineProps<ActionCardProps>(), {
   disabled: false,
@@ -108,8 +108,9 @@ const props = withDefaults(defineProps<ActionCardProps>(), {
 
 const emit = defineEmits<ActionCardEmits>()
 
+const calendarActions = useCalendarPlanActions()
+
 const toast = useToast()
-const planner = useDayPlanner()
 
 const isDetailsOpen = ref<boolean>(false)
 
@@ -128,7 +129,7 @@ const resourceEffects = computed<ActionEffectDisplay[]>(() => {
 })
 
 const skillEffects = computed<ActionEffectDisplay[]>(() => {
-  return createEffects(props.action.skillChanges, 'skill')
+  return createSkillEffects(props.action.skillChanges)
 })
 
 const fallbackEffects = computed<ActionEffectDisplay[]>(() => {
@@ -148,21 +149,19 @@ const hasFallbackEffects = computed<boolean>(() => fallbackEffects.value.length 
 const resourceEffectsTitleId = computed<string>(() => `resource-effects-${props.action.id}`)
 const skillEffectsTitleId = computed<string>(() => `skill-effects-${props.action.id}`)
 
-function createEffects(changes: Record<string, number | undefined> | undefined, group: 'resource' | 'skill'): ActionEffectDisplay[] {
+function createEffects(changes: Record<string, number | undefined> | undefined, group: 'resource'): ActionEffectDisplay[] {
   if (!changes) return []
 
   return Object.entries(changes)
     .filter(([, value]: [string, number | undefined]) => typeof value === 'number' && value !== 0)
     .map(([key, value]: [string, number | undefined]): ActionEffectDisplay => {
       const numericValue: number = value as number
-      const label: string = group === 'resource'
-        ? (METRIC_LABELS[key] ?? key)
-        : (getSkillByKey(key)?.label ?? key)
+      const label: string = METRIC_LABELS[key] ?? key
 
       return {
         id: `${group}-${key}`,
         text: formatEffectValue(label, numericValue),
-        explanation: getEffectExplanation(label, numericValue, group),
+        explanation: getEffectExplanation(label, numericValue),
       }
     })
 }
@@ -173,9 +172,9 @@ function formatEffectValue(label: string, value: number): string {
   return `${label} ${sign}${displayValue}`
 }
 
-function getEffectExplanation(label: string, value: number, group: 'resource' | 'skill'): string {
+function getEffectExplanation(label: string, value: number): string {
   const direction: string = value > 0 ? 'увеличится' : 'уменьшится'
-  const target: string = group === 'resource' ? 'значение ресурса' : 'уровень навыка'
+  const target: string = 'значение ресурса'
   return `${target} «${label}» ${direction} на ${Math.abs(value)} за действие.`
 }
 
@@ -204,7 +203,13 @@ function handleModalButtonClick(event?: MouseEvent): void {
 
 function handleAddToPlan(event?: MouseEvent): void {
   event?.stopPropagation()
-  const added = planner.addFreeAction(props.action.id)
-  toast.showInfo(added ? 'Действие добавлено в план дня' : 'Недостаточно часов в плане дня или действие недоступно')
+  const errorMessage: string | null = calendarActions.addAction(0, props.action.id)
+
+  if (errorMessage !== null) {
+    toast.showInfo(errorMessage)
+    return
+  }
+
+  toast.showInfo('Действие добавлено в календарь')
 }
 </script>

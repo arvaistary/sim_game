@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { GameWorld } from '@/domain/game-world/GameWorld'
 import { GameCommandExecutor } from '@/domain/game-command-executor'
 import { advanceHours } from '@/domain/game-world/commands'
+import type { GameWorldJSON, GameWorldSnapshot } from '@/domain/game-world/GameWorld.types'
+import type { GameCommandExecution } from '@/domain/game-command-executor.types'
 
 describe('GameCommandExecutor', () => {
   const executor: GameCommandExecutor = new GameCommandExecutor()
@@ -13,14 +15,14 @@ describe('GameCommandExecutor', () => {
     ['career', { jobId: 'missing' }],
     ['finance', { actionId: 'missing' }],
   ] as const)('maps %s command to domain handler', (type, payload) => {
-    const result = executor.execute(GameWorld.createEmpty().toJSON(), { type, payload })
+    const result: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), { type, payload })
 
     expect(result.result).toEqual(expect.objectContaining({ success: false }))
     expect(result.state.version).toBeDefined()
   })
 
   it('maps education command and returns updated snapshot', () => {
-    const result = executor.execute(GameWorld.createEmpty().toJSON(), {
+    const result: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'education',
       payload: { operation: 'start', programId: 'test-program' },
     })
@@ -32,11 +34,11 @@ describe('GameCommandExecutor', () => {
   })
 
   it('keeps catalog steps and completes meditation book after all study hours', () => {
-    const started = executor.execute(GameWorld.createEmpty().toJSON(), {
+    const started: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'education',
       payload: { operation: 'start', programId: 'meditation_foundations_book' },
     })
-    const active = (started.state.education as Record<string, unknown>).activeEducation as Record<string, unknown>
+    const active: Record<string, unknown> = (started.state.education as Record<string, unknown>).activeEducation as Record<string, unknown>
 
     expect(active).toEqual(expect.objectContaining({
       id: 'meditation_foundations_book',
@@ -47,31 +49,31 @@ describe('GameCommandExecutor', () => {
     expect(active.steps).toHaveLength(14)
     expect((active.steps as Array<Record<string, unknown>>)[0]?.content).toContain('Определите, зачем вам нужна практика')
 
-    let state = executor.execute(started.state, { type: 'education', payload: { action: 'advance' } }).state
-    const activeAfterFirstChapter = (state.education as Record<string, unknown>).activeEducation as Record<string, unknown>
+    let state: GameWorldJSON = executor.execute(started.state, { type: 'education', payload: { action: 'advance' } }).state
+    const activeAfterFirstChapter: Record<string, unknown> = (state.education as Record<string, unknown>).activeEducation as Record<string, unknown>
     expect(activeAfterFirstChapter.currentStepIndex).toBe(1)
     expect((activeAfterFirstChapter.steps as Array<Record<string, unknown>>)[0]?.progressPercent).toBe(1)
 
     for (let hour = 1; hour < 14; hour += 1) {
       state = executor.execute(state, { type: 'education', payload: { action: 'advance' } }).state
+
       if (hour === 7) {
         state = executor.execute(state, { type: 'action', payload: { actionId: 'fun_sleep_normal' } }).state
       }
     }
 
-    const education = state.education as Record<string, unknown>
+    const education: Record<string, unknown> = state.education as Record<string, unknown>
     expect(education.activeEducation).toBeNull()
     expect(education.completedPrograms).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'meditation_foundations_book', name: 'Книга «Основы медитации»' }),
     ]))
     expect(((state.skills as Record<string, unknown>).levels as Record<string, { level: number }>).meditation.level).toBe(1)
-    expect(((state.skills as Record<string, unknown>).levels as Record<string, { xp: number }>).meditation.xp).toBe(100)
-    expect(((state.skills as Record<string, unknown>).levels as Record<string, { level: number }>).emotionalIntelligence.level).toBe(0.5)
-    expect(((state.skills as Record<string, unknown>).levels as Record<string, { xp: number }>).emotionalIntelligence.xp).toBe(50)
+    expect(((state.skills as Record<string, unknown>).levels as Record<string, { xp: number }>).meditation.xp).toBe(50)
+    expect(((state.skills as Record<string, unknown>).levels as Record<string, unknown>).emotionalIntelligence).toBeUndefined()
   })
 
   it('tracks study hours until sleep and resets them after a sleep action', () => {
-    let state = executor.execute(GameWorld.createEmpty().toJSON(), {
+    let state: GameWorldJSON = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'education',
       payload: { operation: 'start', programId: 'meditation_foundations_book' },
     }).state
@@ -80,26 +82,26 @@ describe('GameCommandExecutor', () => {
       state = executor.execute(state, { type: 'education', payload: { action: 'advance' } }).state
     }
 
-    const blocked = executor.execute(state, { type: 'education', payload: { action: 'advance' } })
+    const blocked: GameCommandExecution = executor.execute(state, { type: 'education', payload: { action: 'advance' } })
     expect((state.education as Record<string, unknown>).studyHoursSinceLastSleep).toBe(8)
     expect(blocked.result).toEqual({ success: false, message: 'Лимит учёбы исчерпан. Поспите для восстановления.' })
 
-    const slept = executor.execute(state, { type: 'action', payload: { actionId: 'fun_sleep_normal' } })
+    const slept: GameCommandExecution = executor.execute(state, { type: 'action', payload: { actionId: 'fun_sleep_normal' } })
     expect(slept.result.success).toBe(true)
     expect((slept.state.education as Record<string, unknown>).studyHoursSinceLastSleep).toBe(0)
     expect((slept.state.education as Record<string, unknown>).cognitiveLoad).toBe(0)
   })
 
   it('blocks education when cognitive load reaches its cap even if wake-cycle data is stale', () => {
-    const started = executor.execute(GameWorld.createEmpty().toJSON(), {
+    const started: GameWorldJSON = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'education',
       payload: { operation: 'start', programId: 'meditation_foundations_book' },
     }).state
-    const education = started.education as Record<string, unknown>
+    const education: Record<string, unknown> = started.education as Record<string, unknown>
     education.cognitiveLoad = 80
     education.studyHoursSinceLastSleep = 0
 
-    const blocked = executor.execute(started, { type: 'education', payload: { action: 'advance' } })
+    const blocked: GameCommandExecution = executor.execute(started, { type: 'education', payload: { action: 'advance' } })
 
     expect(blocked.result).toEqual({
       success: false,
@@ -108,12 +110,12 @@ describe('GameCommandExecutor', () => {
   })
 
   it('upgrades an in-progress legacy book to one-hour chapters without losing completed hours', () => {
-    const started = executor.execute(GameWorld.createEmpty().toJSON(), {
+    const started: GameWorldJSON = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'education',
       payload: { operation: 'start', programId: 'meditation_foundations_book' },
     }).state
-    const education = started.education as Record<string, unknown>
-    const active = education.activeEducation as Record<string, unknown>
+    const education: Record<string, unknown> = started.education as Record<string, unknown>
+    const active: Record<string, unknown> = education.activeEducation as Record<string, unknown>
     active.steps = [
       { id: 'stage_1', title: 'Этап 1', hoursRequired: 3, progressPercent: 2 / 3 },
       { id: 'stage_2', title: 'Этап 2', hoursRequired: 3, progressPercent: 0 },
@@ -122,9 +124,9 @@ describe('GameCommandExecutor', () => {
       { id: 'stage_5', title: 'Этап 5', hoursRequired: 2, progressPercent: 0 },
     ]
 
-    const advanced = executor.execute(started, { type: 'education', payload: { action: 'advance' } })
-    const migrated = (advanced.state.education as Record<string, unknown>).activeEducation as Record<string, unknown>
-    const steps = migrated.steps as Array<Record<string, unknown>>
+    const advanced: GameCommandExecution = executor.execute(started, { type: 'education', payload: { action: 'advance' } })
+    const migrated: Record<string, unknown> = (advanced.state.education as Record<string, unknown>).activeEducation as Record<string, unknown>
+    const steps: Array<Record<string, unknown>> = migrated.steps as Array<Record<string, unknown>>
 
     expect(steps).toHaveLength(14)
     expect(migrated.currentStepIndex).toBe(3)
@@ -132,9 +134,16 @@ describe('GameCommandExecutor', () => {
   })
 
   it('allows a book to be reread three times with half reward, then blocks another reread', () => {
-    let state = GameWorld.createEmpty().toJSON()
+    let state: GameWorldJSON = GameWorld.createEmpty().toJSON()
 
     for (let completion = 0; completion < 4; completion += 1) {
+      if (completion > 0) {
+        const currentHours: number = state.time.dayHoursRemaining
+        const world: GameWorld = GameWorld.fromJSON(state)
+        advanceHours(world, currentHours, 'idle')
+        state = world.toJSON()
+      }
+
       state = executor.execute(state, {
         type: 'education',
         payload: { operation: 'start', programId: 'meditation_foundations_book' },
@@ -143,41 +152,42 @@ describe('GameCommandExecutor', () => {
 
       for (let hour = 0; hour < 14; hour += 1) {
         state = executor.execute(state, { type: 'education', payload: { action: 'advance' } }).state
+
         if (hour === 7) {
           state = executor.execute(state, { type: 'action', payload: { actionId: 'fun_sleep_normal' } }).state
         }
       }
     }
 
-    const education = state.education as Record<string, unknown>
-    const completions = education.completedPrograms as Array<Record<string, unknown>>
-    const meditation = (state.skills as Record<string, unknown>).levels as Record<string, { level: number }>
-    const fifthStart = executor.execute(state, {
+    const education: Record<string, unknown> = state.education as Record<string, unknown>
+    const completions: Array<Record<string, unknown>> = education.completedPrograms as Array<Record<string, unknown>>
+    const meditation: Record<string, { level: number }> = (state.skills as Record<string, unknown>).levels as Record<string, { level: number }>
+    const fifthStart: GameCommandExecution = executor.execute(state, {
       type: 'education',
       payload: { operation: 'start', programId: 'meditation_foundations_book' },
     })
 
     expect(completions.filter(completion => completion.id === 'meditation_foundations_book')).toHaveLength(4)
     expect(completions.at(-1)).toEqual(expect.objectContaining({ completionNumber: 4, rewardMultiplier: 0.5 }))
-    expect(meditation.meditation.level).toBe(2.5)
-    expect(meditation.emotionalIntelligence.level).toBe(1.25)
+    expect(meditation.meditation.level).toBe(1)
+    expect(meditation.emotionalIntelligence).toBeUndefined()
     expect(fifthStart.result).toEqual({ success: false, message: 'Достигнут лимит повторного чтения: 4 прохождения' })
   })
 
   it('returns validation result for invalid payload instead of mutating state', () => {
-    const state = GameWorld.createEmpty().toJSON()
-    const result = executor.execute(state, { type: 'work', payload: { hours: '8' } as unknown as Record<string, unknown> })
+    const state: GameWorldJSON = GameWorld.createEmpty().toJSON()
+    const result: GameCommandExecution = executor.execute(state, { type: 'work', payload: { hours: '8' } as unknown as Record<string, unknown> })
 
     expect(result.result.success).toBe(false)
     expect(result.state).toEqual(state)
   })
 
   it('advances neutral time without sleep debt and recalculates age', () => {
-    const world = GameWorld.createEmpty()
+    const world: GameWorld = GameWorld.createEmpty()
     world.time.totalHours = 365 * 24
     world.time.sleepDebt = 20
 
-    const result = executor.execute(world.toJSON(), { type: 'time', payload: { hours: 24 } })
+    const result: GameCommandExecution = executor.execute(world.toJSON(), { type: 'time', payload: { hours: 24 } })
 
     expect(result.result.success).toBe(true)
     expect(result.state.time.sleepDebt).toBe(20)
@@ -185,13 +195,13 @@ describe('GameCommandExecutor', () => {
   })
 
   it('supports career quit, finance settlement and education advance subcommands', () => {
-    const started = executor.execute(GameWorld.createEmpty().toJSON(), {
+    const started: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'education',
       payload: { operation: 'start', programId: 'test-program' },
     })
-    const advanced = executor.execute(started.state, { type: 'education', payload: { operation: 'advance' } })
-    const quit = executor.execute(GameWorld.createEmpty().toJSON(), { type: 'career', payload: { operation: 'quit' } })
-    const settled = executor.execute(GameWorld.createEmpty().toJSON(), {
+    const advanced: GameCommandExecution = executor.execute(started.state, { type: 'education', payload: { operation: 'advance' } })
+    const quit: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), { type: 'career', payload: { operation: 'quit' } })
+    const settled: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'finance',
       payload: { action: 'monthly_settlement' },
     })
@@ -204,7 +214,7 @@ describe('GameCommandExecutor', () => {
   it('applies day_end_hooks command to events wallet finance and career slices', () => {
     const world: GameWorld = GameWorld.createEmpty()
     advanceHours(world, 24, 'idle')
-    const snapshot = world.toSnapshot()
+    const snapshot: GameWorldSnapshot = world.toSnapshot()
 
     snapshot.events.pending.push({
       id: 'weekly_summary',
@@ -217,7 +227,7 @@ describe('GameCommandExecutor', () => {
     snapshot.events.state.lastWeeklyEventWeek = 1
     snapshot.career.currentJob.workedHoursCurrentWeek = 12
 
-    const result = executor.execute(world.toJSON(), {
+    const result: GameCommandExecution = executor.execute(world.toJSON(), {
       type: 'day_end_hooks',
       payload: {
         dayNumber: 1,
@@ -251,7 +261,7 @@ describe('GameCommandExecutor', () => {
       ],
     })
 
-    const result = executor.execute(world.toJSON(), {
+    const result: GameCommandExecution = executor.execute(world.toJSON(), {
       type: 'event',
       payload: { eventId: 'micro_break', choiceId: 'rest' },
     })

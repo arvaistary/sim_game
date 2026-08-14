@@ -23,6 +23,7 @@
           @click="planner.setSleepHours(hours)"
         />
       </div>
+      <p class="day-planner__sleep-hint">{{ sleepGuidance }}</p>
       <p v-if="sleepDebtWarning" class="day-planner__warning">Недостаток сна усилит последствия усталости.</p>
     </div>
 
@@ -73,19 +74,19 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
 import { useDayPlanner } from '@/composables/useDayPlanner'
-import { useDayPlannerStore } from '@/stores/day-planner-store'
 import { useTime } from '@/composables/useTime'
 import { useWorkShiftOptions } from '@/composables/useWorkShiftOptions'
 import { useCareerStore } from '@/stores/career-store'
 import { showGameResultModal } from '@/composables/useGameModal'
-import type { DayPlanResult } from '@/domain/game-world/commands/commands.types'
+import { SLEEP_GUIDANCE, SLEEP_PRESETS } from '@/config/day-planner'
+import type { DayPlanResult, DayPlanStepResult } from '@/domain/game-world/commands/commands.types'
 import './DayPlannerPanel.scss'
 
 const planner: ReturnType<typeof useDayPlanner> = useDayPlanner()
-const dayPlannerStore = useDayPlannerStore()
-const { plan } = storeToRefs(dayPlannerStore)
+
+const plan = planner.plan
+
 const { canConfirm, plannedActionHours, freeActionHoursBudget, freeActionHoursRemaining, sleepDebtWarning, hasDeferredEventBadge, pendingEventsCount } = planner
 const { dayHoursRemaining, dayHour } = useTime()
 const careerStore: ReturnType<typeof useCareerStore> = useCareerStore()
@@ -94,11 +95,10 @@ const dayHoursSpent: ComputedRef<number> = computed<number>(() => dayHour.value)
 
 const { workOptions }: ReturnType<typeof useWorkShiftOptions> = useWorkShiftOptions()
 
-const sleepPresets: number[] = [4, 7, 10]
+const sleepPresets: readonly number[] = SLEEP_PRESETS
+const sleepGuidance: ComputedRef<string> = computed<string>(() => SLEEP_GUIDANCE[plan.value.sleepHours] ?? 'Выбери комфортный ритм сна.')
 const workPresets: ComputedRef<number[]> = computed<number[]>(() => workOptions.value
-  ? [workOptions.value.oneDayHours, workOptions.value.fullShiftHours].filter(
-    (hours: number, index: number, values: number[]) => hours > 0 && values.indexOf(hours) === index,
-  )
+  ? [workOptions.value.oneDayHours].filter((hours: number) => hours > 0)
   : [])
 async function confirm(): Promise<void> {
   const dayResult: DayPlanResult | null = await planner.confirmDay()
@@ -111,6 +111,7 @@ async function confirm(): Promise<void> {
 
 function showDayPlanResultModal(dayResult: DayPlanResult): void {
   const lines: string[] = []
+  const hasCompletedStep: boolean = dayResult.steps.some((step: DayPlanStepResult) => step.success)
 
   if (!dayResult.success) {
     lines.push(dayResult.message)
@@ -132,7 +133,7 @@ function showDayPlanResultModal(dayResult: DayPlanResult): void {
   }
 
   showGameResultModal(
-    dayResult.success ? 'День завершён' : 'План отклонён',
+    dayResult.success ? 'День завершён' : hasCompletedStep ? 'День выполнен частично' : 'План отклонён',
     lines.join('\n'),
   )
 }

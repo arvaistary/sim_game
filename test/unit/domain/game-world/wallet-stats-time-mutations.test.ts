@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { GameWorld } from '@/domain/game-world/GameWorld'
+import type { ExecuteActionResult } from '@/domain/game-world/commands/commands.types'
 import {
   addMoneyInWorld,
   advanceHours,
@@ -104,7 +105,7 @@ describe('domain stats mutations', () => {
     expect(world.stats.energy).toBe(energyBefore - 5)
   })
 
-  it('setStatsInWorld: устанавливает статы с clamp', () => {
+  it('setStatsInWorld: устанавливает статы в допустимом диапазоне', () => {
     const world: GameWorld = GameWorld.createEmpty()
 
     setStatsInWorld(world, { energy: 150, hunger: -20 })
@@ -165,9 +166,9 @@ describe('domain time mutations', () => {
     const world: GameWorld = GameWorld.createEmpty()
 
     advanceHours(world, 167)
-    const result = executeActionCommand(world, 'fun_park_walk')
+    const result: ExecuteActionResult = executeActionCommand(world, 'fun_park_walk')
 
-    expect(result).toEqual({ success: false, message: 'Недостаточно времени' })
+    expect(result).toEqual({ success: false, message: 'Недостаточно времени на сегодня' })
     expect(world.time.totalHours).toBe(167)
   })
 
@@ -175,7 +176,7 @@ describe('domain time mutations', () => {
     const world: GameWorld = GameWorld.createEmpty()
     const before: ReturnType<GameWorld['toJSON']> = world.toJSON()
 
-    const result = executeActionCommand(world, 'self_meditation_practice')
+    const result: ExecuteActionResult = executeActionCommand(world, 'self_meditation_practice')
 
     expect(result).toEqual({ success: false, message: 'Сначала завершите книгу «Основы медитации»' })
     expect(world.toJSON()).toEqual(before)

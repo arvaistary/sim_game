@@ -407,3 +407,38 @@ describe('Action Schema Validation', () => {
     })
   })
 })
+
+describe('learningMethod field', () => {
+  it('accepts a known learning method', () => {
+    const result: ValidationErrors = validateActionWithErrors({
+      id: 'test_cook',
+      category: 'home',
+      title: 'Тест',
+      hourCost: 2,
+      price: 0,
+      actionType: 'recovery',
+      effect: 'Тест',
+      skillChanges: { cooking: 2.5 },
+      learningMethod: 'practice',
+    })
+
+    expect(result.valid).toBe(true)
+    expect(result.errors).toEqual([])
+  })
+
+  it('rejects an unknown learning method', () => {
+    const result: ValidationErrors = validateActionWithErrors({
+      id: 'test_cook',
+      category: 'home',
+      title: 'Тест',
+      hourCost: 2,
+      price: 0,
+      actionType: 'recovery',
+      effect: 'Тест',
+      learningMethod: 'osmosis',
+    })
+
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((message: string) => message.startsWith('learningMethod:'))).toBe(true)
+  })
+})

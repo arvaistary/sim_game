@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import './MatchPairs.scss'
 import type { Ref } from 'vue'
+import type { MinigameResult } from '@/domain/prologue/minigames/minigame.types'
 import type { MatchCardView, MatchPairDef, MatchPairsEmits } from './MatchPairs.types'
 
 const emit = defineEmits<MatchPairsEmits>()

@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 
 function countChoices(src) {
-  const re = /id: '([^']+)'[\s\S]*?choices: \[([\s\S]*?)\n    \],/g
+  const re = /id: '([^']+)'[\s\S]*?choices: \[([\s\S]*?)\n {4}\],/g
   const map = {}
   let match
   while ((match = re.exec(src))) {

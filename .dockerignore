@@ -2,6 +2,7 @@ node_modules/
 .git/
 .github/
 .nuxt/
+.nuxt-local/
 .output/
 coverage/
 dist/

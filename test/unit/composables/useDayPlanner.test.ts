@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useDayPlanner } from '@/composables/useDayPlanner'
-import { useDayPlannerStore } from '@/stores/day-planner-store'
+import { useCalendarPlanStore } from '@/stores/calendar-plan-store'
 import { useTimeStore } from '@/stores/time-store'
 
 describe('useDayPlanner', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.stubGlobal('useRuntimeConfig', () => ({ public: { gameMode: 'spa', gameOfflineQueue: false, gameApiBaseUrl: '' } }))
-    useDayPlannerStore().resetPlan()
+    useCalendarPlanStore().reset()
   })
 
   it('blocks unsupported sleep and plans longer than remaining day', () => {
@@ -72,7 +72,7 @@ describe('useDayPlanner', () => {
 
   it('persists draft plan through store save/load (page refresh)', () => {
     const planner = useDayPlanner()
-    const store = useDayPlannerStore()
+    const store = useCalendarPlanStore()
 
     planner.resetPlan()
     planner.setSleepHours(7)
@@ -81,7 +81,7 @@ describe('useDayPlanner', () => {
 
     const saved: Record<string, unknown> = store.save()
 
-    store.resetPlan()
+    store.reset()
     expect(planner.plan.value.actionIds).toEqual([])
 
     store.load(saved)

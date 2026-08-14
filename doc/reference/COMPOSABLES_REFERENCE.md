@@ -157,24 +157,24 @@ export function useActivityLog() {
 
 ---
 
-## useSkills
+## Навыки
 
-**Путь:** `src/composables/useSkills/index.ts`
+**Путь:** `src/stores/skills-store/index.ts`
 
 **Назначение:** Работа с навыками персонажа
 
 ### API
 
 ```typescript
-export function useSkills() {
+export const skillsStore = useSkillsStore()
   // Навыки персонажа
-  skills: ComputedRef<Skill[]>
+  skills: Record<string, SkillEntry>
 
   // Получение уровня навыка
   getSkillLevel(skillId: string): number
 
   // Получение прогресса навыка
-  getSkillProgress(skillId: string): number
+  getSkillXp(skillId: string): number
 }
 ```
 

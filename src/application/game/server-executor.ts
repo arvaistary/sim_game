@@ -8,7 +8,7 @@
  * Использует Nuxt $fetch (universal). Endpoints соответствуют server/api/game/**.
  */
 import { GameWorld } from '@/domain/game-world/GameWorld'
-import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
+import type { GameWorldJSON, GameWorldSnapshot } from '@/domain/game-world/GameWorld.types'
 import type { DayPlanInput, DayPlanResult, DayPlanStepResult } from '@/domain/game-world/commands/commands.types'
 import { getAllActions, type BalanceAction } from '@/domain/balance/actions'
 import type { EducationProgram } from '@/domain/balance/types'
@@ -92,7 +92,7 @@ export function createServerExecutor(
         (action: BalanceAction) => action.actionType === 'sleep' && action.hourCost === plan.sleepHours,
       )
       const commands: Array<{ kind: 'sleep' | 'work' | 'action'; actionId?: string; hours: number }> = [
-        { kind: 'sleep', actionId: sleepAction?.id, hours: plan.sleepHours },
+        ...(plan.sleepHours > 0 ? [{ kind: 'sleep' as const, actionId: sleepAction?.id, hours: plan.sleepHours }] : []),
         ...(plan.workHours && plan.workHours > 0 ? [{ kind: 'work' as const, hours: plan.workHours }] : []),
         ...plan.actionIds.map((actionId: string) => ({ kind: 'action' as const, actionId, hours: getAllActions().find((action: BalanceAction) => action.id === actionId)?.hourCost ?? 0 })),
       ]
@@ -195,7 +195,7 @@ export function createServerExecutor(
           })
         }
 
-        const hookSnapshot = working.toSnapshot()
+        const hookSnapshot: GameWorldSnapshot = working.toSnapshot()
         const hooksResponse: SyncResponse<GameWorldJSON> = await sendCommand<SyncResponse<GameWorldJSON>>(
           `${base}/api/game/sync`,
           {

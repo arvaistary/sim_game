@@ -29,6 +29,7 @@ export {
   addMoneyInWorld,
   applyPermanentSalaryMultiplier,
   addSkillXp,
+  applySkillXp,
   addWorkActivityEntry,
   advanceHours,
   advanceHoursWithSleepInWorld,

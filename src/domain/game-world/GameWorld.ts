@@ -26,6 +26,7 @@ import type {
 } from '@/domain/balance/constants/default-save'
 import { createBaseSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
 import { INITIAL_STATS } from '@/domain/balance/constants/initial-stats'
+import { normalizeSkillLevels } from '@/domain/balance/skills'
 import type { CharacterTag, SkillModifiers } from '@/domain/balance/types'
 
 export class GameWorld {
@@ -195,7 +196,7 @@ export class GameWorld {
       },
       housing: { ...json.housing },
       skills: {
-        levels: { ...json.skills.levels },
+        levels: normalizeSkillLevels(json.skills.levels),
         modifiers: { ...json.skills.modifiers },
       },
       education: { ...json.education },

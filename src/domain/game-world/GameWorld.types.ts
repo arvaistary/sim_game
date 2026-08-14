@@ -17,9 +17,10 @@ import type {
   TimeData,
 } from '@/domain/balance/constants/default-save'
 import type { CharacterTag, SkillModifiers } from '@/domain/balance/types'
+import type { SkillEntry } from '@/domain/balance/skills'
 
-/** Снимок навыков: key → level (число), либо { level, xp } для совместимости со store. */
-export type SkillLevels = Record<string, number | { level: number; xp: number }>
+/** Снимок навыков: key → достигнутый уровень и накопленный опыт. */
+export type SkillLevels = Record<string, SkillEntry>
 
 /** Запись в activity log. */
 export interface ActivityEntry {

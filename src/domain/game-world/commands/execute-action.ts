@@ -10,10 +10,11 @@ import type { StatChanges } from '@/domain/balance/types'
 import { getActionById } from '@/domain/balance/actions'
 import { calculateStatChanges } from '@/domain/balance/utils/hourly-rates'
 import { getActionAvailabilityBlockReason } from '@/domain/game-world/action-availability'
+import { calculateSkillXpGain, distributeSkillXp } from '@/domain/balance/skills'
 
 import type { DomainActionRequirements, ExecuteActionResult } from './commands.types'
 import {
-  applySkillChanges,
+  applySkillXp,
   applyStatChangesRaw,
   hasSkillLevel,
   spendMoney,
@@ -39,6 +40,10 @@ export function executeActionCommand(world: GameWorld, actionId: string): Execut
 
   if (action.price > 0 && world.wallet.money < action.price) {
     return { success: false, message: 'Недостаточно денег' }
+  }
+
+  if (world.time.dayHoursRemaining < action.hourCost) {
+    return { success: false, message: 'Недостаточно времени на сегодня' }
   }
 
   if (world.time.weekHoursRemaining < action.hourCost) {
@@ -122,7 +127,13 @@ export function executeActionCommand(world: GameWorld, actionId: string): Execut
   }
 
   if (action.skillChanges) {
-    applySkillChanges(world, action.skillChanges)
+    const practiceXp: number = calculateSkillXpGain({
+      hours: action.hourCost,
+      method: action.learningMethod,
+      age: world.player.currentAge,
+    })
+
+    applySkillXp(world, distributeSkillXp({ totalXp: practiceXp, weights: action.skillChanges }))
   }
 
   if (action.grantsItem) {

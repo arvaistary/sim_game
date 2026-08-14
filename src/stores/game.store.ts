@@ -11,7 +11,7 @@ import { useEventsStore } from './events-store'
 import { useActionsStore } from './actions-store'
 import type { Investment } from './finance-store'
 import { useFinanceStore } from './finance-store'
-import { useDayPlannerStore } from '@/stores/day-planner-store'
+import { useCalendarPlanStore } from '@/stores/calendar-plan-store'
 import type { ActivityEntry } from './activity-store'
 import { useActivityStore } from './activity-store'
 import type { GameEvent } from './events-store/events-store.types'
@@ -84,7 +84,7 @@ export const useGameStore = defineStore('game', () => {
 
   const finance = useFinanceStore()
 
-  const dayPlanner = useDayPlannerStore()
+  const calendarPlan = useCalendarPlanStore()
 
   const activity = useActivityStore()
 
@@ -283,7 +283,7 @@ export const useGameStore = defineStore('game', () => {
       finance: finance.save ? finance.save() : {},
       activity: activity.save ? activity.save() : {},
       actions: actions.save ? actions.save() : {},
-      dayPlanner: dayPlanner.save(),
+      calendarPlan: calendarPlan.save(),
       ...prologueStore.save(),
     }
   }
@@ -313,7 +313,14 @@ export const useGameStore = defineStore('game', () => {
 
     if (data?.actions) actions.load?.(data.actions as Record<string, unknown>)
 
-    if (data?.dayPlanner) dayPlanner.load(data.dayPlanner as Record<string, unknown>)
+    if (data?.calendarPlan) {
+      calendarPlan.load(data.calendarPlan as Record<string, unknown>)
+    } else if (data?.dayPlanner) {
+      const legacyDayPlanner: Record<string, unknown> = data.dayPlanner as Record<string, unknown>
+      const legacyPlan: Record<string, unknown> | undefined = legacyDayPlanner.plan as Record<string, unknown> | undefined
+
+      if (legacyPlan) calendarPlan.load({ days: [legacyPlan] })
+    }
 
     usePrologueStore().load(data)
 
@@ -322,7 +329,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function resetGame(): void {
-    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset(); dayPlanner.reset()
+    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset(); calendarPlan.reset()
     usePrologueStore().reset()
     offlineQueue?.clear()
     worldVersion.value++

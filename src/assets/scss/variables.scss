@@ -6,11 +6,11 @@
 // ===== Colors: Primitive =====
 
 // Brand / Accent
-$color-brand-primary: #0fab97;     // яркий emerald (сочный акцент)
-$color-brand-primary-hover: #00B386; // hover — чуть темнее
-$color-brand-primary-active: #009E73; // active — ещё темнее для press-эффекта
-$color-brand-accent: #FF6B6B;      // кораллово-оранжевый (вторичный акцент)
-$color-brand-secondary: #7B61FF;    // фиолетовый (тертиарный акцент)
+$color-brand-primary: #047857;     // emerald-700: AA на светлом фоне
+$color-brand-primary-hover: #036B4F; // hover — чуть темнее
+$color-brand-primary-active: #064E3B; // active — ещё темнее для press-эффекта
+$color-brand-accent: #C2414C;      // коралловый: AA с белым текстом
+$color-brand-secondary: #6841D9;    // фиолетовый, читаемый на светлом фоне
 
 // Neutral scale (slate)
 $color-neutral-0: #FFFFFF;
@@ -26,16 +26,16 @@ $color-neutral-800: #1E293B;       // slate-800 — основной текст
 $color-neutral-900: #0F172A;       // slate-900
 
 // Semantic colors
-$color-success: #22C55E;
-$color-success-strong: #16A34A;   // насыщенный mid-tone для текста на pastel (light)
+$color-success: #15803D;
+$color-success-strong: #166534;   // насыщенный mid-tone для текста на pastel (light)
 $color-success-bright: #4ADE80;   // brighter shade for text on dark bg
-$color-warning: #F59E0B;
-$color-warning-strong: #D97706;   // amber-600 — насыщеннее
+$color-warning: #B45309;
+$color-warning-strong: #92400E;   // amber-800 — AA на светлом фоне
 $color-warning-bright: #FBBF24;
-$color-danger: #EF4444;
-$color-danger-strong: #DC2626;    // red-600 — насыщеннее, лучше читается
+$color-danger: #DC2626;
+$color-danger-strong: #B91C1C;    // red-700 — насыщеннее, лучше читается
 $color-danger-bright: #F87171;
-$color-info: #3B82F6;
+$color-info: #1D4ED8;
 $color-brand-primary-bright: #0fab97; // emerald-300, ярче для dark bg акцентов
 
 // Pastel accents (for cards and badges)
@@ -66,8 +66,8 @@ $color-bg-elevated: $color-neutral-100;
 
 // Text
 $color-text-primary: $color-neutral-800;
-$color-text-secondary: $color-neutral-500;
-$color-text-tertiary: $color-neutral-400;
+$color-text-secondary: $color-neutral-700;
+$color-text-tertiary: $color-neutral-600;
 $color-text-on-primary: $color-neutral-0;
 $color-text-on-accent: $color-neutral-0;
 
@@ -119,7 +119,7 @@ $color-dark-border-subtle: #334155;
 $color-dark-action-primary: #0fab97;     // emerald-300, ярче для dark bg
 $color-dark-action-primary-hover: #00C896; // яркий emerald base
 $color-dark-action-primary-active: #00B386; // hover base
-$color-dark-action-secondary: #7B68D1;
+$color-dark-action-secondary: #A78BFA;
 $color-dark-action-danger: #F87171;      // red-400 — ярче для dark bg
 
 // ===== Typography =====

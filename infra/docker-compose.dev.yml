@@ -1,0 +1,72 @@
+name: game-life-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: game_life
+      POSTGRES_USER: game
+      POSTGRES_PASSWORD: game
+    ports:
+      - "5432:5432"
+    volumes:
+      - game-life-postgres-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U game -d game_life"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.dev
+    command: sh -c "npm run db:migrate && npm run dev:standalone-server:watch"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://game:game@postgres:5432/game_life
+      API_HOST: 0.0.0.0
+      API_PORT: 3001
+      GAME_CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+    volumes:
+      - ..:/app
+      - game-life-dev-node-modules:/app/node_modules
+      - game-life-dev-nuxt:/app/.nuxt-local
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3001/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  client:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.dev
+    command: npm run dev:client -- --host 0.0.0.0
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      NUXT_PUBLIC_GAME_MODE: server
+      NUXT_PUBLIC_GAME_API_BASE_URL: http://localhost:3001
+      NUXT_GAME_AUTH_USERNAME: ${NUXT_GAME_AUTH_USERNAME:-admin}
+      NUXT_GAME_AUTH_PASSWORD: ${NUXT_GAME_AUTH_PASSWORD:-local-only-change-me}
+    volumes:
+      - ..:/app
+      - game-life-dev-node-modules:/app/node_modules
+      - game-life-dev-nuxt:/app/.nuxt-local
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  game-life-postgres-dev-data:
+  game-life-dev-node-modules:
+  game-life-dev-nuxt:

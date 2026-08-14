@@ -6,6 +6,7 @@
  * SPAExecutor (Фаза 4) отвечает за создание/синхронизацию мира.
  */
 import type { GameWorld } from '@/domain/game-world/GameWorld'
+import type { SkillEntry } from '@/domain/balance/skills'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type {
   ExecuteActionResult,
@@ -286,9 +287,15 @@ export function advanceEducation(world: GameWorld): string {
     return 'Лимит учёбы исчерпан. Поспите для восстановления.'
   }
 
+  if (world.time.dayHoursRemaining < 1) {
+    return 'Дневной бюджет исчерпан'
+  }
+
   if (Number(education.cognitiveLoad ?? 0) >= 80) {
     return 'Когнитивная нагрузка слишком высока. Поспите для восстановления.'
   }
+
+  advanceHours(world, 1)
 
   const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(
     candidate => candidate.id === String(active.id ?? ''),
@@ -397,10 +404,10 @@ export function advanceEducation(world: GameWorld): string {
  * @return { number }
  */
 function getProfessionalismLevel(world: GameWorld): number {
-  const entry: number | { level: number; xp: number } | undefined = world.skills.levels.professionalism
+  const entry: SkillEntry | undefined = world.skills.levels.professionalism
 
   if (entry === undefined) return 0
-  return typeof entry === 'number' ? entry : (entry.level ?? 0)
+  return entry.level
 }
 
 /**

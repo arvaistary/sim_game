@@ -22,7 +22,7 @@
         <ActivityLogCard class="top-row__log" />
       </div>
       <HomePreview />
-      <DayPlannerPanel />
+      <DayPlannerSummary />
     </div>
   </DashboardLayout>
 </template>

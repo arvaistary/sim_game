@@ -15,6 +15,8 @@ import type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridg
 import { recalculateSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
 import { INITIAL_STATS } from '@/domain/balance/constants/initial-stats'
 import type { SkillModifiers } from '@/domain/balance/types'
+import { normalizeSkillLevels } from '@/domain/balance/skills'
+import type { SkillEntry, SkillLevelInput } from '@/domain/balance/skills'
 
 export type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
 
@@ -67,7 +69,8 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
   const activity: Record<string, unknown> = stores.activity ?? {}
   const actions: Record<string, unknown> = stores.actions ?? {}
 
-  const skillsLevels: Record<string, number | { level: number; xp: number }> = (skillsRaw.skills ?? {}) as Record<string, number | { level: number; xp: number }>
+  const rawSkills: Record<string, SkillLevelInput> = (skillsRaw.skills ?? {}) as Record<string, SkillLevelInput>
+  const skillsLevels: Record<string, SkillEntry> = normalizeSkillLevels(rawSkills)
   const skillModifiers: SkillModifiers = recalculateSkillModifiers(skillsLevels)
 
   const snapshot: GameWorldSnapshot = {

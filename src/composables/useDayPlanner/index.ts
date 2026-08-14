@@ -1,4 +1,4 @@
-import { storeToRefs } from 'pinia'
+import type { ComputedRef, Ref } from 'vue'
 
 import { getAllActions } from '@/domain/balance/actions'
 
@@ -6,13 +6,16 @@ import type { BalanceAction } from '@/domain/balance/actions/types'
 
 import { BALANCE_CONSTANTS } from '@/domain/balance/utils/hourly-rates'
 
-import type { DayPlanResult } from '@/domain/game-world/commands/commands.types'
+import { createCalendarPlan, getScheduledWorkHours } from '@/domain/game-world/calendar'
+import type { CalendarDayPlan } from '@/domain/game-world/calendar'
+import { GameWorld } from '@/domain/game-world/GameWorld'
+import type { DayPlanInput, DayPlanResult } from '@/domain/game-world/commands/commands.types'
 
 import type { GameEvent } from '@/stores/events-store/events-store.types'
 
 import { useGameStore } from '@/stores/game.store'
 
-import { useDayPlannerStore } from '@/stores/day-planner-store'
+import { useCalendarPlanStore } from '@/stores/calendar-plan-store'
 
 import { useEventsStore } from '@/stores/events-store'
 
@@ -38,9 +41,13 @@ function getActionHourCost(actionId: string): number {
  * @return { UseDayPlanner } состояние и команды планировщика
  */
 export function useDayPlanner(): UseDayPlanner {
-  const dayPlannerStore = useDayPlannerStore()
-
-  const { plan, result } = storeToRefs(dayPlannerStore)
+  const calendarStore = useCalendarPlanStore()
+  const plan: ComputedRef<DayPlanInput> = computed<DayPlanInput>(() => calendarStore.plan.days[0] ?? {
+    sleepHours: 7,
+    workHours: 0,
+    actionIds: [],
+  })
+  const result: Ref<DayPlanResult | null> = ref<DayPlanResult | null>(null)
 
   const time = useTime()
 
@@ -48,7 +55,8 @@ export function useDayPlanner(): UseDayPlanner {
 
   const pendingEventsCount: ComputedRef<number> = computed(() => getPendingEventsCount(eventsStore))
 
-  const sleepHoursSupported: ComputedRef<boolean> = computed<boolean>(() => getAllActions().some((action: BalanceAction) => action.actionType === 'sleep' && action.hourCost === plan.value.sleepHours))
+  const sleepHoursSupported: ComputedRef<boolean> = computed<boolean>(() => plan.value.sleepHours === 0
+    || getAllActions().some((action: BalanceAction) => action.actionType === 'sleep' && action.hourCost === plan.value.sleepHours))
 
   const plannedActionHours: ComputedRef<number> = computed<number>(() => plan.value.actionIds.reduce(
     (sum: number, id: string) => sum + getActionHourCost(id),
@@ -93,6 +101,43 @@ export function useDayPlanner(): UseDayPlanner {
     return getAllActions().find((action: BalanceAction) => action.id === actionId)?.title ?? actionId
   }
 
+  function addFreeAction(actionId: string): boolean {
+    const action: BalanceAction | undefined = getAllActions().find((candidate: BalanceAction) => candidate.id === actionId)
+    const actionHours: number = action?.hourCost ?? Number.NaN
+
+    if (!action || action.actionType === 'sleep' || action.actionType === 'work' || !Number.isFinite(actionHours)) return false
+
+    if (plannedHours.value + actionHours > time.dayHoursRemaining.value) return false
+
+    calendarStore.addAction(0, actionId)
+    return true
+  }
+
+  function removeFreeActionAt(index: number): void {
+    calendarStore.removeAction(0, index)
+  }
+
+  function setSleepHours(hours: number): void {
+    calendarStore.setSleepHours(0, hours)
+  }
+
+  function setWorkHours(hours: number): void {
+    calendarStore.setPlan({
+      days: calendarStore.plan.days.map((day: DayPlanInput, dayIndex: number) => dayIndex === 0
+        ? { ...day, workHours: Math.max(0, hours) }
+        : day),
+    })
+  }
+
+  function resetPlan(): void {
+    calendarStore.reset()
+    result.value = null
+  }
+
+  function clearResult(): void {
+    result.value = null
+  }
+
   async function confirmDay(): Promise<DayPlanResult | null> {
     if (!canConfirm.value) return null
 
@@ -101,7 +146,13 @@ export function useDayPlanner(): UseDayPlanner {
     result.value = await gameStore.planDayAsync({ ...plan.value, actionIds: [...plan.value.actionIds] })
 
     if (result.value?.success) {
-      dayPlannerStore.resetDraft()
+      const world: GameWorld = GameWorld.fromJSON(gameStore.getWorldState())
+      const replacementDay: CalendarDayPlan = {
+        ...createCalendarPlan(1).days[0]!,
+        workHours: getScheduledWorkHours(world, calendarStore.plan.days.length - 1),
+      }
+
+      calendarStore.advanceAfterDay(calendarStore.plan.days.length, replacementDay)
     }
 
     const { openEventModal } = useEventModal()
@@ -128,12 +179,12 @@ export function useDayPlanner(): UseDayPlanner {
     hasDeferredEventBadge,
     pendingEventsCount,
     getActionTitle,
-    addFreeAction: dayPlannerStore.addFreeAction,
-    removeFreeActionAt: dayPlannerStore.removeFreeActionAt,
-    setSleepHours: dayPlannerStore.setSleepHours,
-    setWorkHours: dayPlannerStore.setWorkHours,
-    resetPlan: dayPlannerStore.resetPlan,
-    clearResult: dayPlannerStore.clearResult,
+    addFreeAction,
+    removeFreeActionAt,
+    setSleepHours,
+    setWorkHours,
+    resetPlan,
+    clearResult,
     confirmDay,
   }
 }

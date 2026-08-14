@@ -36,6 +36,12 @@
   gap: $space-2;
 }
 
+.day-planner__sleep-hint {
+  margin: $space-2 0 0;
+  color: var(--color-text-secondary);
+  font-size: $font-size-xs;
+}
+
 .day-planner__confirm {
   align-self: flex-end;
 }

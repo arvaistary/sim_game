@@ -91,7 +91,7 @@ describe('resolveEventDecisionCommand canonical behavior', () => {
 
     resolveEventDecisionCommand(world, event, 'learn')
 
-    expect(world.skills.levels.programming).toEqual({ level: 2.5, xp: 250 })
+    expect(world.skills.levels.programming).toEqual({ level: 2, xp: 250 })
   })
 
   it('applies skillCheck success branches', () => {

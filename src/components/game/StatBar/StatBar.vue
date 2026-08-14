@@ -3,9 +3,20 @@
     :text="`${Math.round(value)} / ${max}`"
     stretch
   >
-    <div class="stat-bar">
+    <div
+      :class="[
+        'stat-bar',
+        { 'stat-bar--underflow': alert === 'underflow', 'stat-bar--overflow': alert === 'overflow' },
+      ]"
+    >
       <div class="stat-bar__header">
         <span class="stat-bar__label">{{ label }}</span>
+        <span
+          v-if="delta !== undefined"
+          :class="['stat-bar__delta', `stat-bar__delta--${deltaTone}`]"
+        >
+          {{ formatDelta(delta) }}
+        </span>
       </div>
       <ProgressBar :value="value" :max="max" :color="barColor" :height="6" />
     </div>
@@ -20,12 +31,28 @@ interface StatBarProps {
   value: number
   max?: number
   color?: string
+  delta?: number
+  alert?: 'underflow' | 'overflow' | ''
 }
 
 const props = withDefaults(defineProps<StatBarProps>(), {
   color: '',
   max: 100,
+  delta: undefined,
+  alert: '',
 })
+
+const deltaTone = computed<'positive' | 'negative' | 'neutral'>(() => {
+  if (props.delta === undefined || props.delta === 0) return 'neutral'
+  return props.delta > 0 ? 'positive' : 'negative'
+})
+
+function formatDelta(value: number): string {
+  const rounded: number = Math.round(value)
+  if (rounded > 0) return `↑ +${rounded}`
+  if (rounded < 0) return `↓ ${rounded}`
+  return '→ 0'
+}
 
 const barColor = computed<string>(() => {
   if (props.color) return props.color

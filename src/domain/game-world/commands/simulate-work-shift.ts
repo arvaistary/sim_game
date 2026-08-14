@@ -25,6 +25,18 @@ export function simulateWorkShiftCommand(world: GameWorld, hours: number): WorkS
     return { success: false, message: 'Нет работы', earnedAmount: 0, hoursWorked: 0 }
   }
 
+  if (!Number.isFinite(hours) || hours <= 0) {
+    return { success: false, message: 'Некорректная длительность смены', earnedAmount: 0, hoursWorked: 0 }
+  }
+
+  if (world.time.dayHoursRemaining < hours) {
+    return { success: false, message: 'Недостаточно времени на сегодня', earnedAmount: 0, hoursWorked: 0 }
+  }
+
+  if (world.time.weekHoursRemaining < hours) {
+    return { success: false, message: 'Недостаточно времени на неделе', earnedAmount: 0, hoursWorked: 0 }
+  }
+
   const baseSalary: number = hours * (job.salaryPerHour ?? 0)
   const salary: number = Math.round(baseSalary * world.skills.modifiers.salaryMultiplier)
 

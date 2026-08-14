@@ -51,6 +51,16 @@ describe('planDayCommand', () => {
     expect(world.time.sleepDebt).toBe(0)
   })
 
+  it('allows a day without sleep', () => {
+    const world: GameWorld = employedWorld()
+
+    const result: DayPlanResult = planDayCommand(world, { sleepHours: 0, actionIds: [] })
+
+    expect(result.success).toBe(true)
+    expect(result.steps.map(step => step.kind)).toEqual(['idle'])
+    expect(result.totalHoursSpent).toBe(24)
+  })
+
   it('matches sequential domain commands for money and stats', () => {
     const plannedWorld: GameWorld = employedWorld()
     const sequentialWorld: GameWorld = employedWorld()
@@ -73,7 +83,8 @@ describe('planDayCommand', () => {
     world.wallet.money = 0
     const result: DayPlanResult = planDayCommand(world, { sleepHours: 7, workHours: 0, actionIds: ['fun_cinema'] })
 
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('День выполнен частично')
     expect(result.steps.find(step => step.actionId === 'fun_cinema')).toMatchObject({ success: false, hoursSpent: 0 })
     expect(result.idleHours).toBe(17)
     expect(world.time.totalHours).toBe(24)
@@ -102,6 +113,49 @@ describe('planDayCommand', () => {
     expect(world.toJSON()).toEqual(before)
   })
 
+  it('blocks a period when energy or health is zero', () => {
+    const energyWorld: GameWorld = employedWorld()
+    energyWorld.stats.energy = 0
+    const energyResult: DayPlanResult = planDayCommand(energyWorld, { sleepHours: 7, actionIds: [] })
+
+    expect(energyResult.success).toBe(false)
+    expect(energyResult.message).toBe('Нельзя прожить период: энергия достигла нуля')
+    expect(energyResult.steps).toEqual([])
+
+    const healthWorld: GameWorld = employedWorld()
+    healthWorld.stats.health = 0
+    const healthResult: DayPlanResult = planDayCommand(healthWorld, { sleepHours: 7, actionIds: [] })
+
+    expect(healthResult.success).toBe(false)
+    expect(healthResult.message).toBe('Нельзя прожить период: здоровье достигло нуля')
+    expect(healthResult.steps).toEqual([])
+  })
+
+  it('blocks a period at -150 on non-critical displayed scales', () => {
+    const allowedWorld: GameWorld = employedWorld()
+    allowedWorld.stats.mood = -149
+    expect(planDayCommand(allowedWorld, { sleepHours: 7, actionIds: [] }).success).toBe(true)
+
+    const moodWorld: GameWorld = employedWorld()
+    moodWorld.stats.mood = -150
+    const moodResult: DayPlanResult = planDayCommand(moodWorld, { sleepHours: 7, actionIds: [] })
+
+    expect(moodResult.success).toBe(false)
+    expect(moodResult.message).toBe('Нельзя прожить период: шкала «настроение» достигла критического дефицита')
+
+    const physicalWorld: GameWorld = employedWorld()
+    physicalWorld.stats.physical = -150
+    expect(planDayCommand(physicalWorld, { sleepHours: 7, actionIds: [] }).success).toBe(false)
+
+    const hungerWorld: GameWorld = employedWorld()
+    hungerWorld.stats.hunger = 250
+    expect(planDayCommand(hungerWorld, { sleepHours: 7, actionIds: [] }).success).toBe(false)
+
+    const stressWorld: GameWorld = employedWorld()
+    stressWorld.stats.stress = 250
+    expect(planDayCommand(stressWorld, { sleepHours: 7, actionIds: [] }).success).toBe(false)
+  })
+
   it('rejects sleep and work actions in free-action slots', () => {
     const world: GameWorld = employedWorld()
     const before: GameWorldJSON = world.toJSON()
@@ -118,7 +172,8 @@ describe('planDayCommand', () => {
     world.career.currentJob.employed = false
     const result: DayPlanResult = planDayCommand(world, { sleepHours: 7, workHours: 8, actionIds: [] })
 
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('День выполнен частично')
     expect(result.steps.find(step => step.kind === 'work')).toMatchObject({ success: false, hoursSpent: 0 })
     expect(result.idleHours).toBe(17)
   })

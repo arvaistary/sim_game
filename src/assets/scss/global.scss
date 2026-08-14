@@ -24,6 +24,9 @@
   --color-text-primary: #{$color-text-primary};
   --color-text-secondary: #{$color-text-secondary};
   --color-text-tertiary: #{$color-text-tertiary};
+  --color-text-on-primary: #{$color-neutral-0};
+  --color-text-on-accent: #{$color-neutral-0};
+  --color-text-on-status: #{$color-neutral-0};
   --color-border: #{$color-border};
   --color-border-subtle: #{$color-border-subtle};
   --color-action-primary: #{$color-action-primary};
@@ -41,6 +44,9 @@
   --color-status-danger-strong: #{$color-status-danger-strong};
   --color-status-danger-bright: #{$color-status-danger-bright};
   --color-status-info: #{$color-status-info};
+  --color-success: var(--color-status-success);
+  --color-warning: var(--color-status-warning);
+  --color-danger: var(--color-status-danger);
   --color-pastel-purple: #{$color-pastel-purple};
   --color-pastel-orange: #{$color-pastel-orange};
   --color-pastel-blue: #{$color-pastel-blue};
@@ -53,6 +59,17 @@
   --color-pastel-green-strong: #{$color-pastel-green-strong};
   --color-pastel-pink-strong: #{$color-pastel-pink-strong};
   --color-pastel-teal-strong: #{$color-pastel-teal-strong};
+
+  // Legacy aliases kept in the same contrast-safe token layer.
+  --color-bg-panel: var(--color-bg-card);
+  --color-bg-secondary: var(--color-bg-surface-2);
+  --color-bg-tertiary: var(--color-bg-elevated);
+  --color-surface: var(--color-bg-card);
+  --color-text-muted: var(--color-text-tertiary);
+  --color-border-light: var(--color-border-subtle);
+  --color-border-strong: var(--color-border);
+  --color-warning-bg: var(--color-pastel-orange);
+  --color-accent-alpha: color-mix(in srgb, var(--color-action-primary) 20%, transparent);
 
   // Shadows
   --shadow-xs: #{$shadow-xs};
@@ -249,6 +266,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: $space-4;
+  border-radius: $space-4;
   align-items: flex-end;
   margin: $space-3 0 $space-2;
   padding: $space-3;
@@ -295,6 +313,13 @@ html[data-theme="dark"] {
   --color-action-primary-active: #{$color-dark-action-primary-active};
   --color-action-secondary: #{$color-dark-action-secondary};
   --color-action-danger: #{$color-dark-action-danger};
+  --color-text-on-primary: #{$color-dark-bg-app};
+  --color-text-on-accent: #{$color-dark-bg-app};
+  --color-text-on-status: #{$color-dark-bg-app};
+  --color-brand-accent: #{$color-danger-bright};
+  --color-status-success: #{$color-success-bright};
+  --color-status-warning: #{$color-warning-bright};
+  --color-status-danger: #{$color-danger-bright};
   --color-accent: #E85656;
   --color-accent-soft: rgb(255 107 107 / 16%);
   --color-sage: #{$color-pastel-green};
@@ -303,13 +328,19 @@ html[data-theme="dark"] {
   --color-shadow: rgb(15 23 42 / 45%);
   --shadow-button: 0 4px 12px rgb(15 23 42 / 30%);
 
-  // Pastel strong colors - need lighter versions for dark theme
-  --color-pastel-purple-strong: #A78BFA;
-  --color-pastel-orange-strong: #FBBF24;
-  --color-pastel-blue-strong: #60A5FA;
-  --color-pastel-green-strong: #4ADE80;
-  --color-pastel-pink-strong: #F472B6;
-  --color-pastel-teal-strong: #0fab97;
+  // Dark pastel surfaces use light text tokens for readable badges and cards.
+  --color-pastel-purple: #312E5A;
+  --color-pastel-orange: #4A2B0D;
+  --color-pastel-blue: #1E3A5F;
+  --color-pastel-green: #123B2B;
+  --color-pastel-pink: #4A203A;
+  --color-pastel-teal: #134E4A;
+  --color-pastel-purple-strong: #C4B5FD;
+  --color-pastel-orange-strong: #FCD34D;
+  --color-pastel-blue-strong: #93C5FD;
+  --color-pastel-green-strong: #86EFAC;
+  --color-pastel-pink-strong: #F9A8D4;
+  --color-pastel-teal-strong: #5EEAD4;
 
   // Status strong → bright variants for icon/text contrast on dark
   --color-status-success-strong: #{$color-status-success-bright};

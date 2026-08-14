@@ -111,6 +111,7 @@ import './index.scss'
 import type { ComputedRef } from 'vue'
 import type { StartMode } from '@/types'
 import { GameWorld } from '@/domain/game-world/GameWorld'
+import { normalizeSkillLevels } from '@/domain/balance/skills'
 import {
   buildCleanSlateAdultStartPayload,
   buildInfancyPrologueStartPayload,
@@ -164,7 +165,7 @@ async function startGame(): Promise<void> {
     playerStore.hideWelcomeScreen()
     timeStore.setStartAge(payload.startAge as number)
     timeStore.setTotalHours(0)
-    skillsStore.initializeSkills(CLEAN_SLATE_ADULT_SKILLS)
+    skillsStore.load({ skills: normalizeSkillLevels(CLEAN_SLATE_ADULT_SKILLS) })
     educationStore.setEducationLevel('none')
     walletStore.reset()
 

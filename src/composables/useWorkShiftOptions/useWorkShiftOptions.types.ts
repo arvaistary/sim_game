@@ -16,7 +16,6 @@ export interface WorkOptions {
   schedule: string
   dailyHours: number
   oneDayHours: number
-  fullShiftHours: number
   requiredHoursPerWeek: number
   workedHoursCurrentWeek: number
   remainingHoursCurrentWeek: number

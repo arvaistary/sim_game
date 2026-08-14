@@ -54,7 +54,6 @@ export function useWorkShiftOptions(): UseWorkShiftOptions {
       schedule: work.schedule,
       dailyHours,
       oneDayHours: remainingHoursCurrentWeek > 0 ? Math.min(dailyHours, remainingHoursCurrentWeek) : 0,
-      fullShiftHours: remainingHoursCurrentWeek,
       requiredHoursPerWeek,
       workedHoursCurrentWeek,
       remainingHoursCurrentWeek,

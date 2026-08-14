@@ -25,7 +25,7 @@ const planner = useDayPlanner()
 const { canConfirm } = planner
 const { workOptions } = useWorkShiftOptions()
 const workPresets = computed(() => workOptions.value
-  ? [workOptions.value.oneDayHours, workOptions.value.fullShiftHours].filter((hours, index, values) => hours > 0 && values.indexOf(hours) === index)
+  ? [workOptions.value.oneDayHours].filter(hours => hours > 0)
   : [])
 
 const workResult = ref('')

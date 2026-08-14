@@ -80,6 +80,7 @@ import type {
   PrologueTrack,
 } from '@/domain/prologue/prologue.types'
 import { getProloguePaceProfile } from '@/domain/prologue/prologue-pace'
+import { normalizeSkillLevels } from '@/domain/balance/skills'
 
 definePageMeta({ middleware: ['game-init'] })
 
@@ -192,7 +193,7 @@ async function onConfirmHandoff(): Promise<void> {
   timeStore.setTotalHours(0)
 
   skillsStore.reset()
-  skillsStore.initializeSkills(patch.skills)
+  skillsStore.load({ skills: normalizeSkillLevels(patch.skills) })
 
   educationStore.setEducationLevel(patch.educationLevelKey)
   educationStore.setSchool(patch.school)

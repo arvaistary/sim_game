@@ -1,6 +1,7 @@
 import type { GameWorld } from '@/domain/game-world/GameWorld'
-import type { StatChanges } from '@/domain/balance/types'
+import type { StatChanges, StatKey } from '@/domain/balance/types'
 import { getAllActions, getActionById, type BalanceAction } from '@/domain/balance/actions'
+import { NON_CRITICAL_DISPLAY_MIN } from '@/domain/balance/constants/stat-limits'
 import { BALANCE_CONSTANTS } from '@/domain/balance/utils/hourly-rates'
 import type { DayEndHooks } from './day-end-hooks'
 import { createNoopDayEndHooks } from './day-end-hooks'
@@ -11,6 +12,8 @@ import { advanceHours } from './mutations'
 
 const DAYS_PER_MONTH: number = 30
 const DAYS_PER_YEAR: number = 365
+const INVERTED_STAT_KEYS: ReadonlySet<StatKey> = new Set<StatKey>(['hunger', 'stress'])
+const NON_CRITICAL_STAT_KEYS: readonly StatKey[] = ['hunger', 'stress', 'mood', 'physical']
 
 function emptyResult(world: GameWorld, message: string, plannedHours: number = 0): DayPlanResult {
   return {
@@ -50,6 +53,35 @@ function findSleepAction(hours: number): string | null {
   return action?.id ?? null
 }
 
+function getDisplayedStatValue(stats: GameWorld['stats'], key: StatKey): number {
+  return INVERTED_STAT_KEYS.has(key) ? 100 - stats[key] : stats[key]
+}
+
+function getStatLabel(key: StatKey): string {
+  switch (key) {
+    case 'hunger': return 'голод'
+    case 'stress': return 'стресс'
+    case 'mood': return 'настроение'
+    case 'physical': return 'форма'
+    case 'energy': return 'энергия'
+    case 'health': return 'здоровье'
+  }
+}
+
+function getPlanBlockingReason(stats: GameWorld['stats']): string | null {
+  if (stats.energy <= 0) return 'Нельзя прожить период: энергия достигла нуля'
+
+  if (stats.health <= 0) return 'Нельзя прожить период: здоровье достигло нуля'
+
+  const blockedStat: StatKey | undefined = NON_CRITICAL_STAT_KEYS.find(
+    (key: StatKey) => getDisplayedStatValue(stats, key) <= NON_CRITICAL_DISPLAY_MIN,
+  )
+
+  return blockedStat === undefined
+    ? null
+    : `Нельзя прожить период: шкала «${getStatLabel(blockedStat)}» достигла критического дефицита`
+}
+
 /**
  * Выполнить атомарный план игрового дня.
  * @description [Domain] - последовательно применяет сон, работу и действия, затем закрывает остаток дня нейтральным временем.
@@ -57,7 +89,7 @@ function findSleepAction(hours: number): string | null {
  */
 export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayEndHooks = createNoopDayEndHooks()): DayPlanResult {
   const actionIds: string[] = Array.isArray(plan.actionIds) ? plan.actionIds : []
-  const sleepActionId: string | null = findSleepAction(plan.sleepHours)
+  const sleepActionId: string | null = plan.sleepHours > 0 ? findSleepAction(plan.sleepHours) : null
   const workHours: number = plan.workHours ?? 0
   const actionDefinitions: Array<BalanceAction | null> = actionIds.map(actionId => getActionById(actionId))
   const hasInvalidFreeAction: boolean = actionDefinitions.some(
@@ -72,7 +104,7 @@ export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayE
     ? BALANCE_CONSTANTS.HOURS_PER_DAY
     : world.time.dayHoursRemaining
 
-  if (!Number.isFinite(plan.sleepHours) || plan.sleepHours < 0 || !sleepActionId) {
+  if (!Number.isFinite(plan.sleepHours) || plan.sleepHours < 0 || (plan.sleepHours > 0 && !sleepActionId)) {
     return emptyResult(world, 'Недоступная длительность сна', plannedHours)
   }
 
@@ -87,6 +119,10 @@ export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayE
   if (plannedHours > initialRemaining) {
     return emptyResult(world, 'План превышает оставшееся время дня', plannedHours)
   }
+
+  const blockingReason: string | null = getPlanBlockingReason(world.stats)
+
+  if (blockingReason !== null) return emptyResult(world, blockingReason, plannedHours)
 
   const result: DayPlanResult = {
     success: true,
@@ -114,13 +150,20 @@ export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayE
   const run = (step: DayPlanStepResult, beforeStats: GameWorld['stats'], beforeMoney: number): void => {
     result.steps.push(step)
 
-    if (step.success) addStepDelta(result, world, beforeStats, beforeMoney)
+    if (step.success) {
+      addStepDelta(result, world, beforeStats, beforeMoney)
+    } else {
+      result.success = false
+      result.message = 'День выполнен частично'
+    }
   }
 
-  const beforeSleepStats: GameWorld['stats'] = { ...world.stats }
-  const beforeSleepMoney: number = world.wallet.money
-  const sleepResult: ExecuteActionResult = executeActionCommand(world, sleepActionId)
-  run({ kind: 'sleep', actionId: sleepActionId, success: sleepResult.success, message: sleepResult.message, hoursSpent: sleepResult.success ? sleepResult.hoursSpent ?? plan.sleepHours : 0 }, beforeSleepStats, beforeSleepMoney)
+  if (plan.sleepHours > 0 && sleepActionId !== null) {
+    const beforeSleepStats: GameWorld['stats'] = { ...world.stats }
+    const beforeSleepMoney: number = world.wallet.money
+    const sleepResult: ExecuteActionResult = executeActionCommand(world, sleepActionId)
+    run({ kind: 'sleep', actionId: sleepActionId, success: sleepResult.success, message: sleepResult.message, hoursSpent: sleepResult.success ? sleepResult.hoursSpent ?? plan.sleepHours : 0 }, beforeSleepStats, beforeSleepMoney)
+  }
 
   if (workHours > 0) {
     const beforeWorkStats: GameWorld['stats'] = { ...world.stats }

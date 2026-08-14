@@ -46,7 +46,7 @@ function buildSampleSnapshot(): GameWorldSnapshot {
       lastWeeklyBonus: null,
     },
     skills: {
-      levels: { professionalism: 3, communication: 2 },
+      levels: { professionalism: { level: 3, xp: 350 }, communication: { level: 2, xp: 150 } },
       modifiers: {
         hungerDrainMultiplier: 1,
         energyDrainMultiplier: 1,
@@ -130,7 +130,7 @@ describe('GameWorld skeleton', () => {
     expect(world.wallet.money).toBe(50000)
     expect(world.career.currentJob.id).toBe('job_test')
     expect(world.housing.level).toBe(1)
-    expect(world.skills.levels.professionalism).toBe(3)
+    expect(world.skills.levels.professionalism?.level).toBe(3)
     expect(world.skills.modifiers.salaryMultiplier).toBe(1.1)
     expect(world.relationships).toHaveLength(1)
     expect(world.finance.reserveFund).toBe(20000)

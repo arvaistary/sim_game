@@ -102,8 +102,9 @@ describe('event rolls integration', () => {
 
     world.finance.expenseList = []
     world.events.state.cooldownByEventId.micro_minor_injury = 999
-
     for (let dayIndex: number = 0; dayIndex < 60; dayIndex += 1) {
+      // Тестирует только месячные переходы; критические статы не должны остановить цикл.
+      mutationsModule.setStatsInWorld(world, { hunger: 0, energy: 100, stress: 0, mood: 100, health: 100, physical: 100 })
       planDayCommand(world, { sleepHours: 7, workHours: 0, actionIds: [] }, hooks)
     }
 

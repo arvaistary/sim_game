@@ -1,5 +1,5 @@
 {
-  "extends": "./.nuxt/tsconfig.json",
+  "extends": "./.nuxt-local/tsconfig.json",
   "compilerOptions": {
     "strictNullChecks": true
   }

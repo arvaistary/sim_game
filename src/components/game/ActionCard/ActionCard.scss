@@ -36,7 +36,7 @@
   font-size: $font-size-xs;
   color: var(--color-text-secondary);
   line-height: $line-height-base;
-  margin: 0;
+  margin: $space-2 0;
 }
 
 .action-card__content {

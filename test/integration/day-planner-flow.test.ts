@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
 
 import { defineComponent, nextTick } from 'vue'
+import type { DefineComponent } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
+import type { DOMWrapper } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import DayPlannerPanel from '@/components/pages/dashboard/DayPlannerPanel/DayPlannerPanel.vue'
@@ -13,12 +15,19 @@ import { useWalletStore } from '@/stores/wallet-store'
 import { useSkillsStore } from '@/stores/skills-store'
 import { useEducationStore } from '@/stores/education-store'
 import { useFinanceStore } from '@/stores/finance-store'
+import { showGameResultModal } from '@/composables/useGameModal'
+import type { DayPlannerWrapper } from './day-planner-flow.types'
 
-const PanelStub = defineComponent({
+vi.mock('@/composables/useGameModal', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/composables/useGameModal')>()),
+  showGameResultModal: vi.fn(),
+}))
+
+const PanelStub: DefineComponent = defineComponent({
   template: '<div><slot /></div>',
 })
 
-const ButtonStub = defineComponent({
+const ButtonStub: DefineComponent = defineComponent({
   props: {
     label: { type: String, default: '' },
     disabled: { type: Boolean, default: false },
@@ -27,7 +36,7 @@ const ButtonStub = defineComponent({
   template: '<button :disabled="disabled" @click="$emit(\'click\')">{{ label }}</button>',
 })
 
-function mountDayPlanner(): ReturnType<typeof mount> {
+function mountDayPlanner(): DayPlannerWrapper {
   return mount(DayPlannerPanel, {
     global: {
       stubs: {
@@ -76,8 +85,8 @@ describe('DayPlannerPanel integration flow', () => {
     planner.setWorkHours(8)
     expect(planner.addFreeAction('fun_park_walk')).toBe(true)
 
-    const wrapper = mountDayPlanner()
-    const confirmButton = wrapper.findAll('button').find((button) => button.text() === 'Прожить день')
+    const wrapper: DayPlannerWrapper = mountDayPlanner()
+    const confirmButton: DOMWrapper<Element> | undefined = wrapper.findAll('button').find((button) => button.text() === 'Прожить день')
 
     expect(confirmButton).toBeDefined()
     await confirmButton!.trigger('click')
@@ -86,8 +95,8 @@ describe('DayPlannerPanel integration flow', () => {
 
     expect(useTimeStore().totalHours).toBe(24)
     expect(career.currentJob.workedHoursCurrentWeek).toBe(8)
-    expect(wrapper.text()).toContain('День завершён')
-    expect(wrapper.text()).toContain('нейтрально: 7 ч')
+    expect(wrapper.text()).not.toContain('40 ч')
+    expect(showGameResultModal).toHaveBeenCalledWith('День завершён', expect.stringContaining('нейтрально: 7 ч'))
 
     wrapper.unmount()
   })
@@ -98,11 +107,11 @@ describe('DayPlannerPanel integration flow', () => {
 
     const planner = useDayPlanner()
     planner.setSleepHours(7)
-    const wrapper = mountDayPlanner()
+    const wrapper: DayPlannerWrapper = mountDayPlanner()
 
     expect(wrapper.text()).not.toContain('Работа')
 
-    const confirmButton = wrapper.findAll('button').find((button) => button.text() === 'Прожить день')
+    const confirmButton: DOMWrapper<Element> | undefined = wrapper.findAll('button').find((button) => button.text() === 'Прожить день')
     expect(confirmButton).toBeDefined()
     await confirmButton!.trigger('click')
     await flushPromises()
@@ -116,8 +125,8 @@ describe('DayPlannerPanel integration flow', () => {
 
   it('unwraps planner refs in the UI and disables an invalid plan', async () => {
     const planner = useDayPlanner()
-    const wrapper = mountDayPlanner()
-    const confirmButton = wrapper.findAll('button').find((button) => button.text() === 'Прожить день')
+    const wrapper: DayPlannerWrapper = mountDayPlanner()
+    const confirmButton: DOMWrapper<Element> | undefined = wrapper.findAll('button').find((button) => button.text() === 'Прожить день')
 
     expect(wrapper.text()).toContain('Осталось часов: 24')
     expect(confirmButton?.attributes('disabled')).toBeUndefined()

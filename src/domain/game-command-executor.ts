@@ -1,5 +1,6 @@
 import type { GameWorldJSON } from './game-world/GameWorld.types'
 import { GameWorld } from './game-world/GameWorld'
+import type { SkillEntry } from './balance/skills'
 import type { CareerJob, EducationProgram, ProgramStep } from './balance/types'
 import { CAREER_JOBS } from './balance/constants/career-jobs'
 import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from './balance/constants/education-programs'
@@ -115,10 +116,8 @@ export class GameCommandExecutor {
 
     if (!job) return { success: false, message: 'Вакансия не найдена' }
 
-    const professionalismEntry: number | { level: number; xp: number } | undefined = world.skills.levels.professionalism
-    const professionalism: number = professionalismEntry === undefined
-      ? 0
-      : typeof professionalismEntry === 'number' ? professionalismEntry : professionalismEntry.level
+    const professionalismEntry: SkillEntry | undefined = world.skills.levels.professionalism
+    const professionalism: number = professionalismEntry?.level ?? 0
 
 
     if (professionalism < job.minProfessionalism) {
@@ -194,9 +193,14 @@ export class GameCommandExecutor {
         return { success: false, message: 'Лимит учёбы исчерпан. Поспите для восстановления.' }
       }
 
+      if (world.time.dayHoursRemaining < 1) {
+        return { success: false, message: 'Дневной бюджет исчерпан' }
+      }
+
       if (Number(education.cognitiveLoad ?? 0) >= 80) {
         return { success: false, message: 'Когнитивная нагрузка слишком высока. Поспите для восстановления.' }
       }
+      advanceHours(world, 1)
       const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(candidate => candidate.id === String(active.id ?? ''))
       const storedSteps: Array<Record<string, unknown>> = Array.isArray(active.steps) ? active.steps as Array<Record<string, unknown>> : []
       const upgradedBookSteps: ProgramStep[] | null = upgradeBookChapterSteps(program, storedSteps)

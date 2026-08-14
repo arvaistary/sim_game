@@ -19,7 +19,7 @@ const PERIODIC_MS = 30_000
 const GAME_STORE_IDS = new Set([
   'game', 'time', 'stats', 'wallet', 'skills', 'career',
   'education', 'housing', 'player', 'events', 'actions',
-  'finance', 'activity', 'prologue',
+  'finance', 'activity', 'calendarPlan', 'prologue',
 ])
 
 export default defineNuxtPlugin((nuxtApp) => {

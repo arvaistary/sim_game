@@ -34,7 +34,7 @@ import { ACTION_CATEGORIES } from '@/config/action-categories'
 import type { ActionCategory as ActionCategoryId } from '@/domain/balance/types'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { CanExecuteActionResult } from '@/stores/game.store.types'
-import type { SortMode, StatFilterId } from './actions.types'
+  import type { SortMode, StatFilterId } from '@/types/actions-page.types'
 
 definePageMeta({ middleware: 'game-init' })
 
