@@ -33,13 +33,15 @@ New-Item -ItemType Directory -Path $paths.FEATURE_DIR -Force | Out-Null
 
 # Copy plan template if it exists, otherwise note it or create empty file
 $template = Join-Path $paths.REPO_ROOT '.specify/templates/plan-template.md'
-if (Test-Path $template) {
-    Copy-Item $template $paths.IMPL_PLAN -Force
-    Write-Output "Copied plan template to $($paths.IMPL_PLAN)"
+if (Test-Path $paths.IMPL_PLAN -PathType Leaf) {
+    Write-Output "Using existing plan at $($paths.IMPL_PLAN)"
+} elseif (Test-Path $template) {
+    Copy-Item $template $paths.IMPL_PLAN
+    Write-Output "Created plan from template at $($paths.IMPL_PLAN)"
 } else {
     Write-Warning "Plan template not found at $template"
     # Create a basic plan file if template doesn't exist
-    New-Item -ItemType File -Path $paths.IMPL_PLAN -Force | Out-Null
+    New-Item -ItemType File -Path $paths.IMPL_PLAN | Out-Null
 }
 
 # Output results
@@ -50,11 +52,6 @@ if ($Json) {
         SPECS_DIR = $paths.FEATURE_DIR
         BRANCH = $paths.CURRENT_BRANCH
         HAS_GIT = $paths.HAS_GIT
-        RESOLUTION_SOURCE = $paths.RESOLUTION_SOURCE
-        SPEC_ROOT = $paths.SPEC_ROOT
-        PRODUCT_ROOT = $paths.PRODUCT_ROOT
-        PRODUCT_GIT_ROOT = $paths.PRODUCT_GIT_ROOT
-        ARTIFACT_MODE = $paths.ARTIFACT_MODE
     }
     $result | ConvertTo-Json -Compress
 } else {
@@ -63,9 +60,4 @@ if ($Json) {
     Write-Output "SPECS_DIR: $($paths.FEATURE_DIR)"
     Write-Output "BRANCH: $($paths.CURRENT_BRANCH)"
     Write-Output "HAS_GIT: $($paths.HAS_GIT)"
-    Write-Output "RESOLUTION_SOURCE: $($paths.RESOLUTION_SOURCE)"
-    Write-Output "SPEC_ROOT: $($paths.SPEC_ROOT)"
-    Write-Output "PRODUCT_ROOT: $($paths.PRODUCT_ROOT)"
-    Write-Output "PRODUCT_GIT_ROOT: $($paths.PRODUCT_GIT_ROOT)"
-    Write-Output "ARTIFACT_MODE: $($paths.ARTIFACT_MODE)"
 }

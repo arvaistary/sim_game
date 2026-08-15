@@ -32,7 +32,7 @@ export function createBaseSkillModifiers(): SkillModifiers {
   }
 }
 
-export function recalculateSkillModifiers(skillLevels: Record<string, number | { level?: number; xp?: number }>): SkillModifiers {
+export function recalculateSkillModifiers(skillLevels: Record<string, { level: number; xp: number }>): SkillModifiers {
   const modifiers = createBaseSkillModifiers()
 
   if (!skillLevels || typeof skillLevels !== 'object') {
@@ -42,7 +42,7 @@ export function recalculateSkillModifiers(skillLevels: Record<string, number | {
   // Извлекаем уровни навыков в плоский формат
   const flatSkillLevels: Record<string, number> = {}
   for (const [key, value] of Object.entries(skillLevels)) {
-    flatSkillLevels[key] = typeof value === 'number' ? value : (value?.level ?? 0)
+    flatSkillLevels[key] = value.level
   }
 
   // Генерируем модификаторы из определений навыков

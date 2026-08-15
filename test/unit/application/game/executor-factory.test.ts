@@ -9,8 +9,8 @@ import type { AsyncGameExecutor, AsyncGameQueryExecutor } from '@/application/ga
 import {
   createExecutor,
   createQueryExecutor,
-  createSPAExecutorAsync,
 } from '@/application/game/executor-factory'
+import { createSPAAsyncExecutor } from '@/application/game/spa-async-executor'
 
 describe('executor-factory', () => {
   it('createExecutor(spa) возвращает SPA executor (не бросает на construction', () => {
@@ -44,8 +44,8 @@ describe('executor-factory', () => {
     await expect(query.getFinanceOverview(null)).rejects.toBeDefined()
   })
 
-  it('createSPAExecutorAsync возвращает тот же тип, что createExecutor(spa)', () => {
-    const explicit: AsyncGameExecutor = createSPAExecutorAsync()
+  it('createSPAAsyncExecutor возвращает тот же тип, что createExecutor(spa)', () => {
+    const explicit: AsyncGameExecutor = createSPAAsyncExecutor()
     const viaFactory: AsyncGameExecutor = createExecutor('spa')
     expect(typeof explicit.executeAction).toBe(typeof viaFactory.executeAction)
     expect(typeof explicit.simulateWorkShift).toBe(typeof viaFactory.simulateWorkShift)

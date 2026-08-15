@@ -78,6 +78,10 @@ const timeStore = useTimeStore()
 
 const walletStore = useWalletStore()
 
+const housingStore = useHousingStore()
+
+const actionsStore = useActionsStore()
+
 const tabs = [
   { id: 'food', icon: '🍔', title: 'Еда', shortDesc: 'Продукты, напитки и доставка' },
   { id: 'learning', icon: '📚', title: 'Обучение', shortDesc: 'Книги, курсы и техника для учёбы' },
@@ -131,6 +135,13 @@ function sortByAvailability(actions: BalanceAction[]): BalanceAction[] {
 function getDisabledReason(action: BalanceAction): string {
   const result = getActionById(action.id)
   if (!result) return 'Действие не найдено'
+  if (result.oneTime) {
+    if (result.grantsItem && housingStore.hasFurniture(result.grantsItem)) return 'Уже куплено'
+
+    const usage = actionsStore.actionUsage[result.id]
+
+    if (usage && usage.count > 0) return 'Действие уже выполнено'
+  }
   if (walletStore.money < result.price) return 'Недостаточно денег'
   if (timeStore.weekHoursRemaining < result.hourCost) return 'Недостаточно времени'
   return 'Действие недоступно'

@@ -21,6 +21,9 @@ import type {
   LoadTarget,
   SnapshotProvider,
 } from './index.types'
+import type { DayPlanInput, DayPlanResult, GameEventPayload } from '@/domain/game-world/commands/commands.types'
+import type { DayEndHooks } from '@/domain/game-world/commands'
+import { createNoopDayEndHooks } from '@/domain/game-world/commands'
 import {
   canExecuteAction as canExecuteActionQuery,
   getActivityLog as getActivityLogQuery,
@@ -39,6 +42,7 @@ import {
   changeCareer,
   quitCareer,
   executeAction,
+  planDay,
   resolveEventDecision,
   collectInvestment,
   advanceTime,
@@ -66,6 +70,12 @@ function buildWorld(snapshotProvider: SnapshotProvider): GameWorld {
   return fromStores(snapshotProvider())
 }
 
+function isEventPayload(value: unknown): value is GameEventPayload {
+  if (typeof value !== 'object' || value === null) return false
+  const record: Record<string, unknown> = value as Record<string, unknown>
+  return typeof record.id === 'string' && typeof record.title === 'string'
+}
+
 /**
  * Записать изменения мира в loadTarget.
  * @description [Application] - SPA-only sync.
@@ -84,15 +94,35 @@ function commitWorld(world: GameWorld, loadTarget: LoadTarget): void {
  *
  * @param snapshotProvider возвращает текущий snapshot всех stores
  * @param loadTarget целевые stores с load() для синхронизации изменений
+ * @param dayEndHooks hooks конца дня (live rolls); по умолчанию no-op
  * @return { { execute: GameExecutor; query: GameQueryExecutor } }
  */
 export function createSPAExecutor(
   snapshotProvider: SnapshotProvider,
   loadTarget: LoadTarget,
+  dayEndHooks: DayEndHooks = createNoopDayEndHooks(),
 ): {
   execute: GameExecutor
   query: GameQueryExecutor
 } {
+  const hooks: DayEndHooks = dayEndHooks
+
+  function findEventPayload(eventId: string): GameEventPayload | null {
+    const snapshot: ReturnType<SnapshotProvider> = snapshotProvider()
+    const eventsData: Record<string, unknown> = (snapshot.events ?? {}) as Record<string, unknown>
+    const current: unknown = eventsData.currentEvent
+
+    if (isEventPayload(current) && current.id === eventId) return current
+
+    const queue: unknown[] = Array.isArray(eventsData.eventQueue) ? eventsData.eventQueue : []
+
+    for (const item of queue) {
+      if (isEventPayload(item) && item.id === eventId) return item
+    }
+
+    return null
+  }
+
   const execute: GameExecutor = {
     executeLifestyleAction(cardData: Record<string, unknown>): string {
       const world: GameWorld = buildWorld(snapshotProvider)
@@ -144,9 +174,17 @@ export function createSPAExecutor(
       return result
     },
 
-    resolveEventDecision(_world: GameWorld, _eventId: string, choiceId: string): CommandOutcome {
+    planDay(_world: GameWorld, planInput: DayPlanInput): DayPlanResult {
       const world: GameWorld = buildWorld(snapshotProvider)
-      const result: CommandOutcome = resolveEventDecision(world, _eventId, null, choiceId)
+      const result: DayPlanResult = planDay(world, planInput, hooks)
+      commitWorld(world, loadTarget)
+      return result
+    },
+
+    resolveEventDecision(_world: GameWorld, eventId: string, choiceId: string): CommandOutcome {
+      const world: GameWorld = buildWorld(snapshotProvider)
+      const event: GameEventPayload | null = findEventPayload(eventId)
+      const result: CommandOutcome = resolveEventDecision(world, eventId, event, choiceId)
       commitWorld(world, loadTarget)
       return result
     },

@@ -138,10 +138,10 @@ src/domain/
     │   ├── housing-levels.ts # Уровни жилья
     │   ├── game-events.ts  # Игровые события
     │   ├── recovery-tabs.ts # Табы восстановления
-    │   ├── skill-progression-config.ts # Конфигурация прогрессии навыков
+    │   ├── skills/          # Прогрессия, XP и способы обучения навыков
     │   ├── skill-modifiers.ts # Модификаторы навыков
     │   ├── skill-effects-generator.ts # Генератор эффектов навыков
-    │   ├── skill-constants.ts # Константы навыков
+    │   ├── skills-constants.ts # Константы навыков
     │   ├── childhood-events/ # События детства
     │   ├── childhood-skills.ts # Навыки детства
     │   ├── personality-traits.ts # Черты личности
@@ -168,8 +168,6 @@ src/domain/
         ├── build-adult-game-save.ts
         ├── education-ranks.ts
         ├── hourly-rates.ts
-        ├── skill-system.ts
-        ├── skill-ui-explainability.ts
         ├── skill-tooltip-content.ts
         ├── stat-changes-format.ts
         └── index.ts
@@ -281,7 +279,7 @@ Application layer чистый: 0 импортов Pinia, 0 импортов inf
 src/infrastructure/persistence/
 ├── LocalStorageSaveRepository.ts # Реализация SaveRepository через localStorage
 ├── constants.ts                   # Константы persistence
-└── event-migration.ts             # Миграция событий
+└── save-event-migration.ts        # Миграция event schema в save load-path
 ```
 
 ### Реализация
@@ -342,7 +340,7 @@ src/infrastructure/persistence/
 - `useEvents` — события
 - `useToast` — уведомления
 - `useActivityLog` — журнал активности
-- `useSkills` — навыки
+- `skills-store` — навыки и их XP
 - `useTime` — система времени
 - `useCareer` — карьера
 - `useEducation` — образование

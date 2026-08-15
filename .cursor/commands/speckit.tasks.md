@@ -24,13 +24,16 @@ You **MUST** consider the user input before proceeding (if not empty).
 1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Load design documents**: Read from FEATURE_DIR:
-   - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
+   - **Required**: plan.md (tech stack, libraries, structure)
+   - **Full mode**: spec.md is required for user-story priorities and traceability.
+   - **Lite mode**: spec.md is optional; use active work-item description plus plan workstreams as task scope.
    - **Optional**: data-model.md (entities), contracts/ (interface contracts), research.md (decisions), quickstart.md (test scenarios)
    - Note: Not all projects have all documents. Generate tasks based on what's available.
 
 3. **Execute task generation workflow**:
    - Load plan.md and extract tech stack, libraries, project structure
-   - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
+    - If spec.md exists, extract user stories with their priorities (P1, P2, P3, etc.)
+    - If spec.md is absent in lite mode, derive independently testable workstreams from plan.md and active work-item description.
    - If data-model.md exists: Extract entities and map to user stories
    - If contracts/ exists: Map interface contracts to user stories
    - If research.md exists: Extract decisions for setup tasks
@@ -43,8 +46,8 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Correct feature name from plan.md
    - Phase 1: Setup tasks (project initialization)
    - Phase 2: Foundational tasks (blocking prerequisites for all user stories)
-   - Phase 3+: One phase per user story (in priority order from spec.md)
-   - Each phase includes: story goal, independent test criteria, tests (if requested), implementation tasks
+    - Phase 3+: One phase per user story (in priority order from spec.md), or per plan workstream in lite mode
+    - Each phase includes: story/workstream goal, independent test criteria, tests (if requested), implementation tasks
    - Final Phase: Polish & cross-cutting concerns
    - All tasks must follow the strict checklist format (see Task Generation Rules below)
    - Clear file paths for each task
@@ -57,7 +60,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Task count per user story
    - Parallel opportunities identified
    - Independent test criteria for each story
-   - Suggested MVP scope (typically just User Story 1)
+   - Suggested MVP scope (typically User Story 1 when available, otherwise first plan workstream)
    - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
 
 Context for task generation: $ARGUMENTS
@@ -96,7 +99,7 @@ Every task MUST strictly follow this format:
    - Format: [US1], [US2], [US3], etc. (maps to user stories from spec.md)
    - Setup phase: NO story label
    - Foundational phase: NO story label  
-   - User Story phases: MUST have story label
+   - User Story phases: MUST have story label when spec.md exists; lite workstream phases use `[LITE]`
    - Polish phase: NO story label
 5. **Description**: Clear action with exact file path
 

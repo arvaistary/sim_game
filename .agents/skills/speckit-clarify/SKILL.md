@@ -3,7 +3,6 @@ name: speckit-clarify
 description: Structured clarification workflow for underspecified requirements. Use
   before planning to resolve ambiguities through coverage-based questioning. Records
   answers in spec clarifications section.
-compatibility: Requires spec-kit project structure with .specify/ directory
 metadata:
   author: github-spec-kit
   source: templates/commands/clarify.md
@@ -27,7 +26,10 @@ Note: This clarification workflow is expected to run (and be completed) BEFORE i
 
 Execution steps:
 
-1. Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly` from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:
+1. Run one platform-appropriate paths-only command from repo root **once**:
+   - Windows: `& powershell -NoProfile -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly`
+   - POSIX: `.specify/scripts/bash/check-prerequisites.sh --json --paths-only`
+   Parse minimal JSON payload fields:
    - `FEATURE_DIR`
    - `FEATURE_SPEC`
    - (Optionally capture `IMPL_PLAN`, `TASKS` for future chained flows.)
@@ -91,7 +93,7 @@ Execution steps:
    - Information is better deferred to planning phase (note internally)
 
 3. Generate (internally) a prioritized queue of candidate clarification questions (maximum 5). Do NOT output them all at once. Apply these constraints:
-    - Maximum of 10 total questions across the whole session.
+    - Maximum of 5 total questions across the whole session.
     - Each question must be answerable with EITHER:
        - A short multiple‑choice selection (2–5 distinct, mutually exclusive options), OR
        - A one-word / short‑phrase answer (explicitly constrain: "Answer in <=5 words").

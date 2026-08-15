@@ -14,6 +14,8 @@ export function useActions(): UseActionsReturn {
   const walletStore = useWalletStore()
   const timeStore = useTimeStore()
   const gameStore = useGameStore()
+  const housingStore = useHousingStore()
+  const actionsStore = useActionsStore()
   const toast = useToast()
   const { filterActionsByAge, ageGroupLabel } = useAgeRestrictions()
 
@@ -25,6 +27,14 @@ export function useActions(): UseActionsReturn {
     const action: BalanceAction | null = getActionById(actionId)
 
     if (!action) return false
+
+    if (action.oneTime) {
+      if (action.grantsItem && housingStore.hasFurniture(action.grantsItem)) return false
+
+      const usage = actionsStore.actionUsage[actionId]
+
+      if (usage && usage.count > 0) return false
+    }
 
     if (walletStore.money < action.price) return false
 
@@ -45,7 +55,7 @@ export function useActions(): UseActionsReturn {
     try {
       result = await gameStore.executeActionAsync(actionId)
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Не удалось выполнить действие'
+      const message: string = error instanceof Error ? error.message : 'Не удалось выполнить действие'
       toast.showError(message)
       return false
     }

@@ -49,6 +49,27 @@
                 >Тёмная</button>
               </div>
             </div>
+
+            <div class="settings-section__row settings-section__row--palette">
+              <div class="settings-section__copy">
+                <p class="settings-section__label">Палитра</p>
+                <p class="settings-section__hint">Только акцентный цвет</p>
+              </div>
+              <div class="palette-swatches" role="listbox" aria-label="Палитра">
+                <button
+                  v-for="option in paletteOptions"
+                  :key="option.id"
+                  class="palette-swatch"
+                  :class="{ 'palette-swatch--active': palette === option.id }"
+                  type="button"
+                  role="option"
+                  :aria-selected="palette === option.id"
+                  :title="option.label"
+                  :style="{ '--swatch': option.swatch }"
+                  @click="settings.setPalette(option.id)"
+                />
+              </div>
+            </div>
           </section>
 
           <!-- Плотность -->
@@ -131,6 +152,9 @@
 <script setup lang="ts">
 import './SettingsDrawer.scss'
 import { useNewGame } from '@/composables/useNewGame'
+import type { PaletteId } from '@/stores/settings-store'
+
+import type { PaletteOption } from './SettingsDrawer.types'
 
 const settings = useSettingsStore()
 const { state, close } = useSettingsDrawer()
@@ -141,6 +165,14 @@ const route = useRoute()
 const isOpen = computed<boolean>(() => state.value.isOpen)
 const isDark = computed<boolean>(() => settings.isDark)
 const isCompact = computed<boolean>(() => settings.isCompact)
+const palette = computed<PaletteId>(() => settings.palette)
+
+const paletteOptions: PaletteOption[] = [
+  { id: 'cobalt', label: 'Cobalt', swatch: '#2B5AED' },
+  { id: 'emerald', label: 'Emerald', swatch: '#0fab97' },
+  { id: 'sunset', label: 'Sunset', swatch: '#EA580C' },
+  { id: 'violet', label: 'Violet', swatch: '#7C3AED' },
+]
 
 function handleKeydown(event: KeyboardEvent): void {
   if (!isOpen.value) return
@@ -179,7 +211,7 @@ function handleStartNewGame(): void {
         accent: true,
         action: () => {
           close()
-          void startNewGame()
+          return startNewGame()
         },
       },
     ],

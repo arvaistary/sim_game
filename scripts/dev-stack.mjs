@@ -40,5 +40,5 @@ function shutdown(code = 0) {
 process.once('SIGINT', () => shutdown(0))
 process.once('SIGTERM', () => shutdown(0))
 
-start('dev:standalone-server')
+start('dev:standalone-server:watch')
 start('dev:client')

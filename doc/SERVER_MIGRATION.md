@@ -18,7 +18,8 @@ Offline-first: буферизация действий при потере се�
 - `npm run dev` запускает client на `http://localhost:3000` и API server на `http://localhost:3001`.
 - `npm run dev:client` запускает только client с `NUXT_PUBLIC_GAME_MODE=server` и API base URL `http://127.0.0.1:3001`.
 - `npm run dev:server` запускает legacy Nitro API process для обратной совместимости.
-- `npm run dev:standalone-server` запускает независимый Fastify API на `API_PORT` (по умолчанию `3001`); текущий `/api/game/*` envelope сохранён. Именно этот process используется через `npm run dev`.
+- `npm run dev:standalone-server` запускает независимый Fastify API на `API_PORT` (по умолчанию `3001`); текущий `/api/game/*` envelope сохранён.
+- `npm run dev:standalone-server:watch` запускает тот же API с автоматическим перезапуском; именно этот process используется через `npm run dev`.
 - `npm run build:client` создаёт static output для Яндекс Игр (`.output/public`).
 - `npm run build:server` + `npm run start:server` создают Node server deployment.
 - Все successful game API responses используют общий `ApiResponse<T>` envelope; client hydrates Pinia только из server state.

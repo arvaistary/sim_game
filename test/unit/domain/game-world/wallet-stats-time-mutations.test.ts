@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { GameWorld } from '@/domain/game-world/GameWorld'
+import type { ExecuteActionResult } from '@/domain/game-world/commands/commands.types'
 import {
   addMoneyInWorld,
+  advanceHours,
   advanceHoursWithSleepInWorld,
   applyStatChanges,
   earnMoney,
@@ -12,6 +14,7 @@ import {
   setStatsInWorld,
   setTotalHoursInWorld,
   spendMoney,
+  executeActionCommand,
   transferFromReserveInWorld,
   transferToReserveInWorld,
 } from '@/domain/game-world/commands'
@@ -102,7 +105,7 @@ describe('domain stats mutations', () => {
     expect(world.stats.energy).toBe(energyBefore - 5)
   })
 
-  it('setStatsInWorld: устанавливает статы с clamp', () => {
+  it('setStatsInWorld: устанавливает статы в допустимом диапазоне', () => {
     const world: GameWorld = GameWorld.createEmpty()
 
     setStatsInWorld(world, { energy: 150, hunger: -20 })
@@ -135,6 +138,50 @@ describe('domain stats mutations', () => {
 })
 
 describe('domain time mutations', () => {
+  it('advanceHours: derives day/week budgets from totalHours after 168+ hours', async () => {
+    const { advanceHours } = await import('@/domain/game-world/commands')
+    const world: GameWorld = GameWorld.createEmpty()
+
+    advanceHours(world, 169)
+
+    expect(world.time.totalHours).toBe(169)
+    expect(world.time.weekHoursSpent).toBe(1)
+    expect(world.time.weekHoursRemaining).toBe(167)
+    expect(world.time.dayHoursSpent).toBe(1)
+    expect(world.time.dayHoursRemaining).toBe(23)
+  })
+
+  it('restores a full daily and weekly budget at an exact period boundary', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+
+    advanceHours(world, 168)
+
+    expect(world.time.weekHoursSpent).toBe(0)
+    expect(world.time.weekHoursRemaining).toBe(168)
+    expect(world.time.dayHoursSpent).toBe(0)
+    expect(world.time.dayHoursRemaining).toBe(24)
+  })
+
+  it('blocks an action when the derived weekly budget is exhausted', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+
+    advanceHours(world, 167)
+    const result: ExecuteActionResult = executeActionCommand(world, 'fun_park_walk')
+
+    expect(result).toEqual({ success: false, message: 'Недостаточно времени на сегодня' })
+    expect(world.time.totalHours).toBe(167)
+  })
+
+  it('does not mutate a rejected action with an unmet education prerequisite', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+    const before: ReturnType<GameWorld['toJSON']> = world.toJSON()
+
+    const result: ExecuteActionResult = executeActionCommand(world, 'self_meditation_practice')
+
+    expect(result).toEqual({ success: false, message: 'Сначала завершите книгу «Основы медитации»' })
+    expect(world.toJSON()).toEqual(before)
+  })
+
   it('advanceHoursWithSleepInWorld: увеличивает totalHours и списывает sleepDebt', () => {
     const world: GameWorld = GameWorld.createEmpty({ time: { totalHours: 0, hourOfDay: 0, dayOfWeek: 1, weekHoursSpent: 0, weekHoursRemaining: 168, dayHoursSpent: 0, dayHoursRemaining: 24, sleepHoursToday: 0, sleepDebt: 50 } })
 

@@ -15,6 +15,8 @@ import type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridg
 import { recalculateSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
 import { INITIAL_STATS } from '@/domain/balance/constants/initial-stats'
 import type { SkillModifiers } from '@/domain/balance/types'
+import { normalizeSkillLevels } from '@/domain/balance/skills'
+import type { SkillEntry, SkillLevelInput } from '@/domain/balance/skills'
 
 export type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
 
@@ -67,7 +69,8 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
   const activity: Record<string, unknown> = stores.activity ?? {}
   const actions: Record<string, unknown> = stores.actions ?? {}
 
-  const skillsLevels: Record<string, number | { level: number; xp: number }> = (skillsRaw.skills ?? {}) as Record<string, number | { level: number; xp: number }>
+  const rawSkills: Record<string, SkillLevelInput> = (skillsRaw.skills ?? {}) as Record<string, SkillLevelInput>
+  const skillsLevels: Record<string, SkillEntry> = normalizeSkillLevels(rawSkills)
   const skillModifiers: SkillModifiers = recalculateSkillModifiers(skillsLevels)
 
   const snapshot: GameWorldSnapshot = {
@@ -78,12 +81,12 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
     },
     time: {
       totalHours: readNumber(time, 'totalHours', 0),
-      hourOfDay: readNumber(time, 'hourOfDay', 0),
+      hourOfDay: readNumber(time, 'totalHours', 0) % 24,
       dayOfWeek: readNumber(time, 'dayOfWeek', 1),
-      weekHoursSpent: readNumber(time, 'weekHoursSpent', 0),
-      weekHoursRemaining: readNumber(time, 'weekHoursRemaining', 168),
-      dayHoursSpent: readNumber(time, 'dayHoursSpent', 0),
-      dayHoursRemaining: readNumber(time, 'dayHoursRemaining', 24),
+      weekHoursSpent: readNumber(time, 'totalHours', 0) % 168,
+      weekHoursRemaining: Math.max(0, 168 - (readNumber(time, 'totalHours', 0) % 168)),
+      dayHoursSpent: readNumber(time, 'totalHours', 0) % 24,
+      dayHoursRemaining: Math.max(0, 24 - (readNumber(time, 'totalHours', 0) % 24)),
       sleepHoursToday: readNumber(time, 'sleepHoursToday', 0),
       sleepDebt: readNumber(time, 'sleepDebt', 0),
     },
@@ -139,13 +142,15 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
 }
 
 function normalizeActionUsageSnapshot(actions: Record<string, unknown>): NonNullable<GameWorldSnapshot['actionUsage']> {
-  const raw = actions.actionUsage
+  const raw: unknown = actions.actionUsage
+
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
 
   const result: NonNullable<GameWorldSnapshot['actionUsage']> = {}
   for (const [actionId, value] of Object.entries(raw as Record<string, unknown>)) {
     if (!value || typeof value !== 'object') continue
-    const usage = value as { count?: unknown; lastUsedAt?: unknown }
+    const usage: Record<string, unknown> = value as Record<string, unknown>
+
     if (typeof usage.count === 'number' && typeof usage.lastUsedAt === 'number') {
       result[actionId] = { count: usage.count, lastUsedAt: usage.lastUsedAt }
     }
@@ -179,8 +184,9 @@ function normalizeFinanceStoreSnapshot(finance: Record<string, unknown>): GameWo
 
 /**
  * Адаптер events-store snapshot → GameWorldSnapshot['events'].
- * events-store сохраняет { eventQueue, eventHistory, seenEventIds, eventState? },
+ * events-store сохраняет { eventQueue, eventHistory, seenEventIds, currentEvent?, eventState? },
  * GameWorld хранит { state, history, pending }.
+ * currentEvent — UI-only; в pending не кладём (resolve берёт payload из store/SPAExecutor).
  */
 function normalizeEventsStoreSnapshot(events: Record<string, unknown>): GameWorldSnapshot['events'] {
   const stateRaw: Partial<GameWorldSnapshot['events']['state']> = (events.eventState ?? events.state ?? {}) as Partial<GameWorldSnapshot['events']['state']>

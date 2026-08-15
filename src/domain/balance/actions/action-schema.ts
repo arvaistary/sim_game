@@ -1,4 +1,5 @@
 import type { BalanceAction } from './types'
+import { LEARNING_METHOD_MULTIPLIERS } from '@/domain/balance/skills'
 import type {
   ActionArrayValidationResult,
   CatalogValidationResult,
@@ -38,6 +39,8 @@ const VALID_CATEGORIES: readonly string[] = [
   'selfdev',
 ] as const
 
+const VALID_LEARNING_METHODS: readonly string[] = Object.keys(LEARNING_METHOD_MULTIPLIERS)
+
 const ALLOWED_ACTION_FIELDS: readonly string[] = [
   'id',
   'category',
@@ -49,6 +52,7 @@ const ALLOWED_ACTION_FIELDS: readonly string[] = [
   'mood',
   'statChanges',
   'skillChanges',
+  'learningMethod',
   'relationshipDelta',
   'housingComfortDelta',
   'oneTime',
@@ -125,6 +129,10 @@ export function validateActionWithErrors(action: unknown): ValidationErrors {
 
   if (typeof record.price !== 'number' || record.price < 0) {
     errors.push('price: Должен быть числом >= 0')
+  }
+
+  if (record.learningMethod !== undefined && !VALID_LEARNING_METHODS.includes(record.learningMethod as string)) {
+    errors.push(`learningMethod: Должен быть одним из: ${VALID_LEARNING_METHODS.join(', ')}`)
   }
 
   for (const key of Object.keys(record)) {

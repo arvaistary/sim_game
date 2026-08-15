@@ -141,6 +141,7 @@ const change = computed<StatChangeDisplay>(() => {
 })
 
 const explanationText: ComputedRef<string> = computed(() => {
+
   if (props.explanation) return props.explanation
 
   const direction: string = change.value.value >= 0 ? 'Увеличивает' : 'Уменьшает'

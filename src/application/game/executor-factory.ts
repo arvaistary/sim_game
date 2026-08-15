@@ -35,7 +35,7 @@ export function createExecutor(
 ): AsyncGameExecutor {
   if (mode === 'server') return createServerExecutor(serverOptions)
   // 'spa' и 'hybrid' используют SPA fallback до Stage 5.6
-  return createSPAAsyncExecutor()
+  return createSPAAsyncExecutor(serverOptions.dayEndHooks)
 }
 
 /**
@@ -51,13 +51,4 @@ export function createQueryExecutor(
 ): AsyncGameQueryExecutor {
   if (mode === 'server') return createServerQueryExecutor(serverOptions)
   return createSPAAsyncQueryExecutor()
-}
-
-/**
- * Создать explicit SPA executor (для hybrid offline fallback).
- * @description [Application] - SPA fallback factory.
- * @return { AsyncGameExecutor }
- */
-export function createSPAExecutorAsync(): AsyncGameExecutor {
-  return createSPAAsyncExecutor()
 }

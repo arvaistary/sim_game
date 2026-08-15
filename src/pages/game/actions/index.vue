@@ -34,6 +34,7 @@ import { ACTION_CATEGORIES } from '@/config/action-categories'
 import type { ActionCategory as ActionCategoryId } from '@/domain/balance/types'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { CanExecuteActionResult } from '@/stores/game.store.types'
+  import type { SortMode, StatFilterId } from '@/types/actions-page.types'
 
 definePageMeta({ middleware: 'game-init' })
 
@@ -45,9 +46,6 @@ const { getActionsByCategory, getAllActions, canExecute, executeAction, actionsE
 const activeCategory = ref<string>(ACTION_CATEGORIES[0]?.id ?? 'fun')
 const activeStat = ref<StatFilterId>('all')
 const sortMode = ref<SortMode>('usage')
-
-type StatFilterId = 'all' | 'energy' | 'health' | 'mood' | 'stress' | 'hunger' | 'physical'
-type SortMode = 'usage' | 'price' | 'parameter'
 
 const STAT_FILTERS: Array<{ id: Exclude<StatFilterId, 'all'>; label: string }> = [
   { id: 'energy', label: 'Энергия' },
@@ -78,6 +76,7 @@ const actions: ComputedRef<BalanceAction[]> = computed(() => {
 
   return categoryActions.filter((action) => {
     const value = action.statChanges?.[activeStat.value]
+
     if (typeof value !== 'number') return false
     return value > 0
   })
@@ -95,15 +94,18 @@ function getDisabledReason(action: BalanceAction): string {
 const sortedActions: ComputedRef<BalanceAction[]> = computed(() => {
   void store.worldTick
   const originalOrder = new Map(actions.value.map((action, index) => [action.id, index]))
-  return [...actions.value].sort((a, b) => {
-    if (sortMode.value === 'usage') {
-      const usageA = actionsStore.actionUsage[a.id] ?? { count: 0, lastUsedAt: 0 }
-      const usageB = actionsStore.actionUsage[b.id] ?? { count: 0, lastUsedAt: 0 }
-      if (usageA.count !== usageB.count) return usageB.count - usageA.count
+    return [...actions.value].sort((a, b) => {
+      if (sortMode.value === 'usage') {
+        const usageA = actionsStore.actionUsage[a.id] ?? { count: 0, lastUsedAt: 0 }
+        const usageB = actionsStore.actionUsage[b.id] ?? { count: 0, lastUsedAt: 0 }
+
+        if (usageA.count !== usageB.count) return usageB.count - usageA.count
+
       if (usageA.lastUsedAt !== usageB.lastUsedAt) return usageB.lastUsedAt - usageA.lastUsedAt
     } else if (sortMode.value === 'parameter') {
       const parameterA = getPositiveEffect(a)
       const parameterB = getPositiveEffect(b)
+
       if (parameterA !== parameterB) return parameterB - parameterA
     } else if (a.price !== b.price) {
       return a.price - b.price
@@ -118,39 +120,3 @@ function getPositiveEffect(action: BalanceAction): number {
   return Math.max(0, ...Object.values(action.statChanges ?? {}).filter((value): value is number => typeof value === 'number'))
 }
 </script>
-
-<style scoped lang="scss">
-:deep(.dashboard-shell__content) {
-  gap: $space-3;
-}
-
-.action-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-4;
-  align-items: flex-end;
-  margin: $space-3 0 $space-2;
-  padding: $space-3;
-}
-
-.action-filters__field {
-  display: flex;
-  flex: 0 1 260px;
-  flex-direction: column;
-  gap: $space-1;
-  color: var(--color-text-secondary);
-  font-size: $font-size-sm;
-}
-
-.action-filters__hint {
-  margin: 0 0 $space-3;
-  color: var(--color-text-secondary);
-  font-size: $font-size-xs;
-}
-
-@include mobile {
-  .action-filters__field {
-    flex-basis: 100%;
-  }
-}
-</style>

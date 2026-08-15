@@ -4,7 +4,8 @@
  * Команды мутируют GameWorld и возвращают result-модель.
  * Signature: (world: GameWorld, params) => CommandResult.
  */
-import type { StatChangeBreakdownEntry } from '@/domain/balance/types'
+import type { StatChangeBreakdownEntry, StatChanges } from '@/domain/balance/types'
+import type { EventChoiceCanonical } from '@/domain/balance/constants/event-choice.types'
 
 /** Базовый результат команды. */
 export interface CommandResult {
@@ -30,6 +31,43 @@ export interface WorkShiftResult extends CommandResult {
   hoursWorked: number
 }
 
+export interface DayPlanInput {
+  sleepHours: number
+  workHours?: number
+  actionIds: string[]
+}
+
+export interface DayPlanStepResult {
+  kind: 'sleep' | 'work' | 'action' | 'idle'
+  actionId?: string
+  success: boolean
+  message: string
+  hoursSpent: number
+  /** Заработок успешной рабочей смены (для event.data.earnedAmount). */
+  earnedAmount?: number
+}
+
+/** Контекст day-роллов событий (work/micro). Без age-полей. */
+export interface EventRollContext {
+  dayResult: DayPlanResult
+}
+
+export interface DayPlanResult {
+  success: boolean
+  message: string
+  steps: DayPlanStepResult[]
+  statChanges: StatChanges
+  moneyDelta: number
+  plannedHours: number
+  idleHours: number
+  totalHoursSpent: number
+  dayNumber: number
+  crossedWeekBoundary: boolean
+  crossedMonthBoundary: boolean
+  crossedYearBoundary: boolean
+  ageChanged: boolean
+}
+
 /** Причина отклонения команды (для UI-сообщений и tests). */
 export type CommandRejectionReason =
   | 'not_found'
@@ -51,17 +89,14 @@ export interface DomainActionRequirements {
 /** Минимальный набор полей GameEvent для domain-обработки (без UI-only полей). */
 export interface GameEventPayload {
   id: string
+  instanceId?: string
   title: string
   choices?: EventChoicePayload[]
+  data?: Record<string, unknown>
 }
 
 /** Минимальный набор полей EventChoice для domain-обработки. */
-export interface EventChoicePayload {
-  id: string
-  text: string
-  effects?: Record<string, number>
-  outcome?: string
-}
+export type EventChoicePayload = EventChoiceCanonical
 
 /** Результат resolveEventDecision. */
 export interface ResolveEventResult extends CommandResult {

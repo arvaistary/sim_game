@@ -36,6 +36,7 @@ interface GameButtonProps {
 }
 
 const props = withDefaults(defineProps<GameButtonProps>(), {
+  label: '',
   color: '',
   textColor: '',
   disabled: false,

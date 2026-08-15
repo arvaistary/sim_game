@@ -26,7 +26,6 @@
 - **ROADMAP.md** — кратко-/средне-/долгосрочные планы
 - **PAGES_REFERENCE.md** — таблица Vue страниц и Nuxt роутинга
 - **START_GAME_DOCUMENTATION.md** — документация старта игры
-- **MEMPALACE_SETUP.md** — настройка MemPalace (локальная память команды)
 
 ### Server-first миграция (`doc/SERVER_MIGRATION.md`)
 
@@ -67,23 +66,42 @@ Workflow для постановки задач: spec → plan → tasks. См. 
 
 ## Запуск проекта
 
+Для ежедневной разработки используйте Docker Dev: он запускает Nuxt HMR,
+Fastify API с watch-режимом и PostgreSQL.
+
+Создайте `.env` из `.env.example` и задайте локальные учётные данные.
+
 ```bash
-# Установка зависимостей
+docker compose --env-file .env -f infra/docker-compose.dev.yml up --build
+```
+
+Клиент доступен по адресу http://localhost:3000. Production-like Docker для
+проверки собранных артефактов запускается отдельно:
+
+```bash
+docker compose --env-file .env -f infra/docker-compose.yml up --build
+```
+
+Публикация в Vercel использует `npm run build` и переменные окружения из настроек
+Vercel. Docker-конфигурация на Vercel не используется.
+
+Для локальной разработки без Docker:
+
+```bash
 npm install
-
-# Dev-сервер (server-first режим)
+npm run infra:up
+npm run db:migrate
 npm run dev
+```
 
-# Production build
+Остальные проверки:
+
+```bash
+
 npm run build
-
-# Typecheck
 npm run typecheck
-
-# Unit/integration тесты
 npm run test
-
-# Audit правил проекта
+npm run audit:contrast
 npm run rules:audit
 ```
 

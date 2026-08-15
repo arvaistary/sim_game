@@ -4,7 +4,6 @@ description: Create or update feature specifications from natural language descr
   Use when starting new features or refining requirements. Generates spec.md with
   user stories, functional requirements, and acceptance criteria following spec-driven
   development methodology.
-compatibility: Requires spec-kit project structure with .specify/ directory
 metadata:
   author: github-spec-kit
   source: templates/commands/specify.md
@@ -56,10 +55,10 @@ Given that feature description, do this:
       - Find the highest number N
       - Use N+1 for the new branch number
 
-   d. Run the script `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS"` with the calculated number and short-name:
+   d. Run one platform-appropriate feature creation script with the calculated number and short-name:
       - Pass `--number N+1` and `--short-name "your-short-name"` along with the feature description
-      - Bash example: `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS" --json --number 5 --short-name "user-auth" "Add user authentication"`
-      - PowerShell example: `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS" -Json -Number 5 -ShortName "user-auth" "Add user authentication"`
+      - Bash example: `.specify/scripts/bash/create-new-feature.sh --json "$ARGUMENTS" --json --number 5 --short-name "user-auth" "Add user authentication"`
+      - PowerShell: `& powershell -NoProfile -ExecutionPolicy Bypass -File .specify/scripts/powershell/create-new-feature.ps1 -Json -Number 5 -ShortName "user-auth" "Add user authentication"`
 
    **IMPORTANT**:
    - Check all three sources (remote branches, local branches, specs directories) to find the highest number

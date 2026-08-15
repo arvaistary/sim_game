@@ -127,6 +127,12 @@ export function applyAction(action: LifestyleAction): ActionResult {
 }
 ```
 
+### Day Plan Execution Flow
+
+`useDayPlanner` keeps non-persistent draft state and submits one `DayPlanInput` through `gameStore.planDayAsync`. SPA mode runs `planDayCommand` against a built `GameWorld`; server mode validates the plan locally, sends equivalent commands through `/api/game/sync`, then refreshes the authoritative snapshot. Domain `planDayCommand` validates free-action IDs, executes sleep, work, and free actions sequentially, closes remaining hours with neutral time that does not increase sleep debt, and returns `DayPlanResult` plus end-of-day boundary hooks. Store injects `createLiveDayEndHooks(createMathRandomSource())` so rolls (work ≤1/day, micro, weekly, monthly+finance, yearly, age) enqueue events without application importing infrastructure. After confirm, work/micro open `EventModal`; other types rely on EventQueue/`hasNextEvent`. Server step failures are recorded in `DayPlanResult.steps`, including idle-time failures, while later steps continue. Age is derived from `startAge + elapsedYears`. Childhood events remain deferred outside these hooks.
+
+Time budgets are derived from `GameWorld.time.totalHours`: `weekHoursSpent = totalHours % 168` and `dayHoursSpent = totalHours % 24`. Store snapshots must not be treated as an independent source for these derived counters.
+
 ## Data Request Flow (State Query)
 
 When UI needs to display data:

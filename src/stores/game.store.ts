@@ -11,14 +11,18 @@ import { useEventsStore } from './events-store'
 import { useActionsStore } from './actions-store'
 import type { Investment } from './finance-store'
 import { useFinanceStore } from './finance-store'
+import { useCalendarPlanStore } from '@/stores/calendar-plan-store'
 import type { ActivityEntry } from './activity-store'
 import { useActivityStore } from './activity-store'
 import type { GameEvent } from './events-store/events-store.types'
 import { getActionById, type BalanceAction } from '@/domain/balance/actions'
-import type { CareerTrackJobItem } from '@/domain/balance/types'
+import type { CareerTrackJobItem, EducationProgram } from '@/domain/balance/types'
 import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 import { GameWorld } from '@/domain/game-world/GameWorld'
-import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
+import type { GameWorldJSON, GameWorldSnapshot } from '@/domain/game-world/GameWorld.types'
+import type { DayPlanInput, DayPlanResult, GameEventPayload } from '@/domain/game-world/commands/commands.types'
+import type { DayEndHooks } from '@/domain/game-world/commands'
+import { createLiveDayEndHooks } from '@/domain/game-world/commands'
 import { fromStores, applyToStores } from '@/domain/game-world/bridge'
 import type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
 import type { GameMode, GameModeConfig, SyncStatus } from '@/domain/game-mode'
@@ -27,6 +31,7 @@ import {
   createQueryExecutor,
   appGameCommands,
   OfflineQueueManager,
+  resolveEventDecision,
 } from '@/application/game'
 import type {
   AsyncGameExecutor,
@@ -37,6 +42,7 @@ import type {
 } from '@/application/game'
 import type { ApiResponse, GameStateResponse, SyncResponse } from '@game-life/contracts'
 import { getGameMode, getGameModeConfig } from '@/infrastructure/config/game-mode'
+import { createMathRandomSource } from '@/infrastructure/random/math-random-source'
 import type { ActionResult } from '@/stores/actions-store'
 import type {
   CanApplyWorkShiftResult,
@@ -78,6 +84,8 @@ export const useGameStore = defineStore('game', () => {
 
   const finance = useFinanceStore()
 
+  const calendarPlan = useCalendarPlanStore()
+
   const activity = useActivityStore()
 
   // --- Server-first migration: async executor layer (Stage 3) ---
@@ -85,7 +93,12 @@ export const useGameStore = defineStore('game', () => {
 
   const gameModeConfig: GameModeConfig = getGameModeConfig()
 
-  const executor: AsyncGameExecutor = createExecutor(gameMode, { baseUrl: gameModeConfig.apiBaseUrl })
+  const dayEndHooks: DayEndHooks = createLiveDayEndHooks(createMathRandomSource())
+
+  const executor: AsyncGameExecutor = createExecutor(gameMode, {
+    baseUrl: gameModeConfig.apiBaseUrl,
+    dayEndHooks,
+  })
 
   const queryExecutor: AsyncGameQueryExecutor = createQueryExecutor(gameMode, {
     baseUrl: gameModeConfig.apiBaseUrl,
@@ -135,6 +148,60 @@ export const useGameStore = defineStore('game', () => {
     }
     applyToStores(world, target)
     worldVersion.value++
+  }
+
+  function syncEventsFromWorld(world: GameWorld): void {
+    const snapshot: GameWorldSnapshot = world.toSnapshot()
+
+    events.load({
+      eventState: snapshot.events.state,
+      eventHistory: snapshot.events.history,
+      eventQueue: snapshot.events.pending,
+      seenEventIds: snapshot.events.state.seenEventIds,
+    })
+    worldVersion.value++
+  }
+
+  /**
+   * Sync world → stores без events (UI queue/currentEvent — concern events-store).
+   * @description [Store] - после resolveEventDecision, чтобы не затереть очередь UI.
+   * @return { void }
+   */
+  function syncFromWorldExceptEvents(world: GameWorld): void {
+    const target: StoresLoadTarget = {
+      player,
+      time,
+      stats,
+      wallet,
+      skills,
+      career,
+      education,
+      housing,
+      finance,
+      activity,
+      actions,
+    }
+    applyToStores(world, target)
+    worldVersion.value++
+  }
+
+  /**
+   * Payload текущего UI-события для domain resolve.
+   * @description [Store] - currentEvent живёт в events-store, не в GameWorld.pending.
+   * @return { GameEventPayload | null }
+   */
+  function getCurrentEventPayload(eventId: string): GameEventPayload | null {
+    const current: GameEvent | null = events.currentEvent
+
+    if (!current || current.id !== eventId) return null
+
+    return {
+      id: current.id,
+      instanceId: current.instanceId,
+      title: current.title,
+      choices: current.choices,
+      data: current.data,
+    }
   }
 
   async function refreshServerState(): Promise<void> {
@@ -201,6 +268,8 @@ export const useGameStore = defineStore('game', () => {
   function initWorld(): void { worldVersion.value++ }
 
   function save(): Record<string, unknown> {
+    const prologueStore = usePrologueStore()
+
     return {
       player: player.save(),
       time: time.save(),
@@ -214,6 +283,8 @@ export const useGameStore = defineStore('game', () => {
       finance: finance.save ? finance.save() : {},
       activity: activity.save ? activity.save() : {},
       actions: actions.save ? actions.save() : {},
+      calendarPlan: calendarPlan.save(),
+      ...prologueStore.save(),
     }
   }
 
@@ -242,12 +313,24 @@ export const useGameStore = defineStore('game', () => {
 
     if (data?.actions) actions.load?.(data.actions as Record<string, unknown>)
 
-    isInitialized.value = true;
+    if (data?.calendarPlan) {
+      calendarPlan.load(data.calendarPlan as Record<string, unknown>)
+    } else if (data?.dayPlanner) {
+      const legacyDayPlanner: Record<string, unknown> = data.dayPlanner as Record<string, unknown>
+      const legacyPlan: Record<string, unknown> | undefined = legacyDayPlanner.plan as Record<string, unknown> | undefined
+
+      if (legacyPlan) calendarPlan.load({ days: [legacyPlan] })
+    }
+
+    usePrologueStore().load(data)
+
+    isInitialized.value = true
     return true
   }
 
   function resetGame(): void {
-    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset()
+    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset(); calendarPlan.reset()
+    usePrologueStore().reset()
     offlineQueue?.clear()
     worldVersion.value++
   }
@@ -255,10 +338,11 @@ export const useGameStore = defineStore('game', () => {
   async function resetServerSession(): Promise<void> {
     if (gameMode === 'spa') return
 
-    const response = await $fetch<ApiResponse<GameStateResponse<GameWorldJSON>>>(
+    const response: ApiResponse<GameStateResponse<GameWorldJSON>> = await $fetch<ApiResponse<GameStateResponse<GameWorldJSON>>>(
       `${gameModeConfig.apiBaseUrl}/api/game/reset`,
       { method: 'POST', credentials: 'include' },
     )
+
     if (!response.success || !response.data) throw new Error(response.error?.message ?? 'Не удалось очистить игровую сессию')
 
     executor.resetStateVersion?.()
@@ -327,6 +411,8 @@ export const useGameStore = defineStore('game', () => {
       skillChanges: action.skillChanges,
       cooldown: action.cooldown,
       requirements: action.requirements as { minAge?: number; minSkills?: Record<string, number>; requiresCompletedProgramId?: string } | undefined,
+      oneTime: action.oneTime,
+      grantsItem: action.grantsItem,
     }
   }
 
@@ -348,13 +434,6 @@ export const useGameStore = defineStore('game', () => {
     return { success: result.success, message: result.summary ?? (result.success ? 'Выполнено' : result.error ?? 'Ошибка') }
   }
 
-  function getNextEvent(): GameEvent | null { return events.currentEvent }
-
-  function applyEventChoice(_eventId: string, choiceId: string): string {
-    const success: boolean = events.applyChoice(choiceId)
-    return success ? 'Событие применено' : 'Ошибка'
-  }
-
   function getFinanceOverview(): FinanceOverview { return { balance: wallet.money, expenses: finance.totalExpense, income: wallet.totalEarned } }
 
   function getInvestments(): Investment[] { return finance.investments }
@@ -372,9 +451,9 @@ export const useGameStore = defineStore('game', () => {
       return { ok: false, reason: 'Уже учитесь' }
     }
 
-    const program = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
-    const completions = education.completedPrograms.filter(completed => completed.id === programId).length
-    const maxCompletions = 1 + (program?.maxRepeats ?? 0)
+    const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(candidate => candidate.id === programId)
+    const completions: number = education.completedPrograms.filter(completed => completed.id === programId).length
+    const maxCompletions: number = 1 + (program?.maxRepeats ?? 0)
 
     if (program?.track === 'book' && completions >= maxCompletions) {
       return { ok: false, reason: `Достигнут лимит повторного чтения: ${maxCompletions} прохождения` }
@@ -424,6 +503,15 @@ export const useGameStore = defineStore('game', () => {
       }
       throw error
     }
+    await refreshServerState()
+
+    if (gameMode === 'spa' && world) syncFromWorld(world)
+    return result
+  }
+
+  async function planDayAsync(plan: DayPlanInput): Promise<DayPlanResult> {
+    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
+    const result: DayPlanResult = await withServerSessionRecovery(() => executor.planDay(world, plan))
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
@@ -495,11 +583,24 @@ export const useGameStore = defineStore('game', () => {
   }
 
   async function resolveEventDecisionAsync(eventId: string, choiceId: string): Promise<CommandOutcome> {
-    const world: GameWorld | null = gameMode === 'spa' ? buildWorld() : null
-    const result: CommandOutcome = await withServerSessionRecovery(() => executor.resolveEventDecision(world, eventId, choiceId))
-    await refreshServerState()
+    if (gameMode === 'spa') {
+      const world: GameWorld = buildWorld()
+      const payload: GameEventPayload | null = getCurrentEventPayload(eventId)
+      const result: CommandOutcome = resolveEventDecision(world, eventId, payload, choiceId)
 
-    if (gameMode === 'spa' && world) syncFromWorld(world)
+      if (result.success) {
+        syncEventsFromWorld(world)
+        syncFromWorldExceptEvents(world)
+      }
+
+      return result
+    }
+
+    const result: CommandOutcome = await withServerSessionRecovery(() =>
+      executor.resolveEventDecision(null, eventId, choiceId),
+    )
+
+    await refreshServerState()
     return result
   }
 
@@ -613,13 +714,13 @@ export const useGameStore = defineStore('game', () => {
     getCareerTrack, getCareerSnapshot, getFinanceSnapshot, getFinanceActions, getActivityLogEntries, getStats: () => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
      initWorld, save, load, resetGame, resetServerSession, getWorldState: () => buildWorld().toJSON(),
     canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
-    canExecuteAction, executeAction, getNextEvent, applyEventChoice, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment,
+    canExecuteAction, executeAction, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment,
     canStartEducationProgramWithReason, startEducationProgram, advanceEducation,
     // server-first migration (Stage 3 + 5.6)
     executor, queryExecutor,
     gameMode,
     isOnline, pendingSyncCount, syncStatus,
-    executeActionAsync, applyWorkShiftAsync, changeCareerAsync, quitCareerAsync,
+    executeActionAsync, planDayAsync, applyWorkShiftAsync, changeCareerAsync, quitCareerAsync,
     startEducationProgramAsync, advanceEducationAsync, resolveEventDecisionAsync,
     initializeServerSession,
     getFinanceOverviewAsync, getInvestmentsAsync,

@@ -23,9 +23,21 @@
   }
 }
 
+.top-row__profile,
+.top-row__stats,
+.top-row__log {
+  min-width: 0;
+}
+
 .top-row__profile {
   // ProfileCard занимает всю верхнюю строку на mobile
   @include respond-to-max('md') {
+    grid-column: 1 / -1;
+  }
+}
+
+@include respond-to-max('md') {
+  .top-row__log {
     grid-column: 1 / -1;
   }
 }

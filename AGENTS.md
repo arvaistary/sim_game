@@ -1,42 +1,25 @@
-## Context Engine (CCE)
+# Game Life — agent entry
 
-This project uses Code Context Engine for intelligent code retrieval and
-cross-session memory.
+## Host roles
 
-### Searching the codebase
+- **Cursor:** Speckit workflows + `.cursor/rules/` are the source of truth for code style and architecture. Use Speckit skills/commands for feature work-items.
+- **Codex:** Prefer global lean instructions (`~/.codex/AGENTS.md`, Honey skill). Do not expand this file with Speckit dumps or always-on essay rules.
 
-**Use `context_search` instead of reading files directly** when exploring
-the codebase, answering questions about code, or understanding how things
-work. `context_search` returns the most relevant code chunks with
-confidence scores instead of whole files.
+## Project rules
 
-When to use `context_search`:
-- Answering questions about the codebase ("how does X work?", "where is Y?")
-- Exploring structure or architecture
-- Finding related code, functions, or patterns
+Follow `.cursor/rules/*.mdc` and `.specify/memory/constitution.md`.
+Durable project memory: `.specify/memory/` and `doc/`.
 
-Other tools:
-- `expand_chunk` for full source of a compressed result
-- `related_context` for what calls/imports a function
-- `session_recall` to recall past decisions
+## CCE (when MCP tools are available)
 
-### Cross-session memory
+If `context_search` / `session_recall` / `record_decision` / `record_code_area` tools are present:
 
-Call `session_recall("topic phrase")` before answering non-trivial questions.
-Call `record_decision(decision="...", reason="...")` after making choices.
-Call `record_code_area(file_path="...", description="...")` after meaningful work.
+- Prefer `context_search` for “how/where does X work?” before reading whole files.
+- Use `Read` when you already know the path or need full file content to edit.
+- `session_recall` before non-trivial design questions; `record_decision` after choices worth keeping.
+- If CCE tools are missing, use normal Grep/Read — do not invent CCE calls.
 
-### Output style
+## Output
 
-Respond in compressed style. Drop articles (a, an, the) in prose. Use
-sentence fragments over full sentences. Use short synonyms (fix not resolve,
-check not investigate). Pattern: [thing] [action] [reason]. [next step].
-No filler, hedging, pleasantries, trailing summaries, or restating what
-the user said. One sentence if one sentence is enough.
-
-When suggesting code changes, show only the changed lines with 3 lines of
-context. Never rewrite entire files. Multiple changes in one file: show each
-change separately. Never echo back unchanged code the user already has.
-
-Code blocks, file paths, commands, error messages: always written in full.
-Security warnings and destructive action confirmations: use full clarity.
+Be concise. Keep code, paths, commands, and errors exact.
+When suggesting edits, show only changed lines with a few lines of context.

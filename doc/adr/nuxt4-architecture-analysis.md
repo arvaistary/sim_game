@@ -59,7 +59,7 @@ graph TB
 
     subgraph Infrastructure - Non-Standard
         I1[LocalStorageSaveRepository]
-        I2[event-migration.ts]
+        I2[save-event-migration.ts]
     end
 
     subgraph Config - Non-Standard
@@ -219,7 +219,7 @@ Nuxt 4 по умолчанию использует `app/` вместо `src/`. 
 **Что содержит:**
 - `persistence/LocalStorageSaveRepository.ts` — реализация `SaveRepository` через localStorage
 - `persistence/constants.ts` — ключ сохранения
-- `persistence/event-migration.ts` — миграция данных событий
+- `persistence/save-event-migration.ts` — миграция данных событий
 
 **Что даёт:**
 - **Инверсия зависимостей.** Domain и Application зависят от интерфейса `SaveRepository`, а не от конкретной реализации
@@ -233,14 +233,13 @@ Nuxt 4 по умолчанию использует `app/` вместо `src/`. 
 **Что содержит:**
 - `feature-flags.ts` — feature flags для time-системы (runtime-переключатели)
 - `actions-feature-flags.ts` — feature flags для actions-системы
-- `event-feature-flags.ts` — feature flags для event-системы
 - `action-categories.ts` — категории действий для UI (id, label, icon)
 - `work-categories.ts` — типы работ и отрасли для UI
 - `education-tab-groups.ts` — распределение действий по табам
 - `shop-tab-groups.ts` — распределение товаров по табам
 
 **Смешанные ответственности:**
-1. **Feature flags** (3 файла) — это runtime-конфигурация с изменяемым состоянием
+1. **Feature flags** (2 файла) — это runtime-конфигурация с изменяемым состоянием
 2. **UI-группировки** (4 файла) — это статические данные, по сути — константы
 
 **Оценка:** ⚠️ **Разделить.** Feature flags оставить как конфигурацию, UI-группировки перенести в `constants/` или в соответствующие composables.
@@ -264,7 +263,6 @@ Nuxt 4 по умолчанию использует `app/` вместо `src/`. 
 |------|-----|-------------|
 | `feature-flags.ts` | **Config** ✅ | Есть `currentFlags`, getter/setter — runtime-состояние |
 | `actions-feature-flags.ts` | **Config** ✅ | Аналогично — runtime-переключатели |
-| `event-feature-flags.ts` | **Config** ✅ | Аналогично — runtime-переключатели |
 | `action-categories.ts` | **Constants** ⚠️ | Статический массив, не меняется в runtime |
 | `work-categories.ts` | **Constants** ⚠️ | Статические данные о типах работ |
 | `education-tab-groups.ts` | **Constants** ⚠️ | Статический Set ID действий |
@@ -329,7 +327,6 @@ Nuxt 4 по умолчанию использует `app/` вместо `src/`. 
 |------|---------------|---------|
 | `feature-flags.ts` | Оставить в `config/` | Runtime-конфигурация |
 | `actions-feature-flags.ts` | Оставить в `config/` | Runtime-конфигурация |
-| `event-feature-flags.ts` | Оставить в `config/` | Runtime-конфигурация |
 | `action-categories.ts` | → `constants/` | Статические данные |
 | `work-categories.ts` | → `constants/` | Статические данные |
 | `education-tab-groups.ts` | → `constants/` | Статические данные |
@@ -379,8 +376,7 @@ src/
 │
 ├── config/                    # ТОЛЬКО runtime-конфигурация
 │   ├── feature-flags.ts       # Time system flags
-│   ├── actions-feature-flags.ts
-│   └── event-feature-flags.ts
+│   └── actions-feature-flags.ts
 │
 ├── constants/                 # Все статические данные
 │   ├── metric-labels.ts       # Метки для UI
@@ -394,7 +390,7 @@ src/
     └── persistence/
         ├── LocalStorageSaveRepository.ts
         ├── constants.ts
-        └── event-migration.ts
+        └── save-event-migration.ts
 
 shared/                        # Shared types (Nuxt 4 standard)
 └── types/

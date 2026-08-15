@@ -19,8 +19,53 @@
   color: var(--color-text-secondary);
 }
 
-.stat-bar__value {
+.stat-bar__delta {
   font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
   color: var(--color-text-primary);
+}
+
+.stat-bar__delta--positive {
+  color: var(--color-status-success-strong);
+}
+
+.stat-bar__delta--negative {
+  color: var(--color-status-danger-strong);
+}
+
+.stat-bar--underflow .progress-bar__track {
+  animation: stat-bar-underflow-pulse 1.8s ease-in-out infinite;
+}
+
+.stat-bar--overflow .progress-bar__track {
+  animation: stat-bar-overflow-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes stat-bar-underflow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0.45rem -0.25rem var(--color-status-danger);
+  }
+
+  50% {
+    box-shadow: 0 0 0.85rem -0.15rem var(--color-status-danger);
+  }
+}
+
+@keyframes stat-bar-overflow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0.45rem -0.25rem var(--color-status-success);
+  }
+
+  50% {
+    box-shadow: 0 0 0.85rem -0.15rem var(--color-status-success);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-bar--underflow .progress-bar__track,
+  .stat-bar--overflow .progress-bar__track {
+    animation: none;
+  }
 }

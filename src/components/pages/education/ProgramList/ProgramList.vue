@@ -164,6 +164,7 @@ function getBookStatusLabel(program: EducationProgram): string {
   if (activeCourseId.value === program.id) return 'Читаю'
 
   const completions = getBookCompletionCount(program.id)
+
   if (completions > 0) return `Прочитано: ${completions}`
 
   return 'Куплено'
@@ -191,8 +192,10 @@ function getBookStatusDescription(program: EducationProgram): string {
   }
 
   const completions = getBookCompletionCount(program.id)
+
   if (completions > 0) {
     const maxCompletions = 1 + (program.maxRepeats ?? 0)
+
     if (completions >= maxCompletions) {
       return `Достигнут лимит: ${maxCompletions} прохождения.`
     }

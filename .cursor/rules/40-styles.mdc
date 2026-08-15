@@ -6,9 +6,10 @@ alwaysApply: false
 
 # Стили
 
-- Глобальные стили размещай в `src/assets/scss/global.scss` (подключение в `nuxt.config.ts`).
+- Глобальные стили размещай в `src/assets/scss/global.scss` (подключение в `nuxt.config.ts`). Accent-палитры — в `src/assets/scss/tokens/palettes/**` (`html[data-palette]`).
 - Локальные стили компонента храни в `<style scoped>` внутри `ComponentName.vue`.
 - Если требуются отдельные CSS модули, используй `ComponentName.module.scss` рядом с компонентом.
+- Theme/palette-чувствительные цвета — через CSS custom properties (`var(--color-*)`). Не хардкодь новые hex в component SCSS.
 - Utility-классы применяй через utility-first подход или `cn()` аналог, если есть.
 - Не смешивай utility-классы и тяжелый кастомный SCSS на одном элементе без явной причины.
 - Используй современные Sass-модули (`@use` / `@forward`) вместо устаревшего `@import`.

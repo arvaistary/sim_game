@@ -4,6 +4,7 @@ export {
   changeCareer,
   quitCareer,
   executeAction,
+  planDay,
   resolveEventDecision,
   collectInvestment,
   advanceTime,
@@ -31,7 +32,6 @@ export { createServerQueryExecutor } from './server-query-executor'
 export {
   createExecutor,
   createQueryExecutor,
-  createSPAExecutorAsync,
 } from './executor-factory'
 export type { ServerExecutorOptions, ServerQueryExecutorOptions } from './executor-factory'
 export {
@@ -64,6 +64,7 @@ export type {
   CareerTrackItemDto,
   EventQueueItemDto,
 } from './async-executor.types'
+export type { DayPlanInput, DayPlanResult, DayPlanStepResult } from '@/domain/game-world/commands/commands.types'
 export { appGameCommands, appGameQueries } from './legacy'
 export type { SaveRepository } from './ports/SaveRepository.types'
 export type * from './index.types'

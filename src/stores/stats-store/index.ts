@@ -1,6 +1,7 @@
 
 
 import { INITIAL_STATS } from '@/domain/balance/constants/initial-stats'
+import { clampStatValue } from '@/domain/balance/constants/stat-limits'
 
 export interface StatsComponent {
   energy: number
@@ -18,14 +19,6 @@ export interface StatsState {
   stress: number
   mood: number
   physical: number
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
-
-function clampStat(value: number): number {
-  return clamp(value, 0, 100)
 }
 
 export const useStatsStore = defineStore('stats', () => {
@@ -53,22 +46,22 @@ export const useStatsStore = defineStore('stats', () => {
 
   function applyStatChanges(changes: Partial<StatsComponent>) {
     if (changes.energy !== undefined) {
-      energy.value = clampStat(energy.value + changes.energy)
+      energy.value = clampStatValue('energy', energy.value + changes.energy)
     }
     if (changes.health !== undefined) {
-      health.value = clampStat(health.value + changes.health)
+      health.value = clampStatValue('health', health.value + changes.health)
     }
     if (changes.hunger !== undefined) {
-      hunger.value = clampStat(hunger.value + changes.hunger)
+      hunger.value = clampStatValue('hunger', hunger.value + changes.hunger)
     }
     if (changes.stress !== undefined) {
-      stress.value = clampStat(stress.value + changes.stress)
+      stress.value = clampStatValue('stress', stress.value + changes.stress)
     }
     if (changes.mood !== undefined) {
-      mood.value = clampStat(mood.value + changes.mood)
+      mood.value = clampStatValue('mood', mood.value + changes.mood)
     }
     if (changes.physical !== undefined) {
-      physical.value = clampStat(physical.value + changes.physical)
+      physical.value = clampStatValue('physical', physical.value + changes.physical)
     }
   }
 
@@ -76,38 +69,38 @@ export const useStatsStore = defineStore('stats', () => {
     for (const [key, delta] of Object.entries(changes)) {
       switch (key) {
         case 'energy':
-          energy.value = clampStat(energy.value + delta)
+          energy.value = clampStatValue('energy', energy.value + delta)
           break
         case 'health':
-          health.value = clampStat(health.value + delta)
+          health.value = clampStatValue('health', health.value + delta)
           break
         case 'hunger':
-          hunger.value = clampStat(hunger.value + delta)
+          hunger.value = clampStatValue('hunger', hunger.value + delta)
           break
         case 'stress':
-          stress.value = clampStat(stress.value + delta)
+          stress.value = clampStatValue('stress', stress.value + delta)
           break
         case 'mood':
-          mood.value = clampStat(mood.value + delta)
+          mood.value = clampStatValue('mood', mood.value + delta)
           break
         case 'physical':
-          physical.value = clampStat(physical.value + delta)
+          physical.value = clampStatValue('physical', physical.value + delta)
           break
       }
     }
   }
 
   function setStats(newStats: Partial<StatsState>) {
-    if (newStats.energy !== undefined) energy.value = clampStat(newStats.energy)
-    if (newStats.health !== undefined) health.value = clampStat(newStats.health)
-    if (newStats.hunger !== undefined) hunger.value = clampStat(newStats.hunger)
-    if (newStats.stress !== undefined) stress.value = clampStat(newStats.stress)
-    if (newStats.mood !== undefined) mood.value = clampStat(newStats.mood)
-    if (newStats.physical !== undefined) physical.value = clampStat(newStats.physical)
+    if (newStats.energy !== undefined) energy.value = clampStatValue('energy', newStats.energy)
+    if (newStats.health !== undefined) health.value = clampStatValue('health', newStats.health)
+    if (newStats.hunger !== undefined) hunger.value = clampStatValue('hunger', newStats.hunger)
+    if (newStats.stress !== undefined) stress.value = clampStatValue('stress', newStats.stress)
+    if (newStats.mood !== undefined) mood.value = clampStatValue('mood', newStats.mood)
+    if (newStats.physical !== undefined) physical.value = clampStatValue('physical', newStats.physical)
   }
 
   function setEnergy(value: number): void {
-    energy.value = clampStat(value)
+    energy.value = clampStatValue('energy', value)
   }
 
   function restoreAll() {
@@ -139,12 +132,12 @@ export const useStatsStore = defineStore('stats', () => {
   }
 
   function load(data: Record<string, unknown>): void {
-    if (typeof data.energy === 'number') energy.value = clampStat(data.energy)
-    if (typeof data.health === 'number') health.value = clampStat(data.health)
-    if (typeof data.hunger === 'number') hunger.value = clampStat(data.hunger)
-    if (typeof data.stress === 'number') stress.value = clampStat(data.stress)
-    if (typeof data.mood === 'number') mood.value = clampStat(data.mood)
-    if (typeof data.physical === 'number') physical.value = clampStat(data.physical)
+    if (typeof data.energy === 'number') energy.value = clampStatValue('energy', data.energy)
+    if (typeof data.health === 'number') health.value = clampStatValue('health', data.health)
+    if (typeof data.hunger === 'number') hunger.value = clampStatValue('hunger', data.hunger)
+    if (typeof data.stress === 'number') stress.value = clampStatValue('stress', data.stress)
+    if (typeof data.mood === 'number') mood.value = clampStatValue('mood', data.mood)
+    if (typeof data.physical === 'number') physical.value = clampStatValue('physical', data.physical)
   }
 
   return {

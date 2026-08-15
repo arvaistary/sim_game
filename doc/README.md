@@ -31,7 +31,6 @@ doc/
 │   ├── ROADMAP.md                     # План разработки
 │   ├── PAGES_REFERENCE.md             # Справочник Vue страниц и роутинга
 │   ├── START_GAME_DOCUMENTATION.md    # Документация старта игры
-│   ├── MEMPALACE_SETUP.md             # Настройка MemPalace
 │   └── SKILLS.md                      # Справочник по навыкам
 │
 ├── gdd/                               # Game Design Document
@@ -51,7 +50,8 @@ doc/
 │       ├── 11_seasonal.md
 │       ├── 12_technical.md
 │       ├── 13_roadmap.md
-│       └── 14_conclusion.md
+│       ├── 14_conclusion.md
+│       └── 17_life_education_prologue.md  # Пролог образования (supersedes §4.12 start)
 │
 ├── adr/                               # Architecture Decision Records
 │   ├── README.md                      # Обзор ADR
@@ -67,6 +67,7 @@ doc/
 ├── guides/                            # Практические руководства
 │   ├── DESIGN_SYSTEM.md               # Design system проекта
 │   ├── MODAL_SYSTEM_GUIDE.md          # Руководство по модальной системе
+│   ├── PROLOGUE_CONTENT_AUTHORING.md  # Контент life education prologue
 │   ├── RULES_NUXT_ADAPTATION.md       # Правила адаптации под Nuxt
 │   └── VERCEL_GIT_WORKFLOW.md         # Локальные feature-ветки и deploy из main
 │

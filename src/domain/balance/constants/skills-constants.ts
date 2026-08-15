@@ -1,6 +1,7 @@
 import type { SkillDef, SkillTab, SkillCategory } from '@/domain/balance/types'
+import { MAX_SKILL_LEVEL } from '@/domain/balance/skills/skill-progression'
 
-export const MAX_SKILL_LEVEL = 1000
+export { MAX_SKILL_LEVEL } from '@/domain/balance/skills/skill-progression'
 
 export const SKILLS_TABS: SkillTab[] = [
   { id: 'basic', label: 'Базовые' },

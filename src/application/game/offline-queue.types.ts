@@ -3,7 +3,14 @@
  */
 import type { ApiResponse, SyncResponse } from '@game-life/contracts'
 
-export type QueuedActionType = 'action' | 'work' | 'event' | 'career' | 'finance' | 'education'
+export type QueuedActionType =
+  | 'action'
+  | 'work'
+  | 'event'
+  | 'career'
+  | 'finance'
+  | 'education'
+  | 'time'
 
 export interface QueuedAction {
   id: string

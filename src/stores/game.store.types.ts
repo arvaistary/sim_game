@@ -73,4 +73,6 @@ export interface GameActionItem {
   skillChanges: Record<string, number> | undefined
   cooldown: GameActionItemCooldown | undefined
   requirements: GameActionItemRequirements | undefined
+  oneTime: boolean | undefined
+  grantsItem: string | undefined
 }

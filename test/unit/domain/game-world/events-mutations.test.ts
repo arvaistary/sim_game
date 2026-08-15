@@ -32,6 +32,16 @@ describe('domain events mutations', () => {
     expect(world.events.pending).toHaveLength(0)
   })
 
+  it('addEventToQueue: отклоняет дубликаты в pending по instanceId', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+
+    addEventToQueue(world, 'inst_1', { id: 'ev_1', instanceId: 'inst_1' })
+    const duplicateResult: boolean = addEventToQueue(world, 'inst_1', { id: 'ev_1_copy', instanceId: 'inst_1' })
+
+    expect(duplicateResult).toBe(false)
+    expect(world.events.pending).toHaveLength(1)
+  })
+
   it('addEventToQueue: ограничивает очередь до MAX_EVENT_QUEUE', () => {
     const world: GameWorld = GameWorld.createEmpty()
 

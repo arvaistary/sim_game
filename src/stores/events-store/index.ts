@@ -12,9 +12,11 @@ export const useEventsStore = defineStore('events', () => {
   const eventHistory: Ref<EventHistoryEntry[]> = ref<EventHistoryEntry[]>([])
   const seenEventIds: Ref<Set<string>> = ref<Set<string>>(new Set())
 
-  const hasEvent: ComputedRef<boolean> = computed(() => currentEvent.value !== null)
   const queueLength: ComputedRef<number> = computed(() => eventQueue.value.length)
-  const historyCount: ComputedRef<number> = computed(() => eventHistory.value.length)
+  /** Есть текущее или ожидающие в очереди — для индикатора FR-008. */
+  const hasPendingEvents: ComputedRef<boolean> = computed(
+    () => currentEvent.value !== null || eventQueue.value.length > 0,
+  )
 
   const nextEvent: ComputedRef<GameEvent | null> = computed(() => eventQueue.value[0] ?? null)
 
@@ -23,15 +25,10 @@ export const useEventsStore = defineStore('events', () => {
 
     if (eventQueue.value.length >= MAX_QUEUE) return
 
-    eventQueue.value.push(event)
-  }
-
-  function setCurrentEvent(event: GameEvent | null): void {
-    currentEvent.value = event
-
-    if (event) {
-      seenEventIds.value.add(event.instanceId)
-    }
+    eventQueue.value.push({
+      ...event,
+      priority: event.priority ?? 'normal',
+    })
   }
 
   function showNextEvent(): void {
@@ -45,27 +42,33 @@ export const useEventsStore = defineStore('events', () => {
   function resolveCurrentEvent(choiceId: string, choiceText: string, effects?: Record<string, number>): void {
     if (!currentEvent.value) return
 
+    const timeStore = useTimeStore()
+    const instanceId: string = currentEvent.value.instanceId
+
     eventHistory.value.push({
-      instanceId: currentEvent.value.instanceId,
+      instanceId,
       templateId: currentEvent.value.id,
-      day: 0,
+      day: timeStore.gameDays,
       choiceId,
       choiceText,
       effects,
     })
 
+    seenEventIds.value.add(instanceId)
+
     if (eventHistory.value.length > MAX_HISTORY) {
       eventHistory.value = eventHistory.value.slice(-MAX_HISTORY)
     }
+
+    // Не вызываем showNextEvent — UI (EventModal) грузит следующее через loadNextEvent.
     currentEvent.value = null
-    showNextEvent()
   }
 
   function applyChoice(choiceId: string): boolean {
     if (!currentEvent.value) return false
 
     const choice: EventChoice | undefined = currentEvent.value.choices?.find(
-      (c: EventChoice) => c.id === choiceId
+      (item: EventChoice) => item.id === choiceId,
     )
 
     if (!choice) return false
@@ -76,10 +79,12 @@ export const useEventsStore = defineStore('events', () => {
 
   function skipEvent(): void {
     if (currentEvent.value) {
+      const timeStore = useTimeStore()
+
       eventHistory.value.push({
         instanceId: currentEvent.value.instanceId,
         templateId: currentEvent.value.id,
-        day: 0,
+        day: timeStore.gameDays,
       })
     }
     currentEvent.value = null
@@ -88,10 +93,6 @@ export const useEventsStore = defineStore('events', () => {
 
   function clearQueue(): void {
     eventQueue.value = []
-  }
-
-  function hasSeenEvent(eventId: string): boolean {
-    return seenEventIds.value.has(eventId)
   }
 
   function reset(): void {
@@ -106,35 +107,41 @@ export const useEventsStore = defineStore('events', () => {
       eventQueue: eventQueue.value,
       eventHistory: eventHistory.value,
       seenEventIds: [...seenEventIds.value],
+      currentEvent: currentEvent.value,
     }
   }
 
   function load(data: Record<string, unknown>): void {
-    if (Array.isArray(data.eventQueue)) eventQueue.value = data.eventQueue as GameEvent[]
+    if (Array.isArray(data.eventQueue)) {
+      eventQueue.value = (data.eventQueue as GameEvent[]).map((event: GameEvent) => ({
+        ...event,
+        priority: event.priority ?? 'normal',
+      }))
+    }
 
     if (Array.isArray(data.eventHistory)) eventHistory.value = data.eventHistory as EventHistoryEntry[]
 
     if (Array.isArray(data.seenEventIds)) seenEventIds.value = new Set(data.seenEventIds as string[])
 
-    currentEvent.value = null
+    const loadedCurrent: GameEvent | null = (data.currentEvent as GameEvent | null | undefined) ?? null
+
+    currentEvent.value = loadedCurrent
+      ? { ...loadedCurrent, priority: loadedCurrent.priority ?? 'normal' }
+      : null
   }
 
   return {
     eventQueue,
     currentEvent,
     eventHistory,
-    hasEvent,
+    hasPendingEvents,
     queueLength,
-    historyCount,
     nextEvent,
     addToQueue,
-    setCurrentEvent,
     showNextEvent,
-    resolveCurrentEvent,
     applyChoice,
     skipEvent,
     clearQueue,
-    hasSeenEvent,
     reset,
     save,
     load,

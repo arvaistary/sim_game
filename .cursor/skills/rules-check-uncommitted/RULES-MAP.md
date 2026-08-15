@@ -18,7 +18,7 @@
 - `typing/types-location`, `typing/no-inline-object-*`, `typing/explicit-variable-annotation`, `typing/no-returntype-typeof-variable`, `typing/duplicate-function-typing`, `typing/no-duplicate-hook-generic-typing`
 - `style/script-setup-block-order`, `style/script-setup-block-separation`, `style/blank-line-*`, `style/exported-function-tsdoc*`, `style/vue-prefer-v-if`, `style/v-for-requires-key`, `style/no-void-fire-and-forget`, `style/chain-*`, `style/if-guard-*`, и др.
 - `nuxt/server-client-boundary`, `nuxt/use-async-data-key`, `nuxt/use-fetch-key`
-- `styles/global-scss-location`, `styles/sass-import`
+- `styles/global-scss-location` (только лишние файлы в `src/assets/scss/` вне `global.scss`, `tokens/**` и partials), `styles/sass-import`
 - `eslint`
 
 **Не автоматизировано** (только фаза B по `.mdc`):

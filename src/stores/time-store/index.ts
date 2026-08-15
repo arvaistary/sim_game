@@ -48,10 +48,10 @@ export const useTimeStore = defineStore('time', () => {
 
   const gameWeeksFloored = computed(() => Math.floor(totalHours.value / (24 * 7)))
 
-  function advanceHours(hours: number, options?: { actionType?: 'sleep' | 'work' | 'default' }) {
+  function advanceHours(hours: number, options?: { actionType?: 'sleep' | 'work' | 'idle' | 'default' }): void {
     totalHours.value += hours
 
-    if (options?.actionType !== 'sleep') {
+    if (options?.actionType !== 'sleep' && options?.actionType !== 'idle') {
       const debtGain = hours * 0.5
       sleepDebt.value = clamp(sleepDebt.value + debtGain, 0, 100)
     }

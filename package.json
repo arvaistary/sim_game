@@ -12,6 +12,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run --passWithNoTests",
+    "test:unit": "vitest run test/unit test/integration/day-planner-flow.test.ts",
     "test:architecture": "vitest run test/unit/architecture/package-boundaries.test.ts test/unit/architecture/extracted-packages.test.ts",
     "test:standalone-server": "vitest run test/integration/standalone-server/app.test.ts",
     "test:watch": "vitest",
@@ -24,12 +25,14 @@
     "dev:client": "cross-env NUXT_PUBLIC_GAME_MODE=server NUXT_PUBLIC_GAME_API_BASE_URL=http://localhost:3001 nuxt dev --port 3000",
     "dev:server": "cross-env NUXT_PUBLIC_GAME_MODE=server NUXT_GAME_CORS_ORIGIN=http://127.0.0.1:3000,http://localhost:3000 nuxt dev --port 3001",
     "dev:standalone-server": "tsx --tsconfig tsconfig.server.json apps/server/src/index.ts",
+    "dev:standalone-server:watch": "tsx watch --tsconfig tsconfig.server.json apps/server/src/index.ts",
     "build": "nuxt build",
     "build:client": "nuxt generate",
     "build:server": "nuxt build",
     "start:server": "node .output/server/index.mjs",
     "start:standalone-server": "tsx --tsconfig tsconfig.server.json apps/server/src/index.ts",
     "audit:action-age-groups": "node scripts/audit-action-age-groups.mjs",
+    "audit:contrast": "node scripts/audit-color-contrast.mjs",
     "rules:audit": "node scripts/rules-audit.mjs",
     "rules:audit:changed": "node scripts/rules-audit-changed.mjs",
     "rules:fix": "node scripts/fix-code.mjs",
@@ -45,13 +48,7 @@
     "typecheck:packages": "tsc --noEmit --ignoreConfig --strict --target ES2022 --module ESNext --moduleResolution bundler packages/contracts/src/index.ts packages/domain/src/index.ts packages/application/src/index.ts",
     "typecheck:standalone-server": "tsc --noEmit --project tsconfig.server.json",
     "typecheck:watch": "nuxt typecheck --watch",
-    "prepare": "husky",
-    "mem": "node scripts/mempalace.mjs",
-    "mem:init": "node scripts/mempalace.mjs init . --yes",
-    "mem:mine": "node scripts/mempalace.mjs mine .",
-    "mem:status": "node scripts/mempalace.mjs status",
-    "mem:wakeup": "node scripts/mempalace.mjs wake-up",
-    "mem:search": "node scripts/mempalace.mjs search"
+    "prepare": "husky"
   },
   "lint-staged": {
     "*.{ts,vue}": [
@@ -81,6 +78,7 @@
     "pinia": "3.0.4",
     "swiper": "12.1.3",
     "vue": "3.5.32",
+    "vue-router": "5.0.4",
     "vue-tsc": "3.2.6"
   },
   "devDependencies": {

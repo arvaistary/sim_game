@@ -17,7 +17,7 @@ describe('domain skills mutations', () => {
     setSkillLevel(world, 'programming', 5)
 
     expect(getSkillLevel(world, 'programming')).toBe(5)
-    expect(getSkillXp(world, 'programming')).toBe(500) // xpForLevel(5) = 5 * 100
+    expect(getSkillXp(world, 'programming')).toBe(1250)
   })
 
   it('setSkillLevel: clamp уровня в диапазоне 0..10', () => {
@@ -31,14 +31,14 @@ describe('domain skills mutations', () => {
   it('addSkillXp: добавляет XP и пересчитывает уровень', () => {
     const world: GameWorld = GameWorld.createEmpty()
 
-    addSkillXp(world, 'programming', 250) // level 2 (200), почти 3 (300)
+    addSkillXp(world, 'programming', 250)
 
     expect(getSkillLevel(world, 'programming')).toBe(2)
     expect(getSkillXp(world, 'programming')).toBe(250)
 
-    addSkillXp(world, 'programming', 50) // 300 → level 3
+    addSkillXp(world, 'programming', 50)
 
-    expect(getSkillLevel(world, 'programming')).toBe(3)
+    expect(getSkillLevel(world, 'programming')).toBe(2)
   })
 
   it('applySkillChanges: применяет положительные и отрицательные дельты', () => {

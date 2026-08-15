@@ -1,0 +1,7 @@
+{
+  "name": "006-day-turn-migration",
+  "path": "specs/006-day-turn-migration/",
+  "mode": "full",
+  "description": "Переход системы времени на день как ход (Вариант 2); подготовка точек интеграции для 007-event-system-integration",
+  "created": "2026-08-03T00:00:00Z"
+}

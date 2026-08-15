@@ -9,9 +9,12 @@ import type { BalanceAction } from '@/domain/balance/actions/types'
 import type { StatChanges } from '@/domain/balance/types'
 import { getActionById } from '@/domain/balance/actions'
 import { calculateStatChanges } from '@/domain/balance/utils/hourly-rates'
+import { getActionAvailabilityBlockReason } from '@/domain/game-world/action-availability'
+import { calculateSkillXpGain, distributeSkillXp } from '@/domain/balance/skills'
+
 import type { DomainActionRequirements, ExecuteActionResult } from './commands.types'
 import {
-  applySkillChanges,
+  applySkillXp,
   applyStatChangesRaw,
   hasSkillLevel,
   spendMoney,
@@ -39,6 +42,10 @@ export function executeActionCommand(world: GameWorld, actionId: string): Execut
     return { success: false, message: 'Недостаточно денег' }
   }
 
+  if (world.time.dayHoursRemaining < action.hourCost) {
+    return { success: false, message: 'Недостаточно времени на сегодня' }
+  }
+
   if (world.time.weekHoursRemaining < action.hourCost) {
     return { success: false, message: 'Недостаточно времени' }
   }
@@ -57,6 +64,21 @@ export function executeActionCommand(world: GameWorld, actionId: string): Execut
     }
   }
 
+  if (requirements?.requiresCompletedProgramId) {
+    const completedPrograms: Array<{ id: string }> = world.education.completedPrograms ?? []
+    const hasCompletedProgram: boolean = completedPrograms.some(program => program.id === requirements.requiresCompletedProgramId)
+
+    if (!hasCompletedProgram) {
+      return { success: false, message: 'Сначала завершите книгу «Основы медитации»' }
+    }
+  }
+
+  const availabilityBlockReason: string | null = getActionAvailabilityBlockReason(world, action, actionId)
+
+  if (availabilityBlockReason) {
+    return { success: false, message: availabilityBlockReason }
+  }
+
   let moneySpent: number = 0
 
   if (action.price > 0) {
@@ -70,18 +92,10 @@ export function executeActionCommand(world: GameWorld, actionId: string): Execut
     const isSleep: boolean = action.actionType === 'sleep'
     const isWork: boolean = action.actionType === 'work'
     advanceHours(world, action.hourCost, isSleep ? 'sleep' : isWork ? 'work' : 'default')
+
     if (isSleep) {
       world.education.studyHoursSinceLastSleep = 0
       world.education.cognitiveLoad = 0
-    }
-  }
-
-  if (requirements?.requiresCompletedProgramId) {
-    const completedPrograms = world.education.completedPrograms ?? []
-    const hasCompletedProgram = completedPrograms.some(program => program.id === requirements.requiresCompletedProgramId)
-
-    if (!hasCompletedProgram) {
-      return { success: false, message: 'Сначала завершите книгу «Основы медитации»' }
     }
   }
 
@@ -113,7 +127,13 @@ export function executeActionCommand(world: GameWorld, actionId: string): Execut
   }
 
   if (action.skillChanges) {
-    applySkillChanges(world, action.skillChanges)
+    const practiceXp: number = calculateSkillXpGain({
+      hours: action.hourCost,
+      method: action.learningMethod,
+      age: world.player.currentAge,
+    })
+
+    applySkillXp(world, distributeSkillXp({ totalXp: practiceXp, weights: action.skillChanges }))
   }
 
   if (action.grantsItem) {

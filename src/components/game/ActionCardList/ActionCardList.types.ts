@@ -9,6 +9,7 @@ export interface ActionCardListProps {
   showDetails?: boolean
   useFormatEffect?: boolean
   emptyText?: string
+  showAddToPlan?: boolean
 }
 
 export interface ActionCardListEmits {

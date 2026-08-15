@@ -1,0 +1,56 @@
+.prologue-scene-card {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.prologue-scene-card__year {
+  margin: 0 0 0.5rem;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.prologue-scene-card__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.prologue-scene-card__description {
+  margin: 0 0 1.5rem;
+  color: var(--color-text-secondary, #334155);
+  line-height: 1.5;
+}
+
+.prologue-scene-card__choices {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.prologue-scene-card__choice {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: 0.5rem;
+  background: var(--color-surface, #fff);
+  text-align: left;
+  cursor: pointer;
+}
+
+.prologue-scene-card__choice:hover,
+.prologue-scene-card__choice:focus-visible {
+  border-color: var(--color-accent, #0f766e);
+  outline: none;
+}
+
+.prologue-scene-card__choice-label {
+  font-weight: 600;
+}
+
+.prologue-scene-card__choice-desc {
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.9rem;
+}

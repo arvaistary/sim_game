@@ -69,7 +69,8 @@ export default defineNuxtConfig({
 
   imports: {
     dirs: [
-      'stores',
+      'stores/*.store.{ts,js,mjs,mts}',
+      'stores/*/index.{ts,js,mjs,mts}',
       'composables/*/index.{ts,js,mjs,mts}',
       'shared/types',
     ],

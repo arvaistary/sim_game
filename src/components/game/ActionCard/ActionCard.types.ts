@@ -14,6 +14,7 @@ export interface ActionCardProps {
   showPriceWhenZero?: boolean
   showDetails?: boolean
   useFormatEffect?: boolean
+  showAddToPlan?: boolean
 }
 
 export interface ActionCardEmits {

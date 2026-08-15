@@ -262,13 +262,15 @@ export interface WorkResultTier {
 export interface SkillCheck {
   key: string
   threshold: number
-  successStatChanges: StatChanges
-  failStatChanges: StatChanges
-  failMoneyDelta: number
+  successStatChanges?: StatChanges
+  failStatChanges?: StatChanges
+  successMoneyDelta?: number
+  failMoneyDelta?: number
 }
 
 export interface MicroEventChoice {
-  label: string
+  id: string
+  text: string
   outcome: string
   skillCheck?: SkillCheck
   moneyDelta?: number
@@ -284,8 +286,10 @@ export interface MicroEvent {
 }
 
 export interface PeriodicEventChoice {
-  label: string
-  description: string
+  id: string
+  text: string
+  description?: string
+  outcome?: string
   statChanges: StatChanges
   moneyDelta?: number
   skillChanges?: Record<string, number>

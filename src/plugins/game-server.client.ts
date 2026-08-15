@@ -9,7 +9,8 @@ export default defineNuxtPlugin(async () => {
   const gameStore = useGameStore()
 
   if (gameStore.gameMode !== 'spa') {
-    const savedData = createLocalStorageSaveRepository().load()
+    const savedData: Record<string, unknown> | null = createLocalStorageSaveRepository().load()
+
     if (savedData) gameStore.load(savedData)
     await gameStore.initializeServerSession(gameStore.getWorldState())
   }

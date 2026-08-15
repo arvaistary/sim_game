@@ -1,0 +1,20 @@
+// Accent palette: violet
+html[data-palette="violet"] {
+  --color-action-primary: #7C3AED;
+  --color-action-primary-hover: #6D28D9;
+  --color-action-primary-active: #5B21B6;
+  --color-action-secondary: #2563EB;
+  --color-brand-primary: var(--color-action-primary);
+  --color-brand-secondary: var(--color-action-secondary);
+  --color-status-info: var(--color-action-primary);
+  --shadow-button-hover: 0 6px 16px rgb(124 58 237 / 30%);
+  --color-blue: var(--color-action-primary);
+}
+
+html[data-palette="violet"][data-theme="dark"] {
+  --color-action-primary: #C4B5FD;
+  --color-action-primary-hover: #DDD6FE;
+  --color-action-primary-active: #A78BFA;
+  --color-action-secondary: #60A5FA;
+  --shadow-button-hover: 0 6px 16px rgb(167 139 250 / 35%);
+}

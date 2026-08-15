@@ -24,10 +24,52 @@
 - `SCSS` для стилизации
 - `LocalStorage` для сохранения прогресса
 
-## Запуск
+## Запуск проекта
+
+### Рекомендуемый режим разработки
+
+Docker Dev запускает Nuxt HMR, Fastify API с watch-режимом и PostgreSQL.
+Изменения исходников применяются без перезапуска контейнеров:
+
+Создайте `.env` из `.env.example` и задайте локальные учётные данные.
+
+```bash
+docker compose --env-file .env -f infra/docker-compose.dev.yml up --build
+```
+
+Клиент доступен по адресу http://localhost:3000. Остановка:
+
+```bash
+docker compose -f infra/docker-compose.dev.yml down
+```
+
+### Production-like Docker
+
+Используется для проверки собранных production-артефактов:
+
+```bash
+docker compose --env-file .env -f infra/docker-compose.yml up --build
+```
+
+Этот режим не поддерживает HMR. Данные PostgreSQL сохраняются в volume
+`game-life-postgres-data`.
+
+### Vercel
+
+Vercel использует тот же production build:
+
+```bash
+npm run build
+```
+
+Production environment variables задаются в настройках Vercel, а не в Docker-файлах.
+
+## Локальный запуск без Docker
 
 ```bash
 npm install
+npm run infra:up
+npm run db:migrate
 npm run dev
 ```
 

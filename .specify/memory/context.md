@@ -1,6 +1,6 @@
 # Game Life Repository Context
 
-**Last Updated:** 2026-07-28
+**Last Updated:** 2026-08-09
 
 ## Project Overview
 
@@ -19,7 +19,7 @@ Game Life is a cozy turn-based life simulator built with modern web technologies
 ## Core Technical Decisions
 
 1. **Runtime Modes:** Client UI uses `ssr: false`; game commands support `spa`, `server`, and `hybrid` execution modes through runtime configuration
-2. **Layered Architecture:** Strict dependency flow: utils/constants → domain → application → infrastructure → stores/composables → components → pages
+2. **Layered Architecture:** Strict dependency flow: utils/constants → domain → application → infrastructure → stores/composables → components → pages. Application must not import infrastructure (enforced by `layer-boundaries` tests); RNG for live day-end hooks is injected from store (`createMathRandomSource` + `createLiveDayEndHooks`).
 3. **Type Safety:** All code is TypeScript with strict mode enabled
 4. **Component Auto-import:** Components from specific directories are auto-imported without prefixes
 5. **Server-first runtime:** Browser/dev defaults to server execution through standalone Fastify on `:3001`; Nitro handlers remain compatibility layer and use same PostgreSQL application boundary
@@ -56,7 +56,7 @@ specs/                   # Local-only Spec-kit work items and server-first plan
 ## Game Systems
 
 **Implemented Pages:**
-- Dashboard - character overview, stats, activity log, work choice
+- Dashboard - character overview, stats, activity log, day planning
 - Home - recovery actions (health, fun, social, self-dev, hobby)
 - Actions - integrated recovery system with tabs
 - Work - jobs, career, income, work shifts
@@ -68,10 +68,11 @@ specs/                   # Local-only Spec-kit work items and server-first plan
 
 **Key Mechanics:**
 - Time-based progression system
+- Day planning orchestration with neutral end-of-day closure and boundary hooks
 - Action execution with stat changes
 - Career advancement with work shifts
 - Education progression system
-- Random events with choices
+- Random events with choices — **wired to `DayEndHooks`** (work ≤1/day stop-after-first, micro by `baseChance`, weekly/monthly+finance/yearly/age); `RandomSource` port in domain, `MathRandomSource` in infrastructure; childhood events deferred (`specs/007-event-system-integration/follow-ups/childhood-events.md`)
 - Activity log for game history
 - Auto-save system (LocalStorage)
 - Server session API with cookie identity and 24-hour in-memory state TTL (transitional M2 implementation)

@@ -9,30 +9,20 @@ import type { ActivityEntry, GameWorldSnapshot, SkillLevels } from '@/domain/gam
 import { recalculateSkillModifiers, createBaseSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
 import type { SkillModifiers } from '@/domain/balance/types'
 import type { LifetimeStatsData, StatsData, TimeData, Investment } from '@/domain/balance/constants/default-save'
-
-const STAT_MIN: number = 0
-const STAT_MAX: number = 100
-
-function clampStat(value: number): number {
-  return Math.max(STAT_MIN, Math.min(STAT_MAX, value))
-}
+import {
+  MAX_SKILL_LEVEL,
+  MAX_SKILL_XP,
+  getLevelFromXp,
+  getXpForLevel,
+} from '@/domain/balance/skills'
+import { clampStatValue } from '@/domain/balance/constants/stat-limits'
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
 
-const MAX_SKILL_LEVEL: number = 10
-
-function xpForLevel(level: number): number {
-  return level * 100
-}
-
-function levelFromXp(xp: number): number {
-  return clamp(xp / xpForLevel(1), 0, MAX_SKILL_LEVEL)
-}
-
 /**
- * Применить дельты к статам (с clamp 0..100).
+ * Применить дельты к статам с допустимым диапазоном каждой шкалы.
  * @description [Domain] - мутирует world.stats на месте.
  * @param world цель
  * @param changes map stat key → delta
@@ -43,22 +33,22 @@ export function applyStatChangesRaw(world: GameWorld, changes: Record<string, nu
   for (const [key, delta] of Object.entries(changes)) {
     switch (key) {
       case 'energy':
-        stats.energy = clampStat(stats.energy + delta)
+        stats.energy = clampStatValue('energy', stats.energy + delta)
         break
       case 'health':
-        stats.health = clampStat(stats.health + delta)
+        stats.health = clampStatValue('health', stats.health + delta)
         break
       case 'hunger':
-        stats.hunger = clampStat(stats.hunger + delta)
+        stats.hunger = clampStatValue('hunger', stats.hunger + delta)
         break
       case 'stress':
-        stats.stress = clampStat(stats.stress + delta)
+        stats.stress = clampStatValue('stress', stats.stress + delta)
         break
       case 'mood':
-        stats.mood = clampStat(stats.mood + delta)
+        stats.mood = clampStatValue('mood', stats.mood + delta)
         break
       case 'physical':
-        stats.physical = clampStat(stats.physical + delta)
+        stats.physical = clampStatValue('physical', stats.physical + delta)
         break
     }
   }
@@ -78,19 +68,29 @@ export function spendMoney(world: GameWorld, amount: number): boolean {
   return true
 }
 
-/** Сохранить купленный предмет в общем инвентаре мира. */
+/**
+ * Сохранить купленный предмет в общем инвентаре мира.
+ * @description [Domain] - добавляет предмет только если он ещё не куплен.
+ * @return { void }
+ */
 export function grantItem(world: GameWorld, itemId: string): void {
   if (!itemId) return
 
   const furniture: Array<Record<string, unknown>> = world.housing.furniture as Array<Record<string, unknown>>
+
   if (furniture.some((item: Record<string, unknown>) => item.id === itemId && item.purchased === true)) return
 
   furniture.push({ id: itemId, name: itemId, comfortBonus: 0, purchased: true })
 }
 
+/**
+ * Записать использование действия в агрегате мира.
+ * @description [Domain] - увеличивает count и обновляет монотонный маркер последнего использования.
+ * @return { void }
+ */
 export function recordActionUsage(world: GameWorld, actionId: string): void {
-  const current = world.actionUsage[actionId] ?? { count: 0, lastUsedAt: 0 }
-  const lastUsedAt = Object.values(world.actionUsage).reduce(
+  const current: GameWorld['actionUsage'][string] = world.actionUsage[actionId] ?? { count: 0, lastUsedAt: 0 }
+  const lastUsedAt: number = Object.values(world.actionUsage).reduce(
     (latest, usage) => Math.max(latest, usage.lastUsedAt),
     0,
   ) + 1
@@ -121,17 +121,21 @@ export function earnMoney(world: GameWorld, amount: number): void {
  * @description [Domain] - мутирует world.time, обновляет totalHours/sleepDebt и т.д.
  * @return { void }
  */
-export function advanceHours(world: GameWorld, hours: number, actionType: 'sleep' | 'work' | 'default' = 'default'): void {
+export function advanceHours(world: GameWorld, hours: number, actionType: 'sleep' | 'work' | 'idle' | 'default' = 'default'): void {
   if (hours <= 0) return
   const time: TimeData = world.time
   time.totalHours += hours
-  time.weekHoursSpent += hours
-  time.weekHoursRemaining = Math.max(0, 168 - time.weekHoursSpent)
-  time.dayHoursSpent += hours
-  time.dayHoursRemaining = Math.max(0, 24 - time.dayHoursSpent)
+  time.weekHoursSpent = time.totalHours % 168
+  time.weekHoursRemaining = time.weekHoursSpent === 0
+    ? 168
+    : 168 - time.weekHoursSpent
+  time.dayHoursSpent = time.totalHours % 24
+  time.dayHoursRemaining = time.dayHoursSpent === 0
+    ? 24
+    : 24 - time.dayHoursSpent
   time.hourOfDay = time.totalHours % 24
 
-  if (actionType !== 'sleep') {
+  if (actionType !== 'sleep' && actionType !== 'idle') {
     const debtGain: number = hours * 0.5
     time.sleepDebt = clamp(time.sleepDebt + debtGain, 0, 100)
   }
@@ -142,27 +146,39 @@ export function advanceHours(world: GameWorld, hours: number, actionType: 'sleep
  * @description [Domain] - мутирует world.skills.levels, пересчитывает modifiers.
  * @return { void }
  */
-export function applySkillChanges(world: GameWorld, changes: Record<string, number>): void {
+export function applySkillXp(world: GameWorld, xpBySkill: Record<string, number>): void {
   const levels: SkillLevels = world.skills.levels
-  for (const [key, delta] of Object.entries(changes)) {
+  for (const [key, xpGain] of Object.entries(xpBySkill)) {
+    if (!Number.isFinite(xpGain) || xpGain === 0) continue
+
     const current: SkillLevels[string] | undefined = levels[key]
-    const currentXp: number = typeof current === 'number'
-      ? xpForLevel(current)
-      : (current?.xp ?? 0)
+    const currentXp: number = current?.xp ?? 0
 
-    if (delta > 0) {
-      const newXp: number = currentXp + delta * 100
-      const newLevel: number = levelFromXp(newXp)
-      levels[key] = { level: newLevel, xp: newXp }
-    } else {
-      const newXp: number = Math.max(0, currentXp + delta * 100)
-      const newLevel: number = levelFromXp(newXp)
+    if (current === undefined && xpGain < 0) continue
 
-      if (current === undefined) continue
-      levels[key] = { level: newLevel, xp: newXp }
-    }
+    const newXp: number = Math.max(0, Math.min(currentXp + xpGain, MAX_SKILL_XP))
+    levels[key] = { level: getLevelFromXp(newXp), xp: newXp }
   }
-  world.skills.modifiers = recalculateSkillModifiers(levels as Record<string, number | { level?: number; xp?: number }>)
+  world.skills.modifiers = recalculateSkillModifiers(levels)
+}
+
+/**
+ * Применить прирост навыков, заданный в уровнях.
+ * @description [Domain] - используется завершением образовательных программ и переводит уровни в опыт по таблице.
+ * @return { void }
+ */
+export function applySkillChanges(world: GameWorld, changes: Record<string, number>): void {
+  const xpBySkill: Record<string, number> = {}
+
+  for (const [key, levelDelta] of Object.entries(changes)) {
+    const current: SkillLevels[string] | undefined = world.skills.levels[key]
+    const currentLevel: number = current?.level ?? 0
+    const targetLevel: number = clamp(currentLevel + levelDelta, 0, MAX_SKILL_LEVEL)
+
+    xpBySkill[key] = getXpForLevel(targetLevel) - getXpForLevel(currentLevel)
+  }
+
+  applySkillXp(world, xpBySkill)
 }
 
 /**
@@ -172,8 +188,8 @@ export function applySkillChanges(world: GameWorld, changes: Record<string, numb
  */
 export function setSkillLevel(world: GameWorld, key: string, level: number): void {
   const clampedLevel: number = clamp(level, 0, MAX_SKILL_LEVEL)
-  world.skills.levels[key] = { level: clampedLevel, xp: xpForLevel(clampedLevel) }
-  world.skills.modifiers = recalculateSkillModifiers(world.skills.levels as Record<string, number | { level?: number; xp?: number }>)
+  world.skills.levels[key] = { level: clampedLevel, xp: getXpForLevel(clampedLevel) }
+  world.skills.modifiers = recalculateSkillModifiers(world.skills.levels)
 }
 
 /**
@@ -182,13 +198,7 @@ export function setSkillLevel(world: GameWorld, key: string, level: number): voi
  * @return { void }
  */
 export function addSkillXp(world: GameWorld, key: string, xp: number): void {
-  const current: SkillLevels[string] | undefined = world.skills.levels[key]
-  const currentXp: number = typeof current === 'number'
-    ? xpForLevel(current)
-    : (current?.xp ?? 0)
-  const newXp: number = currentXp + xp
-  world.skills.levels[key] = { level: levelFromXp(newXp), xp: newXp }
-  world.skills.modifiers = recalculateSkillModifiers(world.skills.levels as Record<string, number | { level?: number; xp?: number }>)
+  applySkillXp(world, { [key]: xp })
 }
 
 /**
@@ -211,7 +221,7 @@ export function getSkillLevel(world: GameWorld, key: string): number {
   const entry: SkillLevels[string] | undefined = world.skills.levels[key]
 
   if (entry === undefined) return 0
-  return typeof entry === 'number' ? entry : (entry.level ?? 0)
+  return entry.level
 }
 
 /**
@@ -223,7 +233,7 @@ export function getSkillXp(world: GameWorld, key: string): number {
   const entry: SkillLevels[string] | undefined = world.skills.levels[key]
 
   if (entry === undefined) return 0
-  return typeof entry === 'number' ? xpForLevel(entry) : (entry.xp ?? 0)
+  return entry.xp
 }
 
 /**
@@ -244,8 +254,7 @@ export function hasSkillLevel(world: GameWorld, skillKey: string, requiredLevel:
   const entry: SkillLevels[string] | undefined = world.skills.levels[skillKey]
 
   if (entry === undefined) return requiredLevel <= 0
-  const level: number = typeof entry === 'number' ? entry : (entry.level ?? 0)
-  return level >= requiredLevel
+  return entry.level >= requiredLevel
 }
 
 /**
@@ -381,6 +390,17 @@ export function collectCareerSalary(world: GameWorld): number {
   const salary: number = world.career.currentJob.pendingSalaryWeek
   world.career.currentJob.pendingSalaryWeek = 0
   return salary
+}
+
+/**
+ * Применить постоянный множитель к текущей почасовой ставке.
+ * @description [Domain] - мутирует world.career.currentJob.salaryPerHour для трудоустроенного персонажа.
+ * @return { void }
+ */
+export function applyPermanentSalaryMultiplier(world: GameWorld, multiplier: number): void {
+  if (!world.career.currentJob.employed) return
+
+  world.career.currentJob.salaryPerHour *= (1 + multiplier)
 }
 
 /**
@@ -579,7 +599,7 @@ export function addMoneyInWorld(world: GameWorld, amount: number): void {
 }
 
 /**
- * Применить Partial изменения статов (с clamp 0..100).
+ * Применить Partial изменения статов с допустимым диапазоном каждой шкалы.
  * @description [Domain] - мутирует world.stats.
  * @return { void }
  */
@@ -599,17 +619,17 @@ export function applyStatChanges(world: GameWorld, changes: Partial<StatsData>):
  * @return { void }
  */
 export function setStatsInWorld(world: GameWorld, newStats: Partial<StatsData>): void {
-  if (newStats.energy !== undefined) world.stats.energy = clampStat(newStats.energy)
+  if (newStats.energy !== undefined) world.stats.energy = clampStatValue('energy', newStats.energy)
 
-  if (newStats.health !== undefined) world.stats.health = clampStat(newStats.health)
+  if (newStats.health !== undefined) world.stats.health = clampStatValue('health', newStats.health)
 
-  if (newStats.hunger !== undefined) world.stats.hunger = clampStat(newStats.hunger)
+  if (newStats.hunger !== undefined) world.stats.hunger = clampStatValue('hunger', newStats.hunger)
 
-  if (newStats.stress !== undefined) world.stats.stress = clampStat(newStats.stress)
+  if (newStats.stress !== undefined) world.stats.stress = clampStatValue('stress', newStats.stress)
 
-  if (newStats.mood !== undefined) world.stats.mood = clampStat(newStats.mood)
+  if (newStats.mood !== undefined) world.stats.mood = clampStatValue('mood', newStats.mood)
 
-  if (newStats.physical !== undefined) world.stats.physical = clampStat(newStats.physical)
+  if (newStats.physical !== undefined) world.stats.physical = clampStatValue('physical', newStats.physical)
 }
 
 /**
@@ -618,7 +638,7 @@ export function setStatsInWorld(world: GameWorld, newStats: Partial<StatsData>):
  * @return { void }
  */
 export function setEnergyInWorld(world: GameWorld, value: number): void {
-  world.stats.energy = clampStat(value)
+  world.stats.energy = clampStatValue('energy', value)
 }
 
 /**
@@ -666,6 +686,16 @@ export function setTotalHoursInWorld(world: GameWorld, hours: number): void {
 const MAX_EVENT_QUEUE: number = 10
 const MAX_EVENT_HISTORY: number = 50
 
+function isInstanceIdInPendingQueue(world: GameWorld, instanceId: string): boolean {
+  return world.events.pending.some((queuedEvent: unknown) => {
+    if (typeof queuedEvent !== 'object' || queuedEvent === null) return false
+
+    const record: Record<string, unknown> = queuedEvent as Record<string, unknown>
+
+    return record.instanceId === instanceId
+  })
+}
+
 /**
  * Добавить событие в очередь (если не seen и есть место).
  * @description [Domain] - мутирует world.events.pending и state.seenEventIds.
@@ -673,6 +703,8 @@ const MAX_EVENT_HISTORY: number = 50
  */
 export function addEventToQueue(world: GameWorld, instanceId: string, event: unknown): boolean {
   if (world.events.state.seenEventIds.includes(instanceId)) return false
+
+  if (isInstanceIdInPendingQueue(world, instanceId)) return false
 
   if (world.events.pending.length >= MAX_EVENT_QUEUE) return false
 

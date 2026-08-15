@@ -2,6 +2,10 @@
 
 @use 'variables' as *;
 @use 'mixins' as *;
+@use 'tokens/palettes/cobalt';
+@use 'tokens/palettes/emerald';
+@use 'tokens/palettes/sunset';
+@use 'tokens/palettes/violet';
 
 // ===== Root CSS Custom Properties (for JS runtime theming) =====
 :root {
@@ -20,6 +24,9 @@
   --color-text-primary: #{$color-text-primary};
   --color-text-secondary: #{$color-text-secondary};
   --color-text-tertiary: #{$color-text-tertiary};
+  --color-text-on-primary: #{$color-neutral-0};
+  --color-text-on-accent: #{$color-neutral-0};
+  --color-text-on-status: #{$color-neutral-0};
   --color-border: #{$color-border};
   --color-border-subtle: #{$color-border-subtle};
   --color-action-primary: #{$color-action-primary};
@@ -37,6 +44,9 @@
   --color-status-danger-strong: #{$color-status-danger-strong};
   --color-status-danger-bright: #{$color-status-danger-bright};
   --color-status-info: #{$color-status-info};
+  --color-success: var(--color-status-success);
+  --color-warning: var(--color-status-warning);
+  --color-danger: var(--color-status-danger);
   --color-pastel-purple: #{$color-pastel-purple};
   --color-pastel-orange: #{$color-pastel-orange};
   --color-pastel-blue: #{$color-pastel-blue};
@@ -49,6 +59,17 @@
   --color-pastel-green-strong: #{$color-pastel-green-strong};
   --color-pastel-pink-strong: #{$color-pastel-pink-strong};
   --color-pastel-teal-strong: #{$color-pastel-teal-strong};
+
+  // Legacy aliases kept in the same contrast-safe token layer.
+  --color-bg-panel: var(--color-bg-card);
+  --color-bg-secondary: var(--color-bg-surface-2);
+  --color-bg-tertiary: var(--color-bg-elevated);
+  --color-surface: var(--color-bg-card);
+  --color-text-muted: var(--color-text-tertiary);
+  --color-border-light: var(--color-border-subtle);
+  --color-border-strong: var(--color-border);
+  --color-warning-bg: var(--color-pastel-orange);
+  --color-accent-alpha: color-mix(in srgb, var(--color-action-primary) 20%, transparent);
 
   // Shadows
   --shadow-xs: #{$shadow-xs};
@@ -137,6 +158,141 @@
   --shadow-panel: var(--shadow-card);
 }
 
+.dropdown-select {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: $space-2 $space-3;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+
+  &:hover,
+  &:focus-visible,
+  .dropdown-select--open & {
+    outline: none;
+    border-color: var(--color-action-primary);
+    box-shadow: 0 0 0 2px var(--color-pastel-green);
+  }
+}
+
+.dropdown-select__chevron {
+  width: 8px;
+  height: 8px;
+  margin-left: $space-2;
+  border-right: 1.5px solid currentcolor;
+  border-bottom: 1.5px solid currentcolor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform var(--transition-fast);
+}
+
+.dropdown-select--open .dropdown-select__chevron {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.dropdown-select__menu {
+  position: absolute;
+  z-index: $z-index-dropdown;
+  top: calc(100% + $space-1);
+  right: 0;
+  left: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: $space-1;
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-popover);
+}
+
+.dropdown-select__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: $space-2 $space-3;
+  border: 0;
+  border-radius: $radius-md;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  &:hover,
+  &:focus-visible,
+  &.dropdown-select__option--selected {
+    outline: none;
+    background: var(--color-pastel-green);
+    color: var(--color-pastel-green-strong);
+  }
+}
+
+.dropdown-select__check {
+  margin-left: $space-2;
+  color: var(--color-action-primary);
+  font-weight: $font-weight-bold;
+}
+
+.dropdown-select-enter-active,
+.dropdown-select-leave-active {
+  transform-origin: top;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.dropdown-select-enter-from,
+.dropdown-select-leave-to {
+  opacity: 0;
+  transform: translateY(-4px) scaleY(0.98);
+}
+
+.dashboard-shell__content {
+  gap: $space-3;
+}
+
+.action-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  border-radius: $space-4;
+  align-items: flex-end;
+  margin: $space-3 0 $space-2;
+  padding: $space-3;
+}
+
+.action-filters__field {
+  display: flex;
+  flex: 0 1 260px;
+  flex-direction: column;
+  gap: $space-1;
+  color: var(--color-text-secondary);
+  font-size: $font-size-sm;
+}
+
+.action-filters__hint {
+  margin: 0 0 $space-3;
+  color: var(--color-text-secondary);
+  font-size: $font-size-xs;
+}
+
+@include mobile {
+  .action-filters__field {
+    flex-basis: 100%;
+  }
+}
+
 // Dark theme overrides
 html[data-theme="dark"] {
   --color-bg-app: #{$color-dark-bg-app};
@@ -157,6 +313,13 @@ html[data-theme="dark"] {
   --color-action-primary-active: #{$color-dark-action-primary-active};
   --color-action-secondary: #{$color-dark-action-secondary};
   --color-action-danger: #{$color-dark-action-danger};
+  --color-text-on-primary: #{$color-dark-bg-app};
+  --color-text-on-accent: #{$color-dark-bg-app};
+  --color-text-on-status: #{$color-dark-bg-app};
+  --color-brand-accent: #{$color-danger-bright};
+  --color-status-success: #{$color-success-bright};
+  --color-status-warning: #{$color-warning-bright};
+  --color-status-danger: #{$color-danger-bright};
   --color-accent: #E85656;
   --color-accent-soft: rgb(255 107 107 / 16%);
   --color-sage: #{$color-pastel-green};
@@ -165,13 +328,19 @@ html[data-theme="dark"] {
   --color-shadow: rgb(15 23 42 / 45%);
   --shadow-button: 0 4px 12px rgb(15 23 42 / 30%);
 
-  // Pastel strong colors - need lighter versions for dark theme
-  --color-pastel-purple-strong: #A78BFA;
-  --color-pastel-orange-strong: #FBBF24;
-  --color-pastel-blue-strong: #60A5FA;
-  --color-pastel-green-strong: #4ADE80;
-  --color-pastel-pink-strong: #F472B6;
-  --color-pastel-teal-strong: #0fab97;
+  // Dark pastel surfaces use light text tokens for readable badges and cards.
+  --color-pastel-purple: #312E5A;
+  --color-pastel-orange: #4A2B0D;
+  --color-pastel-blue: #1E3A5F;
+  --color-pastel-green: #123B2B;
+  --color-pastel-pink: #4A203A;
+  --color-pastel-teal: #134E4A;
+  --color-pastel-purple-strong: #C4B5FD;
+  --color-pastel-orange-strong: #FCD34D;
+  --color-pastel-blue-strong: #93C5FD;
+  --color-pastel-green-strong: #86EFAC;
+  --color-pastel-pink-strong: #F9A8D4;
+  --color-pastel-teal-strong: #5EEAD4;
 
   // Status strong → bright variants for icon/text contrast on dark
   --color-status-success-strong: #{$color-status-success-bright};

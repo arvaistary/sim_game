@@ -6,20 +6,25 @@
  * SPAExecutor (Фаза 4) отвечает за создание/синхронизацию мира.
  */
 import type { GameWorld } from '@/domain/game-world/GameWorld'
+import type { SkillEntry } from '@/domain/balance/skills'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type {
   ExecuteActionResult,
+  DayPlanInput,
+  DayPlanResult,
   GameEventPayload,
   ResolveEventResult,
   WorkShiftResult,
 } from '@/domain/game-world/commands/commands.types'
-import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './command.types'
+import type { DayEndHooks } from '@/domain/game-world/commands'
+import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './index.types'
 import type { CareerJob, EducationProgram, ProgramStep } from '@/domain/balance/types'
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
 import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from '@/domain/balance/constants/education-programs'
 import { getActionById } from '@/domain/balance/actions'
 import {
   executeActionCommand,
+  planDayCommand,
   resolveEventDecisionCommand,
   simulateWorkShiftCommand,
   advanceHours,
@@ -30,6 +35,7 @@ import {
   startCareerWork,
   applySkillChanges,
   applyStatChangesRaw,
+  createNoopDayEndHooks,
 } from '@/domain/game-world/commands'
 
 /**
@@ -131,16 +137,33 @@ export function executeAction(world: GameWorld, actionId: string): ExecuteAction
 }
 
 /**
+ * Выполнить план игрового дня на уровне application.
+ * @description [Application] - делегирует агрегированное выполнение в domain command.
+ * @return { DayPlanResult } результат выполнения плана
+ */
+export function planDay(
+  world: GameWorld,
+  plan: DayPlanInput,
+  hooks: DayEndHooks = createNoopDayEndHooks(),
+): DayPlanResult {
+  return planDayCommand(world, plan, hooks)
+}
+
+/**
  * Применить выбор события.
  * @description [Application] - делегирует в domain command.
  * @return { { success: boolean; message: string } }
  */
 export function resolveEventDecision(
   world: GameWorld,
-  _eventId: string,
+  eventId: string,
   event: GameEventPayload | null,
   choiceId: string,
 ): { success: boolean; message: string } {
+  if (event && event.id !== eventId) {
+    return { success: false, message: 'Событие не совпадает' }
+  }
+
   const result: ResolveEventResult = resolveEventDecisionCommand(world, event, choiceId)
   return { success: result.success, message: result.message }
 }
@@ -259,12 +282,20 @@ export function advanceEducation(world: GameWorld): string {
   const active: Record<string, unknown> | null = (education.activeEducation as Record<string, unknown> | undefined) ?? null
 
   if (!active) return 'Нет активного обучения'
+
   if (Number(education.studyHoursSinceLastSleep ?? 0) >= 8) {
     return 'Лимит учёбы исчерпан. Поспите для восстановления.'
   }
+
+  if (world.time.dayHoursRemaining < 1) {
+    return 'Дневной бюджет исчерпан'
+  }
+
   if (Number(education.cognitiveLoad ?? 0) >= 80) {
     return 'Когнитивная нагрузка слишком высока. Поспите для восстановления.'
   }
+
+  advanceHours(world, 1)
 
   const program: EducationProgram | undefined = EDUCATION_PROGRAMS.find(
     candidate => candidate.id === String(active.id ?? ''),
@@ -278,7 +309,7 @@ export function advanceEducation(world: GameWorld): string {
   const storedSteps: Array<{ hoursRequired?: unknown; progressPercent?: unknown }> = Array.isArray(active.steps)
     ? active.steps as Array<{ hoursRequired?: unknown; progressPercent?: unknown }>
     : []
-  const upgradedBookSteps = upgradeBookChapterSteps(program, storedSteps)
+  const upgradedBookSteps: ProgramStep[] | null = upgradeBookChapterSteps(program, storedSteps)
   const rawSteps: unknown[] = upgradedBookSteps ?? (storedSteps.length > 0 ? storedSteps : catalogSteps)
   const steps: ProgramStep[] = rawSteps.map(
     (step: unknown, index: number): ProgramStep => {
@@ -373,10 +404,10 @@ export function advanceEducation(world: GameWorld): string {
  * @return { number }
  */
 function getProfessionalismLevel(world: GameWorld): number {
-  const entry: number | { level: number; xp: number } | undefined = world.skills.levels.professionalism
+  const entry: SkillEntry | undefined = world.skills.levels.professionalism
 
   if (entry === undefined) return 0
-  return typeof entry === 'number' ? entry : (entry.level ?? 0)
+  return entry.level
 }
 
 /**

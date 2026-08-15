@@ -1,0 +1,40 @@
+.match-pairs {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.match-pairs__title {
+  margin: 0;
+}
+
+.match-pairs__hint {
+  margin: 0;
+  color: #64748b;
+}
+
+.match-pairs__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.match-pairs__card {
+  min-height: 4rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.match-pairs__card--flipped,
+.match-pairs__card--matched {
+  border-color: #0f766e;
+  font-weight: 600;
+}
+
+.match-pairs__card:disabled {
+  cursor: default;
+}

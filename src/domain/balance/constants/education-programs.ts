@@ -4,19 +4,25 @@ import { AgeGroup } from '@/domain/balance/actions/types'
 /**
  * Upgrades saves created before books used one-hour chapters.
  * Old saves stored five broad stages; completed hours are preserved exactly.
+ * @description [Balance] - converts legacy book progress to chapter-level progress.
+ * @return { ProgramStep[] | null } upgraded steps or null when upgrade is unnecessary
  */
 export function upgradeBookChapterSteps(
   program: EducationProgram | undefined,
   storedSteps: Array<{ hoursRequired?: unknown; progressPercent?: unknown }>,
 ): ProgramStep[] | null {
-  const chapters = program?.steps
+  const chapters: ProgramStep[] | undefined = program?.steps
+
   if (program?.track !== 'book' || !chapters?.length || !storedSteps.length || storedSteps.length === chapters.length) return null
 
-  const completedHours = storedSteps.reduce((total, step) => {
-    const hours = Math.max(1, Number(step.hoursRequired ?? 1))
-    const progress = Math.max(0, Math.min(1, Number(step.progressPercent ?? 0)))
+  const completedHours: number = storedSteps.reduce(
+    (total, step) => {
+    const hours: number = Math.max(1, Number(step.hoursRequired ?? 1))
+    const progress: number = Math.max(0, Math.min(1, Number(step.progressPercent ?? 0)))
     return total + hours * progress
-  }, 0)
+    },
+    0,
+  )
 
   return chapters.map((chapter, index) => ({
     ...chapter,

@@ -49,8 +49,8 @@
                 class="start-page__radio-label"
                 for="start-infancy"
               >
-                <span class="start-page__radio-title">👶 Начать с начала (с младенчества)</span>
-                <span class="start-page__radio-desc">Пройдите весь путь с рождения — детство, школа, взросление</span>
+                <span class="start-page__radio-title">Начать с младенчества</span>
+                <span class="start-page__radio-desc">Короткий пролог: детство → школа → техникум или вуз → взрослая жизнь в 18</span>
               </label>
             </div>
 
@@ -67,8 +67,8 @@
                 class="start-page__radio-label"
                 for="start-adult"
               >
-                <span class="start-page__radio-title">🧑 Начать с взрослой жизни</span>
-                <span class="start-page__radio-desc">Начните с высшим образованием и готовностью к карьере</span>
+                <span class="start-page__radio-title">Начать со взрослой жизни</span>
+                <span class="start-page__radio-desc">Чистый лист: без пролога, базовые навыки, образование «Нет»</span>
               </label>
             </div>
 
@@ -111,28 +111,34 @@ import './index.scss'
 import type { ComputedRef } from 'vue'
 import type { StartMode } from '@/types'
 import { GameWorld } from '@/domain/game-world/GameWorld'
+import { normalizeSkillLevels } from '@/domain/balance/skills'
+import {
+  buildCleanSlateAdultStartPayload,
+  buildInfancyPrologueStartPayload,
+} from '@/domain/balance/utils/build-start-payloads'
+import { CLEAN_SLATE_ADULT_SKILLS } from '@/domain/balance/constants/prologue/anti-imba-caps'
 
 const playerStore = usePlayerStore()
 const timeStore = useTimeStore()
-const statsStore = useStatsStore()
 const walletStore = useWalletStore()
 const skillsStore = useSkillsStore()
-const actionsStore = useActionsStore()
+const educationStore = useEducationStore()
 const gameStore = useGameStore()
+const prologueStore = usePrologueStore()
 
 const playerName = ref('')
 const startMode = ref<StartMode>('infancy')
 const adultAge = ref(18)
 
 const adultAgeMin: number = 16
-const ageMax: number = 18
+const ageMax: number = 20
 
 const canStart: ComputedRef<boolean> = computed(() => {
   if (!playerName.value.trim()) return false
 
   if (startMode.value === 'adult') {
-    const a: number = Number(adultAge.value)
-    return Number.isFinite(a) && a >= adultAgeMin && a <= ageMax
+    const ageValue: number = Number(adultAge.value)
+    return Number.isFinite(ageValue) && ageValue >= adultAgeMin && ageValue <= ageMax
   }
   return true
 })
@@ -140,29 +146,61 @@ const canStart: ComputedRef<boolean> = computed(() => {
 async function startGame(): Promise<void> {
   if (!canStart.value) return
 
-  const startAge: number = startMode.value === 'infancy' ? 0 : adultAge.value
+  const { $autoSave } = useNuxtApp()
 
-  playerStore.setName(playerName.value)
+  const name: string = playerName.value.trim()
+
+  $autoSave.clear()
+  gameStore.resetGame()
+
+  playerStore.setName(name)
+  playerStore.initialize()
+
+  if (startMode.value === 'adult') {
+    const payload = buildCleanSlateAdultStartPayload({
+      playerName: name,
+      startAge: adultAge.value,
+    })
+
+    playerStore.hideWelcomeScreen()
+    timeStore.setStartAge(payload.startAge as number)
+    timeStore.setTotalHours(0)
+    skillsStore.load({ skills: normalizeSkillLevels(CLEAN_SLATE_ADULT_SKILLS) })
+    educationStore.setEducationLevel('none')
+    walletStore.reset()
+
+    if (gameStore.gameMode !== 'spa') {
+      const world: GameWorld = GameWorld.createEmpty()
+      world.player.playerName = name
+      world.player.startAge = payload.startAge as number
+      world.player.currentAge = payload.currentAge as number
+      world.wallet.money = 5000
+      await gameStore.initializeServerSession(world.toJSON(), { replace: true })
+    }
+
+    $autoSave.enable()
+    $autoSave.flush()
+    await navigateTo('/game')
+    return
+  }
+
+  const infancy = buildInfancyPrologueStartPayload({ playerName: name })
   playerStore.showWelcomeScreen()
-
-  timeStore.reset()
-  timeStore.setStartAge(startAge)
+  timeStore.setStartAge(0)
   timeStore.setTotalHours(0)
-
-  statsStore.reset()
-  walletStore.reset()
-  skillsStore.reset()
-  actionsStore.reset()
+  prologueStore.start(name, infancy.prologueSeed as number)
 
   if (gameStore.gameMode !== 'spa') {
     const world: GameWorld = GameWorld.createEmpty()
-    world.player.playerName = playerName.value.trim()
-    world.player.startAge = startAge
-    world.player.currentAge = startAge
+    world.player.playerName = name
+    world.player.startAge = 0
+    world.player.currentAge = 0
     world.wallet.money = 5000
     await gameStore.initializeServerSession(world.toJSON(), { replace: true })
   }
 
-  await navigateTo('/game')
+  $autoSave.enable()
+  $autoSave.flush()
+  await navigateTo('/game/prologue')
 }
 </script>

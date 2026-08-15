@@ -30,13 +30,24 @@ describe('stats-store', () => {
     expect(stats.stress).toBe(50)
   })
 
-  it('должен ограничивать значения в диапазоне 0-100', () => {
+  it('должен ограничивать значения диапазоном каждой шкалы', () => {
     const stats = useStatsStore()
     stats.applyStatChanges({ energy: -150 })
     expect(stats.energy).toBe(0)
 
     stats.applyStatChanges({ health: +200 })
     expect(stats.health).toBe(100)
+  })
+
+  it('должен сохранять дефицит нефатальных шкал до -150', () => {
+    const stats = useStatsStore()
+
+    stats.setStats({ mood: -150, physical: -150, hunger: 250, stress: 250 })
+
+    expect(stats.mood).toBe(-150)
+    expect(stats.physical).toBe(-150)
+    expect(stats.hunger).toBe(250)
+    expect(stats.stress).toBe(250)
   })
 
   it('должен правильно вычислять isTired', () => {

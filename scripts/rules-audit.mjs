@@ -865,8 +865,16 @@ function runRuleHeuristics() {
 
     if (filePath.endsWith('.scss')) {
       const normalizedPath = filePath.split(sep).join('/');
-      if (normalizedPath.includes('/src/') && !normalizedPath.endsWith('/src/assets/scss/global.scss')) {
-        pushFinding('styles/global-scss-location', filePath, 'Global styles should live only in src/assets/scss/global.scss');
+      // Global CSS entry + token packs live under assets/scss.
+      // Partials (variables/mixins/reset/transitions) are @use modules, not a second global sheet.
+      // Component/page SCSS next to Vue files is the intended module pattern — not "global".
+      const isGlobalScssTree = normalizedPath.includes('/src/assets/scss/');
+      const isAllowedGlobalScss =
+        normalizedPath.endsWith('/src/assets/scss/global.scss')
+        || normalizedPath.includes('/src/assets/scss/tokens/')
+        || /\/src\/assets\/scss\/(variables|mixins|reset|transitions)\.scss$/.test(normalizedPath);
+      if (isGlobalScssTree && !isAllowedGlobalScss) {
+        pushFinding('styles/global-scss-location', filePath, 'Global styles should live only in src/assets/scss/global.scss (token packs: src/assets/scss/tokens/**)');
       }
 
       if (/@import\s+['"]/.test(content)) {

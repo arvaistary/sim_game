@@ -10,7 +10,29 @@
  */
 import type { GameWorld } from '@/domain/game-world/GameWorld'
 import type { EventChoicePayload, GameEventPayload, ResolveEventResult } from './commands.types'
-import { applyStatChangesRaw, addEventActivityEntry } from './mutations'
+import { completePendingEventResolution } from '@/domain/game-world/pending-event'
+import {  addEventActivityEntry,
+  addMoneyInWorld,
+  addSkillXp,
+  applyPermanentSalaryMultiplier,
+  applyStatChanges,
+  applyStatChangesRaw,
+  endCareerWork,
+  getSkillLevel,
+} from './mutations'
+import type { StatChanges } from '@/domain/balance/types'
+
+function applyOptionalStatChanges(world: GameWorld, changes?: StatChanges): void {
+  if (!changes) return
+
+  applyStatChanges(world, changes)
+}
+
+function applyOptionalMoneyDelta(world: GameWorld, amount?: number): void {
+  if (amount === undefined) return
+
+  addMoneyInWorld(world, amount)
+}
 
 /**
  * Применить выбор события к миру.
@@ -37,14 +59,52 @@ export function resolveEventDecisionCommand(
     return { success: false, message: 'Выбор не найден' }
   }
 
+  applyOptionalStatChanges(world, choice.statChanges)
+  applyOptionalMoneyDelta(world, choice.moneyDelta)
+
+  if (choice.skillChanges) {
+    for (const [skillKey, skillXp] of Object.entries(choice.skillChanges)) {
+      addSkillXp(world, skillKey, skillXp)
+    }
+  }
+
+  if (choice.skillCheck) {
+    const skillLevel: number = getSkillLevel(world, choice.skillCheck.key)
+    const isSuccess: boolean = skillLevel >= choice.skillCheck.threshold
+
+    if (isSuccess) {
+      applyOptionalStatChanges(world, choice.skillCheck.successStatChanges)
+      applyOptionalMoneyDelta(world, choice.skillCheck.successMoneyDelta)
+    } else {
+      applyOptionalStatChanges(world, choice.skillCheck.failStatChanges)
+      applyOptionalMoneyDelta(world, choice.skillCheck.failMoneyDelta)
+    }
+  }
+
+  if (choice.salaryMultiplier !== undefined) {
+    const earnedAmount: number = Number(event.data?.earnedAmount ?? 0)
+    const bonusAmount: number = Math.round(earnedAmount * choice.salaryMultiplier)
+
+    addMoneyInWorld(world, bonusAmount)
+  }
+
+  if (choice.permanentSalaryMultiplier !== undefined) {
+    applyPermanentSalaryMultiplier(world, choice.permanentSalaryMultiplier)
+  }
+
   if (choice.effects) {
     applyStatChangesRaw(world, choice.effects)
   }
 
+  if (event.id === 'job_dismissal') {
+    endCareerWork(world)
+  }
+
   addEventActivityEntry(world, event.title, choice.text, choice.outcome)
 
-  return {
-    success: true,
+  completePendingEventResolution(world, event, choiceId, choice.text, choice.effects)
+
+  return {    success: true,
     message: choice.outcome || 'Выбор применён',
     choiceText: choice.text,
     outcome: choice.outcome,

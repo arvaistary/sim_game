@@ -17,9 +17,10 @@ import type {
   TimeData,
 } from '@/domain/balance/constants/default-save'
 import type { CharacterTag, SkillModifiers } from '@/domain/balance/types'
+import type { SkillEntry } from '@/domain/balance/skills'
 
-/** Снимок навыков: key → level (число), либо { level, xp } для совместимости со store. */
-export type SkillLevels = Record<string, number | { level: number; xp: number }>
+/** Снимок навыков: key → достигнутый уровень и накопленный опыт. */
+export type SkillLevels = Record<string, SkillEntry>
 
 /** Запись в activity log. */
 export interface ActivityEntry {
@@ -91,7 +92,7 @@ export interface GameWorldSnapshot {
 
 /** JSON-форма для сериализации. Совпадает со snapshot + version для schema evolution. */
 export interface GameWorldJSON extends GameWorldSnapshot {
-  /** Версия формата JSON. При несовпадении — миграция в event-migration.ts. */
+  /** Версия формата JSON. При несовпадении — миграция через infrastructure/persistence. */
   version: string
 }
 

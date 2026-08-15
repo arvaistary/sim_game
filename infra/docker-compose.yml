@@ -1,3 +1,5 @@
+name: game-life-prod
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -16,6 +18,64 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    command: npm run db:migrate
+    environment:
+      DATABASE_URL: postgres://game:game@postgres:5432/game_life
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    command: npm run start:standalone-server
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://game:game@postgres:5432/game_life
+      API_HOST: 0.0.0.0
+      API_PORT: 3001
+      GAME_CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3001/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  client:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    command: node .output/server/index.mjs
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      NUXT_PUBLIC_GAME_MODE: server
+      NUXT_PUBLIC_GAME_API_BASE_URL: http://localhost:3001
+      NUXT_GAME_AUTH_USERNAME: ${NUXT_GAME_AUTH_USERNAME:-admin}
+      NUXT_GAME_AUTH_PASSWORD: ${NUXT_GAME_AUTH_PASSWORD:-local-only-change-me}
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
 volumes:
   game-life-postgres-data:
