@@ -85,6 +85,7 @@
 | **12. Технические требования** | ✅ Готово | 100% |
 | **13. Roadmap разработки** | ✅ Готово | 100% |
 | **14. Заключение** | ✅ Готово | 100% |
+| **17. Пролог образования** | 🔄 MVP готов | основной flow + microbeat подключены; ручной timing/resume аудит продолжается |
 | **Application Layer** | ✅ Готово | 100% |
 | **Infrastructure Layer** | ✅ Готово | 100% |
 | **GameWorld aggregate** | ✅ Фазы 1-4 завершены | 90% (bridge pending) |
@@ -292,6 +293,24 @@
 **Статус:** Готов (см. [`ROADMAP.md`](ROADMAP.md))
 
 **Текущая версия:** ~0.3
+
+---
+
+### Модуль 17: Пролог образования 🔄
+
+**Статус:** MVP реализован; продуктовая проверка продолжается.
+
+**Что реализовано:**
+- ✅ Infancy → early → school → mandatory fork → post-secondary → handoff age 18
+- ✅ Model A budget/tag conversion, exam `m_final`, anti-imba caps и clean-slate floor
+- ✅ Seeded scene pools, save/resume runner и route lock до handoff
+- ✅ Quiz и `match-pairs` microbeat через единый `MinigameResult`
+- ✅ Adult start без пролога: clean-slate skills и education `Нет`
+
+**Что осталось проверить вручную:**
+- ⚠️ Реальная длительность `compact` на пяти first-time runs
+- ⚠️ Refresh/resume, полный uni flow и adult-start через UI
+- ⚠️ Timing/balance checklist из `doc/new-plans/2026-08-10-life-education-prologue-balance-notes.md`
 
 ---
 

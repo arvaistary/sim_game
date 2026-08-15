@@ -1,26 +1,45 @@
 .prologue-scene-card {
-  max-width: 40rem;
+  position: relative;
+  max-width: 44rem;
   margin: 0 auto;
-  padding: 1.5rem;
+  overflow: hidden;
+  padding: clamp(1.25rem, 5vw, 2.75rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-action-primary) 5%, var(--color-bg-card)), var(--color-bg-card) 58%);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text-primary);
+}
+
+.prologue-scene-card::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5rem;
+  height: 0.25rem;
+  border-radius: 0 0 var(--radius-full) 0;
+  background: var(--color-action-primary);
+  content: '';
 }
 
 .prologue-scene-card__year {
   margin: 0 0 0.5rem;
-  color: var(--color-text-muted, #64748b);
+  color: var(--color-text-tertiary);
   font-size: 0.875rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.prologue-scene-card__title {
+.prologue-scene-card .prologue-scene-card__title {
   margin: 0 0 0.75rem;
   font-size: 1.75rem;
   line-height: 1.2;
+  color: var(--color-text-primary);
 }
 
 .prologue-scene-card__description {
   margin: 0 0 1.5rem;
-  color: var(--color-text-secondary, #334155);
+  color: var(--color-text-secondary);
   line-height: 1.5;
 }
 
@@ -32,18 +51,28 @@
 .prologue-scene-card__choice {
   display: grid;
   gap: 0.25rem;
+  min-height: 4rem;
   padding: 0.9rem 1rem;
-  border: 1px solid var(--color-border, #cbd5e1);
-  border-radius: 0.5rem;
-  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
   text-align: left;
   cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.prologue-scene-card__choice:hover,
+.prologue-scene-card__choice:hover {
+  border-color: var(--color-action-primary);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
 .prologue-scene-card__choice:focus-visible {
-  border-color: var(--color-accent, #0f766e);
-  outline: none;
+  border-color: var(--color-action-primary);
+  outline: 3px solid color-mix(in srgb, var(--color-action-primary) 42%, transparent);
+  outline-offset: 3px;
 }
 
 .prologue-scene-card__choice-label {
@@ -51,6 +80,13 @@
 }
 
 .prologue-scene-card__choice-desc {
-  color: var(--color-text-muted, #64748b);
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prologue-scene-card__choice {
+    transition: none;
+  }
 }

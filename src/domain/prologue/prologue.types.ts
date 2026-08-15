@@ -15,6 +15,9 @@ export type PrologueStatus =
 /** Треки после школы (обязательный fork). */
 export type PrologueTrack = 'tech' | 'uni'
 
+/** Мини-игра, которую можно встроить в ход пролога. */
+export type PrologueMicrobeatMinigameId = 'match-pairs'
+
 /** Каталог тегов Model A. */
 export type PrologueTagId =
   | 'stem'
@@ -67,6 +70,15 @@ export interface PrologueSceneChoiceView {
   description: string
 }
 
+/** Короткое необязательное действие между сценами. */
+export interface PrologueMicrobeat {
+  id: string
+  title: string
+  description: string
+  minigameId: PrologueMicrobeatMinigameId
+  tagDeltas: PrologueTagDeltas
+}
+
 /** Снимок состояния runner. */
 export interface PrologueState {
   status: PrologueStatus
@@ -83,6 +95,7 @@ export interface PrologueState {
   mSchool: number | null
   mPostsec: number | null
   pendingScene: PrologueSceneInstance | null
+  pendingMicrobeat: PrologueMicrobeat | null
   playerName: string
   prologueCompleted: boolean
 }
@@ -154,7 +167,6 @@ export interface ComputeFinalMultiplierInput {
   mSchool: number
   mPostsec: number
 }
-
 
 /** Маппинг одного выбора сцены. */
 export interface PrologueSceneChoiceMapping {

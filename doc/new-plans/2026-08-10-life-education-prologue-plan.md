@@ -71,6 +71,70 @@ Start page
 | Summary | ≤1 | Show gained tags/traits/skills; confirm enter adult life |
 | **Total** | **≈12–18** | Tunable via `ProloguePaceProfile` |
 
+The acceptance window is **10–20 minutes for an average first-time player**, not an aspirational estimate. Measure from the first newborn CTA to arrival on the adult dashboard. A run under 10 minutes feels like a questionnaire; over 20 minutes violates the start-flow promise.
+
+### 1.1 Prologue visual direction
+
+The prologue is a **living illustrated memory album**, not a reduced adult dashboard. It keeps Game Life's clean UI but gives each life stage its own atmosphere.
+
+| Layer | Direction |
+|-------|-----------|
+| Canvas | Full viewport, quiet stage-specific gradient, subtle paper/grain texture; no adult sidebar or dashboard chrome |
+| Story frame | Centered editorial card, max reading width 640–720 px; generous vertical rhythm; title and body dominate |
+| Timeline | Persistent five-act rail (`Детство / Школа / Выбор / Учёба / Итог`), current act clear in color and text, completed acts subdued |
+| Scene identity | Large age/class/course marker, optional illustration or symbolic vignette, short scene title, 2–4 lines of prose |
+| Choices | 2–3 large cards with action label + consequence fantasy; full keyboard path and visible focus |
+| Feedback | Chosen card briefly locks/highlights; gained tag pulses once; then 250–400 ms crossfade/slide into the next memory |
+| Tone | Warm, reflective, lightly nostalgic; no childish baby UI and no bureaucratic education form |
+
+Stage art direction:
+
+- **Early childhood:** warm cream/peach light, low horizon, soft rounded shapes, domestic ambience.
+- **School:** daylight blue/amber, notebook/grid motifs, increasingly structured composition.
+- **Fork:** dusk gradient and two visually distinct paths; tech uses tactile/workshop cues, uni uses library/campus cues. Neither is framed as the inferior option.
+- **Post-secondary:** tech becomes warmer and material; uni becomes cooler and spatial. Shared layout preserves one product language.
+- **Summary:** dark-to-dawn graduation scene, accumulated tag constellation, diploma/seal moment, clear adult-life CTA.
+
+Responsive/accessibility contract:
+
+- 320 px remains fully playable without horizontal scrolling; choices stack vertically.
+- Main copy uses at least 16 px and comfortable line height; controls meet 44 px minimum target size.
+- Motion respects `prefers-reduced-motion`; stage meaning never depends on color or animation alone.
+- Progress uses `aria-current="step"`; decorative art has empty alt, meaningful art has concise Russian alt.
+
+### 1.2 Presentation formats
+
+Do not render every beat as the same choice card. Use four formats inside one shell:
+
+1. **Narrative bridge** — 1–3 short paragraphs, no stat change, one `Продолжить` CTA. Connects large time jumps and resets emotional context.
+2. **Choice scene** — current format: setup, 2–3 choices, immediate flavor consequence, tag/trait/memory result.
+3. **Ceremony** — entrance to school, exam, fork, graduation; stronger typography/art and one deliberate action.
+4. **Montage** — 2–3 one-line memories revealed sequentially in ≤15 seconds; used sparingly to convey years passing without adding decisions.
+
+Text rules:
+
+- Bridge body: 35–80 words; choice-scene setup: 20–55 words; button label: 2–6 words.
+- Second person, present tense for playable moments; past-tense fragments only inside montage.
+- Mention time through a concrete sensory detail before displaying the new age/class.
+- Never explain mechanics in narrative prose. Tag feedback stays in UI chrome.
+- Every transition answers: **what changed, what is felt, why the next stage starts now**.
+
+### 1.3 Timing budget and instrumentation
+
+Compact target budget for a first run:
+
+| Content | Count | Target each | Total |
+|---------|-------|-------------|-------|
+| Welcome + opening bridge | 2 | 20–35 s | 0.7–1.2 min |
+| Choice scenes | 10 | 25–50 s | 4.2–8.3 min |
+| Life-stage bridges/ceremonies | 5 | 15–35 s | 1.3–2.9 min |
+| Exams | 10 questions | 12–25 s | 2–4.2 min |
+| Fork + summary | 2 | 30–60 s | 1–2 min |
+| Transitions/microbeats | bounded | — | 0.5–1.5 min |
+| **Expected total** | | | **≈10–20 min** |
+
+Record anonymous local timestamps per beat in dev/playtest builds: `prologue_started`, scene/bridge entered, choice made, exam completed, summary confirmed. Report median, P25 and P75 over at least five first-time runs. Do not pad duration with forced timers; tune copy, scene count and meaningful interaction.
+
 ---
 
 ## 2. Design proposal — Early childhood (дошкольные годы)
@@ -249,6 +313,99 @@ Same runner, different `stageId`, pools, quiz banks, bias weights. Both spend th
 | Университет | `Высшее` | school=completed, institute=completed |
 
 Do **not** hand off `Среднее` alone in MVP (no school-only exit). Intermediate UI may say “школа окончена” before fork.
+
+### 4.4 Required narrative bridges (draft copy)
+
+Bridges are ordered authored content, not random pool entries. They cannot grant tags, traits, memories or exam score. Copy is intentionally a first draft and should remain editable in a dedicated content config.
+
+#### B0 — Newborn welcome → first memory
+
+**Format:** narrative bridge, before the first infant choice.
+
+**Title:** `Всё начинается`
+**Age:** `0 лет`
+
+> Сначала мир — это свет, голоса и чьи-то тёплые руки. Ты ещё не знаешь слов, но уже учишься доверять, бояться, тянуться к новому. Первые годы останутся не воспоминаниями, а ощущением: каким был мир, когда ты увидел его впервые.
+
+CTA: `Открыть первое воспоминание`.
+
+#### B1 — Early childhood → school
+
+**Format:** short montage followed by ceremony. Replaces the current abrupt bridge with a fuller entrance while keeping its flavor choice.
+
+**Montage:** `Первые слова. Разбитая коленка. Любимая игрушка. Лето, которое казалось бесконечным.`
+
+**Title:** `Завтра — первый класс`
+**Age:** `7 лет`
+
+> На спинке стула висит новая форма, рядом ждёт слишком большой рюкзак. Дом тот же, но утро будет другим: впервые у дня появится расписание, у ошибок — оценки, а рядом окажется целый класс незнакомых людей.
+
+Flavor choices remain: `Нервничаю / Жду с нетерпением / Хочу всё узнать`.
+
+#### B2 — School terms → school exam
+
+**Format:** ceremony, immediately before `school_exam`.
+
+**Title:** `Последний школьный звонок`
+**Marker:** `11 класс`
+
+> Школьные годы сжались в шум перемен, исписанные тетради и лица, к которым ты привык. Сегодня коридоры выглядят меньше, чем раньше. Остался выпускной экзамен — не приговор, а последняя точка перед выбором собственной дороги.
+
+CTA: `Начать экзамен`.
+
+#### B3 — School exam → mandatory fork
+
+**Format:** narrative bridge, after a compact exam result (`N из M`) and before the two path cards.
+
+**Title:** `Дорога расходится`
+
+> Аттестат уже в руках. Впереди нет правильного маршрута для всех: можно раньше войти в профессию и учиться через практику, а можно ещё несколько лет исследовать теорию и искать своё направление. Важно не угадать идеальную жизнь — важно выбрать следующую главу.
+
+CTA is the two track cards; no extra continue click.
+
+#### B4T — Tech entrance
+
+**Format:** track-specific narrative bridge.
+
+**Title:** `Учиться руками`
+**Marker:** `1 курс`
+
+> Здесь меньше знакомых школьных правил и больше вещей, которые должны работать по-настоящему. Инструменты имеют вес, ошибки видны сразу, а хороший результат можно потрогать. Постепенно учёба становится похожа на будущую профессию.
+
+CTA: `Начать учёбу`.
+
+#### B4U — University entrance
+
+**Format:** track-specific narrative bridge.
+
+**Title:** `Новый масштаб`
+**Marker:** `1 курс`
+
+> Корпуса соединены длинными переходами, расписание приходится собирать самому, а преподаватели уже не напоминают о каждом задании. Свободы стало больше — вместе с ответственностью решить, какие знания станут твоими.
+
+CTA: `Начать учёбу`.
+
+#### B5 — Post-secondary terms → final exam
+
+**Format:** ceremony; one shared structure with track-specific noun.
+
+**Title:** `Последняя проверка`
+
+> Несколько лет уложились в проекты, дедлайны, новые знакомства и первые взрослые решения. До диплома остался один экзамен. Он не определит всю твою жизнь, но подведёт черту под этой её частью.
+
+CTA: `Перейти к экзамену`.
+
+#### B6 — Final exam → summary
+
+**Format:** graduation montage/ceremony.
+
+**Title:** `Восемнадцать`
+
+> Экзамен позади. Впереди больше нет готового расписания и следующего обязательного класса. С тобой остаются привычки, люди, ошибки и то, чему ты научился по дороге. Детство закончилось не в один миг — просто сегодня начинается взрослая жизнь.
+
+CTA: `Посмотреть, кем я вырос`.
+
+Summary then reveals education, adult skills, traits, memories/fantasy label and `Войти во взрослую жизнь`.
 
 ---
 
@@ -491,6 +648,10 @@ Authoring guideline: questions must pass the “forgot school but can reason” 
 
 - [ ] Routes/pages; SceneCard; ForkSelect; Summary; progress act indicator; tag chips.
 - [ ] Reuse newborn welcome then enter runner (never adult dashboard until handoff).
+- [ ] Implement the memory-album visual system from §1.1: stage themes, editorial story frame, responsive states, focus/reduced-motion behavior.
+- [ ] Add `NarrativeBridge`, `CeremonyScene` and bounded `MemoryMontage` presentation components inside the existing prologue shell.
+- [ ] Add authored bridge config for B0–B6 from §4.4; bridges are save/resume-safe and mechanically neutral.
+- [ ] Show explicit choice feedback before advancing; expose current progress with `aria-current="step"`.
 
 ### Task 9: Start flow alignment (critical — current code diverges)
 
@@ -513,6 +674,8 @@ Authoring guideline: questions must pass the “forgot school but can reason” 
 ### Task 12: Balance pass + timing playtest
 
 - [ ] Play 5 seeded runs; measure real minutes; adjust pace profile counts.
+- [ ] Measure first-time completion from newborn CTA to adult dashboard; median and P75 must both remain within 10–20 minutes.
+- [ ] Capture per-beat dwell time in dev/playtest builds and shorten/expand content rather than adding forced waits.
 - [ ] Verify no imba vs adult clean slate in early career (same first job week).
 - [ ] Verify exam difficulty with a non-specialist playtester.
 
@@ -562,8 +725,11 @@ Authoring guideline: questions must pass the “forgot school but can reason” 
 - [ ] At least `quiz` + `match-pairs` registered for reuse
 - [ ] Pace profile allows increasing terms/vignettes without rewriting runner
 - [ ] Incomplete prologue cannot use adult dashboard
+- [ ] All required B0–B6 narrative bridges connect life stages without affecting balance
+- [ ] Prologue has a distinct, responsive memory-album visual identity and does not resemble the adult dashboard
+- [ ] Keyboard, focus, contrast and reduced-motion checks pass across scene, bridge, exam, fork and summary formats
 - [ ] Docs + authoring guide landed; §4.12 start-path noted superseded
-- [ ] Playtest within 10–20 minutes on `compact`
+- [ ] First-time `compact` playtest median and P75 are within 10–20 minutes
 
 ---
 
@@ -586,7 +752,7 @@ Authoring guideline: questions must pass the “forgot school but can reason” 
 - Exact tag→skill weights and track bias magnitudes
 - Adult age picker range (keep 16–20 vs expand to 18–30) — **do not change unless asked**
 - Whether microbeats default on in `standard` profile
-- Visual skin (Atlas later); MVP uses current UI primitives
+- Exact illustration assets and final art style; MVP must still ship the §1.1 layout, stage palette, typography, responsive polish and motion contract
 - Whether `startAge` stays 0 historically or is rewritten to 18 at handoff — pick one in Task 10 and test time systems
 
 **Closed (do not reopen in MVP without user):** exit age always 18; fork mandatory; Model A; dual-exam → one `m_final`; ignore childhood `skillChanges` in prologue.

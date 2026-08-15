@@ -13,18 +13,22 @@
 
 .prologue-progress__item {
   padding: 0.25rem 0.6rem;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 999px;
-  background: #e2e8f0;
-  color: #475569;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
   font-size: 0.8rem;
 }
 
 .prologue-progress__item--current {
-  background: var(--color-accent, #0f766e);
-  color: #fff;
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  font-weight: 650;
 }
 
 .prologue-progress__item--done {
-  background: color-mix(in srgb, var(--color-accent, #0f766e) 25%, white);
-  color: #0f172a;
+  border-color: color-mix(in srgb, var(--color-action-primary) 30%, var(--color-border));
+  background: color-mix(in srgb, var(--color-action-primary) 14%, var(--color-bg-card));
+  color: var(--color-text-primary);
 }

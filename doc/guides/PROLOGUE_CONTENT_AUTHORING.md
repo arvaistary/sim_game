@@ -27,6 +27,25 @@
 
 Не хардкодь counts в UI. Меняй `PROLOGUE_PACE_PROFILES` (`compact` default).
 
+## Microbeats
+
+Короткие действия между школьными и post-secondary сценами задаются в
+`src/domain/balance/constants/prologue/prologue-microbeats.ts`.
+
+- Награда использует только `tagDeltas` и проходит через stage budget.
+- `fail` не выдаёт очки; `ok` и `great` применяют дельты один раз.
+- Не добавляй сюда childhood `skillChanges`, взрослые навыки или обход caps.
+- `microbeatChance` и `allowMinigames` настраиваются только в pace-профиле.
+
+### Minigame UX
+
+- `match-pairs` оставляет все найденные карточки открытыми на 2 секунды перед
+  переходом к следующему этапу, чтобы игрок успел увидеть последнюю пару.
+- Карточки используют переворот с 3D-анимацией; при
+  `prefers-reduced-motion: reduce` анимация отключается.
+- Внутренние отступы и минимальная высота контента являются частью примитивов
+  миниигр — не компенсируй их дополнительными отрицательными margin в сценах.
+
 ## Нельзя без спроса
 
 - Менять anti-imba caps, default pace, mandatory fork, exit age 18.

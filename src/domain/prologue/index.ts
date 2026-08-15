@@ -5,6 +5,7 @@ export type {
   PrologueTrack,
   PrologueTagId,
   PrologueState,
+  PrologueMicrobeat,
   PrologueHandoffPatch,
   PrologueExamQuestion,
   PrologueSceneInstance,
@@ -22,6 +23,7 @@ export {
 export {
   startPrologue,
   choosePrologueOption,
+  completePrologueMicrobeat,
   selectPrologueTrack,
   submitPrologueExam,
   completePrologue,

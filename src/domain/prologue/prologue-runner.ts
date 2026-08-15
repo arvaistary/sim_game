@@ -1,6 +1,7 @@
 import { PROLOGUE_ANTI_IMBA_CAPS } from '@/domain/balance/constants/prologue/anti-imba-caps'
 import { createEmptyTagPoints } from '@/domain/balance/constants/prologue/tag-catalog'
 import { getScenePoolEntriesForStage } from '@/domain/balance/constants/prologue/scene-pool-config'
+import { PROLOGUE_MICROBEATS } from '@/domain/balance/constants/prologue/prologue-microbeats'
 import { getChildhoodEventById } from '@/domain/balance/constants/childhood-events'
 import type { ChildhoodEventDef } from '@/domain/balance/types/childhood-event'
 import {
@@ -12,6 +13,7 @@ import { DEFAULT_PROLOGUE_PACE_ID, getProloguePaceProfile } from './prologue-pac
 import type {
   ApplyPrologueChoiceResult,
   PrologueBudgetStage,
+  PrologueMicrobeat,
   ProloguePaceProfile,
   PrologueSceneChoiceMapping,
   PrologueSceneInstance,
@@ -23,6 +25,7 @@ import type {
   StartPrologueInput,
   SeededRng,
 } from './prologue.types'
+import type { MinigameResult } from './minigames/minigame.types'
 import { createSeededRng, drawWeightedFromPool } from './scene-pool'
 
 const WEIGHT_BY_TYPE: Record<PrologueScenePoolEntry['weightType'], number> = {
@@ -54,6 +57,7 @@ export function startPrologue(data: StartPrologueInput): PrologueState {
     mSchool: null,
     mPostsec: null,
     pendingScene: null,
+    pendingMicrobeat: null,
     playerName: data.playerName.trim(),
     prologueCompleted: false,
   }
@@ -69,6 +73,9 @@ export function choosePrologueOption(state: PrologueState, choiceIndex: number):
   if (!state.pendingScene) return state
 
   const scene: PrologueSceneInstance = state.pendingScene
+
+  if (!Number.isInteger(choiceIndex) || choiceIndex < 0 || choiceIndex >= scene.choices.length) return state
+
   const mapping: PrologueSceneChoiceMapping | undefined = resolveChoiceMapping(scene, choiceIndex)
   const budgetStage: PrologueBudgetStage = statusToBudgetStage(state.status)
   const applied: ApplyPrologueChoiceResult = applyPrologueChoice({
@@ -99,6 +106,42 @@ export function choosePrologueOption(state: PrologueState, choiceIndex: number):
   }
 
   return advanceAfterScene(next, scene)
+}
+
+/**
+ * @description [Prologue] - Завершает необязательный microbeat и двигает ход дальше.
+ * @return { PrologueState } следующий снимок
+ */
+export function completePrologueMicrobeat(
+  state: PrologueState,
+  result: MinigameResult,
+): PrologueState {
+  const microbeat: PrologueMicrobeat | null = state.pendingMicrobeat
+
+  if (!microbeat || microbeat.minigameId !== result.minigameId) return state
+
+  const isSuccessful: boolean = result.successTier !== 'fail'
+  const budgetStage: PrologueBudgetStage = statusToBudgetStage(state.status)
+  const applied: ApplyPrologueChoiceResult = applyPrologueChoice({
+    tagPoints: state.tagPoints,
+    stageSpent: state.stageSpent[budgetStage],
+    stageBudget: getStageTagBudget(budgetStage),
+    deltas: isSuccessful ? microbeat.tagDeltas : {},
+    traits: state.traits,
+    memories: state.memories,
+    maxTraits: PROLOGUE_ANTI_IMBA_CAPS.maxTraitsGranted,
+  })
+  const next: PrologueState = {
+    ...state,
+    tagPoints: applied.tagPoints,
+    stageSpent: {
+      ...state.stageSpent,
+      [budgetStage]: applied.stageSpent,
+    },
+    pendingMicrobeat: null,
+  }
+
+  return advanceAfterTerm(next)
 }
 
 /**
@@ -163,6 +206,7 @@ export function completePrologue(state: PrologueState): PrologueState {
     status: 'completed',
     prologueCompleted: true,
     pendingScene: null,
+    pendingMicrobeat: null,
   }
 }
 
@@ -172,6 +216,8 @@ export function completePrologue(state: PrologueState): PrologueState {
  */
 export function resumePrologue(state: PrologueState): PrologueState {
   if (state.pendingScene) return state
+
+  if (state.pendingMicrobeat) return state
 
   if (state.status === 'school_exam' || state.status === 'postsec_exam' || state.status === 'fork' || state.status === 'summary' || state.status === 'completed') {
     return state
@@ -206,7 +252,34 @@ function advanceAfterScene(state: PrologueState, scene: PrologueSceneInstance): 
   }
 
   if (state.status === 'school') {
+    return offerMicrobeatOrAdvance(state, pace)
+  }
+
+  if (state.status === 'postsec') {
+    return offerMicrobeatOrAdvance(state, pace)
+  }
+
+  return state
+}
+
+function offerMicrobeatOrAdvance(state: PrologueState, pace: ProloguePaceProfile): PrologueState {
+  const microbeat: PrologueMicrobeat | null = drawMicrobeat(state, pace)
+
+  if (microbeat) {
+    return {
+      ...state,
+      pendingMicrobeat: microbeat,
+      pendingScene: null,
+    }
+  }
+
+  return advanceAfterTerm(state)
+}
+
+function advanceAfterTerm(state: PrologueState): PrologueState {
+  if (state.status === 'school') {
     const nextTerm: number = state.termIndex + 1
+    const pace: ProloguePaceProfile = getProloguePaceProfile(state.paceProfileId)
 
     if (nextTerm >= pace.schoolTerms) {
       return {
@@ -217,14 +290,12 @@ function advanceAfterScene(state: PrologueState, scene: PrologueSceneInstance): 
       }
     }
 
-    return ensurePendingScene({
-      ...state,
-      termIndex: nextTerm,
-    })
+    return ensurePendingScene({ ...state, termIndex: nextTerm })
   }
 
   if (state.status === 'postsec') {
     const nextTerm: number = state.termIndex + 1
+    const pace: ProloguePaceProfile = getProloguePaceProfile(state.paceProfileId)
 
     if (nextTerm >= pace.postSecondaryTerms) {
       return {
@@ -235,17 +306,28 @@ function advanceAfterScene(state: PrologueState, scene: PrologueSceneInstance): 
       }
     }
 
-    return ensurePendingScene({
-      ...state,
-      termIndex: nextTerm,
-    })
+    return ensurePendingScene({ ...state, termIndex: nextTerm })
   }
 
   return state
 }
 
+function drawMicrobeat(state: PrologueState, pace: ProloguePaceProfile): PrologueMicrobeat | null {
+  if (!pace.allowMinigames || pace.microbeatChance <= 0) return null
+
+  const salt: number = state.status === 'school' ? 503 : 907
+  const rng: SeededRng = createSeededRng((state.seed + state.termIndex * 173 + salt) >>> 0)
+
+  if (rng.next() >= pace.microbeatChance) return null
+
+  const index: number = (state.termIndex + (state.status === 'school' ? 0 : 1)) % PROLOGUE_MICROBEATS.length
+  return PROLOGUE_MICROBEATS[index] ?? null
+}
+
 function ensurePendingScene(state: PrologueState): PrologueState {
   if (state.pendingScene) return state
+
+  if (state.pendingMicrobeat) return state
 
   if (state.status === 'school_exam' || state.status === 'postsec_exam' || state.status === 'fork' || state.status === 'summary' || state.status === 'completed') {
     return state
@@ -343,7 +425,7 @@ function resolveChoiceMapping(
       { tagDeltas: { curiosity: 1 } },
     ]
 
-    return bridgeTags[choiceIndex] ?? bridgeTags[0]
+    return bridgeTags[choiceIndex]
   }
 
   const poolEntry: PrologueScenePoolEntry | undefined = getScenePoolEntriesForStage(scene.stage).find(

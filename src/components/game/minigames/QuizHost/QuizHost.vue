@@ -9,27 +9,38 @@
     <p class="quiz-host__progress">
       Вопрос {{ currentIndex + 1 }} из {{ questions.length }}
     </p>
-    <p class="quiz-host__prompt">
-      {{ currentQuestion?.prompt }}
-    </p>
-    <div
-      class="quiz-host__options"
-      role="radiogroup"
-      :aria-label="currentQuestion?.prompt"
+    <Transition
+      name="quiz-question"
+      mode="out-in"
     >
-      <button
-        v-for="(option, optionIndex) in currentQuestion?.options ?? []"
-        :key="`${currentQuestion?.id}-${optionIndex}`"
-        class="quiz-host__option"
-        type="button"
-        role="radio"
-        :aria-checked="selectedIndex === optionIndex"
-        :class="{ 'quiz-host__option--selected': selectedIndex === optionIndex }"
-        @click="selectedIndex = optionIndex"
+      <div
+        v-if="currentQuestion"
+        :key="currentQuestion.id"
+        class="quiz-host__question"
       >
-        {{ optionIndex + 1 }}. {{ option }}
-      </button>
-    </div>
+        <p class="quiz-host__prompt">
+          {{ currentQuestion.prompt }}
+        </p>
+        <div
+          class="quiz-host__options"
+          role="radiogroup"
+          :aria-label="currentQuestion.prompt"
+        >
+          <button
+            v-for="(option, optionIndex) in currentQuestion.options"
+            :key="`${currentQuestion.id}-${optionIndex}`"
+            class="quiz-host__option"
+            type="button"
+            role="radio"
+            :aria-checked="selectedIndex === optionIndex"
+            :class="{ 'quiz-host__option--selected': selectedIndex === optionIndex }"
+            @click="selectedIndex = optionIndex"
+          >
+            {{ optionIndex + 1 }}. {{ option }}
+          </button>
+        </div>
+      </div>
+    </Transition>
     <button
       class="quiz-host__next"
       type="button"
