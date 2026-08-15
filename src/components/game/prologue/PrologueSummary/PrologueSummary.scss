@@ -1,13 +1,14 @@
+@use '../../../../assets/scss/mixins' as *;
+
 .prologue-summary {
   max-width: 40rem;
   margin: 0 auto;
   padding: clamp(1.25rem, 5vw, 2.75rem);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
-  background: var(--color-bg-card);
-  box-shadow: var(--shadow-lg);
   display: grid;
   gap: 1rem;
+
+  @include glass-surface(panel);
 }
 
 .prologue-summary .prologue-summary__title {

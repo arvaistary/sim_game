@@ -73,8 +73,9 @@
   flex-direction: column;
   gap: 2px;
   padding: $space-2 $space-3;
-  background: var(--color-bg-surface-2);
   border-radius: var(--radius-md);
+
+  @include glass-inset;
 }
 
 .profile-card__kpi-label {

@@ -140,7 +140,7 @@
   align-items: flex-start;
   gap: $space-2;
   padding: $space-3;
-  background: rgb(245 158 11 / 14%);
+  background: color-mix(in srgb, var(--color-status-warning) 14%, transparent);
   border-radius: var(--radius-md);
 }
 

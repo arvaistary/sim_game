@@ -8,10 +8,11 @@
  * но settings store нужен как source-of-truth для SettingsDrawer + onboarding flag + palette.
  * Здесь же зеркалим атрибуты на <html>.
  */
-import { useSettingsStore } from '@/stores/settings-store'
+import { useSettingsStore, type ThemePreference } from '@/stores/settings-store'
 
 export default defineNuxtPlugin(() => {
   const settings = useSettingsStore()
+  const colorMode = useColorMode()
 
   // Density → data-density на documentElement
   watch(() => settings.density, (value) => {
@@ -19,10 +20,19 @@ export default defineNuxtPlugin(() => {
     document.documentElement.setAttribute('data-density', value)
   }, { immediate: true })
 
-  // Theme → синхронизируем с color-mode для дублирующего data-attr
+  // Theme → единый source-of-truth для color-mode, класса и data-attr.
   watch(() => settings.theme, (value) => {
     if (typeof document === 'undefined') return
     document.documentElement.setAttribute('data-theme', value)
+
+    if (colorMode.preference !== value) colorMode.preference = value
+  }, { immediate: true })
+
+  watch(() => colorMode.preference, (value) => {
+    if (value !== 'light' && value !== 'dark') return
+    const theme: ThemePreference = value
+
+    if (settings.theme !== theme) settings.setTheme(theme)
   })
 
   // Palette → data-palette на documentElement

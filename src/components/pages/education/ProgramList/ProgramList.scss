@@ -17,8 +17,6 @@
 }
 
 .library-shop-button {
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-elevated);
   color: var(--color-text-primary);
   border-radius: $radius-xs;
   padding: 4px $space-2;
@@ -27,9 +25,11 @@
   cursor: pointer;
   transition: border-color var(--transition-fast), background-color var(--transition-fast);
 
+  @include glass-inset;
+
   &:hover {
     border-color: var(--color-action-primary);
-    background: var(--color-pastel-green);
+    background: var(--color-glass-highlight);
   }
 }
 
@@ -104,11 +104,6 @@
   border-radius: $radius-xs;
   color: var(--color-action-primary);
 
-  @include dark-theme {
-    background: rgb(45 212 191 / 34%);
-    border: 1px solid rgb(94 234 212 / 52%);
-    color: #ccfbf1;
-  }
 }
 
 .program-subtitle {
@@ -128,15 +123,16 @@
   font-weight: $badge-font-weight;
   line-height: 1;
   text-transform: lowercase;
-  background: var(--color-bg-surface-2);
   padding: 2px $space-2;
   border-radius: $radius-xs;
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
+
+  @include glass-inset;
 }
 
 .meta-tag--owned {
-  background: var(--color-bg-surface-2);
+  background: var(--color-glass-inset);
 }
 
 .meta-tag--active {
@@ -184,11 +180,6 @@
   background: var(--color-pastel-orange);
   color: var(--color-text-primary);
 
-  @include dark-theme {
-    background: rgb(251 191 36 / 26%);
-    border: 1px solid rgb(253 230 138 / 44%);
-    color: #fde68a;
-  }
 }
 
 .program-lock-reason {

@@ -1,15 +1,16 @@
+@use '../../../../assets/scss/mixins' as *;
+
 .quiz-host {
   width: 100%;
   box-sizing: border-box;
   max-width: 40rem;
   margin: 0 auto;
   padding: clamp(1.25rem, 5vw, 2.75rem);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
-  background: var(--color-bg-card);
-  box-shadow: var(--shadow-lg);
   display: grid;
   gap: 1rem;
+
+  @include glass-surface(panel);
 }
 
 .quiz-host .quiz-host__title {
@@ -46,7 +47,9 @@
   min-height: 3rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: var(--color-bg-surface);
+
+  @include glass-inset;
+
   color: var(--color-text-primary);
   text-align: left;
   cursor: pointer;
@@ -61,7 +64,7 @@
 .quiz-host__option--selected,
 .quiz-host__option:focus-visible {
   border-color: var(--color-action-primary);
-  background: var(--color-bg-elevated);
+  background: var(--color-glass-highlight);
   outline: 3px solid color-mix(in srgb, var(--color-action-primary) 42%, transparent);
   outline-offset: 2px;
 }

@@ -20,9 +20,10 @@
   align-items: center;
   gap: $space-1;
   padding: $space-1 $space-3;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  background: var(--color-bg-card);
+
+  @include glass-inset;
+
   cursor: pointer;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
   font-size: $font-size-xs;
@@ -65,9 +66,10 @@
 .filter-bar__select {
   appearance: none;
   padding: $space-1 $space-8 $space-1 $space-3;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  background: var(--color-bg-card);
+
+  @include glass-inset;
+
   color: var(--color-text-primary);
   font-size: $font-size-xs;
   cursor: pointer;

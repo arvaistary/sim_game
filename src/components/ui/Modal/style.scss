@@ -1,10 +1,11 @@
 @use '../../../assets/scss/variables' as *;
+@use '../../../assets/scss/mixins' as *;
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgb(15 23 42 / 50%);
-  backdrop-filter: blur(4px);
+  background: color-mix(in srgb, var(--color-bg-app) 58%, transparent);
+  backdrop-filter: blur(var(--blur-glass-overlay));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,12 +14,12 @@
 }
 
 .modal-content {
-  background: var(--color-bg-card);
   border-radius: var(--radius-2xl);
-  border: 1px solid var(--color-border-subtle);
   box-shadow: var(--shadow-popover);
   width: 100%;
   overflow: visible;
+
+  @include glass-surface(panel);
 }
 
 .modal-header {

@@ -4,8 +4,8 @@
 .settings-drawer__overlay {
   position: fixed;
   inset: 0;
-  background: rgb(15 23 42 / 45%);
-  backdrop-filter: blur(4px);
+  background: color-mix(in srgb, var(--color-bg-app) 52%, transparent);
+  backdrop-filter: blur(var(--blur-glass-overlay));
   z-index: $z-index-modal;
 }
 
@@ -15,12 +15,13 @@
   right: 0;
   bottom: 0;
   width: min(420px, 100vw);
-  background: var(--color-bg-card);
   border-left: 1px solid var(--color-border-subtle);
   box-shadow: var(--shadow-popover);
   z-index: $z-index-modal + 1;
   display: flex;
   flex-direction: column;
+
+  @include glass-surface(chrome);
 }
 
 .settings-drawer__header {
@@ -137,18 +138,18 @@
 .settings-section__danger-button {
   flex-shrink: 0;
   padding: $space-2 $space-3;
-  border: 1px solid var(--color-danger, #dc2626);
+  border: 1px solid var(--color-action-danger);
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--color-danger, #dc2626);
+  color: var(--color-action-danger);
   font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
   cursor: pointer;
   transition: background-color var(--transition-fast), color var(--transition-fast);
 
   &:hover {
-    background: var(--color-danger, #dc2626);
-    color: #fff;
+    background: var(--color-action-danger);
+    color: var(--color-text-on-status);
   }
 }
 

@@ -34,7 +34,9 @@
   align-items: center;
   padding: $space-1 $space-2;
   border-radius: var(--radius-sm);
-  background: var(--color-bg-elevated);
+
+  @include glass-inset;
+
   font-size: $font-size-xs;
 }
 
