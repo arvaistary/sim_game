@@ -6,3 +6,8 @@ export interface PlayerState {
   /** Staged life memory ids from prologue. */
   memories: string[]
 }
+
+export interface LifeBackground {
+  traits: string[]
+  memories: string[]
+}

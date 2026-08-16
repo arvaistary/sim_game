@@ -5,6 +5,7 @@ export type {
   PrologueTrack,
   PrologueTagId,
   PrologueState,
+  PrologueMicrobeat,
   PrologueHandoffPatch,
   PrologueExamQuestion,
   PrologueSceneInstance,
@@ -22,6 +23,7 @@ export {
 export {
   startPrologue,
   choosePrologueOption,
+  completePrologueMicrobeat,
   selectPrologueTrack,
   submitPrologueExam,
   completePrologue,
@@ -29,4 +31,3 @@ export {
 } from './prologue-runner'
 export { buildPrologueHandoffPatch } from './handoff'
 export { drawExamQuestions, getPostsecExamBankId } from './exam-bank'
-export { getMinigame } from './minigames/registry'

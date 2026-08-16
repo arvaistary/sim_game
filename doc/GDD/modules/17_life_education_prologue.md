@@ -42,4 +42,5 @@ Start
 - Balance content: `src/domain/balance/constants/prologue/`
 - Store: `src/stores/prologue-store/`
 - UI: `src/pages/game/prologue/`, `src/components/game/prologue/`, minigames
+- Microbeats: `prologue-microbeats.ts` → `match-pairs` → `MinigameResult` → stage budget
 - Authoring: `doc/guides/PROLOGUE_CONTENT_AUTHORING.md`

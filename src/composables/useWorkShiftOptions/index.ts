@@ -27,6 +27,7 @@ export function resolveDailyHours(work: WorkSnapshot): number {
  */
 export function useWorkShiftOptions(): UseWorkShiftOptions {
   const careerStore = useCareerStore()
+
   const workOptions: ComputedRef<WorkOptions | null> = computed<WorkOptions | null>(() => {
     const job: WorkSnapshot = careerStore.currentJob
 

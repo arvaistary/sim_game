@@ -5,7 +5,8 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
-  background: var(--color-bg-app);
+
+  @include ambient-canvas;
 }
 
 // ===== Desktop sidebar =====
@@ -15,11 +16,10 @@
   left: 0;
   bottom: 0;
   width: $sidebar-width;
-  background: var(--color-bg-sidebar);
-  border-right: 1px solid var(--color-border-subtle);
   overflow-y: auto;
   z-index: $z-index-sticky;
 
+  @include glass-surface(chrome);
   @include scrollbar-thin;
 }
 
@@ -39,9 +39,8 @@
   top: 0;
   z-index: $z-index-sticky;
   height: $topbar-height;
-  background: var(--color-bg-header);
-  border-bottom: 1px solid var(--color-border-subtle);
-  backdrop-filter: blur(12px);
+
+  @include glass-surface(chrome);
 }
 
 // ===== Content =====
@@ -79,8 +78,8 @@
     right: 0;
     bottom: 0;
     height: $bottomnav-height;
-    background: var(--color-bg-sidebar);
-    border-top: 1px solid var(--color-border-subtle);
     z-index: $z-index-fixed;
+
+    @include glass-surface(chrome);
   }
 }

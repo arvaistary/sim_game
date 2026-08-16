@@ -11,6 +11,7 @@ import type { UseCalendarPlanActions } from './useCalendarPlan.types'
  */
 export function useCalendarPlanActions(): UseCalendarPlanActions {
   const calendarStore = useCalendarPlanStore()
+
   const gameStore = useGameStore()
 
   function addAction(dayOffset: number, actionId: string): string | null {

@@ -43,6 +43,7 @@ export const useEventsStore = defineStore('events', () => {
     if (!currentEvent.value) return
 
     const timeStore = useTimeStore()
+
     const instanceId: string = currentEvent.value.instanceId
 
     eventHistory.value.push({

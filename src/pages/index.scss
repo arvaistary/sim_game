@@ -21,11 +21,10 @@
   justify-content: center;
   gap: $space-6;
   padding: $space-10;
-  background:
-    radial-gradient(circle at top right, rgb(0 200 150 / 22%), transparent 50%),
-    radial-gradient(circle at bottom left, rgb(123 97 255 / 14%), transparent 55%),
-    linear-gradient(160deg, #0F172A 0%, #1E293B 100%);
-  color: $color-neutral-0;
+
+  @include ambient-canvas;
+
+  color: var(--color-text-primary);
 
   @include respond-to-max('lg') {
     display: none;
@@ -39,12 +38,12 @@
   width: 120px;
   height: 120px;
   border-radius: var(--radius-2xl);
-  background: linear-gradient(135deg, #047857 0%, #064E3B 100%);
-  color: $color-neutral-0;
+  background: linear-gradient(135deg, var(--color-action-primary-hover), var(--color-action-primary));
+  color: var(--color-text-on-primary);
   font-size: $font-size-5xl;
   font-weight: $font-weight-bold;
   letter-spacing: 0.04em;
-  box-shadow: 0 20px 40px rgb(0 200 150 / 40%);
+  box-shadow: var(--shadow-accent-soft);
 }
 
 .start-page__brand-text {
@@ -61,7 +60,7 @@
 .start-page__brand-tagline {
   margin: $space-2 0 0;
   font-size: $font-size-lg;
-  color: $color-neutral-300;
+  color: var(--color-text-secondary);
 }
 
 .start-page__brand-footer {
@@ -74,7 +73,7 @@
 
 .start-page__brand-copy {
   font-size: $font-size-xs;
-  color: $color-neutral-400;
+  color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -85,8 +84,9 @@
   align-items: center;
   justify-content: center;
   padding: $space-8;
-  background: var(--color-bg-card);
   overflow-y: auto;
+
+  @include glass-surface(panel);
 }
 
 .start-page__content {
@@ -123,9 +123,10 @@
 .start-page__input {
   width: 100%;
   padding: $space-3 $space-4;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-bg-card);
+
+  @include glass-inset;
+
   font-family: $font-family-sans;
   font-size: $font-size-base;
   color: var(--color-text-primary);
@@ -258,11 +259,10 @@
   justify-content: center;
   gap: $space-6;
   padding: $space-10;
-  background:
-    radial-gradient(circle at top right, rgb(0 200 150 / 22%), transparent 50%),
-    radial-gradient(circle at bottom left, rgb(123 97 255 / 14%), transparent 55%),
-    linear-gradient(160deg, #0F172A 0%, #1E293B 100%);
-  color: $color-neutral-0;
+
+  @include ambient-canvas;
+
+  color: var(--color-text-primary);
 
   @include respond-to-max('lg') {
     min-height: 220px;
@@ -276,12 +276,12 @@
   width: 104px;
   height: 104px;
   border-radius: var(--radius-2xl);
-  background: linear-gradient(135deg, #047857 0%, #064E3B 100%);
-  color: $color-neutral-0;
+  background: linear-gradient(135deg, var(--color-action-primary-hover), var(--color-action-primary));
+  color: var(--color-text-on-primary);
   font-size: $font-size-4xl;
   font-weight: $font-weight-bold;
   letter-spacing: 0.04em;
-  box-shadow: 0 20px 40px rgb(0 200 150 / 40%);
+  box-shadow: var(--shadow-accent-soft);
 }
 
 .login-page__brand-text { text-align: center; }
@@ -291,12 +291,12 @@
   font-size: $font-size-4xl;
   font-weight: $font-weight-semibold;
   letter-spacing: $tracking-heading;
-  color: $color-neutral-0;
+  color: var(--color-text-primary);
 }
 
 .login-page__brand-tagline {
   margin: $space-2 0 0;
-  color: $color-neutral-300;
+  color: var(--color-text-secondary);
   font-size: $font-size-lg;
 }
 
@@ -305,7 +305,7 @@
   right: $space-6;
   bottom: $space-6;
   left: $space-6;
-  color: $color-neutral-400;
+  color: var(--color-text-tertiary);
   font-size: $font-size-xs;
   letter-spacing: 0.08em;
   text-align: center;
@@ -317,7 +317,8 @@
   align-items: center;
   justify-content: center;
   padding: $space-8;
-  background: var(--color-bg-card);
+
+  @include glass-surface(panel);
 }
 
 .login-page__form {
@@ -359,9 +360,10 @@
 .login-page__input {
   width: 100%;
   padding: $space-3 $space-4;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-bg-card);
+
+  @include glass-inset;
+
   color: var(--color-text-primary);
   font-family: $font-family-sans;
   font-size: $font-size-base;

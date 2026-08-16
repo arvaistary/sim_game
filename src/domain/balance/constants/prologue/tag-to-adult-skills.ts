@@ -1,7 +1,7 @@
 import type { PrologueTagId, PrologueTrack } from '@/domain/prologue/prologue.types'
+import type { TagToAdultSkillWeights } from './tag-to-adult-skills.types'
 
-/** Вес тега → взрослый навык (только реальные ключи skills-constants). */
-export type TagToAdultSkillWeights = Partial<Record<string, number>>
+export type { TagToAdultSkillWeights } from './tag-to-adult-skills.types'
 
 export const TAG_TO_ADULT_SKILLS: Record<PrologueTagId, TagToAdultSkillWeights> = {
   stem: { professionalism: 1.2, timeManagement: 0.3 },

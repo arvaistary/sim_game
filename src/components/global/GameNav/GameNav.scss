@@ -12,7 +12,7 @@
 
   &:hover {
     color: var(--color-text-primary);
-    background: var(--color-bg-elevated);
+    background: var(--color-glass-inset);
   }
 
   &:focus-visible {
@@ -65,7 +65,7 @@
 
   // Active = emerald left-border + soft bg
   &.game-nav__item--active {
-    background: var(--color-pastel-green);
+    background: var(--color-glass-inset);
     color: var(--color-text-primary);
 
     &::before {
@@ -80,9 +80,6 @@
       border-radius: var(--radius-full);
     }
 
-    @include dark-theme {
-      background: rgb(45 212 191 / 20%);
-    }
   }
 }
 

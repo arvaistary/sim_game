@@ -38,8 +38,10 @@
 .log-card__day {
   flex-shrink: 0;
   padding: 2px 6px;
-  background: var(--color-bg-surface-2);
   border-radius: $radius-xs;
+
+  @include glass-inset;
+
   font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
   color: var(--color-text-tertiary);
@@ -72,8 +74,5 @@
     background: var(--color-pastel-green);
     border-color: var(--color-action-primary);
 
-    @include dark-theme {
-      background: rgb(45 212 191 / 20%);
-    }
   }
 }

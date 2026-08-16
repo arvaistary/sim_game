@@ -12,6 +12,7 @@
           'prologue-progress__item--current': step.isCurrent,
           'prologue-progress__item--done': step.done,
         }"
+        :aria-current="step.isCurrent ? 'step' : undefined"
       >
         {{ step.label }}
       </li>

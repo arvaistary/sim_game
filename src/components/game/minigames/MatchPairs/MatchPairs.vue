@@ -6,6 +6,13 @@
     <p class="match-pairs__hint">
       Найди {{ pairs.length }} пары. Ошибок: {{ mistakes }}
     </p>
+    <p
+      v-if="isCompletionPending"
+      class="match-pairs__completion"
+      aria-live="polite"
+    >
+      Все пары найдены. Переходим дальше…
+    </p>
     <div class="match-pairs__grid">
       <button
         v-for="card in cards"
@@ -13,13 +20,28 @@
         class="match-pairs__card"
         type="button"
         :disabled="card.matched"
+        :aria-label="getCardAriaLabel(card)"
+        :aria-pressed="card.flipped || card.matched"
         :class="{
           'match-pairs__card--flipped': card.flipped || card.matched,
           'match-pairs__card--matched': card.matched,
         }"
         @click="flipCard(card.id)"
       >
-        {{ card.flipped || card.matched ? card.label : '?' }}
+        <span class="match-pairs__card-inner">
+          <span
+            class="match-pairs__card-face match-pairs__card-face--back"
+            aria-hidden="true"
+          >
+            ?
+          </span>
+          <span
+            class="match-pairs__card-face match-pairs__card-face--front"
+            aria-hidden="true"
+          >
+            {{ card.label }}
+          </span>
+        </span>
       </button>
     </div>
   </section>
@@ -27,11 +49,14 @@
 
 <script setup lang="ts">
 import './MatchPairs.scss'
+import { onBeforeUnmount, ref } from 'vue'
 import type { Ref } from 'vue'
 import type { MinigameResult } from '@/domain/prologue/minigames/minigame.types'
 import type { MatchCardView, MatchPairDef, MatchPairsEmits } from './MatchPairs.types'
 
 const emit = defineEmits<MatchPairsEmits>()
+
+const MATCH_PAIRS_COMPLETION_DELAY_MS: number = 2000
 
 const pairs: MatchPairDef[] = [
   { id: 'p1', left: '2+2', right: '4' },
@@ -43,6 +68,8 @@ const cards: Ref<MatchCardView[]> = ref<MatchCardView[]>(buildCards(pairs))
 const selectedIds: Ref<string[]> = ref<string[]>([])
 const mistakes: Ref<number> = ref<number>(0)
 const lock: Ref<boolean> = ref<boolean>(false)
+const isCompletionPending: Ref<boolean> = ref<boolean>(false)
+let completionTimer: number | null = null
 
 function buildCards(source: MatchPairDef[]): MatchCardView[] {
   const built: MatchCardView[] = []
@@ -63,7 +90,7 @@ function buildCards(source: MatchPairDef[]): MatchCardView[] {
 }
 
 function flipCard(cardId: string): void {
-  if (lock.value) return
+  if (lock.value || isCompletionPending.value) return
 
   const card: MatchCardView | undefined = cards.value.find(
     (item: MatchCardView) => item.id === cardId,
@@ -107,14 +134,30 @@ function flipCard(cardId: string): void {
 function maybeFinish(): void {
   if (!cards.value.every((card: MatchCardView) => card.matched)) return
 
+  if (completionTimer !== null) return
+
   const successTier: MinigameResult['successTier'] =
     mistakes.value === 0 ? 'great' : mistakes.value <= 2 ? 'ok' : 'fail'
   const score01: number = Math.max(0, 1 - mistakes.value * 0.2)
 
-  emit('complete', {
-    minigameId: 'match-pairs',
-    successTier,
-    score01,
-  })
+  isCompletionPending.value = true
+  completionTimer = window.setTimeout(() => {
+    completionTimer = null
+    emit('complete', {
+      minigameId: 'match-pairs',
+      successTier,
+      score01,
+    })
+  }, MATCH_PAIRS_COMPLETION_DELAY_MS)
 }
+
+function getCardAriaLabel(card: MatchCardView): string {
+  return card.flipped || card.matched
+    ? `Открытая карточка: ${card.label}`
+    : 'Закрытая карточка'
+}
+
+onBeforeUnmount(() => {
+  if (completionTimer !== null) window.clearTimeout(completionTimer)
+})
 </script>

@@ -14,7 +14,9 @@ import { useTimeStore } from '@/stores/time-store'
  */
 export function useEvents() {
   const eventsStore = useEventsStore()
+
   const timeStore = useTimeStore()
+
   const gameStore = useGameStore()
 
   const currentEvent: Ref<GameEvent | null> = ref<GameEvent | null>(null)

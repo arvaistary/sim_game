@@ -34,6 +34,22 @@
         @choose="onChoose"
       />
 
+      <section
+        v-else-if="pendingMicrobeat"
+        class="prologue-page__microbeat"
+        aria-live="polite"
+      >
+        <h2 class="prologue-page__microbeat-title">
+          {{ pendingMicrobeat.title }}
+        </h2>
+        <p class="prologue-page__microbeat-description">
+          {{ pendingMicrobeat.description }}
+        </p>
+        <MatchPairs
+          @complete="onMicrobeatComplete"
+        />
+      </section>
+
       <PrologueForkSelect
         v-else-if="status === 'fork'"
         @select="onSelectTrack"
@@ -68,7 +84,9 @@ import PrologueForkSelect from '@/components/game/prologue/PrologueForkSelect/Pr
 import PrologueProgress from '@/components/game/prologue/PrologueProgress/PrologueProgress.vue'
 import PrologueSummary from '@/components/game/prologue/PrologueSummary/PrologueSummary.vue'
 import QuizHost from '@/components/game/minigames/QuizHost/QuizHost.vue'
+import MatchPairs from '@/components/game/minigames/MatchPairs/MatchPairs.vue'
 import type { QuizHostCompletePayload } from '@/components/game/minigames/QuizHost/QuizHost.types'
+import type { MinigameResult } from '@/domain/prologue/minigames/minigame.types'
 import {
   drawExamQuestions,
   getPostsecExamBankId,
@@ -76,6 +94,7 @@ import {
 import type {
   PrologueExamQuestion,
   PrologueHandoffPatch,
+  PrologueMicrobeat,
   PrologueStatus,
   PrologueTrack,
 } from '@/domain/prologue/prologue.types'
@@ -85,10 +104,15 @@ import { normalizeSkillLevels } from '@/domain/balance/skills'
 definePageMeta({ middleware: ['game-init'] })
 
 const playerStore = usePlayerStore()
+
 const timeStore = useTimeStore()
+
 const skillsStore = useSkillsStore()
+
 const educationStore = useEducationStore()
+
 const walletStore = useWalletStore()
+
 const prologueStore = usePrologueStore()
 
 const showWelcome: Ref<boolean> = ref(false)
@@ -97,9 +121,9 @@ const examQuestions: Ref<PrologueExamQuestion[]> = ref<PrologueExamQuestion[]>([
 
 const status = computed(() => prologueStore.status)
 const pendingScene = computed(() => prologueStore.pendingScene)
+const pendingMicrobeat: ComputedRef<PrologueMicrobeat | null> = computed(() => prologueStore.pendingMicrobeat)
 const tagPoints = computed(() => prologueStore.tagPoints)
 const traits = computed(() => prologueStore.traits)
-
 const isSceneStatus: ComputedRef<boolean> = computed(() => {
   const current: PrologueStatus | null = status.value
 
@@ -174,6 +198,10 @@ function onWelcomeStart(): void {
 
 function onChoose(choiceIndex: number): void {
   prologueStore.choose(choiceIndex)
+}
+
+function onMicrobeatComplete(result: MinigameResult): void {
+  prologueStore.finishMicrobeat(result)
 }
 
 function onSelectTrack(track: PrologueTrack): void {

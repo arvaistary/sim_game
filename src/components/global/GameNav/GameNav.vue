@@ -77,7 +77,8 @@ const isHomePage = computed<boolean>(() => route.path === '/game')
 
 const activeItemId = computed<string>(() => {
   const currentPath = route.path
-  const activeItem = navItems.find((item) => ROUTE_MAP[item.id] === currentPath)
+  const activeItem = navItems.find(
+    (item) => ROUTE_MAP[item.id] === currentPath)
   return activeItem?.id ?? ''
 })
 

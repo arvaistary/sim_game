@@ -3,6 +3,7 @@ import { toRaw } from 'vue'
 import {
   startPrologue,
   choosePrologueOption,
+  completePrologueMicrobeat,
   selectPrologueTrack,
   submitPrologueExam,
   completePrologue,
@@ -11,12 +12,14 @@ import {
 } from '@/domain/prologue'
 import type {
   PrologueHandoffPatch,
+  PrologueMicrobeat,
   PrologueSceneInstance,
   PrologueState,
   PrologueStatus,
   PrologueTagPoints,
   PrologueTrack,
 } from '@/domain/prologue/prologue.types'
+import type { MinigameResult } from '@/domain/prologue/minigames/minigame.types'
 import type { PrologueStoreSaveBlob } from './prologue-store.types'
 
 export const usePrologueStore = defineStore('prologue', () => {
@@ -28,6 +31,7 @@ export const usePrologueStore = defineStore('prologue', () => {
 
   const status: ComputedRef<PrologueStatus | null> = computed(() => state.value?.status ?? null)
   const pendingScene: ComputedRef<PrologueSceneInstance | null> = computed(() => state.value?.pendingScene ?? null)
+  const pendingMicrobeat: ComputedRef<PrologueMicrobeat | null> = computed(() => state.value?.pendingMicrobeat ?? null)
   const tagPoints: ComputedRef<PrologueTagPoints | null> = computed(() => state.value?.tagPoints ?? null)
   const track: ComputedRef<PrologueTrack | null> = computed(() => state.value?.track ?? null)
   const traits: ComputedRef<string[]> = computed(() => state.value?.traits ?? [])
@@ -48,6 +52,15 @@ export const usePrologueStore = defineStore('prologue', () => {
   function choose(choiceIndex: number): void {
     if (!state.value) return
     state.value = choosePrologueOption(state.value, choiceIndex)
+  }
+
+  /**
+   * @description [PrologueStore] - Завершает необязательный microbeat.
+   * @return { void }
+   */
+  function finishMicrobeat(result: MinigameResult): void {
+    if (!state.value) return
+    state.value = completePrologueMicrobeat(state.value, result)
   }
 
   /**
@@ -137,12 +150,14 @@ export const usePrologueStore = defineStore('prologue', () => {
     isActive,
     status,
     pendingScene,
+    pendingMicrobeat,
     tagPoints,
     track,
     traits,
     memories,
     start,
     choose,
+    finishMicrobeat,
     selectTrack,
     submitExam,
     resume,

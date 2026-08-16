@@ -30,4 +30,5 @@ import './PrologueForkSelect.scss'
 import type { PrologueForkSelectEmits } from './PrologueForkSelect.types'
 
 const emit = defineEmits<PrologueForkSelectEmits>()
+
 </script>

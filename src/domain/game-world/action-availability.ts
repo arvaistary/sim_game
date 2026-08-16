@@ -1,6 +1,8 @@
 import type { BalanceAction } from '@/domain/balance/actions/types'
 
 import type { GameWorld } from './GameWorld'
+import type { GrantedFurniture } from './action-availability.types'
+import type { ActionUsageEntry } from './GameWorld.types'
 
 /**
  * Проверить, выдан ли игроку предмет из действия магазина.
@@ -10,9 +12,9 @@ import type { GameWorld } from './GameWorld'
 export function hasGrantedItem(world: GameWorld, itemId: string): boolean {
   if (!itemId) return false
 
-  const furniture: Array<{ id?: string; purchased?: boolean }> = world.housing.furniture as Array<{ id?: string; purchased?: boolean }>
+  const furniture: GrantedFurniture[] = world.housing.furniture as GrantedFurniture[]
 
-  return furniture.some((item: { id?: string; purchased?: boolean }) => item.id === itemId && item.purchased === true)
+  return furniture.some((item: GrantedFurniture) => item.id === itemId && item.purchased === true)
 }
 
 /**
@@ -27,7 +29,7 @@ export function getActionAvailabilityBlockReason(world: GameWorld, action: Balan
     return 'Уже куплено'
   }
 
-  const usage: { count: number } | undefined = world.actionUsage[actionId]
+  const usage: ActionUsageEntry | undefined = world.actionUsage[actionId]
 
   if (usage && usage.count > 0) {
     return 'Действие уже выполнено'

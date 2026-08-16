@@ -34,4 +34,5 @@ import type { PrologueSceneCardEmits, PrologueSceneCardProps } from './PrologueS
 defineProps<PrologueSceneCardProps>()
 
 const emit = defineEmits<PrologueSceneCardEmits>()
+
 </script>

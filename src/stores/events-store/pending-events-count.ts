@@ -1,6 +1,4 @@
-import type { useEventsStore } from '@/stores/events-store'
-
-type EventsStore = ReturnType<typeof useEventsStore>
+import type { EventsStore } from './pending-events-count.types'
 
 /**
  * Количество событий в UI-очереди (текущее + pending).

@@ -1,15 +1,8 @@
 import { CLEAN_SLATE_ADULT_SKILLS, CLEAN_SLATE_EDUCATION_LEVEL } from '@/domain/balance/constants/prologue/anti-imba-caps'
 import { INITIAL_SAVE, INITIAL_TIME_TEMPLATE } from '@/domain/balance/constants/initial-save'
+import type { CleanSlateAdultStartInput, InfancyPrologueStartInput } from './build-start-payloads.types'
 
-export interface CleanSlateAdultStartInput {
-  playerName: string
-  startAge: number
-}
-
-export interface InfancyPrologueStartInput {
-  playerName: string
-  seed?: number
-}
+export type { CleanSlateAdultStartInput, InfancyPrologueStartInput } from './build-start-payloads.types'
 
 /**
  * @description [Start] - Adult start: clean slate skills + education Нет (не test buff).
@@ -17,7 +10,7 @@ export interface InfancyPrologueStartInput {
  */
 export function buildCleanSlateAdultStartPayload(data: CleanSlateAdultStartInput): Record<string, unknown> {
   const age: number = Math.max(16, Math.min(20, Math.floor(data.startAge)))
-  const base = structuredClone(INITIAL_SAVE) as unknown as Record<string, unknown>
+  const base: Record<string, unknown> = structuredClone(INITIAL_SAVE) as unknown as Record<string, unknown>
 
   return {
     ...base,
@@ -48,7 +41,7 @@ export function buildCleanSlateAdultStartPayload(data: CleanSlateAdultStartInput
  * @return { Record<string, unknown> } payload
  */
 export function buildInfancyPrologueStartPayload(data: InfancyPrologueStartInput): Record<string, unknown> {
-  const base = structuredClone(INITIAL_SAVE) as unknown as Record<string, unknown>
+  const base: Record<string, unknown> = structuredClone(INITIAL_SAVE) as unknown as Record<string, unknown>
 
   return {
     ...base,

@@ -20,6 +20,7 @@ ADR (Architecture Decision Records) — это записи о ключевых 
 | [ADR-0004](ARCHITECTURE_DECISION_HENDERSON_ADAPTATION.md) | Адаптация архитектуры Henderson | 2025 | Принято |
 | [ADR-0005](0005-game-world-aggregate-strategy-a.md) | State abstraction — GameWorld aggregate (Strategy A) | июль 2026 | Принято |
 | [ADR-0006](0006-durable-game-state-persistence.md) | Durable game-state persistence with PostgreSQL | 2026-07-28 | Принято |
+| [ADR-0007](0007-prologue-microbeat-state.md) | Persisted prologue microbeat transitions | 2026-08-15 | Принято |
 
 ## Формат ADR
 

@@ -35,7 +35,9 @@
   min-height: 2rem;
   padding: 0 var(--space-3);
   color: var(--color-text-primary);
-  background: var(--color-bg-surface);
+
+  @include glass-inset;
+
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -88,16 +90,16 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-element-gap);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   animation: calendar-day-enter 320ms ease-out both;
   animation-delay: calc(var(--calendar-day-index, 0) * 45ms);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+
+  @include glass-surface(panel);
 }
 
 .calendar-day--locked {
-  background: color-mix(in srgb, var(--color-bg-surface-2) 88%, var(--color-bg-surface));
+  background: color-mix(in srgb, var(--color-glass-inset) 88%, var(--color-canvas-base));
   border-style: dashed;
   color: var(--color-text-secondary);
 }
@@ -141,8 +143,9 @@
   flex: 0 0 auto;
   min-height: 2rem;
   padding: 0 var(--space-3);
-  background: var(--color-bg-surface-2);
-  border: 1px solid var(--color-border-subtle);
+
+  @include glass-inset;
+
   border-radius: var(--radius-sm);
   color: var(--color-text-primary);
   font-weight: 600;
@@ -156,8 +159,9 @@
   min-width: 2rem;
   min-height: 2rem;
   color: var(--color-text-secondary);
-  background: var(--color-bg-surface-2);
-  border: 1px solid var(--color-border-subtle);
+
+  @include glass-inset;
+
   border-radius: 50%;
   animation: calendar-lock-breathe 2.4s ease-in-out infinite;
 }
@@ -221,8 +225,9 @@
   position: relative;
   display: block;
   padding: var(--space-2) var(--space-3);
-  background: var(--color-bg-surface-2);
-  border: 1px solid var(--color-border-subtle);
+
+  @include glass-inset;
+
   border-radius: var(--radius-sm);
   cursor: grab;
   animation: calendar-card-enter 240ms ease-out both;
@@ -231,7 +236,7 @@
 
 .calendar-action-card:hover,
 .calendar-action-card:focus-within {
-  background: var(--color-bg-surface);
+  background: var(--color-glass-highlight);
   border-color: var(--color-action-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-action-primary) 22%, transparent);
   transform: translateY(-1px);
@@ -264,8 +269,9 @@
   max-width: 100%;
   padding: 0.15rem 0.35rem;
   color: var(--color-text-secondary);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
+
+  @include glass-inset;
+
   border-radius: 999px;
   font-size: 0.65rem;
   line-height: 1.2;

@@ -59,7 +59,13 @@ export function createServerExecutor(
 
       if (stateVersion !== undefined) body.expectedStateVersion = stateVersion
     }
-    const data: T = await fetchApi<T>(url, { ...requestOptions, body }, allowSyncFailures)
+    let data: T
+
+    try {
+      data = await fetchApi<T>(url, { ...requestOptions, body }, allowSyncFailures)
+    } catch {
+      data = await fetchApi<T>(url, { ...requestOptions, body }, allowSyncFailures)
+    }
 
     if (data.stateVersion !== undefined) stateVersion = data.stateVersion
     return data
@@ -103,39 +109,29 @@ export function createServerExecutor(
       const startTotalHours: number = before.time.totalHours
 
       for (const command of commands) {
-        try {
-          const response: SyncResponse<GameWorldJSON> = await sendCommand<SyncResponse<GameWorldJSON>>(`${base}/api/game/sync`, {
-            method: 'POST',
-            body: {
-              actions: [{
-                type: command.kind === 'work' ? 'work' : 'action',
-                payload: command.kind === 'work' ? { hours: command.hours } : { actionId: command.actionId },
-                timestamp: Date.now(),
-              }],
-            },
-          }, true)
-          const next: GameWorld = GameWorld.fromJSON(response.state)
-          const success: boolean = response.failed === 0
+        const response: SyncResponse<GameWorldJSON> = await sendCommand<SyncResponse<GameWorldJSON>>(`${base}/api/game/sync`, {
+          method: 'POST',
+          body: {
+            actions: [{
+              type: command.kind === 'work' ? 'work' : 'action',
+              payload: command.kind === 'work' ? { hours: command.hours } : { actionId: command.actionId },
+              timestamp: Date.now(),
+            }],
+          },
+        }, true)
+        const next: GameWorld = GameWorld.fromJSON(response.state)
+        const success: boolean = response.failed === 0
 
-          if (success) {
-            for (const key of ['hunger', 'energy', 'stress', 'mood', 'health', 'physical'] as const) {
-              const delta: number = next.stats[key] - working.stats[key]
+        if (success) {
+          for (const key of ['hunger', 'energy', 'stress', 'mood', 'health', 'physical'] as const) {
+            const delta: number = next.stats[key] - working.stats[key]
 
-              if (delta !== 0) statChanges[key] = (statChanges[key] ?? 0) + delta
-            }
-            moneyDelta += next.wallet.money - working.wallet.money
+            if (delta !== 0) statChanges[key] = (statChanges[key] ?? 0) + delta
           }
-          working = next
-          steps.push({ kind: command.kind, actionId: command.actionId, success, message: success ? 'Выполнено' : (response.errors?.[0]?.message ?? 'Шаг пропущен'), hoursSpent: success ? command.hours : 0 })
-        } catch (error) {
-          steps.push({
-            kind: command.kind,
-            actionId: command.actionId,
-            success: false,
-            message: error instanceof Error ? error.message : String(error),
-            hoursSpent: 0,
-          })
+          moneyDelta += next.wallet.money - working.wallet.money
         }
+        working = next
+        steps.push({ kind: command.kind, actionId: command.actionId, success, message: success ? 'Выполнено' : (response.errors?.[0]?.message ?? 'Шаг пропущен'), hoursSpent: success ? command.hours : 0 })
       }
 
       const dayEndHours: number = startTotalHours + (startTotalHours % 24 === 0 && startTotalHours > 0 ? 24 : before.time.dayHoursRemaining)
@@ -143,18 +139,14 @@ export function createServerExecutor(
       let idleHours: number = 0
 
       if (remainingIdleHours > 0) {
-        try {
-          const response: SyncResponse<GameWorldJSON> = await sendCommand<SyncResponse<GameWorldJSON>>(`${base}/api/game/sync`, {
-            method: 'POST',
-            body: { actions: [{ type: 'time', payload: { hours: remainingIdleHours }, timestamp: Date.now() }] },
-          }, true)
-          const success: boolean = response.failed === 0
-          working = GameWorld.fromJSON(response.state)
-          idleHours = success ? remainingIdleHours : 0
-          steps.push({ kind: 'idle', success, message: success ? 'Остаток дня прошёл спокойно' : (response.errors?.[0]?.message ?? 'Остаток дня не прошёл'), hoursSpent: idleHours })
-        } catch (error) {
-          steps.push({ kind: 'idle', success: false, message: error instanceof Error ? error.message : String(error), hoursSpent: 0 })
-        }
+        const response: SyncResponse<GameWorldJSON> = await sendCommand<SyncResponse<GameWorldJSON>>(`${base}/api/game/sync`, {
+          method: 'POST',
+          body: { actions: [{ type: 'time', payload: { hours: remainingIdleHours }, timestamp: Date.now() }] },
+        }, true)
+        const success: boolean = response.failed === 0
+        working = GameWorld.fromJSON(response.state)
+        idleHours = success ? remainingIdleHours : 0
+        steps.push({ kind: 'idle', success, message: success ? 'Остаток дня прошёл спокойно' : (response.errors?.[0]?.message ?? 'Остаток дня не прошёл'), hoursSpent: idleHours })
       }
 
       const didCloseDay: boolean = working.time.totalHours === dayEndHours

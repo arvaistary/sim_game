@@ -131,6 +131,22 @@
   --color-bg-app: #{$color-bg-app};
   --color-bg-surface-2: #{$color-bg-surface-2};
 
+  // Accent + glass material contract.
+  --color-ambient-primary: color-mix(in srgb, var(--color-action-primary) 18%, transparent);
+  --color-ambient-secondary: color-mix(in srgb, var(--color-action-secondary) 11%, transparent);
+  --color-canvas-base: var(--color-bg-page);
+  --color-glass-chrome: rgb(255 255 255 / 20%);
+  --color-glass-panel: rgb(255 255 255 / 58%);
+  --color-glass-inset: rgb(255 255 255 / 42%);
+  --color-glass-border: color-mix(in srgb, var(--color-action-primary) 16%, var(--color-border));
+  --color-glass-highlight: rgb(255 255 255 / 48%);
+  --blur-glass-chrome: 20px;
+  --blur-glass-panel: 16px;
+  --blur-glass-overlay: 8px;
+  --saturate-glass: 125%;
+  --shadow-glass-panel: 0 18px 50px rgb(15 23 42 / 10%);
+  --shadow-accent-soft: 0 0 28px color-mix(in srgb, var(--color-action-primary) 16%, transparent);
+
   // Component tokens (density-aware)
   --radius-card: #{$card-radius};
 
@@ -169,9 +185,10 @@
   justify-content: space-between;
   width: 100%;
   padding: $space-2 $space-3;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  background: var(--color-bg-card);
+
+  @include glass-inset;
+
   color: var(--color-text-primary);
   font: inherit;
   text-align: left;
@@ -210,10 +227,10 @@
   max-height: 260px;
   overflow-y: auto;
   padding: $space-1;
-  border: 1px solid var(--color-border);
   border-radius: $radius-lg;
-  background: var(--color-bg-card);
   box-shadow: var(--shadow-popover);
+
+  @include glass-surface(panel);
 }
 
 .dropdown-select__option {
@@ -327,6 +344,12 @@ html[data-theme="dark"] {
   --color-neutral: rgb(255 255 255 / 8%);
   --color-shadow: rgb(15 23 42 / 45%);
   --shadow-button: 0 4px 12px rgb(15 23 42 / 30%);
+  --color-glass-chrome: rgb(15 23 42 / 30%);
+  --color-glass-panel: rgb(30 41 59 / 68%);
+  --color-glass-inset: rgb(15 23 42 / 38%);
+  --color-glass-border: color-mix(in srgb, var(--color-action-primary) 24%, var(--color-border));
+  --color-glass-highlight: rgb(255 255 255 / 10%);
+  --shadow-glass-panel: 0 22px 60px rgb(0 0 0 / 24%);
 
   // Dark pastel surfaces use light text tokens for readable badges and cards.
   --color-pastel-purple: #312E5A;
@@ -375,16 +398,28 @@ body {
   margin: 0;
   color: var(--color-text-primary);
   background:
-    radial-gradient(circle at top right, rgb(0 200 150 / 12%), transparent 28%),
-    radial-gradient(circle at bottom left, rgb(123 97 255 / 8%), transparent 32%),
-    linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-page) 100%);
+    radial-gradient(circle at 8% 0%, var(--color-ambient-primary), transparent 36%),
+    radial-gradient(circle at 100% 34%, var(--color-ambient-secondary), transparent 34%),
+    linear-gradient(180deg, var(--color-canvas-base) 0%, var(--color-bg-page) 100%);
 }
 
-html[data-theme="dark"] body {
-  background:
-    radial-gradient(circle at top right, rgb(45 212 191 / 18%), transparent 28%),
-    radial-gradient(circle at bottom left, rgb(123 97 255 / 12%), transparent 34%),
-    linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-page) 100%);
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  html[data-theme="dark"] {
+    --color-glass-chrome: var(--color-bg-sidebar);
+    --color-glass-panel: var(--color-bg-card);
+    --color-glass-inset: var(--color-bg-elevated);
+    --blur-glass-chrome: 0px;
+    --blur-glass-panel: 0px;
+    --blur-glass-overlay: 0px;
+    --saturate-glass: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    background: var(--color-canvas-base);
+  }
 }
 
 // Headings
@@ -498,12 +533,16 @@ img {
 
 // Widget (card-like container for dashboard)
 .widget {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: var(--space-card-padding);
-  box-shadow: var(--shadow-card);
+
+  @include glass-surface(panel, false);
 }
+
+.surface-glass-chrome { @include glass-surface(chrome); }
+.surface-glass-panel { @include glass-surface(panel); }
+.surface-glass-inset { @include glass-inset; }
+.surface-accent-edge { @include accent-edge(left); }
 
 .widget__header {
   display: flex;

@@ -11,6 +11,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const playerStore = usePlayerStore()
 
   const gameStore = useGameStore()
+
   const prologueStore = usePrologueStore()
 
   const { $autoSave } = useNuxtApp()
