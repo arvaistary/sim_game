@@ -81,6 +81,7 @@ const { plan } = planner
 const { canConfirm, freeActionHoursRemaining, hasDeferredEventBadge, pendingEventsCount, plannedActionHours } = planner
 const { dayHoursRemaining } = useTime()
 const careerStore = useCareerStore()
+
 const statsStore = useStatsStore()
 
 const isEmployed = computed<boolean>(() => Boolean(careerStore.currentJob?.employed))

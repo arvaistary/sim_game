@@ -55,9 +55,13 @@ import SkillsModal from '../SkillsModal/SkillsModal.vue'
 import { formatMoney } from '@/utils/format'
 
 const timeStore = useTimeStore()
+
 const walletStore = useWalletStore()
+
 const careerStore = useCareerStore()
+
 const housingStore = useHousingStore()
+
 const playerStore = usePlayerStore()
 
 const { isStatVisible } = useAgeRestrictions()

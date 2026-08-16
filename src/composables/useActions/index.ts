@@ -3,6 +3,7 @@ import type { ExecuteActionCommandResult } from '@/application/game/index.types'
 import { getActionsByCategory, getActionById, getAllActions as getAllBalanceActions } from '@/domain/balance/actions'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { ActionCategory } from '@/domain/balance/types'
+import type { ActionUsageEntry } from '@/stores/actions-store/actions-store.types'
 import type { UseActionsReturn } from './useActions.types'
 
 /**
@@ -12,10 +13,15 @@ import type { UseActionsReturn } from './useActions.types'
  */
 export function useActions(): UseActionsReturn {
   const walletStore = useWalletStore()
+
   const timeStore = useTimeStore()
+
   const gameStore = useGameStore()
+
   const housingStore = useHousingStore()
+
   const actionsStore = useActionsStore()
+
   const toast = useToast()
   const { filterActionsByAge, ageGroupLabel } = useAgeRestrictions()
 
@@ -31,12 +37,14 @@ export function useActions(): UseActionsReturn {
     if (action.oneTime) {
       if (action.grantsItem && housingStore.hasFurniture(action.grantsItem)) return false
 
-      const usage = actionsStore.actionUsage[actionId]
+      const usage: ActionUsageEntry | undefined = actionsStore.actionUsage[actionId]
 
       if (usage && usage.count > 0) return false
     }
 
     if (walletStore.money < action.price) return false
+
+    if (timeStore.dayHoursRemaining < action.hourCost) return false
 
     if (timeStore.weekHoursRemaining < action.hourCost) return false
 

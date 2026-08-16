@@ -46,17 +46,8 @@
           {{ pendingMicrobeat.description }}
         </p>
         <MatchPairs
-          v-if="canPlayMicrobeat"
           @complete="onMicrobeatComplete"
         />
-        <button
-          v-else
-          class="prologue-page__microbeat-button"
-          type="button"
-          @click="onMicrobeatContinue"
-        >
-          Продолжить
-        </button>
       </section>
 
       <PrologueForkSelect
@@ -113,10 +104,15 @@ import { normalizeSkillLevels } from '@/domain/balance/skills'
 definePageMeta({ middleware: ['game-init'] })
 
 const playerStore = usePlayerStore()
+
 const timeStore = useTimeStore()
+
 const skillsStore = useSkillsStore()
+
 const educationStore = useEducationStore()
+
 const walletStore = useWalletStore()
+
 const prologueStore = usePrologueStore()
 
 const showWelcome: Ref<boolean> = ref(false)
@@ -128,13 +124,6 @@ const pendingScene = computed(() => prologueStore.pendingScene)
 const pendingMicrobeat: ComputedRef<PrologueMicrobeat | null> = computed(() => prologueStore.pendingMicrobeat)
 const tagPoints = computed(() => prologueStore.tagPoints)
 const traits = computed(() => prologueStore.traits)
-const canPlayMicrobeat: ComputedRef<boolean> = computed(() => {
-
-  if (!prologueStore.state) return false
-
-  return getProloguePaceProfile(prologueStore.state.paceProfileId).allowMinigames
-})
-
 const isSceneStatus: ComputedRef<boolean> = computed(() => {
   const current: PrologueStatus | null = status.value
 
@@ -213,14 +202,6 @@ function onChoose(choiceIndex: number): void {
 
 function onMicrobeatComplete(result: MinigameResult): void {
   prologueStore.finishMicrobeat(result)
-}
-
-function onMicrobeatContinue(): void {
-  prologueStore.finishMicrobeat({
-    minigameId: 'match-pairs',
-    successTier: 'ok',
-    score01: 0.5,
-  })
 }
 
 function onSelectTrack(track: PrologueTrack): void {

@@ -69,8 +69,11 @@ const INVERTED_STAT_KEYS: Set<StatKey> = new Set<StatKey>(['hunger', 'stress'])
  */
 export function useCalendarPlan(): UseCalendarPlan {
   const calendarStore = useCalendarPlanStore()
+
   const gameStore = useGameStore()
+
   const skillsStore = useSkillsStore()
+
   const { plan } = storeToRefs(calendarStore)
 
   const isRunning: Ref<boolean> = ref<boolean>(false)

@@ -3,23 +3,8 @@
 
 .rounded-panel {
   position: relative;
-}
 
-.rounded-panel--panel {
   @include glass-surface(panel, false);
-}
-
-.rounded-panel--chrome {
-  @include glass-surface(chrome);
-}
-
-.rounded-panel--inset {
-  @include glass-inset;
-}
-
-.rounded-panel--solid {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
 }
 
 .rounded-panel--no-shadow {

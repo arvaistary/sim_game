@@ -119,11 +119,17 @@ import {
 import { CLEAN_SLATE_ADULT_SKILLS } from '@/domain/balance/constants/prologue/anti-imba-caps'
 
 const playerStore = usePlayerStore()
+
 const timeStore = useTimeStore()
+
 const walletStore = useWalletStore()
+
 const skillsStore = useSkillsStore()
+
 const educationStore = useEducationStore()
+
 const gameStore = useGameStore()
+
 const prologueStore = usePrologueStore()
 
 const playerName = ref('')

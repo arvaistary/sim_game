@@ -6,6 +6,7 @@
 export function useNewGame() {
   const { $autoSave } = useNuxtApp()
   const gameStore = useGameStore()
+
   const toast = useToast()
 
   async function startNewGame(): Promise<void> {

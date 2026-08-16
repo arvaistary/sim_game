@@ -66,6 +66,7 @@ const props = withDefaults(defineProps<TopbarProps>(), {
 
 const colorMode = useColorMode()
 const playerStore = usePlayerStore()
+
 const settingsDrawer = useSettingsDrawer()
 const commandPalette = useCommandPalette()
 

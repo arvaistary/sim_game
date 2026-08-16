@@ -42,6 +42,7 @@ function getActionHourCost(actionId: string): number {
  */
 export function useDayPlanner(): UseDayPlanner {
   const calendarStore = useCalendarPlanStore()
+
   const plan: ComputedRef<DayPlanInput> = computed<DayPlanInput>(() => calendarStore.plan.days[0] ?? {
     sleepHours: 7,
     workHours: 0,

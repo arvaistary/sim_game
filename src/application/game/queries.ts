@@ -87,6 +87,8 @@ export function canExecuteAction(world: GameWorld, actionId: string): { canExecu
 
   if (world.wallet.money < action.price) return { canExecute: false, reason: 'Недостаточно денег' }
 
+  if (world.time.dayHoursRemaining < action.hourCost) return { canExecute: false, reason: 'Недостаточно времени на сегодня' }
+
   if (world.time.weekHoursRemaining < action.hourCost) return { canExecute: false, reason: 'Недостаточно времени' }
 
   const availabilityBlockReason: string | null = getActionAvailabilityBlockReason(world, action, actionId)

@@ -81,6 +81,7 @@ const steps: OnboardingStep[] = [
 ]
 
 const settings = useSettingsStore()
+
 const route = useRoute()
 
 const currentIndex = ref<number>(0)

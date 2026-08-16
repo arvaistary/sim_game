@@ -157,6 +157,7 @@ import type { PaletteId } from '@/stores/settings-store'
 import type { PaletteOption } from './SettingsDrawer.types'
 
 const settings = useSettingsStore()
+
 const { state, close } = useSettingsDrawer()
 const { startNewGame } = useNewGame()
 const gameModal = useGameModal()

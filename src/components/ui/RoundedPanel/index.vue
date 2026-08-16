@@ -2,7 +2,6 @@
   <div
     class="rounded-panel"
     :class="[
-      `rounded-panel--${variant}`,
       {
         'rounded-panel--accent': accent,
         'rounded-panel--no-shadow': !shadow,
@@ -26,7 +25,6 @@ const props = withDefaults(defineProps<RoundedPanelProps>(), {
   shadow: true,
   radius: 20,
   padding: 'var(--space-card-padding)',
-  variant: 'panel',
 })
 
 const panelStyle = computed(() => ({

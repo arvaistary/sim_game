@@ -1,12 +1,7 @@
 import type { GameWorld } from '@/domain/game-world/GameWorld'
-import type { GameWorldSnapshot } from '@/domain/game-world/GameWorld.types'
+import type { WorldHookEffectSlices } from './apply-world-slices.types'
 
-export interface WorldHookEffectSlices {
-  events: GameWorldSnapshot['events']
-  wallet: GameWorldSnapshot['wallet']
-  finance: GameWorldSnapshot['finance']
-  career: GameWorldSnapshot['career']
-}
+export type { WorldHookEffectSlices } from './apply-world-slices.types'
 
 /**
  * Применить срезы snapshot к живому миру (events/wallet/finance/career).

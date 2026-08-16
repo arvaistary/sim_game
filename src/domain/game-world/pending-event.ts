@@ -54,6 +54,7 @@ function resolveInstanceId(world: GameWorld, event: GameEventPayload): string {
   if (typeof explicitInstanceId === 'string' && explicitInstanceId.length > 0) return explicitInstanceId
 
   const index: number = world.events.pending.findIndex((queuedEvent: unknown) => {
+
     if (!isRecord(queuedEvent)) return false
 
     return queuedEvent.id === event.id
@@ -64,6 +65,7 @@ function resolveInstanceId(world: GameWorld, event: GameEventPayload): string {
 
 function removePendingEventByInstance(world: GameWorld, instanceId: string, templateId: string): void {
   const index: number = world.events.pending.findIndex((queuedEvent: unknown) => {
+
     if (!isRecord(queuedEvent)) return false
 
     const queuedInstanceId: unknown = queuedEvent.instanceId

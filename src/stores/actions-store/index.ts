@@ -42,6 +42,10 @@ export const useActionsStore = defineStore('actions', () => {
       return { canDo: false, reason: 'Недостаточно денег' }
     }
 
+    if (action.hourCost > timeStore.dayHoursRemaining) {
+      return { canDo: false, reason: 'Недостаточно времени на сегодня' }
+    }
+
     if (action.hourCost > timeStore.weekHoursRemaining) {
       return { canDo: false, reason: 'Недостаточно времени' }
     }

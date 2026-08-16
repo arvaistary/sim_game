@@ -1,4 +1,4 @@
-import type { PlayerState } from './player-store.types'
+import type { LifeBackground, PlayerState } from './player-store.types'
 
 const INITIAL_STATE: PlayerState = {
   name: 'Алексей',
@@ -32,7 +32,7 @@ export const usePlayerStore = defineStore('player', () => {
    * @description [PlayerStore] - Сохраняет traits/memories после prologue handoff.
    * @return { void }
    */
-  function setLifeBackground(data: { traits: string[]; memories: string[] }): void {
+  function setLifeBackground(data: LifeBackground): void {
     traits.value = [...data.traits]
     memories.value = [...data.memories]
   }

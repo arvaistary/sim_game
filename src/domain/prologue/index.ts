@@ -31,4 +31,3 @@ export {
 } from './prologue-runner'
 export { buildPrologueHandoffPatch } from './handoff'
 export { drawExamQuestions, getPostsecExamBankId } from './exam-bank'
-export { getMinigame } from './minigames/registry'

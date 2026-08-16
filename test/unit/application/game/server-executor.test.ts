@@ -67,11 +67,12 @@ describe('server executor day plan', () => {
     fetchMock.mockReset()
   })
 
-  it('reports failed remote steps and still closes remaining day', async () => {
+  it('retries a transport failure with the same command id', async () => {
     const before: GameWorld = GameWorld.createEmpty()
     const afterIdle: GameWorld = GameWorld.fromJSON(before.toJSON())
     advanceHours(afterIdle, 24, 'idle')
     let syncCalls: number = 0
+    const commandIds: string[] = []
 
     fetchMock.mockImplementation(async (url: string, options?: { body?: Record<string, unknown> }) => {
       if (url.endsWith('/api/game/state')) {
@@ -83,9 +84,12 @@ describe('server executor day plan', () => {
 
       syncCalls++
 
+      const body: Record<string, unknown> = options?.body ?? {}
+      const actions: Array<Record<string, unknown>> = body.actions as Array<Record<string, unknown>>
+      commandIds.push(actions[0]?.commandId as string)
+
       if (syncCalls === 1) throw new Error('temporary network failure')
 
-      const body: Record<string, unknown> = options?.body ?? {}
       expect(body.actions).toBeDefined()
       return successSyncResponse(afterIdle.toJSON(), syncCalls)
     })
@@ -100,13 +104,31 @@ describe('server executor day plan', () => {
 
     expect(syncCalls).toBe(3)
     expect(result.success).toBe(true)
-    expect(result.steps).toMatchObject([
-      { kind: 'sleep', success: false, hoursSpent: 0 },
-      { kind: 'idle', success: true, hoursSpent: 24 },
-    ])
+    expect(result.steps).toMatchObject([{ kind: 'sleep', success: true, hoursSpent: 7 }])
+    expect(commandIds[0]).toBe(commandIds[1])
     expect(result.totalHoursSpent).toBe(24)
     expect(hooks.onDayEnd).toHaveBeenCalledOnce()
     expect(hooks.onDayEnd).toHaveBeenCalledWith(expect.any(GameWorld), result)
+  })
+
+  it('stops the plan after a repeated transport failure', async () => {
+    const before: GameWorld = GameWorld.createEmpty()
+    let syncCalls: number = 0
+
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.endsWith('/api/game/state')) {
+        return { success: true, data: { state: before.toJSON(), stateVersion: 0 } }
+      }
+
+      syncCalls++
+      throw new Error('network unavailable')
+    })
+
+    await expect(createServerExecutor().planDay(null, {
+      sleepHours: 7,
+      actionIds: [],
+    })).rejects.toThrow('network unavailable')
+    expect(syncCalls).toBe(2)
   })
 
   it('passes age context after server-side year boundary', async () => {

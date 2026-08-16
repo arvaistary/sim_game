@@ -39,6 +39,7 @@ import type { CanExecuteActionResult } from '@/stores/game.store.types'
 definePageMeta({ middleware: 'game-init' })
 
 const store = useGameStore()
+
 const actionsStore = useActionsStore()
 
 const { getActionsByCategory, getAllActions, canExecute, executeAction, actionsEmptyHint } = useActions()

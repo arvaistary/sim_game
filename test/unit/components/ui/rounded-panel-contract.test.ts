@@ -23,12 +23,6 @@ describe('accent glass design system contract', () => {
     expect(modalStyles).toContain('backdrop-filter: blur(var(--blur-glass-overlay))')
   })
 
-  it('keeps RoundedPanel variants in the named type contract', () => {
-    const types: string = readFileSync(resolve(root, 'src/components/ui/RoundedPanel/RoundedPanel.types.ts'), 'utf8')
-
-    expect(types).toContain("'panel' | 'chrome' | 'inset' | 'solid'")
-  })
-
   it('keeps data-theme and color-mode classes synchronized', () => {
     const syncPlugin: string = readFileSync(resolve(root, 'src/plugins/settings-sync.client.ts'), 'utf8')
 

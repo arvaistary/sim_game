@@ -12,6 +12,7 @@ import { useSettingsStore, type ThemePreference } from '@/stores/settings-store'
 
 export default defineNuxtPlugin(() => {
   const settings = useSettingsStore()
+
   const colorMode = useColorMode()
 
   // Density → data-density на documentElement

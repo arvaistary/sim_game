@@ -72,6 +72,7 @@ interface CommandItem {
 
 const { state, close } = useCommandPalette()
 const settings = useSettingsStore()
+
 const settingsDrawer = useSettingsDrawer()
 
 const isOpen = computed<boolean>(() => state.value.isOpen)
@@ -80,7 +81,8 @@ const activeIndex = ref<number>(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 
 const commands = computed<CommandItem[]>(() => {
-  const navCommands: CommandItem[] = NAV_ITEMS.map((item) => {
+  const navCommands: CommandItem[] = NAV_ITEMS.map(
+    (item) => {
     const route: string | undefined = ROUTE_MAP[item.id]
     return {
       id: `nav-${item.id}`,
