@@ -18,7 +18,7 @@ const PERIODIC_MS = 30_000
 /** ID stores, которые относятся к игре (подписываемся на их изменения) */
 const GAME_STORE_IDS = new Set([
   'game', 'time', 'stats', 'wallet', 'skills', 'career',
-  'education', 'housing', 'player', 'events', 'actions',
+  'education', 'housing', 'player', 'playerState', 'events', 'actions',
   'finance', 'activity', 'calendarPlan', 'prologue',
 ])
 

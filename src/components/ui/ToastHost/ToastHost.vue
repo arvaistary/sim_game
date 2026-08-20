@@ -13,14 +13,18 @@
         role="status"
         aria-live="polite"
       >
-        <span class="toast-host__icon">{{ iconFor(toast.type) }}</span>
+        <span class="toast-host__icon">
+          <GameIcon :name="iconFor(toast.type)" :size="14" :stroke-width="2" />
+        </span>
         <span class="toast-host__message">{{ toast.message }}</span>
         <button
           class="toast-host__close"
           type="button"
           aria-label="Закрыть уведомление"
           @click="dismiss(toast.id)"
-        >×</button>
+        >
+          <GameIcon name="close" :size="14" :stroke-width="1.5" />
+        </button>
       </div>
     </TransitionGroup>
   </Teleport>
@@ -29,17 +33,20 @@
 <script setup lang="ts">
 import './ToastHost.scss'
 
+import type { GameIconName } from '@/components/ui/GameIcon/GameIcon.types'
+import GameIcon from '@/components/ui/GameIcon/GameIcon.vue'
 import type { ToastItem } from '@/composables/useToast/useToast.types'
 
 const { toasts, dismiss } = useToast()
 
-function iconFor(type: ToastItem['type']): string {
-  const map: Record<ToastItem['type'], string> = {
-    success: '✓',
-    error: '!',
-    warning: '⚠',
-    info: 'i',
+function iconFor(type: ToastItem['type']): GameIconName {
+  const map: Record<ToastItem['type'], GameIconName> = {
+    success: 'check-circle',
+    error: 'close-circle',
+    warning: 'danger-triangle',
+    info: 'info-circle',
   }
-  return map[type] ?? 'i'
+
+  return map[type] ?? 'info-circle'
 }
 </script>

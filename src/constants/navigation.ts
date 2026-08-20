@@ -1,14 +1,14 @@
 import type { NavItem } from '@/domain/balance/types'
 
 export const NAV_ITEMS: NavItem[] = [
-  { id: 'home', icon: 'H', label: 'Недвижимость' },
-  { id: 'shop', icon: 'М', label: 'Магазин' },
-  { id: 'actions', icon: 'Д', label: 'Действия' },
-  { id: 'work', icon: 'Р', label: 'Работа' },
-  { id: 'education', icon: 'О', label: 'Обучение' },
-  { id: 'skills', icon: 'Н', label: 'Навыки' },
-  { id: 'finance', icon: 'Ф', label: 'Финансы' },
-  { id: 'activityLog', icon: '📋', label: 'Журнал' },
+  { id: 'home', label: 'Недвижимость' },
+  { id: 'shop', label: 'Магазин' },
+  { id: 'actions', label: 'Действия' },
+  { id: 'work', label: 'Работа' },
+  { id: 'education', label: 'Обучение' },
+  { id: 'skills', label: 'Навыки' },
+  { id: 'finance', label: 'Финансы' },
+  { id: 'activityLog', label: 'Журнал' },
 ]
 
 export const ROUTE_MAP: Record<string, string> = {

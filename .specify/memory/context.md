@@ -151,7 +151,7 @@ specs/                   # Local-only Spec-kit work items and server-first plan
 
 ## Important Notes
 
-- The project migrated from Phaser.js to Nuxt 4; ADR-0001 is the only retained migration rationale
+- The current application stack is Nuxt 4 + Vue 3 + Pinia + TypeScript
 - Archived documentation is intentionally removed; completed or superseded Spec-kit work items remain locally under `specs/` and are excluded from Git
 - ECS architecture was removed in favor of layered architecture
 - All game balance data is in `src/domain/balance/constants/`

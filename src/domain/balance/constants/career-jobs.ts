@@ -1,15 +1,7 @@
 import type { CareerJob } from '@/domain/balance/types'
+import type { CareerJobInput } from './career-jobs.types'
 
-/**
- * Реалистичные карьеры для РФ (2024)
- *
- * level: 1-10 (карьерный уровень)
- * minEducationRank: -1 = любое, 0 = Среднее, 1 = Высшее, 2 = Бакалавриат, 3 = Магистратура, 4 = MBA
- * salaryPerHour: почасовая ставка (руб)
- * salaryPerDay = salaryPerHour * 8 (или другое количество часов)
- * salaryPerWeek = salaryPerDay * 5 (или нужное количество дней)
- */
-export const CAREER_JOBS: CareerJob[] = [
+const CAREER_JOB_DEFINITIONS: CareerJobInput[] = [
   // === IT / Технологии ===
   {
     id: 'it_junior',
@@ -764,3 +756,31 @@ export const CAREER_JOBS: CareerJob[] = [
     description: 'Сделки с недвижимостью, аренда, продажа.',
   },
 ]
+
+const COMPUTER_REQUIRED_JOB_IDS: readonly string[] = [
+  'it_junior',
+  'it_middle',
+  'it_senior',
+  'it_techlead',
+  'qa_engineer',
+  'devops',
+  'system_admin',
+  'data_analyst',
+]
+
+/**
+ * @description [Balance] - грейд и требования к вещам для карьерных должностей.
+ * @return { CareerJob }
+ */
+function enrichCareerJob(job: CareerJobInput): CareerJob {
+  const gradeLevel: number = Math.max(1, job.minProfessionalism === 0 ? 1 : job.minProfessionalism)
+  const needsComputer: boolean = COMPUTER_REQUIRED_JOB_IDS.includes(job.id)
+
+  return {
+    ...job,
+    gradeLevel,
+    ...(needsComputer ? { requiredPossessions: ['computer'] } : {}),
+  }
+}
+
+export const CAREER_JOBS: CareerJob[] = CAREER_JOB_DEFINITIONS.map(enrichCareerJob)

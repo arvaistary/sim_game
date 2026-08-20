@@ -34,23 +34,26 @@
 .topbar__right {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: $space-2;
+  height: 38px;
 }
 
-// Profile chip
 .topbar__profile {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: $space-2;
-  padding: $space-1 $space-3 $space-1 $space-1;
-
-  @include glass-inset;
-
+  height: 36px;
+  padding: 0 12px 0 4px;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
 }
 
 .topbar__avatar {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 28px;
@@ -63,82 +66,120 @@
 }
 
 .topbar__profile-name {
+  max-width: 12ch;
+  overflow: hidden;
+  color: var(--color-text-secondary);
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
-  color: var(--color-text-primary);
-  max-width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
+  line-height: 21px;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-// Icon buttons
-.topbar__btn {
+.topbar__cmd {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: $space-1;
+  justify-content: center;
+  gap: 4px;
+  width: 84px;
   height: 36px;
-  min-width: 36px;
-  padding: 0 $space-2;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-text-secondary);
+  padding: 0 8px;
+  border: 1px solid var(--color-border);
+  border-radius: $radius-md;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-
-  &:hover {
-    background: var(--color-glass-inset);
-    color: var(--color-text-primary);
-    border-color: var(--color-border-subtle);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--color-action-primary);
-    outline-offset: 1px;
-  }
-}
-
-.topbar__btn-icon {
-  font-size: $font-size-base;
-  line-height: 1;
-}
-
-// Command palette trigger with hint
-.topbar__btn--cmd {
-  padding: 0 $space-2 0 $space-3;
 }
 
 .topbar__cmd-hint {
+  color: var(--color-text-primary);
   font-size: $font-size-xs;
   font-weight: $font-weight-medium;
-  color: var(--color-text-tertiary);
-  padding: 2px 6px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xs);
-  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  white-space: nowrap;
 }
 
-// ===== Mobile (compact) =====
+.topbar-theme {
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg-surface-2);
+  cursor: pointer;
+}
+
+.topbar-theme--dark {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+}
+
+.topbar-theme__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  transition: left var(--transition-fast);
+}
+
+.topbar-theme--dark .topbar-theme__knob {
+  left: 27px;
+  color: var(--color-action-primary);
+}
+
+.topbar__settings {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.topbar__cmd:hover,
+.topbar__settings:hover {
+  color: var(--color-text-primary);
+}
+
+.topbar__cmd:focus-visible,
+.topbar-theme:focus-visible,
+.topbar__settings:focus-visible {
+  outline: 2px solid var(--color-action-primary);
+  outline-offset: 1px;
+}
+
 @include respond-to-max('md') {
   .topbar {
     padding: 0 $space-3;
   }
 
   .topbar__profile {
-    // hide name, keep avatar only
-    padding: $space-1;
+    width: 36px;
+    padding: 0;
   }
 
-  .topbar__profile-name {
-    display: none;
-  }
-
+  .topbar__profile-name,
   .topbar__cmd-hint {
     display: none;
   }
 
-  .topbar__btn--cmd {
-    padding: 0 $space-2;
+  .topbar__cmd {
+    width: 36px;
+    padding: 0;
   }
 }

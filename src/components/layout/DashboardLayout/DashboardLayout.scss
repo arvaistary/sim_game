@@ -30,7 +30,6 @@
   min-width: 0; // allow children to shrink
   // Leave room for fixed sidebar on desktop
   margin-left: $sidebar-width;
-  padding-bottom: $bottomnav-height; // space for fixed bottomnav (mobile)
 }
 
 // ===== Topbar =====
@@ -48,12 +47,13 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-component-padding);
+  gap: var(--space-element-gap);
   width: 100%;
   max-width: $size-content-max-width;
+  min-width: 0;
   margin: 0 auto;
   padding: var(--space-component-padding);
-  overflow-x: hidden;
+  overflow: visible;
 }
 
 // ===== Mobile bottom nav =====
@@ -69,6 +69,7 @@
 
   .dashboard-shell__main {
     margin-left: 0;
+    padding-bottom: $bottomnav-height;
   }
 
   .dashboard-shell__bottomnav {

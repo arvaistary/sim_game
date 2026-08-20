@@ -1,5 +1,7 @@
+import type { GameIconName } from '@/components/ui/GameIcon/GameIcon.types'
+
 export interface StatChangeDisplay {
-  icon: string
+  icon: GameIconName
   name: string
   value: number
   isPositive: boolean

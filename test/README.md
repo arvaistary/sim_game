@@ -20,6 +20,4 @@ npm run rules:audit
 - `test/e2e/` — браузерные маршруты и viewport matrix;
 - `scripts/integrity-audit/` — проверка audit artifacts.
 
-ECS/Phaser test examples удалены вместе с устаревшей архитектурной
-документацией. Причина миграции зафиксирована в
-[ADR-0001](../doc/adr/0001-phaser-to-nuxt-migration.md).
+Устаревшие ECS test examples удалены вместе с прежней архитектурой.

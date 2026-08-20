@@ -1,13 +1,21 @@
+@use '../../../assets/scss/variables' as *;
+@use '../../../assets/scss/mixins' as *;
+
 .action-card-list {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: $space-3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: $space-4 $space-3;
 
-  @include respond-to('md') {
-    grid-template-columns: repeat(2, 1fr);
+  > :deep(.tooltip-wrapper) {
+    height: 100%;
   }
 
-  @include respond-to('lg') {
-    grid-template-columns: repeat(3, 1fr);
+  @include respond-to-max('lg') {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include respond-to-max('sm') {
+    grid-template-columns: 1fr;
   }
 }

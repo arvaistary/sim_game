@@ -1,6 +1,6 @@
 <template>
   <Tooltip :follow-cursor="true" :multiline="true">
-    <RoundedPanel class="skill-card">
+    <RoundedPanel class="skill-card" padding="16px" :radius="16">
       <div class="skill-header">
         <span class="skill-name">{{ skill.label }}</span>
         <span class="skill-level">{{ level }} / {{ skill.maxLevel }}</span>
@@ -10,6 +10,7 @@
         :value="level"
         :max="skill.maxLevel"
         :color="skillColor(skill)"
+        :height="6"
       />
     </RoundedPanel>
 

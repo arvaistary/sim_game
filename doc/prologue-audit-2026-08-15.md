@@ -13,8 +13,8 @@
 ## Источники проекта
 
 - Требования: `doc/GDD/modules/17_life_education_prologue.md`.
-- Полный исходный план: `doc/new-plans/2026-08-10-life-education-prologue-plan.md`.
-- Баланс и ручной checklist: `doc/new-plans/2026-08-10-life-education-prologue-balance-notes.md`.
+- Полный исходный план: `doc/new-plans/archive/2026-08-10-life-education-prologue-plan.md`.
+- Баланс и ручной checklist: `doc/new-plans/archive/2026-08-10-life-education-prologue-balance-notes.md`.
 - Правила контента: `doc/guides/PROLOGUE_CONTENT_AUTHORING.md`.
 - Domain: `src/domain/prologue/`.
 - Баланс/контент: `src/domain/balance/constants/prologue/`.

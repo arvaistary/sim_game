@@ -3,7 +3,7 @@
     <div class="finance-page">
       <BalancePanel />
       <ExpenseList />
-      <SectionHeader title="Финансовые действия" subtitle="Инвестиции, сбережения и управление деньгами" />
+      <SectionHeader plain title="Финансовые действия" subtitle="Инвестиции, сбережения и управление деньгами" />
       <ActionCardList
         :actions="sortedActions"
         :empty-text="actionsEmptyHint"

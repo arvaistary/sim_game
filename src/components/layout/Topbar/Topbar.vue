@@ -9,15 +9,24 @@
 
     <!-- Right: actions -->
     <div class="topbar__right">
-      <!-- Profile chip (hidden on small screens) -->
       <div v-if="playerName" class="topbar__profile">
         <span class="topbar__avatar">{{ initials }}</span>
         <span class="topbar__profile-name">{{ playerName }}</span>
       </div>
 
-      <!-- Theme toggle -->
       <button
-        class="topbar__btn"
+        class="topbar__cmd"
+        type="button"
+        title="Открыть командную палитру (Ctrl+K)"
+        @click="handleOpenPalette"
+      >
+        <span class="topbar__cmd-hint">Ctrl K</span>
+        <GameIcon name="search" :size="14" />
+      </button>
+
+      <button
+        class="topbar-theme"
+        :class="{ 'topbar-theme--dark': isDarkMode }"
         type="button"
         role="switch"
         :aria-checked="isDarkMode"
@@ -25,29 +34,19 @@
         :title="themeToggleLabel"
         @click="handleToggleTheme"
       >
-        <span class="topbar__btn-icon">{{ isDarkMode ? '☀' : '☾' }}</span>
+        <span class="topbar-theme__knob" aria-hidden="true">
+          <GameIcon :name="isDarkMode ? 'moon' : 'sun-2'" :size="12" :stroke-width="1.5" />
+        </span>
       </button>
 
-      <!-- Command palette trigger -->
       <button
-        class="topbar__btn topbar__btn--cmd"
-        type="button"
-        title="Открыть командную палитру (Ctrl+K)"
-        @click="handleOpenPalette"
-      >
-        <span class="topbar__btn-icon">⌕</span>
-        <span class="topbar__cmd-hint">Ctrl K</span>
-      </button>
-
-      <!-- Settings -->
-      <button
-        class="topbar__btn"
+        class="topbar__settings"
         type="button"
         title="Настройки"
         aria-label="Открыть настройки"
         @click="handleOpenSettings"
       >
-        <span class="topbar__btn-icon">⚙</span>
+        <GameIcon name="settings" :size="18" :stroke-width="1.5" />
       </button>
     </div>
   </div>
@@ -60,11 +59,12 @@ interface TopbarProps {
   title?: string
 }
 
-const props = withDefaults(defineProps<TopbarProps>(), {
+withDefaults(defineProps<TopbarProps>(), {
   title: '',
 })
 
 const colorMode = useColorMode()
+
 const playerStore = usePlayerStore()
 
 const settingsDrawer = useSettingsDrawer()
@@ -77,7 +77,7 @@ const initials = computed<string>(() => {
   return name.charAt(0).toUpperCase()
 })
 
-const isDarkMode = computed<boolean>(() => colorMode.preference === 'dark')
+const isDarkMode = computed<boolean>(() => colorMode.value === 'dark')
 const themeToggleLabel = computed<string>(() => {
   return isDarkMode.value
     ? 'Переключить на светлую тему'
@@ -96,6 +96,4 @@ function handleOpenPalette(): void {
   commandPalette.open()
 }
 
-// Avoid unused prop warning when title is not provided
-void props
 </script>

@@ -38,22 +38,17 @@ Each ADR follows this structure:
 
 Located in `doc/adr/`:
 
-1. **ADR-0001:** Phaser to Nuxt Migration
-   - Status: Accepted
-   - Decision: Migrate from Phaser.js to Nuxt 4 for web-based UI
-   - Consequence: Better web experience, mobile-friendly, modern stack
-
-2. **ADR-0002:** ECS Removal
+1. **ADR-0002:** ECS Removal
    - Status: Accepted
    - Decision: Remove ECS architecture in favor of layered architecture
    - Consequence: Simpler codebase, better TypeScript support, easier testing
 
-3. **ADR-0003:** Layered Architecture
+2. **ADR-0003:** Layered Architecture
    - Status: Accepted
    - Decision: Adopt strict layered architecture with dependency flow
    - Consequence: Clear separation of concerns, maintainable codebase
 
-4. **ADR-0006:** Durable Game-State Persistence
+3. **ADR-0006:** Durable Game-State Persistence
    - Status: Accepted
    - Decision: Use PostgreSQL as canonical M3 snapshot storage with application-owned idempotency, compare-and-swap and unit-of-work boundaries; defer Redis and persistent identity
    - Consequence: State survives process replacement; hosted provisioning and migration rehearsal remain deployment gates
@@ -61,7 +56,7 @@ Located in `doc/adr/`:
 ## Decision Categories
 
 ### Framework & Technology
-- Migration decisions (Phaser → Nuxt)
+- Framework and stack decisions
 - Library selection decisions
 - Build tool configuration
 
@@ -120,7 +115,6 @@ Do NOT create an ADR for:
 doc/adr/
 ├── README.md                    # This file
 ├── decision-guide.md            # Detailed guide for creating ADRs
-├── 0001-phaser-to-nuxt-migration.md
 ├── 0002-ecs-removal.md
 ├── 0003-layered-architecture.md
 ├── architecture-research-report.md

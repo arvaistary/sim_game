@@ -49,16 +49,16 @@ const WEEKDAYS: Array<{ short: string, full: string }> = [
 ]
 
 const ACTION_CATEGORY_META: Record<string, CalendarActionCategory> = {
-  shop: { key: 'shop', label: 'Магазин', icon: '🛒' },
-  fun: { key: 'fun', label: 'Развлечения', icon: '🎭' },
-  home: { key: 'home', label: 'Дом', icon: '🏠' },
-  social: { key: 'social', label: 'Соц. жизнь', icon: '👥' },
-  education: { key: 'education', label: 'Обучение', icon: '🎓' },
-  finance: { key: 'finance', label: 'Финансы', icon: '💰' },
-  career: { key: 'career', label: 'Работа', icon: '💼' },
-  hobby: { key: 'hobby', label: 'Хобби', icon: '🎨' },
-  health: { key: 'health', label: 'Здоровье', icon: '❤️' },
-  selfdev: { key: 'selfdev', label: 'Саморазвитие', icon: '🧠' },
+  shop: { key: 'shop', label: 'Магазин', icon: 'shop' },
+  fun: { key: 'fun', label: 'Развлечения', icon: 'masks' },
+  home: { key: 'home', label: 'Дом', icon: 'home' },
+  social: { key: 'social', label: 'Соц. жизнь', icon: 'users' },
+  education: { key: 'education', label: 'Обучение', icon: 'book' },
+  finance: { key: 'finance', label: 'Финансы', icon: 'wallet' },
+  career: { key: 'career', label: 'Работа', icon: 'briefcase' },
+  hobby: { key: 'hobby', label: 'Хобби', icon: 'palette' },
+  health: { key: 'health', label: 'Здоровье', icon: 'heart' },
+  selfdev: { key: 'selfdev', label: 'Саморазвитие', icon: 'bolt' },
 }
 
 const INVERTED_STAT_KEYS: Set<StatKey> = new Set<StatKey>(['hunger', 'stress'])
@@ -222,7 +222,7 @@ export function useCalendarPlan(): UseCalendarPlan {
 
   function getActionCategory(actionId: string): CalendarActionCategory {
     const category: string | undefined = actionsById.get(actionId)?.category
-    return ACTION_CATEGORY_META[category ?? ''] ?? { key: 'other', label: 'Действие', icon: '•' }
+    return ACTION_CATEGORY_META[category ?? ''] ?? { key: 'other', label: 'Действие', icon: 'bolt' }
   }
 
   function getActionHours(actionId: string): string {

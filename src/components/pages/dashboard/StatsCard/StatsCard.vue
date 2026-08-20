@@ -13,6 +13,7 @@
         :label="stat.label"
         :value="getStatValue(stat.key)"
         :color="stat.endColor"
+        show-value
       />
     </div>
   </RoundedPanel>

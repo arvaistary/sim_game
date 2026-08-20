@@ -50,7 +50,7 @@
 4. `src/assets/scss/variables.scss`, `src/assets/scss/global.scss` — live token source.
 5. `src/stores/settings-store/index.ts`, `src/plugins/settings-sync.client.ts`, `src/components/ui/SettingsDrawer/SettingsDrawer.vue`.
 6. Layout: `src/components/layout/DashboardLayout/*`, `GameLayout/*`, `Topbar/*`, `src/components/global/GameNav/*`.
-7. Local visual refs: `artifact/*.jpg`, `doc/new-plans/*.jpg` (Hybrid Command anchors: MagicHeal, Intelly, dark-rail bento shots).
+7. Local visual refs: `artifact/*.jpg`, `doc/new-plans/archive/*.jpg` (Hybrid Command anchors: MagicHeal, Intelly, dark-rail bento shots).
 
 **Product metaphor:** the player manages a character’s life the way a content manager runs a site — modules, queues, metrics, schedules, statuses — not a cartoon toy UI.
 
@@ -72,9 +72,9 @@
 
 ### 1.2 Reference map (inspiration only — adapt to Game Life domains)
 
-- Dark rail + modular tiles: `doc/new-plans/6473b6bc7612f04bbe491bcacbef380e.jpg`, `artifact/11.jpg`
+- Dark rail + modular tiles: `doc/new-plans/archive/6473b6bc7612f04bbe491bcacbef380e.jpg`, `artifact/11.jpg`
 - Metric / health-ops cards: `artifact/2.jpg`, `artifact/6.jpg`, `artifact/10.jpg`
-- Soft bento / widget rhythm (structure, not pastel-wellness vibe): `doc/new-plans/0a607f2d30fc04ac1352744f75a4a249.jpg`
+- Soft bento / widget rhythm (structure, not pastel-wellness vibe): `doc/new-plans/archive/0a607f2d30fc04ac1352744f75a4a249.jpg`
 
 ### 1.3 Atlas token intent (directional — lock values in Task 2)
 

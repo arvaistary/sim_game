@@ -56,7 +56,6 @@ doc/
 ├── adr/                               # Architecture Decision Records
 │   ├── README.md                      # Обзор ADR
 │   ├── decision-guide.md              # Руководство по ADR
-│   ├── 0001-phaser-to-nuxt-migration.md
 │   ├── 0002-ecs-removal.md
 │   ├── 0003-layered-architecture.md
 │   ├── 0005-game-world-aggregate-strategy-a.md
@@ -82,10 +81,10 @@ doc/
 │   ├── templates/                     # Шаблоны spec/plan/tasks
 │   └── specs/                         # Описание формата; рабочие файлы локальны
 │
-└── adr/                               # Архитектурные решения, включая Phaser → Nuxt
+└── adr/                               # Архитектурные решения
 ```
 
-Рабочие планы и Spec-kit артефакты хранятся локально в `specs/`, `doc/plans/`, `doc/spec-kit/specs/` и `.cursor/plans/`.
+Рабочие планы и Spec-kit артефакты: активный backlog — [`doc/new-plans/`](./new-plans/); локально — `specs/`, `doc/plans/`, `doc/spec-kit/specs/`, `.cursor/plans/`.
 Граница Git/local описана в [`WORKING_DOCUMENTS.md`](./WORKING_DOCUMENTS.md).
 
 ## Режимы работы (Server-First Migration)
@@ -253,7 +252,6 @@ ADR → [`adr/`](./adr/) (Architecture Decision Records)
 См. [`adr/decision-guide.md`](./adr/decision-guide.md) для формата ADR.
 
 Актуальные ADR:
-- **ADR-0001**: Phaser.js → Nuxt миграция
 - **ADR-0002**: Удаление ECS
 - **ADR-0003**: Layered architecture
 - **ADR-0005**: GameWorld aggregate (Strategy A)

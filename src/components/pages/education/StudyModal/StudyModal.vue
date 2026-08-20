@@ -39,7 +39,9 @@
       >
         <div class="book" :class="{ 'book--flipped': isFlipped }">
           <div class="book-cover">
-            <span class="book-icon">📖</span>
+            <span class="book-icon" aria-hidden="true">
+              <GameIcon name="book" :size="32" :stroke-width="1.5" />
+            </span>
             <span class="book-label">{{ bookLabel }}</span>
           </div>
           <div class="book-pages">
@@ -48,12 +50,14 @@
             </div>
           </div>
         </div>
-        <div class="flip-hint">👆 Нажмите, чтобы перелистнуть</div>
+        <div class="flip-hint">Нажмите, чтобы перелистнуть</div>
       </div>
 
       <!-- Resource warnings -->
       <div v-if="resourceWarning" class="resource-warning">
-        <span class="warning-icon">⚠️</span>
+        <span class="warning-icon" aria-hidden="true">
+          <GameIcon name="danger-triangle" :size="16" :stroke-width="1.5" />
+        </span>
         <span class="warning-text">{{ resourceWarning }}</span>
       </div>
     </div>

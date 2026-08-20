@@ -2,7 +2,8 @@
   display: flex;
   width: 100%;
   flex-direction: column;
-  gap: $space-1;
+  height: 112px;
+  gap: 8px;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   cursor: default;
 }
@@ -14,18 +15,18 @@
 }
 
 .skill-name {
-  font-size: $font-size-sm;
+  font-size: 14px;
   font-weight: $font-weight-semibold;
 }
 
 .skill-level {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--color-brand-accent);
+  font-size: 14px;
+  font-weight: $font-weight-semibold;
+  color: var(--color-action-primary);
 }
 
 .skill-desc {
-  font-size: $font-size-xs;
+  font-size: 12px;
   color: var(--color-text-secondary);
   margin: $space-1 0;
   line-height: $line-height-base;
@@ -35,8 +36,14 @@
 :global(.skill-tooltip) {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 200px;
+  box-sizing: border-box;
+  width: 320px;
+  min-width: 320px;
+  height: 156px;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--color-bg-card);
+  border-radius: 8px;
 }
 
 :global(.tooltip-header) {
@@ -44,18 +51,20 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  height: 23px;
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border);
 }
 
 :global(.tooltip-title) {
-  font-size: $font-size-sm;
+  color: var(--color-text-primary);
+  font-size: 14px;
   font-weight: $font-weight-semibold;
 }
 
 :global(.tooltip-level) {
-  font-size: $font-size-xs;
-  color: var(--color-brand-accent);
+  color: var(--color-action-primary);
+  font-size: 12px;
   font-weight: $font-weight-bold;
   white-space: nowrap;
 }
@@ -67,15 +76,15 @@
 }
 
 :global(.tooltip-section-title) {
-  font-size: $font-size-xs;
-  font-weight: $font-weight-semibold;
   color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: $font-weight-semibold;
   margin-bottom: 2px;
 }
 
 :global(.tooltip-effect) {
-  font-size: $font-size-xs;
-  color: var(--color-text-tertiary);
+  color: var(--color-pastel-green-strong);
+  font-size: 12px;
   padding: 1px 0;
 }
 

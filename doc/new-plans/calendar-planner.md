@@ -2,8 +2,8 @@
 
 **Полный документ:** [`doc/GDD/modules/15_calendar_planner.md`](../GDD/modules/15_calendar_planner.md)
 **Отклонения от кода:** [`calendar-skills-deviations.md`](./calendar-skills-deviations.md)
-**Статус:** первая итерация в working tree (не закоммичена): горизонт, канбан `/game/plan`, прогноз, прогон периода. Не закрыты: каталог на странице, мягкий риск, остановка внутри дня, освоение/локации/история.
-**Дата:** актуализация 14 августа 2026, вечер
+**Статус:** первая итерация в коде: горизонт, канбан `/game/plan`, прогноз, прогон периода. Открытое — см. [`calendar-skills-deviations.md`](./calendar-skills-deviations.md) и [`2026-08-20-current-backlog.md`](./2026-08-20-current-backlog.md) §2.3.
+**Дата:** актуализация 20 августа 2026
 
 ---
 

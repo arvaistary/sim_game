@@ -1,0 +1,358 @@
+{
+  "runId": "game-components-2026-08-19",
+  "phase": "phase4-complete",
+  "step": "foundations-and-board-order",
+  "entities": {
+    "pages": {
+      "Componentized state": "2068:2"
+    },
+    "components": {
+      "Avatar": "2069:2",
+      "Button": "2070:14",
+      "NavItem": "2072:10",
+      "ProfileChip": "2072:18",
+      "Topbar": "2073:11",
+      "Sidebar": "2073:39",
+      "Panel": "2074:47",
+      "AppBackground": "2104:252",
+      "ProfileCard": "2079:60",
+      "StatBar": "2080:76",
+      "StatsCard": "2081:73",
+      "ActivityLogCard": "2083:106",
+      "HomePreview": "2084:112",
+      "DayPlannerSummary": "2088:141",
+      "TabActive": "2111:253",
+      "TabDefault": "2111:258",
+      "SelectField": "2111:263",
+      "ActionCard": "2112:254",
+      "ProgramCard": "2112:264",
+      "EducationPanel": "2112:272",
+      "ThemeToggle": "2129:813",
+      "TabIcon/masks": "2161:1242",
+      "TabIcon/palette": "2161:1220",
+      "TabIcon/heart-pulse": "2161:1225",
+      "TabIcon/users-group-rounded": "2161:1232",
+      "TabIcon/book-2": "2161:1250",
+      "TabIcon/medal-ribbons-star": "2161:1257",
+      "TabIcon/bolt-circle": "2161:1262",
+      "FilterChipActive": "2178:1217",
+      "FilterChipDefault": "2178:1219",
+      "LogEntry": "2178:1221",
+      "ActivityContent": "2178:1226",
+      "BalanceSummary": "2186:1424",
+      "ExpenseSummary": "2187:1420",
+      "SectionHeader": "2188:1420",
+      "FinanceContent": "2188:1423"
+      ,"ShopContent": "2194:1654",
+      "SkillCard": "2198:2000",
+      "StartChoice": "2203:1993",
+      "StartChoiceDefault": "2206:2002",
+      "StartScreen": "2205:1993",
+      "PrologueChoice": "2207:2028",
+      "PrologueSceneCard": "2207:2031",
+      "PrologueScreen": "2208:2067",
+      "SkillsContent": "2211:2058",
+      "SkillTooltip": "2213:2390",
+      "ActionDetailsModal": "2213:2665",
+      "ModalOverlay": "2214:2642",
+      "TabIcon/shop-2": "2217:2652",
+      "TabIcon/case-round-minimalistic": "2217:2660",
+      "TabIcon/buildings-2": "2217:2668",
+      "ActionIcon/calendar": "2217:2799",
+      "ActionIcon/play": "2235:4497",
+      "ActionCardButtons": "2218:2647",
+      "PropertyCard": "2254:3832",
+      "PropertyGallery": "2255:3829",
+      "PropertyDetailsModal": "2256:3829",
+      "ShopCategoryTabs": "2271:4308",
+      "ShopProductCard": "2272:4352",
+      "ShopCartSummary": "2273:4352",
+      "ShopStoreFilter": "2281:4599",
+      "ShopCartBadge": "2281:4614",
+      "ShopProductCardHover": "2283:4599",
+      "ShopCartDrawer": "2283:4608"
+    },
+    "frames": {
+      "Componentized / game": "2068:3",
+      "Components / Game Life": "2068:4",
+      "Foundations / Tokens": "2097:252",
+      "Componentized / game-actions": "2113:255",
+      "Componentized / game-education": "2114:697",
+      "Componentized / game-activity": "2181:1241",
+      "Componentized / game-finance": "2190:1463"
+      ,"Componentized / game-shop": "2196:1746",
+      "Componentized / game-start": "2206:2011",
+      "Componentized / game-prologue": "2208:2084",
+      "Componentized / game-skills": "2212:2146",
+      "Componentized / game-skills-tooltip": "2213:2398"
+      ,"Componentized / action-details-modal-open": "2214:2643",
+      "Componentized / game-home": "2258:3838",
+      "Componentized / game-home-modal-open": "2258:4086",
+      "Componentized / game-shop — СТАРЫЙ": "2196:1746",
+      "Componentized / game-shop-food": "2275:4352",
+      "OLD marker / game-shop": "2276:4599",
+      "Shop filters / Other categories": "2286:4597",
+      "Componentized / game-shop-food-cart-open": "2286:4645",
+      "Generated assets / Interior style candidates": "2295:4925",
+      "Componentized / action-details-modal-fun-meditation": "2304:4926",
+      "Componentized / action-details-modal-fun-massage": "2304:4930",
+      "Componentized / action-details-modal-fun-fishing": "2304:4934"
+    },
+    "variables": {
+      "Game Life Tokens": "VariableCollectionId:2066:2"
+    }
+  },
+  "completedSteps": ["P0.a", "P0.b", "P0.c", "P0.d", "P0.e", "P0.f", "P1.a", "P1.b", "P1.c", "P1.d", "P1.e", "P2.a", "P2.b", "P2.c", "P2.d", "P2.e", "P3.a", "P3.b", "P3.c", "P3.d", "P3.e", "P3.f", "P4.a", "P4.b", "P4.c", "P4.d"],
+  "pendingValidations": [],
+  "iconPolicy": {
+    "status": "approved-working-solution",
+    "source": "Iconify",
+    "rule": "Use ready Iconify vectors named `Iconify / <set:name>` in every current and future Game Life component or screen. Do not use text/emoji glyphs or manually drawn SVG icons.",
+    "architecture": "Place icons in shared master components; expose variable icon slots through instance swap when a component supports multiple icons.",
+    "validated": ["IconButton: solar:settings-linear", "ThemeToggle: solar:sun-2-linear", "ThemeToggle: solar:moon-linear", "ThemeToggle glyph fit screenshot", "Sidebar Solar icon screenshot", "Sidebar repaired visual screenshot", "DayPlanner screenshot", "Actions screenshot", "global glyph audit: 0 legacy text icons", "catalog, game, actions and education screenshots", "game-actions Sidebar screenshot: no duplicate icons"],
+    "migration": "Completed for the current Componentized state. New icons must follow Iconify policy and be verified through a global glyph audit and a screenshot of each affected assembled screen before handoff."
+  },
+  "lastComponentAudit": {
+    "date": "2026-08-19",
+    "sourceFiles": [
+      "src/components/pages/dashboard/ProfileCard/ProfileCard.vue",
+      "src/components/pages/dashboard/StatsCard/StatsCard.vue",
+      "src/components/pages/dashboard/ActivityLogCard/ActivityLogCard.vue",
+      "src/components/pages/dashboard/HomePreview/HomePreview.vue",
+      "src/components/pages/dashboard/DayPlannerSummary/DayPlannerSummary.vue"
+    ],
+    "updated": {
+      "ProfileCard": ["KPI order", "20px metrics", "week label", "secondary skills action"],
+      "StatsCard": ["heading", "STAT_DEFS labels", "end colors"],
+      "ActivityLogCard": ["default copy", "secondary journal link"],
+      "HomePreview": ["heading"],
+      "DayPlannerSummary": ["auto-layout rebuild", "current day-rhythm hierarchy", "three metric cards", "shared Button instances"]
+    },
+    "validated": ["ProfileCard screenshot", "Components / Game Life screenshot", "DayPlannerSummary screenshot", "Componentized / game screenshot", "Atoms & primitives screenshot", "Atoms catalog grid screenshot"]
+  },
+  "lastTopbarAudit": {
+    "date": "2026-08-19",
+    "source": "src/components/layout/Topbar/Topbar.vue",
+    "updated": ["ThemeToggle State=Light|Dark", "visible toggle tracks", "Atoms & primitives source + instance", "Topbar theme instance", "Iconify solar:settings-linear", "IconButton source + instance", "8px action gap"],
+    "validated": ["ThemeToggle metadata", "ThemeToggle isolated screenshot", "Atoms & primitives screenshot", "Topbar Iconify screenshot"]
+  },
+  "lastSidebarIconAudit": {
+    "date": "2026-08-19",
+    "scope": ["Componentized / game", "Componentized / game-actions", "Componentized / game-education"],
+    "cause": "Active nested NavItem instances restored their generic home icon over the route-specific Sidebar Iconify icon.",
+    "fix": "Generic NavItem home icons are hidden inside each assembled Sidebar instance; direct route-specific Iconify icons remain visible.",
+    "validated": ["game-actions screenshot: exactly one icon before each Sidebar label"]
+  },
+  "lastTabIconAudit": {
+    "date": "2026-08-19",
+    "source": ["src/components/ui/Tabs/Tabs.vue", "src/components/ui/Tabs/Tabs.scss"],
+    "architecture": "Tab Active and Default expose an Iconify INSTANCE_SWAP property named Icon. Each Tab uses vertical auto layout: Header contains Icon + Label, while Subtitle is a full-width layer below Header. Active retains a white nested icon override.",
+    "assignments": {
+      "actions": ["masks", "palette", "heart-pulse", "users-group-rounded"],
+      "education": ["book-2", "medal-ribbons-star", "bolt-circle"]
+    },
+    "validated": ["all TabIcon source vectors: 1.25px stroke", "Tab master screenshot: full-width Subtitle", "active game-actions tab screenshot: white Iconify icon", "game-actions screenshot", "game-education screenshot", "instance counts: actions=4, education=3"]
+  },
+  "lastScreenBuild": {
+    "date": "2026-08-19",
+    "screens": {
+      "game-activity": {
+        "frame": "2181:1241",
+        "content": "2178:1226",
+        "validated": ["screenshot", "Journal active Sidebar item", "filter row auto-layout gap 8", "log list auto-layout gap 8"]
+      },
+      "game-finance": {
+        "frame": "2190:1463",
+        "content": "2188:1423",
+        "validated": ["screenshot", "Finance active Sidebar item", "single active Sidebar item", "Action card grid auto-layout gap 12"]
+      },
+      "game-shop": {
+        "frame": "2196:1746",
+        "content": "2194:1654",
+        "validated": ["screenshot", "Shop active Sidebar item", "single active Sidebar item", "Shop tab row auto-layout gap 12", "Action card rows auto-layout gap 12", "active Iconify icon inverted"]
+      },
+      "containerRetrofit": {
+        "game-actions": ["42 ActionCard instances", "14 Action card row containers", "row gap 12", "rows gap 16", "screenshot"],
+        "game-education": ["Education tab row gap 8", "Program card rows gap 16", "row gap 12", "screenshot"]
+      }
+    }
+  },
+  "lastAudit": {
+    "date": "2026-08-19",
+    "scope": "Componentized state screens, tab icons, action-card controls",
+    "fixed": [
+      "ShopContent tab icon assignments",
+      "SkillsContent duplicate book-2 tab icons",
+      "ActionCard and ProgramCard text buttons replaced with ActionCardButtons",
+      "Added replaceable Calendar Icon and Execute Icon instance-swap slots"
+    ],
+    "validated": [
+      "game-actions screenshot",
+      "game-education screenshot",
+      "game-shop screenshot",
+      "game-skills screenshot",
+      "game-skills-tooltip screenshot",
+      "game, activity, finance, start, prologue and modal screenshots",
+      "no visible emoji glyphs in Componentized state screens"
+    ],
+    "knownFollowUp": "Source Vue/config files still contain legacy emoji strings; Figma Componentized state uses Iconify vectors. Migrate code separately if required."
+  },
+  "lastComponentsBoardAudit": {
+    "date": "2026-08-19",
+    "frame": "2068:4",
+    "deleted": ["Game Life / IconButton", "obsolete examples", "obsolete captions and section labels"],
+    "layout": {"labelToComponentGap": 8, "rowGap": 32, "gridColumns": 5, "largeBlocksAlignedTo": 32},
+    "inventory": {"retainedSources": 54, "labels": 54, "obsoleteDirectChildren": 0},
+    "validated": ["retained component sources mapped to Componentized screens", "Button/NavItem/ThemeToggle sets retained because variants are used", "all sources in board bounds", "board reflow screenshot"]
+  },
+  "lastScreenCorrection": {
+    "date": "2026-08-19",
+    "scope": ["Componentized / game-skills-tooltip", "Componentized / action-details-modal-open", "Componentized / game-prologue"],
+    "updated": [
+      "SkillsContent: 18 current basic skills, six rows, 0 / 10 state, full-screen height 993",
+      "SkillTooltip: current level-10 content and compact dark header",
+      "PrologueScreen: AppBackground, separate progress steps and tag chips, 44px scene padding",
+      "ActionDetailsModal: compact body and separate action footer",
+      "ActionCardButtons: calendar label and play icon"
+    ],
+    "validated": [
+      "skills tooltip screenshot",
+      "skills full-grid screenshot",
+      "action details modal screenshot",
+      "prologue screenshot",
+      "game-actions screenshot",
+      "stale execute instances = 0",
+      "play instances = 68",
+      "all target screens within expected bounds"
+    ]
+  },
+  "lastProgramCardLayoutAudit": {
+    "date": "2026-08-19",
+    "scope": ["Componentized / game-education", "Game Life / ProgramCard", "Game Life / ActionCardButtons"],
+    "updated": [
+      "ProgramCard source fixed to 371 x 153 with bottom action row",
+      "all five program cards rebuilt from the normalized source",
+      "each row fixed to 153px card height",
+      "ActionCardButtons fixed to 148px with calendar label and play icon"
+    ],
+    "validated": [
+      "program card rows screenshot",
+      "full game-education screenshot",
+      "actions y=101 and buttons x=183 in both rows",
+      "row heights = 153px"
+    ]
+  },
+  "lastPropertyScreenBuild": {
+    "date": "2026-08-19",
+    "scope": ["Componentized / game-home", "Componentized / game-home-modal-open", "Property components / Housing"],
+    "created": [
+      "PropertyCard with image, description, comfort, rent and details affordance",
+      "PropertyGallery with featured image, counter and four thumbnails",
+      "PropertyDetailsModal with gallery, description, stats and actions",
+      "six-card housing grid for Комната through Особняк",
+      "modal-open screen state demonstrating the card-to-details interaction"
+    ],
+    "updated": [
+      "property screen instances now use the visible three-layer background gradient",
+      "property illustrations use FIT and extend 24px above the card edge",
+      "card and illustration clipping disabled for the reference-style overflow",
+      "all six cards in both screen states inherit the shared PropertyCard source"
+    ],
+    "validated": [
+      "component source screenshots",
+      "base property screen screenshot",
+      "modal-open property screen screenshot",
+      "six cards in two equal rows",
+      "all property cards match node 2258:4047 geometry",
+      "Iconify close vector; no text glyph used for the close affordance",
+      "JSON ledger parse"
+    ]
+  },
+  "lastShopScreenBuild": {
+    "date": "2026-08-20",
+    "scope": ["Componentized / game-shop-food", "Componentized / game-shop — СТАРЫЙ", "Shop components / Food"],
+    "created": [
+      "ShopCategoryTabs with active Food tab and unique Iconify category icons",
+      "ShopProductCard with food illustration, description, price and purchase affordance",
+      "ShopCartSummary with selected items, total and checkout action",
+      "new food shop screen placed below the retained legacy screen"
+    ],
+    "updated": [
+      "legacy screen renamed with СТАРЫЙ marker",
+      "visible comparison banner added between old and new screens"
+    ],
+    "validated": [
+      "shop component section screenshot",
+      "new food shop screen screenshot",
+      "legacy screen retained screenshot",
+      "new screen below old screen",
+      "JSON ledger parse"
+    ]
+  },
+  "lastShopLayoutUpdate": {
+    "date": "2026-08-20",
+    "scope": [
+      "Componentized / game-shop-food",
+      "Shop components / Food",
+      "Shop filters / Other categories",
+      "Componentized / game-shop-food-cart-open"
+    ],
+    "updated": [
+      "white bordered rounded product cards with hover-state shadow",
+      "food store-grade filter from 0 to 5 stars",
+      "four-card full-width product row",
+      "compact cart badge with count and total",
+      "reusable cart drawer open state",
+      "separate filters prepared for Обучение, Вещи and Дом"
+    ],
+    "validated": [
+      "food screen screenshot",
+      "other category filters screenshot",
+      "open cart screen screenshot",
+      "JSON ledger parse"
+    ]
+  },
+  "lastGeneratedAssets": {
+    "date": "2026-08-20",
+    "frame": "2295:4925",
+    "styleDecision": "isometric low-poly 3D interior cutaways with cool gray planes, charcoal floors, muted blue windows and pale teal accents",
+    "uploadedCandidates": 19,
+    "categories": ["food", "property", "education", "things"],
+    "validated": ["generated-assets board screenshot", "all 19 image slots filled", "JSON ledger parse"]
+  },
+  "lastActionPopupIllustrations": {
+    "date": "2026-08-20",
+    "scope": [
+      "Componentized / action-details-modal-open",
+      "Componentized / action-details-modal-fun-meditation",
+      "Componentized / action-details-modal-fun-massage",
+      "Componentized / action-details-modal-fun-fishing",
+      "Game Life / ActionDetailsModal"
+    ],
+    "actions": ["Кино в кинотеатре", "Медитация", "Профессиональный массаж", "Рыбалка"],
+    "updated": [
+      "shared ActionDetailsModal image slot 407 x 200 at top",
+      "modal height normalized to 407 x 483 for three-line effects",
+      "four low-poly action illustrations",
+      "project action descriptions, prices, times and effects"
+    ],
+    "validated": ["four popup screenshots", "image slot fills present on all four instances", "no clipped effects", "JSON ledger parse"]
+  },
+  "lastActionPopupStyleVariants": {
+    "date": "2026-08-20",
+    "scope": [
+      "Componentized / action-details-modal-style-pixelart",
+      "Componentized / action-details-modal-style-flat-vector",
+      "Componentized / action-details-modal-style-paper-cut"
+    ],
+    "styles": ["pixel art", "flat vector", "paper cut collage"],
+    "baseAction": "Кино в кинотеатре",
+    "imageSlot": "407 x 200 full-bleed rectangle",
+    "updated": [
+      "three adjacent popup screens cloned from the reusable ActionDetailsModal",
+      "three distinct non-realistic/non-low-poly image directions",
+      "temporary upload nodes removed after applying image hashes"
+    ],
+    "validated": ["three popup screenshots", "full-width image fills", "JSON ledger parse"]
+  }
+}

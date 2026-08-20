@@ -8,7 +8,7 @@
       type="button"
       @click="$emit('update:modelValue', item.id)"
     >
-      <span class="tab__icon">{{ item.icon }}</span>
+      <GameIcon class="tab__icon" :name="tabIconNames[item.icon] ?? 'bolt'" :size="20" />
       <span class="tab__content">
         <span class="tab__title">{{ item.label }}</span>
         <span
@@ -22,6 +22,8 @@
 
 <script setup lang="ts">
 import './Tabs.scss'
+import GameIcon from '@/components/ui/GameIcon/GameIcon.vue'
+import type { GameIconName } from '@/components/ui/GameIcon/GameIcon.types'
 
 interface TabItem {
   id: string
@@ -40,4 +42,19 @@ defineProps<TabsProps>()
 defineEmits<{
   'update:modelValue': [id: string]
 }>()
+
+const tabIconNames: Record<string, GameIconName> = {
+  book: 'book',
+  bolt: 'bolt',
+  briefcase: 'briefcase',
+  buildings: 'buildings',
+  heart: 'heart',
+  home: 'home',
+  ladle: 'ladle',
+  medal: 'medal',
+  masks: 'masks',
+  palette: 'palette',
+  shop: 'shop',
+  users: 'users',
+}
 </script>

@@ -9,6 +9,8 @@
 .tooltip-wrapper--stretch {
   display: flex;
   width: 100%;
+  min-width: 0;
+  height: 100%;
 }
 
 .tooltip-wrapper--bottom .tooltip:not(.tooltip--follow) {
@@ -57,6 +59,12 @@
 
 .tooltip--interactive {
   pointer-events: auto;
+}
+
+.tooltip--content {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .tooltip-enter-active,

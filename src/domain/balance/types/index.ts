@@ -53,6 +53,7 @@ export interface CareerJob {
   name: string
   schedule: string
   level: number
+  gradeLevel: number
   salaryPerHour: number
   salaryPerDay: number
   salaryPerWeek: number
@@ -61,19 +62,24 @@ export interface CareerJob {
   minEducationRank: number
   minAge: number
   description: string
+  requiredPossessions?: readonly string[]
 }
 
 export interface CareerTrackJobItem {
   id: string
   name: string
   level: number
+  gradeLevel: number
+  minAge: number
   schedule: string
   salaryPerHour: number
   description: string
   current: boolean
   unlocked: boolean
   missingProfessionalism: number
+  missingAge: number
   educationRequiredLabel: string
+  missingPossessionLabels: string[]
   effectiveSalaryPerHour: number
 }
 
@@ -387,9 +393,9 @@ export interface GameAction {
 
 export interface NavItem {
   id: string
-  icon: string
   label: string
 }
 
 export type * from './activity-log'
+export type * from './job-search.types'
 export type * from '../actions/types'

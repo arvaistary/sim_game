@@ -63,7 +63,10 @@
                 :class="{ 'calendar-action-card--sleep-disabled': day.plan.sleepHours === 0 }"
               >
                 <div class="calendar-action-card__body">
-                  <span class="calendar-action-card__category calendar-action-card__category--sleep">🌙 Восстановление</span>
+                  <span class="calendar-action-card__category calendar-action-card__category--sleep">
+                    <GameIcon name="moon-sleep" :size="14" :stroke-width="1.5" />
+                    Восстановление
+                  </span>
                   <strong class="calendar-action-card__title">{{ day.plan.sleepHours > 0 ? 'Сон' : 'Без сна' }}</strong>
                   <span class="calendar-action-card__meta">{{ formatHours(day.plan.sleepHours) }} ч</span>
                 </div>
@@ -101,7 +104,12 @@
                       `calendar-action-card__category--${getActionCategory(actionId).key}`,
                     ]"
                   >
-                    {{ getActionCategory(actionId).icon }} {{ getActionCategory(actionId).label }}
+                    <GameIcon
+                      :name="getActionCategory(actionId).icon"
+                      :size="14"
+                      :stroke-width="1.5"
+                    />
+                    {{ getActionCategory(actionId).label }}
                   </span>
                   <strong class="calendar-action-card__title">{{ getActionTitle(actionId) }}</strong>
                   <span class="calendar-action-card__meta">{{ getActionHours(actionId) }} ч</span>

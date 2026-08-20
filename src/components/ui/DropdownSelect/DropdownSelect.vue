@@ -35,11 +35,13 @@
           @click="selectOption(option.value)"
         >
           <span>{{ option.label }}</span>
-          <span
+          <GameIcon
             v-if="option.value === modelValue"
             class="dropdown-select__check"
-            aria-hidden="true"
-          >✓</span>
+            name="check-circle"
+            :size="14"
+            :stroke-width="2"
+          />
         </button>
       </div>
     </Transition>
@@ -48,6 +50,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import GameIcon from '@/components/ui/GameIcon/GameIcon.vue'
 import type { DropdownOption } from './DropdownSelect.types'
 
 const props = defineProps<{

@@ -1,0 +1,60 @@
+@use '../../../assets/scss/variables' as *;
+
+.shop-store-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 736px;
+}
+
+.shop-store-filter h3 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: $font-weight-semibold;
+}
+
+.shop-store-filter__chips {
+  display: flex;
+  gap: 8px;
+}
+
+.shop-store-filter__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg-tertiary);
+  cursor: pointer;
+}
+
+.shop-store-filter__chip--active {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+}
+
+.shop-store-rating-stars {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.shop-store-rating-stars__star--filled {
+  color: var(--color-status-warning-bright);
+}
+
+.shop-store-rating-stars__star--empty {
+  color: var(--color-text-tertiary);
+}
+
+.shop-store-filter__chip--active .shop-store-rating-stars__star--filled {
+  color: var(--color-status-warning-bright);
+}
+
+.shop-store-filter__chip--active .shop-store-rating-stars__star--empty {
+  color: color-mix(in srgb, var(--color-text-on-primary) 42%, transparent);
+}

@@ -247,19 +247,20 @@ export function createServerExecutor(
     },
 
     async quitCareer(_world: GameWorld | null): Promise<CommandOutcome> {
-      await sendCommand<SyncResponse>(
+      const response: SyncResponse = await sendCommand<SyncResponse>(
         `${base}/api/game/sync`,
         {
           method: 'POST',
           body: {
             actions: [
-              { type: 'career', payload: { action: 'quit' }, timestamp: Date.now() },
+              { type: 'career', payload: { operation: 'quit' }, timestamp: Date.now() },
             ],
           },
         },
       )
+      throwIfSyncFailed(response)
 
-      return { success: true, message: 'Уволились' }
+      return { success: true, message: 'Вы уволились' }
     },
 
     async startEducationProgram(_world: GameWorld | null, programId: string): Promise<string> {

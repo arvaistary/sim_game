@@ -5,6 +5,8 @@
       :key="entry.day + '-' + entry.type + '-' + entry.title"
       class="log-entry"
       :class="'log-entry--' + entry.type"
+      :radius="16"
+      padding="12px 16px"
     >
       <div class="entry-header">
         <span class="entry-title">{{ entry.title }}</span>
@@ -22,7 +24,13 @@
 </template>
 
 <script setup lang="ts">
-const { entries, loadMore } = useActivityLog()
+import './ActivityLogList.scss'
+
+const props = withDefaults(defineProps<{ filter?: string }>(), {
+  filter: 'all',
+})
+
+const { entries, setFilter, loadMore } = useActivityLog()
 
 const scrollRef = ref<HTMLElement | null>(null)
 const isLoading = ref(false)
@@ -31,12 +39,13 @@ function onScroll() {
   const el = scrollRef.value
   if (!el) return
   const threshold = 200
+  if (isLoading.value) return
   if (el.scrollHeight - el.scrollTop - el.clientHeight < threshold) {
     isLoading.value = true
     loadMore()
     setTimeout(() => { isLoading.value = false }, 100)
   }
 }
-</script>
 
-<style scoped lang="scss" src="./ActivityLogList.scss"></style>
+watch(() => props.filter, filter => setFilter(filter), { immediate: true })
+</script>

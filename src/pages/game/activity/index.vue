@@ -2,7 +2,7 @@
   <GameLayout title="Журнал">
     <div class="activity-page">
       <ActivityFilter v-model="activeFilter" />
-      <ActivityLogList />
+      <ActivityLogList :filter="activeFilter" />
     </div>
   </GameLayout>
 </template>

@@ -13,6 +13,29 @@
   align-items: center;
 }
 
+.stat-bar__inline {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: $space-2;
+  min-height: 20px;
+}
+
+.stat-bar__inline .stat-bar__label {
+  font-weight: $font-weight-regular;
+}
+
+.stat-bar__inline .progress-bar {
+  min-width: 0;
+}
+
+.stat-bar__value {
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: $font-weight-medium;
+  text-align: right;
+}
+
 .stat-bar__label {
   font-size: $font-size-xs;
   font-weight: $font-weight-medium;

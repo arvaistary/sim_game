@@ -14,7 +14,6 @@ ADR (Architecture Decision Records) — это записи о ключевых 
 
 | ID | Название | Дата | Статус |
 |----|----------|------|--------|
-| [ADR-0001](0001-phaser-to-nuxt-migration.md) | Миграция с Phaser на Nuxt 4 | апрель 2026 | Принято |
 | [ADR-0002](0002-ecs-removal.md) | Удаление ECS-архитектуры | апрель 2026 | Принято |
 | [ADR-0003](0003-layered-architecture.md) | Слоистая архитектура (Domain/Application/Infrastructure) | апрель 2026 | Принято |
 | [ADR-0004](ARCHITECTURE_DECISION_HENDERSON_ADAPTATION.md) | Адаптация архитектуры Henderson | 2025 | Принято |

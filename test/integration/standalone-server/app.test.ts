@@ -57,7 +57,7 @@ describe('standalone server', () => {
 
     try {
       const initResponse: StandaloneInjectResponse = await app.inject({ method: 'POST', url: '/api/game/init', payload: {} })
-      const oldCookie = (Array.isArray(initResponse.headers['set-cookie'])
+      const oldCookie: string = (Array.isArray(initResponse.headers['set-cookie'])
         ? initResponse.headers['set-cookie'][0]
         : String(initResponse.headers['set-cookie'])).split(';')[0]
       await app.inject({
@@ -73,7 +73,7 @@ describe('standalone server', () => {
         headers: { cookie: oldCookie },
       })
       const resetBody: ApiResponse<GameStateResponse<GameWorldJSON>> = JSON.parse(resetResponse.body) as ApiResponse<GameStateResponse<GameWorldJSON>>
-      const newCookie = (Array.isArray(resetResponse.headers['set-cookie'])
+      const newCookie: string = (Array.isArray(resetResponse.headers['set-cookie'])
         ? resetResponse.headers['set-cookie'][0]
         : String(resetResponse.headers['set-cookie'])).split(';')[0]
 
@@ -118,7 +118,7 @@ describe('standalone server', () => {
         headers: { cookie: cookieValue },
         payload: { actionId: 'shop_meditation_foundations_book' },
       })
-      const purchaseBody = JSON.parse(purchaseResponse.body) as ApiResponse<GameWorldJSON>
+      const purchaseBody: ApiResponse<GameWorldJSON> = JSON.parse(purchaseResponse.body) as ApiResponse<GameWorldJSON>
       expect(purchaseResponse.statusCode).toBe(200)
       expect(purchaseBody.data?.result.success).toBe(true)
       expect(purchaseBody.data?.state.housing.furniture).toEqual(
@@ -133,7 +133,7 @@ describe('standalone server', () => {
           actions: [{ type: 'education', payload: { programId: 'meditation_foundations_book', action: 'start' }, timestamp: Date.now() }],
         },
       })
-      const startReadingBody = JSON.parse(startReadingResponse.body) as ApiResponse<SyncResponse<GameWorldJSON>>
+      const startReadingBody: ApiResponse<SyncResponse<GameWorldJSON>> = JSON.parse(startReadingResponse.body) as ApiResponse<SyncResponse<GameWorldJSON>>
       expect(startReadingResponse.statusCode).toBe(200)
       expect(startReadingBody.data?.applied).toBe(1)
       expect((startReadingBody.data?.state.education as Record<string, unknown>).activeEducation).toEqual(
@@ -148,8 +148,8 @@ describe('standalone server', () => {
           actions: [{ type: 'education', payload: { action: 'advance' }, timestamp: Date.now() }],
         },
       })
-      const readBody = JSON.parse(readResponse.body) as ApiResponse<SyncResponse<GameWorldJSON>>
-      const activeEducation = (readBody.data?.state.education as Record<string, unknown>).activeEducation as Record<string, unknown>
+      const readBody: ApiResponse<SyncResponse<GameWorldJSON>> = JSON.parse(readResponse.body) as ApiResponse<SyncResponse<GameWorldJSON>>
+      const activeEducation: Record<string, unknown> = (readBody.data?.state.education as Record<string, unknown>).activeEducation as Record<string, unknown>
       expect(readResponse.statusCode).toBe(200)
       expect(readBody.data?.applied).toBe(1)
       expect((activeEducation.steps as Array<Record<string, unknown>>)[0]?.progressPercent).toBeGreaterThan(0)
@@ -162,7 +162,7 @@ describe('standalone server', () => {
           actions: [{ type: 'career', payload: { jobId: 'it_junior', action: 'change' }, timestamp: Date.now() }],
         },
       })
-      const careerBody = JSON.parse(careerResponse.body) as ApiResponse<GameWorldJSON>
+      const careerBody: ApiResponse<GameWorldJSON> = JSON.parse(careerResponse.body) as ApiResponse<GameWorldJSON>
       expect(careerResponse.statusCode).toBe(200)
       expect(careerBody.data?.applied).toBe(1)
       expect(careerBody.data?.state.career.currentJob.id).toBe('it_junior')
@@ -175,10 +175,23 @@ describe('standalone server', () => {
           actions: [{ type: 'work', payload: { hours: 8 }, timestamp: Date.now() }],
         },
       })
-      const workBody = JSON.parse(workResponse.body) as ApiResponse<GameWorldJSON>
+      const workBody: ApiResponse<GameWorldJSON> = JSON.parse(workResponse.body) as ApiResponse<GameWorldJSON>
       expect(workResponse.statusCode).toBe(200)
       expect(workBody.data?.applied).toBe(1)
       expect(workBody.data?.state.wallet.money).toBeGreaterThan(5000)
+
+      const quitResponse: StandaloneInjectResponse = await app.inject({
+        method: 'POST',
+        url: '/api/game/sync',
+        headers: { cookie: cookieValue },
+        payload: {
+          actions: [{ type: 'career', payload: { operation: 'quit' }, timestamp: Date.now() }],
+        },
+      })
+      const quitBody: ApiResponse<SyncResponse<GameWorldJSON>> = JSON.parse(quitResponse.body) as ApiResponse<SyncResponse<GameWorldJSON>>
+      expect(quitResponse.statusCode).toBe(200)
+      expect(quitBody.data?.applied).toBe(1)
+      expect(quitBody.data?.state.career.currentJob.employed).toBe(false)
     } finally {
       await app.close()
     }

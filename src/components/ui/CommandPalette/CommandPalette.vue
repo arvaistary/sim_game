@@ -16,7 +16,9 @@
         aria-label="Командная палитра"
       >
         <div class="command-palette__input-wrap">
-          <span class="command-palette__icon">⌕</span>
+          <span class="command-palette__icon" aria-hidden="true">
+            <GameIcon name="search" :size="16" :stroke-width="1.5" />
+          </span>
           <input
             ref="inputRef"
             v-model="query"
@@ -42,7 +44,9 @@
             @mouseenter="activeIndex = index"
             @click="execute(item)"
           >
-            <span class="command-palette__item-icon">{{ item.icon }}</span>
+            <span class="command-palette__item-icon" aria-hidden="true">
+              <GameIcon :name="item.icon" :size="16" :stroke-width="1.5" />
+            </span>
             <span class="command-palette__item-label">{{ item.label }}</span>
             <span class="command-palette__item-group">{{ item.group }}</span>
           </li>
@@ -61,17 +65,11 @@
 <script setup lang="ts">
 import './CommandPalette.scss'
 import { NAV_ITEMS, ROUTE_MAP } from '@/constants/navigation'
+import type { CommandPaletteItem } from './CommandPalette.types'
 
-interface CommandItem {
-  id: string
-  label: string
-  icon: string
-  group: string
-  action: () => void
-}
+const settings = useSettingsStore()
 
 const { state, close } = useCommandPalette()
-const settings = useSettingsStore()
 
 const settingsDrawer = useSettingsDrawer()
 
@@ -80,14 +78,25 @@ const query = ref<string>('')
 const activeIndex = ref<number>(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 
-const commands = computed<CommandItem[]>(() => {
-  const navCommands: CommandItem[] = NAV_ITEMS.map(
-    (item) => {
+const NAV_ICON_NAMES: Record<string, CommandPaletteItem['icon']> = {
+  activityLog: 'journal',
+  actions: 'bolt',
+  education: 'book',
+  finance: 'wallet',
+  home: 'buildings',
+  shop: 'shop',
+  skills: 'medal',
+  work: 'briefcase',
+}
+
+const commands = computed<CommandPaletteItem[]>(() => {
+  const navCommands: CommandPaletteItem[] = NAV_ITEMS.map((item): CommandPaletteItem => {
     const route: string | undefined = ROUTE_MAP[item.id]
+
     return {
       id: `nav-${item.id}`,
       label: item.label,
-      icon: item.icon,
+      icon: NAV_ICON_NAMES[item.id] ?? 'bolt',
       group: 'Разделы',
       action: () => {
         if (route) navigateTo(route)
@@ -95,33 +104,33 @@ const commands = computed<CommandItem[]>(() => {
     }
   })
 
-  const homeCommand: CommandItem = {
+  const homeCommand: CommandPaletteItem = {
     id: 'nav-home',
     label: 'Главная',
-    icon: '🏠',
+    icon: 'home',
     group: 'Разделы',
     action: () => navigateTo('/game'),
   }
 
-  const actionCommands: CommandItem[] = [
+  const actionCommands: CommandPaletteItem[] = [
     {
       id: 'action-toggle-theme',
       label: settings.isDark ? 'Светлая тема' : 'Тёмная тема',
-      icon: settings.isDark ? '☀' : '☾',
+      icon: settings.isDark ? 'sun-2' : 'moon',
       group: 'Действия',
       action: () => settings.toggleTheme(),
     },
     {
       id: 'action-open-settings',
       label: 'Открыть настройки',
-      icon: '⚙',
+      icon: 'settings',
       group: 'Действия',
       action: () => settingsDrawer.open(),
     },
     {
       id: 'action-replay-onboarding',
       label: 'Повторить онбординг',
-      icon: '?',
+      icon: 'play',
       group: 'Действия',
       action: () => settings.resetOnboarding(),
     },
@@ -130,8 +139,9 @@ const commands = computed<CommandItem[]>(() => {
   return [homeCommand, ...navCommands, ...actionCommands]
 })
 
-const results = computed<CommandItem[]>(() => {
+const results = computed<CommandPaletteItem[]>(() => {
   const q = query.value.trim().toLowerCase()
+
   if (!q) return commands.value
 
   return commands.value.filter((item) => {
@@ -169,7 +179,9 @@ function handleKeydown(event: KeyboardEvent): void {
   if (event.key === 'Enter') {
     event.preventDefault()
     const item = results.value[activeIndex.value]
+
     if (item) execute(item)
+
     return
   }
 
@@ -179,7 +191,7 @@ function handleKeydown(event: KeyboardEvent): void {
   }
 }
 
-function execute(item: CommandItem): void {
+function execute(item: CommandPaletteItem): void {
   item.action()
   close()
 }

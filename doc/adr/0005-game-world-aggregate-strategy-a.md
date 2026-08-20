@@ -17,7 +17,7 @@
 
 ### Форма реализации
 
-- **НЕ обязательно** восстанавливать именно ECS (Components/Systems/Entities из ADR-0001-era). Достаточно `GameWorld` как state-container + command-handler pattern (actions как methods класса или как command-объекты).
+- **НЕ обязательно** восстанавливать именно прежний ECS (Components/Systems/Entities). Достаточно `GameWorld` как state-container + command-handler pattern (actions как methods класса или как command-объекты).
 - `GameWorld` живёт в `src/domain/game-world/` (не в `balance/` — там pure-каталоги без state).
 - `game-facade/` восстанавливается как тонкая обёртка над `GameWorld` для application-слоя: `createWorldFromSave()`, `getGameFacade()`.
 - Stores читают snapshot из `GameWorld.toJSON()` через подписку или явный poll. Они **не** хранят состояние как source of truth — только UI-derived state и projections.
@@ -27,7 +27,7 @@
 
 ### Это НЕ откат ADR-0002
 
-ADR-0002 удалил ECS **как реализацию** (Phaser-зависимость, сложная components-systems-entities иерархия). ADR-0005 вводит `GameWorld` aggregate **на command-pattern** — state-container + command-methods. Это новая реализация агрегата, а не возврат к Phaser ECS.
+ADR-0002 удалил ECS **как реализацию** (сложную components-systems-entities иерархию). ADR-0005 вводит `GameWorld` aggregate **на command-pattern** — state-container + command-methods. Это новая реализация агрегата, а не возврат к прежнему ECS.
 
 ## Последствия
 
@@ -53,7 +53,7 @@ ADR-0002 удалил ECS **как реализацию** (Phaser-зависим
 - **Минусы:** Закрепляет store-centric модель. При переезде на Node.js (этап 8 server-first плана) потребует полного переписывания — stores не существуют без Vue reactive-системы.
 - **Почему нет:** Финальная цель — отдельный Node.js бекенд. Стратегия B даёт краткосрочный выигрыш ценой долгосрочного долга.
 
-### Альтернатива 2: Восстановить полный ECS (Components/Systems/Entities из ADR-0001)
+### Альтернатива 2: Восстановить полный ECS (Components/Systems/Entities из прежней архитектуры)
 
 - **Плюсы:** Соответствует оригинальному видению server-first плана (game-facade + systems).
 - **Минусы:** ECS — избыточная сложность для current scope. Возврат к тому, что было удалено в ADR-0002.

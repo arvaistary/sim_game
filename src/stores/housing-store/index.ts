@@ -53,10 +53,10 @@ export const useHousingStore = defineStore('housing', () => {
   function upgradeHousing(newLevel: number): void {
     const housing: HousingLevel | undefined = HOUSING_LEVELS[newLevel]
 
-    if (housing) {
-      level.value = newLevel
-      comfort.value = housing.comfort
-    }
+    if (!housing || newLevel <= level.value) return
+
+    level.value = newLevel
+    comfort.value = housing.comfort
   }
 
   function purchaseFurniture(itemId: string): boolean {

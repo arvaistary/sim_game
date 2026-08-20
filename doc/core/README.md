@@ -24,6 +24,7 @@
 - **ARCHITECTURE_CONTRACT.md** — куда класть новый код, известные нарушения
 - **IMPLEMENTATION_STATUS.md** — текущий статус реализации всех модулей
 - **ROADMAP.md** — кратко-/средне-/долгосрочные планы
+- **Активный backlog:** [`doc/new-plans/2026-08-20-current-backlog.md`](../new-plans/2026-08-20-current-backlog.md)
 - **PAGES_REFERENCE.md** — таблица Vue страниц и Nuxt роутинга
 - **START_GAME_DOCUMENTATION.md** — документация старта игры
 
@@ -40,7 +41,6 @@
 
 Ключевые архитектурные решения:
 
-- **ADR-0001**: Phaser.js → Nuxt миграция
 - **ADR-0002**: Удаление ECS
 - **ADR-0003**: Layered architecture
 - **ADR-0005**: GameWorld aggregate (Strategy A)
@@ -60,9 +60,6 @@
 ### Spec-kit (`doc/spec-kit/`)
 
 Workflow для постановки задач: spec → plan → tasks. См. [`spec-kit/README.md`](../spec-kit/README.md).
-
-История архитектурных решений хранится только в ADR. Миграция Phaser → Nuxt
-описана в [`../adr/0001-phaser-to-nuxt-migration.md`](../adr/0001-phaser-to-nuxt-migration.md).
 
 ## Запуск проекта
 

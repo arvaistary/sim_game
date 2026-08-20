@@ -34,7 +34,7 @@ import { ACTION_CATEGORIES } from '@/config/action-categories'
 import type { ActionCategory as ActionCategoryId } from '@/domain/balance/types'
 import type { BalanceAction } from '@/domain/balance/actions'
 import type { CanExecuteActionResult } from '@/stores/game.store.types'
-  import type { SortMode, StatFilterId } from '@/types/actions-page.types'
+import type { SortMode, StatFilterId } from '@/types/actions-page.types'
 
 definePageMeta({ middleware: 'game-init' })
 
@@ -95,12 +95,12 @@ function getDisabledReason(action: BalanceAction): string {
 const sortedActions: ComputedRef<BalanceAction[]> = computed(() => {
   void store.worldTick
   const originalOrder = new Map(actions.value.map((action, index) => [action.id, index]))
-    return [...actions.value].sort((a, b) => {
-      if (sortMode.value === 'usage') {
-        const usageA = actionsStore.actionUsage[a.id] ?? { count: 0, lastUsedAt: 0 }
-        const usageB = actionsStore.actionUsage[b.id] ?? { count: 0, lastUsedAt: 0 }
+  return [...actions.value].sort((a, b) => {
+    if (sortMode.value === 'usage') {
+      const usageA = actionsStore.actionUsage[a.id] ?? { count: 0, lastUsedAt: 0 }
+      const usageB = actionsStore.actionUsage[b.id] ?? { count: 0, lastUsedAt: 0 }
 
-        if (usageA.count !== usageB.count) return usageB.count - usageA.count
+      if (usageA.count !== usageB.count) return usageB.count - usageA.count
 
       if (usageA.lastUsedAt !== usageB.lastUsedAt) return usageB.lastUsedAt - usageA.lastUsedAt
     } else if (sortMode.value === 'parameter') {

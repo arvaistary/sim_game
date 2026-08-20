@@ -201,6 +201,7 @@ describe('GameCommandExecutor', () => {
     })
     const advanced: GameCommandExecution = executor.execute(started.state, { type: 'education', payload: { operation: 'advance' } })
     const quit: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), { type: 'career', payload: { operation: 'quit' } })
+    const quitViaAction: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), { type: 'career', payload: { action: 'quit' } })
     const settled: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'finance',
       payload: { action: 'monthly_settlement' },
@@ -208,7 +209,38 @@ describe('GameCommandExecutor', () => {
 
     expect(advanced.result.success).toBe(true)
     expect(quit.result.success).toBe(true)
+    expect(quitViaAction.result.success).toBe(true)
+    expect(quitViaAction.state.career.currentJob.employed).toBe(false)
     expect(settled.result.success).toBe(true)
+  })
+
+  it('enforces career age and education requirements in the domain', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+    world.player.currentAge = 18
+    world.skills.levels.professionalism = { level: 10, xp: 0 }
+
+    const ageBlocked: GameCommandExecution = executor.execute(world.toJSON(), {
+      type: 'career',
+      payload: { jobId: 'it_middle' },
+    })
+
+    expect(ageBlocked.result).toEqual({ success: false, message: 'Требуется возраст 22+' })
+
+    world.player.currentAge = 22
+    const educationBlocked: GameCommandExecution = executor.execute(world.toJSON(), {
+      type: 'career',
+      payload: { jobId: 'it_middle' },
+    })
+
+    expect(educationBlocked.result).toEqual({ success: false, message: 'Требуется образование: Среднее' })
+
+    world.education.educationLevel = 'school'
+    const started: GameCommandExecution = executor.execute(world.toJSON(), {
+      type: 'career',
+      payload: { jobId: 'it_middle' },
+    })
+
+    expect(started.result.success).toBe(true)
   })
 
   it('applies day_end_hooks command to events wallet finance and career slices', () => {

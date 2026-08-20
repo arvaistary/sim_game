@@ -26,7 +26,7 @@ export function getDayRhythm(input: DayRhythmInput): DayRhythm {
       tone: 'overloaded',
       title: 'Ритм перегружен',
       intro: `Плану не хватит ${formatHours(overrunHours)} ч — часть дел придётся перенести.`,
-      mood: '⏳',
+      moodIcon: 'hourglass',
     }
   }
 
@@ -35,7 +35,7 @@ export function getDayRhythm(input: DayRhythmInput): DayRhythm {
       tone: 'tired',
       title: 'Ритм восстановления',
       intro: 'Персонаж чувствует усталость — оставь запас времени на сон и спокойные дела.',
-      mood: '😴',
+      moodIcon: 'moon-sleep',
     }
   }
 
@@ -51,7 +51,7 @@ export function getDayRhythm(input: DayRhythmInput): DayRhythm {
       tone: 'strained',
       title: 'Ритм требует бережности',
       intro: 'Характеристики просели — плотный план может усилить напряжение.',
-      mood: '🌥️',
+      moodIcon: 'cloud',
     }
   }
 
@@ -60,7 +60,7 @@ export function getDayRhythm(input: DayRhythmInput): DayRhythm {
       tone: 'open',
       title: 'Ритм свободный',
       intro: 'Времени много — можно добавить дело по настроению или оставить запас.',
-      mood: '🌿',
+      moodIcon: 'leaf',
     }
   }
 
@@ -69,7 +69,7 @@ export function getDayRhythm(input: DayRhythmInput): DayRhythm {
       tone: 'dense',
       title: 'Ритм плотный',
       intro: 'Почти всё время занято — на неожиданности останется мало запаса.',
-      mood: '⏱️',
+      moodIcon: 'stopwatch',
     }
   }
 
@@ -78,7 +78,7 @@ export function getDayRhythm(input: DayRhythmInput): DayRhythm {
       tone: 'balanced',
       title: 'Ритм собран',
       intro: 'Основные дела помещаются, небольшой запас времени остаётся.',
-      mood: '🌤️',
+      moodIcon: 'cloud-sun',
     }
   }
 
@@ -86,6 +86,6 @@ export function getDayRhythm(input: DayRhythmInput): DayRhythm {
     tone: 'calm',
     title: 'Ритм спокойный',
     intro: 'Есть место и для дел, и для непредвиденных событий.',
-    mood: '☀️',
+    moodIcon: 'mood-funny',
   }
 }

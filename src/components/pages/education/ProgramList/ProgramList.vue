@@ -11,6 +11,7 @@
       >
         <RoundedPanel
           class="program-card"
+          padding="0 19px"
           :class="{
             disabled: !isProgramAvailable(program),
             'age-locked': !isAgeOk(program),
@@ -19,9 +20,15 @@
         >
           <div class="program-header">
             <span class="program-title">{{ program.title }}</span>
-            <span class="program-type">{{ program.typeLabel }}</span>
+            <span class="program-type">{{ program.cost === 0 ? 'Бесплатно' : `${formatMoney(program.cost)} ₽` }}</span>
           </div>
           <p class="program-subtitle">{{ program.subtitle }}</p>
+          <ActionCardButtons
+            :disabled="!isProgramAvailable(program)"
+            :show-calendar="true"
+            @calendar="handleProgramCalendar(program)"
+            @execute="startProgram(program)"
+          />
           <div class="program-meta">
             <span class="meta-tag">{{ formatMoney(program.cost) }} ₽</span>
             <span class="meta-tag">{{ program.daysRequired }} дн.</span>
@@ -49,6 +56,7 @@
       >
         <RoundedPanel
           class="program-card"
+          padding="0 19px"
           :class="{
             disabled: !isProgramAvailable(program),
             'age-locked': !isAgeOk(program),
@@ -57,9 +65,15 @@
         >
           <div class="program-header">
             <span class="program-title">{{ program.title }}</span>
-            <span class="program-type">{{ program.typeLabel }}</span>
+            <span class="program-type">{{ program.cost === 0 ? 'Бесплатно' : `${formatMoney(program.cost)} ₽` }}</span>
           </div>
           <p class="program-subtitle">{{ program.subtitle }}</p>
+          <ActionCardButtons
+            :disabled="!isProgramAvailable(program)"
+            :show-calendar="true"
+            @calendar="handleProgramCalendar(program)"
+            @execute="startProgram(program)"
+          />
           <div class="program-meta">
             <span class="meta-tag" :class="getBookStatusClass(program)">{{ getBookStatusLabel(program) }}</span>
             <span class="meta-tag">{{ program.daysRequired }} дн.</span>
@@ -217,18 +231,18 @@ function canRestartBook(program: EducationProgram): boolean {
 function getLockReason(program: EducationProgram): string {
   if (!isAgeOk(program)) {
     const minAgeGroup = program.minAgeGroup ?? AgeGroup.TEEN
-    return `🔒 ${program.ageReason || `Доступно с ${getAgeGroupLabel(minAgeGroup)}+`}. Вам ${currentAge.value} лет.`
+    return `${program.ageReason || `Доступно с ${getAgeGroupLabel(minAgeGroup)}+`}. Вам ${currentAge.value} лет.`
   }
 
   if (!canAfford(program)) {
-    return `💰 Недостаточно денег. Нужно ${formatMoney(program.cost)} ₽, у вас ${formatMoney(store.money ?? 0)} ₽`
+    return `Недостаточно денег. Нужно ${formatMoney(program.cost)} ₽, у вас ${formatMoney(store.money ?? 0)} ₽`
   }
 
   if (store.isInitialized) {
     const check: CanStartEducationResult = store.canStartEducationProgramWithReason(program.id)
 
     if (!check.ok) {
-      return `🔒 ${check.reason ?? 'Программа недоступна'}`
+      return check.reason ?? 'Программа недоступна'
     }
   }
 
@@ -264,6 +278,11 @@ const sortedOwnedBooks: ComputedRef<EducationProgram[]> = computed(() => {
 
 function goToShopBooks(): void {
   void router.push('/game/shop?tab=learning')
+}
+
+function handleProgramCalendar(program: EducationProgram): void {
+  if (!isProgramAvailable(program)) return
+  toast.showInfo('Программа добавлена в календарь')
 }
 
 async function startProgram(program: EducationProgram): Promise<void> {

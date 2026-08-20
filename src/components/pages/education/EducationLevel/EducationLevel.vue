@@ -1,5 +1,5 @@
 <template>
-  <RoundedPanel>
+  <RoundedPanel class="education-level-panel" padding="16px 20px">
     <div class="education-level-wrap">
       <h3 class="section-title">Что изучаем</h3>
       
@@ -23,7 +23,9 @@
           <template v-if="tile.status === 'active'">
             <div class="active-study-card__info">
               <div class="active-study-card__heading">
-                <span class="active-study-card__icon" aria-hidden="true">{{ isBookCourse ? '📖' : '🎓' }}</span>
+                <span class="active-study-card__icon" aria-hidden="true">
+                  <GameIcon :name="isBookCourse ? 'book' : 'medal'" :size="20" :stroke-width="1.5" />
+                </span>
                 <div class="active-study-card__heading-copy">
                   <div class="active-study-card__pills">
                     <span
@@ -56,13 +58,21 @@
 
               <div v-if="inlineStudyWarning" class="study-inline-warning">{{ inlineStudyWarning }}</div>
               <div v-if="studyCycleBlockedWithCourseHoursLeft" class="study-cycle-course-mismatch">
-                <span class="study-cycle-course-mismatch__icon" aria-hidden="true">⚠️</span>
+                <span class="study-cycle-course-mismatch__icon" aria-hidden="true">
+                  <GameIcon name="danger-triangle" :size="16" :stroke-width="1.5" />
+                </span>
                 <p class="study-cycle-course-mismatch__text">По курсу ещё есть часы, но следующий сеанс доступен после сна.</p>
               </div>
 
               <div class="active-study-card__secondary">
-                <span>🌙 Учёба до сна: {{ studyHoursSinceLastSleepDisplay }}/{{ maxStudyHoursCycleDisplay }} ч</span>
-                <span>📖 Осталось учиться до сна: {{ studyHoursRemainingDisplay }} ч</span>
+                <span class="active-study-card__secondary-item">
+                  <GameIcon name="moon-sleep" :size="14" :stroke-width="1.5" />
+                  Учёба до сна: {{ studyHoursSinceLastSleepDisplay }}/{{ maxStudyHoursCycleDisplay }} ч
+                </span>
+                <span class="active-study-card__secondary-item">
+                  <GameIcon name="book" :size="14" :stroke-width="1.5" />
+                  Осталось учиться до сна: {{ studyHoursRemainingDisplay }} ч
+                </span>
               </div>
             </div>
 
