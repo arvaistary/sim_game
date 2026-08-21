@@ -46,6 +46,7 @@
 
 <script setup lang="ts">
 import './ActionCard.scss'
+import { getActionImageUrl } from '@/constants/action-images'
 import { formatMoney } from '@/utils/format'
 import type { ActionCardEmits, ActionCardProps } from './ActionCard.types'
 import { useCalendarPlanActions } from '@/composables/useCalendarPlan'
@@ -69,8 +70,10 @@ const toast = useToast()
 const isDetailsOpen = ref<boolean>(false)
 
 const actionImage = computed<string | undefined>(() => {
-  if (props.action.id === 'fun_cinema') return '/image/actions/fun-cinema.png'
-  return undefined
+  return getActionImageUrl({
+    actionId: props.action.id,
+    category: props.action.category,
+  })
 })
 
 const displayDescription = computed<string>(() => {

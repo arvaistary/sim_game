@@ -56,6 +56,7 @@ specs/
 doc/plans/
 doc/new-plans/
 doc/spec-kit/specs/*
+doc/assets/
 !doc/spec-kit/specs/
 !doc/spec-kit/specs/README.md
 doc/manual-testing-bugs.md
