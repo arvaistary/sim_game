@@ -52,8 +52,8 @@
   position: relative;
 
   .game-nav__icon {
-    width: 28px;
-    height: 28px;
+    width: 18px;
+    height: 18px;
     flex-shrink: 0;
   }
 
@@ -67,19 +67,6 @@
   &.game-nav__item--active {
     background: var(--color-glass-inset);
     color: var(--color-text-primary);
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 3px;
-      height: 60%;
-      background: var(--color-action-primary);
-      border-radius: var(--radius-full);
-    }
-
   }
 }
 
@@ -149,7 +136,7 @@
 }
 
 .game-nav__icon--locked {
-  font-size: $font-size-sm;
+  color: var(--color-text-tertiary);
 }
 
 .game-nav__label--locked {

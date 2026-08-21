@@ -11,7 +11,7 @@
       :title="mode === 'sidebar' ? 'Главная' : undefined"
       @click="goHome"
     >
-      <span class="game-nav__icon">🏠</span>
+      <GameIcon class="game-nav__icon" name="home" />
       <span v-if="mode === 'sidebar'" class="game-nav__label">Главная</span>
       <span v-else class="game-nav__label">Дом</span>
     </button>
@@ -26,7 +26,7 @@
         :title="mode === 'sidebar' ? item.label : undefined"
         @click="handleNavClick(item)"
       >
-        <span class="game-nav__icon">{{ item.icon }}</span>
+        <GameIcon class="game-nav__icon" :name="navIconNames[item.id] ?? 'bolt'" />
         <span class="game-nav__label">{{ item.label }}</span>
       </button>
 
@@ -38,7 +38,7 @@
         :title="mode === 'sidebar' ? item.label : undefined"
         @click="handleLockedClick(item)"
       >
-        <span class="game-nav__icon game-nav__icon--locked">🔒</span>
+        <GameIcon class="game-nav__icon game-nav__icon--locked" name="lock" />
         <span class="game-nav__label game-nav__label--locked">{{ item.label }}</span>
       </button>
     </template>
@@ -47,6 +47,7 @@
 
 <script setup lang="ts">
 import { NAV_ITEMS, ROUTE_MAP } from '@/constants/navigation'
+import type { GameIconName } from '@/constants/game-icons.types'
 import type { NavItemIdRef, NavItemWithState } from './GameNav.types'
 import './GameNav.scss'
 
@@ -66,12 +67,22 @@ const toast = useToast()
 const allNavItems = computed<NavItemWithState[]>(() =>
   navItems.map((item) => ({
     id: item.id,
-    icon: item.icon,
     label: item.label,
     visible: isTabVisible(item.id),
     unlockAge: TAB_UNLOCK_AGE[item.id] ?? null,
   })),
 )
+
+const navIconNames: Record<string, GameIconName> = {
+  activityLog: 'journal',
+  actions: 'bolt',
+  education: 'book',
+  finance: 'wallet',
+  home: 'buildings',
+  shop: 'shop',
+  skills: 'medal',
+  work: 'briefcase',
+}
 
 const isHomePage = computed<boolean>(() => route.path === '/game')
 
@@ -98,9 +109,9 @@ function handleLockedClick(item: NavItemWithState): void {
   const currentAge = age.value
 
   if (item.unlockAge !== null && item.unlockAge > currentAge) {
-    toast.showInfo(`🔒 ${item.label} станет доступно в ${item.unlockAge} лет. Подрастите ещё немного!`)
+    toast.showInfo(`${item.label} станет доступно в ${item.unlockAge} лет. Подрастите ещё немного!`)
   } else {
-    toast.showInfo(`🔒 ${item.label} пока недоступно. Подрастите ещё немного!`)
+    toast.showInfo(`${item.label} пока недоступно. Подрастите ещё немного!`)
   }
 }
 </script>

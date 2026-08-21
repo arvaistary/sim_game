@@ -32,7 +32,7 @@
       </div>
       <div class="profile-card__kpi">
         <span class="profile-card__kpi-label">Комфорт</span>
-        <span class="profile-card__kpi-value metric">{{ Math.round(comfort) }}</span>
+        <span class="profile-card__kpi-value metric">{{ Math.round(comfort) }}%</span>
       </div>
     </div>
 

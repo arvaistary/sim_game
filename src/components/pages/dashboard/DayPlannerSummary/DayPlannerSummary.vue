@@ -6,7 +6,9 @@
         <h2 class="day-summary__title">{{ dayRhythm.title }}</h2>
         <p class="day-summary__intro">{{ dayRhythm.intro }}</p>
       </div>
-      <span class="day-summary__mood" aria-hidden="true">{{ dayRhythm.mood }}</span>
+      <span class="day-summary__mood" aria-hidden="true">
+        <GameIcon :name="dayRhythm.moodIcon" :size="20" :stroke-width="1.5" />
+      </span>
     </div>
 
     <div class="day-summary__metrics">

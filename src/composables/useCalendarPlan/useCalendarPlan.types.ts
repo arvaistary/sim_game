@@ -1,4 +1,5 @@
 import type { Ref, ComputedRef } from 'vue'
+import type { GameIconName } from '@/constants/game-icons.types'
 import type { StatDef, StatKey } from '@/domain/balance/types'
 import type {
   CalendarDayForecast,
@@ -21,7 +22,7 @@ export interface CalendarDayView {
 export interface CalendarActionCategory {
   key: string
   label: string
-  icon: string
+  icon: GameIconName
 }
 
 export interface UseCalendarPlanActions {

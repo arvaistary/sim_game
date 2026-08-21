@@ -1,23 +1,24 @@
-@use '../../../../assets/scss/mixins' as *;
+@use '../../../../assets/scss/variables' as *;
 
 .filter-row {
   display: flex;
+  flex-shrink: 0;
   gap: $space-2;
+  width: 100%;
+  min-width: 0;
   overflow-x: auto;
   padding-bottom: $space-1;
   -webkit-overflow-scrolling: touch;
-  flex-shrink: 0;
 }
 
 .filter-btn {
-  padding: $space-2 14px;
-  border-radius: var(--radius-sm);
-
-  @include glass-inset;
-
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
-  font-size: $font-size-xs;
-  font-weight: $font-weight-medium;
+  font-size: 12px;
+  font-weight: $font-weight-semibold;
   cursor: pointer;
   white-space: nowrap;
   font-family: inherit;
@@ -25,9 +26,9 @@
 }
 
 .filter-btn.active {
-  background: var(--color-brand-accent);
-  color: var(--color-text-on-accent);
-  border-color: var(--color-brand-accent);
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-action-primary);
   font-weight: $font-weight-semibold;
 }
 

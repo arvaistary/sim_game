@@ -12,15 +12,12 @@
 }
 
 .home-preview {
-  flex: 1;
-  min-height: 72px;
   display: flex;
   flex-direction: column;
 }
 
 .home-preview-image {
-  flex: 1;
-  min-height: 48px;
+  height: 384px;
   border-radius: var(--radius-md);
   overflow: hidden;
 

@@ -1,10 +1,12 @@
+import type { GameIconName } from '@/components/ui/GameIcon/GameIcon.types'
+
 export type DayRhythmTone = 'overloaded' | 'tired' | 'strained' | 'open' | 'dense' | 'balanced' | 'calm'
 
 export interface DayRhythm {
   tone: DayRhythmTone
   title: string
   intro: string
-  mood: string
+  moodIcon: GameIconName
 }
 
 export interface DayRhythmStats {

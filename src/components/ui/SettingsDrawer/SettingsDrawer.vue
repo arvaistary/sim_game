@@ -22,7 +22,9 @@
             type="button"
             aria-label="Закрыть настройки"
             @click="close"
-          >×</button>
+          >
+            <GameIcon name="close" :size="16" :stroke-width="1.5" />
+          </button>
         </header>
 
         <div class="settings-drawer__body">
@@ -151,6 +153,7 @@
 
 <script setup lang="ts">
 import './SettingsDrawer.scss'
+import GameIcon from '@/components/ui/GameIcon/GameIcon.vue'
 import { useNewGame } from '@/composables/useNewGame'
 import type { PaletteId } from '@/stores/settings-store'
 

@@ -2,9 +2,9 @@
 
 **Полный документ:** [`doc/GDD/modules/16_skill_depth.md`](../GDD/modules/16_skill_depth.md)
 **Связанные документы:** [`calendar-planner.md`](./calendar-planner.md), [`skill-balance-calibration.md`](./skill-balance-calibration.md), [`calendar-skills-deviations.md`](./calendar-skills-deviations.md)
-**План первой поставки:** [`doc/plans/2026-08-10-skill-xp-model.md`](../plans/2026-08-10-skill-xp-model.md) — 11 задач, выполнены в этой ветке.
-**Статус:** часовая модель и потолок 10 подключены. Каталог не размечен способами обучения. Деградация, синергии и капстоуны не начаты.
-**Дата:** актуализация 14 августа 2026, вечер
+**План первой поставки:** XP-модель (11 задач) выполнена в ветке `feature/integrated-pre-main`; локальный план мог быть в gitignored `doc/plans/`.
+**Статус:** часовая модель и потолок 10 подключены. Каталог не размечен способами обучения. Деградация, синергии и капстоуны не начаты. Backlog: [`2026-08-20-current-backlog.md`](./2026-08-20-current-backlog.md) §2.4.
+**Дата:** актуализация 20 августа 2026
 
 ---
 

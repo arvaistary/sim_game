@@ -3,9 +3,10 @@
 .action-card {
   display: flex;
   width: 100%;
+  height: 100%;
   flex-direction: column;
-  gap: $space-1;
-  min-height: 100%;
+  gap: $space-4;
+  overflow: visible;
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 
@@ -21,22 +22,22 @@
 }
 
 .card-title {
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
 }
 
 .card-price {
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   font-weight: $font-weight-bold;
   color: var(--color-action-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .card-description {
-  font-size: $font-size-xs;
+  margin: 0;
+  font-size: 10px;
   color: var(--color-text-secondary);
-  line-height: $line-height-base;
-  margin: $space-2 0;
+  line-height: 1.25;
 }
 
 .action-card__content {
@@ -51,42 +52,8 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: $space-2;
-  margin-top: $space-1;
-}
-
-.action-details {
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.action-details__description,
-.action-details__meta {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: $font-size-sm;
-}
-
-.action-details__meta {
-  margin: 0 0 0 auto;
-}
-
-.action-details__group {
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.action-details__title {
-  margin: 0;
-  font-size: $font-size-sm;
-}
-
-.action-details__effects {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: $space-1 $space-2;
+  width: 100%;
+  margin-top: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

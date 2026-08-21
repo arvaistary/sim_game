@@ -1,28 +1,27 @@
 <template>
-  <RoundedPanel class="current-job-panel">
+  <RoundedPanel class="current-job-panel" padding="15px 19px">
     <!-- Reactivity trigger -->
     <span v-if="reactivityTrigger" class="sr-only">
       {{ reactivityTrigger }}
     </span>
-    <div class="job-info">
-      <div class="job-info__header">
-        <span class="job-info__label">
-          Текущая должность
-        </span>
-        <span v-if="isEmployed" class="job-info__salary">
-          {{ formatMoney(currentSalaryPerHour) }} ₽/ч
-        </span>
-      </div>
-      <span class="job-info__name">
-        {{ currentJobName }}
-      </span>
+
+    <span class="current-job-panel__label">
+      Текущая должность
+    </span>
+
+    <span v-if="isEmployed" class="current-job-panel__salary">
+      {{ formatMoney(currentSalaryPerHour) }} ₽/ч
+    </span>
+
+    <h2 class="current-job-panel__title">
+      {{ currentJobName }}
+    </h2>
+
+    <div v-if="isEmployed" class="current-job-panel__actions">
+      <GameButton label="Уволиться" variant="secondary" small @click="quitJob" />
     </div>
 
-    <div v-if="isEmployed" class="quit-action">
-      <GameButton label="Уволиться" accent-key="danger" small @click="quitJob" />
-    </div>
-
-    <p v-if="workResult" class="work-result">
+    <p v-if="workResult" class="current-job-panel__result">
       {{ workResult }}
     </p>
   </RoundedPanel>
@@ -34,9 +33,15 @@ import { formatMoney } from '@/utils/format'
 import type { QuitCareerResult } from '@/stores/game.store.types'
 import './CurrentJobPanel.scss'
 
+const emit = defineEmits<{
+  quit: []
+}>()
+
 const store = useGameStore()
 
 const careerStore = useCareerStore()
+
+const toast = useToast()
 
 const workResult = ref('')
 
@@ -46,8 +51,19 @@ const currentJobName: ComputedRef<string> = computed(() => careerStore.currentJo
 const currentSalaryPerHour: ComputedRef<number> = computed(() => careerStore.currentJob?.salaryPerHour ?? 0)
 
 async function quitJob(): Promise<void> {
-  const result: QuitCareerResult = await store.quitCareerAsync()
+  try {
+    const result: QuitCareerResult = await store.quitCareerAsync()
 
-  workResult.value = result?.message ?? 'Вы уволились'
+    if (result.success) {
+      workResult.value = result.message ?? 'Вы уволились'
+      toast.showSuccess(result.message ?? 'Вы уволились')
+      emit('quit')
+    } else {
+      toast.showWarning(result.message ?? 'Не удалось уволиться')
+    }
+  } catch (error: unknown) {
+    const message: string = error instanceof Error ? error.message : 'Не удалось уволиться'
+    toast.showWarning(message)
+  }
 }
 </script>

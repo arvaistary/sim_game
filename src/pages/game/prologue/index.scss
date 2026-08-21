@@ -5,9 +5,7 @@
   isolation: isolate;
   min-height: 100svh;
   overflow: hidden;
-
-  @include ambient-canvas;
-
+  background: var(--color-bg-app);
   color: var(--color-text-primary);
 }
 
@@ -26,21 +24,26 @@
   width: min(100% - 2rem, 56rem);
   max-width: 56rem;
   margin: 0 auto;
-  padding: clamp(1.25rem, 4vw, 3rem) 0 4rem;
+  padding: 48px 0 4rem;
 }
 
 .prologue-page__header {
   display: grid;
-  gap: 0.85rem;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
   margin-bottom: 1.25rem;
+}
+
+.prologue-page__heading {
+  grid-column: 1 / -1;
 }
 
 .prologue-page .prologue-page__heading {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
-  font-weight: 750;
-  letter-spacing: 0.02em;
+  font-size: 28px;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0;
 }
 
 .prologue-page__microbeat {

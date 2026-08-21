@@ -1,9 +1,9 @@
 import type { GameWorldJSON } from './game-world/GameWorld.types'
 import { GameWorld } from './game-world/GameWorld'
-import type { SkillEntry } from './balance/skills'
 import type { CareerJob, EducationProgram, ProgramStep } from './balance/types'
 import { CAREER_JOBS } from './balance/constants/career-jobs'
 import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from './balance/constants/education-programs'
+import { getCareerRequirementFailure } from './balance/utils/career-requirements'
 import { getActionById, type BalanceAction } from './balance/actions'
 import {
   executeActionCommand,
@@ -104,7 +104,7 @@ export class GameCommandExecutor {
   }
 
   private executeCareer(world: GameWorld, payload: Record<string, unknown>): PersistedCommandResult {
-    if (payload.operation === 'quit') {
+    if (payload.operation === 'quit' || payload.action === 'quit') {
       endCareerWork(world)
       return { success: true, message: 'Вы уволились' }
     }
@@ -116,13 +116,13 @@ export class GameCommandExecutor {
 
     if (!job) return { success: false, message: 'Вакансия не найдена' }
 
-    const professionalismEntry: SkillEntry | undefined = world.skills.levels.professionalism
-    const professionalism: number = professionalismEntry?.level ?? 0
+    const requirementFailure: string | null = getCareerRequirementFailure(job, {
+      currentAge: world.player.currentAge,
+      educationLevel: String(world.education.educationLevel),
+      professionalism: world.skills.levels.professionalism?.level ?? 0,
+    })
 
-
-    if (professionalism < job.minProfessionalism) {
-      return { success: false, message: `Требуется профессионализм ${job.minProfessionalism}+` }
-    }
+    if (requirementFailure) return { success: false, message: requirementFailure }
 
     startCareerWork(world, {
       id: job.id,

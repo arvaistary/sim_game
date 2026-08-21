@@ -1,0 +1,54 @@
+@use '../../../assets/scss/variables' as *;
+
+.action-card-buttons {
+  display: flex;
+  flex: 0 0 auto;
+  gap: $space-2;
+  height: 36px;
+  width: 94px;
+}
+
+.action-card-buttons--single {
+  justify-content: flex-end;
+}
+
+.action-card-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.action-card-buttons__calendar {
+  width: 50px;
+  gap: 6px;
+  padding: 0 8px;
+  background: var(--color-bg-surface);
+  font-size: $font-size-xs;
+}
+
+.action-card-buttons button.action-card-buttons__execute {
+  width: 36px;
+  padding: 0;
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+}
+
+.action-card-buttons button:hover:not(:disabled) {
+  border-color: var(--color-action-primary);
+}
+
+.action-card-buttons__execute:hover:not(:disabled) {
+  background: var(--color-action-primary-hover);
+}
+
+.action-card-buttons button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

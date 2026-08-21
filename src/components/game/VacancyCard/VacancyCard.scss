@@ -1,0 +1,80 @@
+@use '../../../assets/scss/variables' as *;
+
+.vacancy-card {
+  display: flex;
+  min-height: 128px;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.vacancy-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.vacancy-card__title {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.vacancy-card__salary {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: $font-weight-semibold;
+  color: var(--color-action-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vacancy-card__description {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+}
+
+.vacancy-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+  margin-top: auto;
+}
+
+.vacancy-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.vacancy-card__tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 $space-2;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface-2);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.vacancy-card--disabled {
+  opacity: 0.55;
+}
+
+.vacancy-card__disabled-reason {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: right;
+  line-height: 1.3;
+}

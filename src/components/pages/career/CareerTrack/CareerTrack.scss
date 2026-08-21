@@ -1,10 +1,9 @@
 @use '../../../../assets/scss/variables' as *;
 
-.section-title {
-  margin: 0 0 $space-2;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  color: var(--color-text-primary);
+.career-track-section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
 }
 
 .career-track {
@@ -13,99 +12,55 @@
   gap: $space-2;
 }
 
-.job-card {
-  transition: background-color var(--transition-fast), transform var(--transition-fast);
+.career-track-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
 }
 
-.job-card.clickable {
-  cursor: pointer;
-
-  &:hover {
-    background: var(--color-pastel-green);
-    transform: translateX(4px);
-  }
-}
-
-.job-card.current {
+.career-track-card--current {
   border-left: 4px solid var(--color-action-primary);
 }
 
-.job-card.locked {
-  opacity: 0.6;
-}
-
-.job-header {
+.career-track-card__content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $space-1;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: $space-1;
 }
 
-.job-title {
+.career-track-card__title {
   font-size: $font-size-sm;
   font-weight: $font-weight-semibold;
   color: var(--color-text-primary);
 }
 
-.badge {
-  font-size: $badge-font-size;
-  padding: 2px $space-2;
-  border-radius: $radius-xs;
-  font-weight: $badge-font-weight;
-  line-height: 1;
-  text-transform: lowercase;
-}
-
-.current-badge {
-  background: var(--color-action-primary);
-  color: var(--color-text-on-primary);
-}
-
-.unlock-badge {
-  background: var(--color-pastel-green);
-  color: var(--color-pastel-green-strong);
-}
-
-.lock-badge {
-  opacity: 0.5;
-}
-
-.job-details {
-  display: flex;
-  gap: $space-3;
-  flex-wrap: wrap;
-  margin: $space-1 0;
-}
-
-.detail {
+.career-track-card__meta {
   font-size: $font-size-xs;
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
-.job-reqs {
-  margin-top: $space-1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.career-track-card__status {
+  flex-shrink: 0;
+  padding: 4px $space-2;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.req {
-  font-size: $font-size-xs;
-  color: var(--color-text-tertiary);
+.career-track-card__status--current,
+.career-track-card__status--available,
+.career-track-card__status--education {
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
 }
 
-.job-action-hint {
-  margin-top: $space-1;
-  font-size: $font-size-xs;
-  color: var(--color-action-primary);
-}
-
-.career-message {
-  margin-top: $space-2;
-  font-size: $font-size-sm;
-  padding: $space-2;
-  background: var(--color-pastel-green);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-primary);
+.career-track-card__status--requirement {
+  background: var(--color-bg-surface-2);
+  color: var(--color-text-secondary);
 }

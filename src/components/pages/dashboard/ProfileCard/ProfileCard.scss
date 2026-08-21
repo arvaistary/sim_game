@@ -14,20 +14,20 @@
   display: flex;
   align-items: center;
   gap: $space-3;
+  height: 40px;
 }
 
 .profile-card__avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: $avatar-size-lg;
-  height: $avatar-size-lg;
+  width: $avatar-size-md;
+  height: $avatar-size-md;
   border-radius: var(--radius-full);
   background: var(--color-action-primary);
   color: var(--color-text-on-primary);
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  box-shadow: 0 0 0 3px var(--color-pastel-green);
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
 }
 
 .profile-card__copy {
@@ -39,7 +39,7 @@
 
 .profile-card__name {
   margin: 0;
-  font-size: $font-size-xl;
+  font-size: $font-size-base;
   font-weight: $font-weight-semibold;
   color: var(--color-text-primary);
   letter-spacing: $tracking-heading;
@@ -50,7 +50,7 @@
 
 .profile-card__job {
   margin: 0;
-  font-size: $font-size-sm;
+  font-size: 13px;
   color: var(--color-text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -60,11 +60,12 @@
 // ===== KPI grid =====
 .profile-card__kpis {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $space-3;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: $space-4;
+  height: 52px;
 
-  @include respond-to('sm') {
-    grid-template-columns: repeat(4, 1fr);
+  @include respond-to-max('sm') {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -72,17 +73,12 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: $space-2 $space-3;
-  border-radius: var(--radius-md);
-
-  @include glass-inset;
+  min-width: 0;
 }
 
 .profile-card__kpi-label {
   font-size: $font-size-xs;
   color: var(--color-text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .profile-card__kpi-value {
@@ -106,8 +102,6 @@
   justify-content: space-between;
   gap: $space-3;
   margin-top: auto;
-  padding-top: $space-3;
-  border-top: 1px solid var(--color-border-subtle);
 }
 
 .profile-card__time {
@@ -126,7 +120,6 @@
   .profile-card__avatar {
     width: $avatar-size-md;
     height: $avatar-size-md;
-    font-size: $font-size-lg;
   }
 
   .profile-card__name {

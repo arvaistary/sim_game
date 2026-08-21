@@ -34,11 +34,11 @@ import {
 import type { SkillDef } from '@/domain/balance/types'
 
 const tabs = [
-  { id: 'basic', icon: '🧩', title: 'Базовые', shortDesc: 'Общие навыки на каждый день' },
-  { id: 'professional', icon: '💼', title: 'Профессиональные', shortDesc: 'Навыки для карьеры' },
-  { id: 'social', icon: '🤝', title: 'Социальные', shortDesc: 'Общение и отношения' },
-  { id: 'creative', icon: '🎨', title: 'Творческие', shortDesc: 'Искусство и созидание' },
-  { id: 'negative', icon: '⚠️', title: 'Слабости', shortDesc: 'Черты, мешающие развитию' },
+  { id: 'basic', icon: 'bolt', title: 'Базовые', shortDesc: 'Общие навыки на каждый день' },
+  { id: 'professional', icon: 'briefcase', title: 'Профессиональные', shortDesc: 'Навыки для карьеры' },
+  { id: 'social', icon: 'users', title: 'Социальные', shortDesc: 'Общение и отношения' },
+  { id: 'creative', icon: 'palette', title: 'Творческие', shortDesc: 'Искусство и созидание' },
+  { id: 'negative', icon: 'heart', title: 'Слабости', shortDesc: 'Черты, мешающие развитию' },
 ] as const
 
 // Map tabs to Tabs.vue API

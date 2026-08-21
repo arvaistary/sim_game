@@ -7,6 +7,8 @@ import { useCareerStore } from './career-store'
 import { useEducationStore } from './education-store'
 import { useHousingStore } from './housing-store'
 import { usePlayerStore } from './player-store'
+import { usePlayerStateStore } from './player-state-store'
+import type { PlayerStateSnapshot } from './player-state-store/player-state-store.types'
 import { useEventsStore } from './events-store'
 import { useActionsStore } from './actions-store'
 import type { Investment } from './finance-store'
@@ -77,6 +79,8 @@ export const useGameStore = defineStore('game', () => {
   const housing = useHousingStore()
 
   const player = usePlayerStore()
+
+  const playerState = usePlayerStateStore()
 
   const events = useEventsStore()
 
@@ -284,6 +288,7 @@ export const useGameStore = defineStore('game', () => {
       activity: activity.save ? activity.save() : {},
       actions: actions.save ? actions.save() : {},
       calendarPlan: calendarPlan.save(),
+      playerState: playerState.save(),
       ...prologueStore.save(),
     }
   }
@@ -322,6 +327,10 @@ export const useGameStore = defineStore('game', () => {
       if (legacyPlan) calendarPlan.load({ days: [legacyPlan] })
     }
 
+    if (data?.playerState) {
+      playerState.load(data.playerState as PlayerStateSnapshot)
+    }
+
     usePrologueStore().load(data)
 
     isInitialized.value = true
@@ -329,7 +338,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function resetGame(): void {
-    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset(); calendarPlan.reset()
+    time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); playerState.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset(); calendarPlan.reset()
     usePrologueStore().reset()
     offlineQueue?.clear()
     worldVersion.value++
@@ -384,7 +393,25 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function getCareerTrack(): CareerTrackJobItem[] {
-    return career.currentJob ? [{ id: career.currentJob.id, name: career.currentJob.name, level: career.currentJob.level, schedule: career.currentJob.schedule, salaryPerHour: career.currentJob.salaryPerHour, description: '', current: true, unlocked: true, missingProfessionalism: 0, educationRequiredLabel: '', effectiveSalaryPerHour: career.currentJob.salaryPerHour }] : []
+    if (!career.currentJob?.employed) return []
+
+    return [{
+      id: career.currentJob.id,
+      name: career.currentJob.name,
+      level: career.currentJob.level,
+      gradeLevel: Math.max(1, career.currentJob.level),
+      minAge: 0,
+      schedule: career.currentJob.schedule,
+      salaryPerHour: career.currentJob.salaryPerHour,
+      description: '',
+      current: true,
+      unlocked: true,
+      missingProfessionalism: 0,
+      missingAge: 0,
+      educationRequiredLabel: '',
+      missingPossessionLabels: [],
+      effectiveSalaryPerHour: career.currentJob.salaryPerHour,
+    }]
   }
 
   function getCareerSnapshot(): Record<string, unknown> | null { return career.currentJob }
@@ -561,6 +588,7 @@ export const useGameStore = defineStore('game', () => {
     await refreshServerState()
 
     if (gameMode === 'spa' && world) syncFromWorld(world)
+
     return result
   }
 

@@ -7,10 +7,19 @@
         :style="overlayStyle"
         @click.self="handleOverlayClick"
       >
-        <div class="modal-content" :style="contentStyle">
+        <div
+          class="modal-content"
+          :class="{ 'modal-content--with-media': !!$slots.media }"
+          :style="contentStyle"
+        >
+          <div v-if="$slots.media" class="modal-media">
+            <slot name="media" />
+          </div>
           <div class="modal-header">
             <h3 class="modal-title">{{ title }}</h3>
-            <button v-if="showClose" class="modal-close" aria-label="Close dialog" @click="close">x</button>
+            <button v-if="showClose" class="modal-close" aria-label="Close dialog" @click="close">
+              <GameIcon name="close" :size="20" :stroke-width="1.5" />
+            </button>
           </div>
           <div class="modal-body">
             <slot />
@@ -26,6 +35,7 @@
 
 <script setup lang="ts">
 import './style.scss'
+import GameIcon from '@/components/ui/GameIcon/GameIcon.vue'
 
 const props = withDefaults(defineProps<{
   isOpen?: boolean

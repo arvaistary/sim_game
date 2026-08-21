@@ -310,7 +310,7 @@
 **Что осталось проверить вручную:**
 - ⚠️ Реальная длительность `compact` на пяти first-time runs
 - ⚠️ Refresh/resume, полный uni flow и adult-start через UI
-- ⚠️ Timing/balance checklist из `doc/new-plans/2026-08-10-life-education-prologue-balance-notes.md`
+- ⚠️ Timing/balance checklist — `doc/new-plans/archive/2026-08-10-life-education-prologue-balance-notes.md`
 
 ---
 
@@ -337,11 +337,9 @@
 
 ---
 
-## История архитектуры
+## Архитектурная база
 
-Проект мигрировал с Phaser 3 на Nuxt 4 + Vue 3 + Pinia + TypeScript из-за
-потребности в сложном браузерном UI, типизации и удобном state management.
-Решение зафиксировано в [ADR-0001](../adr/0001-phaser-to-nuxt-migration.md).
+Текущий стек проекта: Nuxt 4 + Vue 3 + Pinia + TypeScript.
 
 ---
 

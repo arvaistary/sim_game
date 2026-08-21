@@ -280,10 +280,18 @@
 }
 
 @mixin ambient-canvas {
-  background:
-    radial-gradient(circle at 8% 0%, var(--color-ambient-primary), transparent 38%),
-    radial-gradient(circle at 100% 34%, var(--color-ambient-secondary), transparent 34%),
-    var(--color-canvas-base);
+  --ambient-x1: 8%;
+  --ambient-y1: 0%;
+  --ambient-x2: 100%;
+  --ambient-y2: 34%;
+  --ambient-angle: 180deg;
+
+  background-color: var(--color-canvas-base);
+  background-image:
+    radial-gradient(circle at var(--ambient-x1) var(--ambient-y1), var(--color-ambient-primary), transparent 38%),
+    radial-gradient(circle at var(--ambient-x2) var(--ambient-y2), var(--color-ambient-secondary), transparent 34%),
+    linear-gradient(var(--ambient-angle), var(--color-canvas-base) 0%, var(--color-bg-page) 100%);
+  animation: ambient-gradient-shift 20s ease-in-out infinite;
 }
 
 // ===== Focus ring =====

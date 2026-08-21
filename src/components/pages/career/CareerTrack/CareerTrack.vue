@@ -1,101 +1,50 @@
 <template>
-  <div class="career-track-wrapper">
-    <h3 class="section-title">Карьерный путь</h3>
+  <section v-if="isEmployed" class="career-track-section">
+    <SectionHeader
+      plain
+      title="Карьерный путь"
+      subtitle="Ваш прогресс по уровням профессии"
+    />
+
     <div class="career-track">
       <RoundedPanel
-        v-for="job in careerTrack"
+        v-for="job in trackJobs"
         :key="job.id"
-        class="job-card"
-        :class="{ current: job.current, locked: !job.unlocked, clickable: job.unlocked && !job.current }"
-        :clickable="job.unlocked && !job.current"
-        @click="takeJob(job)"
+        class="career-track-card"
+        :class="{ 'career-track-card--current': job.current }"
+        padding="12px 16px"
       >
-        <div class="job-header">
-          <span class="job-title">{{ job.name }}</span>
-          <span v-if="job.current" class="badge current-badge">Текущая</span>
-          <span v-else-if="job.unlocked" class="badge unlock-badge">Доступна</span>
-          <span v-else class="badge lock-badge">🔒</span>
-        </div>
-        <div class="job-details">
-          <span class="detail">Уровень: {{ job.level }}</span>
-          <span class="detail">График: {{ job.schedule }}</span>
-          <span class="detail">ЗП: {{ formatMoney(job.salaryPerHour) }} ₽/ч</span>
-        </div>
-        <div v-if="!job.unlocked" class="job-reqs">
-          <span v-if="job.missingProfessionalism > 0" class="req">
-            Профессионализм: ещё {{ job.missingProfessionalism }} ур.
+        <div class="career-track-card__content">
+          <span class="career-track-card__title">{{ job.name }}</span>
+          <span class="career-track-card__meta">
+            Уровень {{ job.level }} · {{ formatMoney(job.salaryPerHour) }} ₽/ч
           </span>
-          <span class="req">Образование: {{ job.educationRequiredLabel }}</span>
         </div>
-        <div v-else-if="job.unlocked && !job.current" class="job-action-hint">
-          Кликните, чтобы устроиться
-        </div>
+
+        <span
+          class="career-track-card__status"
+          :class="`career-track-card__status--${getCareerTrackStatus(job).tone}`"
+        >
+          {{ getCareerTrackStatus(job).label }}
+        </span>
       </RoundedPanel>
     </div>
-    <p v-if="message" class="career-message">{{ message }}</p>
-  </div>
+  </section>
 </template>
 
 <script setup lang="ts">
-import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
+import './CareerTrack.scss'
+import type { ComputedRef } from 'vue'
 import type { CareerTrackJobItem } from '@/domain/balance/types'
-import { EDUCATION_RANK_TO_LABEL, storeLevelToCareerRank } from '@/domain/balance/utils/education-ranks'
 import { formatMoney } from '@/utils/format'
-
-const store = useGameStore()
-
-const skillsStore = useSkillsStore()
-
-const educationStore = useEducationStore()
+import { useWorkCareerItems } from '@/composables/useWorkCareerItems'
+import { getCareerTrackStatus } from './career-track-status'
 
 const careerStore = useCareerStore()
 
-const message = ref('')
+const { items } = useWorkCareerItems()
 
-const careerTrack = computed<CareerTrackJobItem[]>(() => {
-  void store.worldTick
-  void skillsStore.totalLevels
-  void educationStore.educationLevel
+const isEmployed: ComputedRef<boolean> = computed(() => careerStore.isEmployed)
 
-  const currentJobId: string = careerStore.currentJob?.id ?? ''
-  const educationRank: number = storeLevelToCareerRank(educationStore.educationLevel)
-  const professionalism: number = skillsStore.skills?.professionalism?.level ?? 0
-
-  return CAREER_JOBS.map(job => {
-    const educationRequiredLabel: string = job.minEducationRank === -1
-      ? 'Любое'
-      : EDUCATION_RANK_TO_LABEL[job.minEducationRank] ?? 'Неизвестно'
-
-    const missing: number = job.minProfessionalism - professionalism
-    const unlocked: boolean = professionalism >= job.minProfessionalism && educationRank >= job.minEducationRank
-
-    return {
-      id: job.id,
-      name: job.name,
-      level: job.level,
-      schedule: job.schedule,
-      salaryPerHour: job.salaryPerHour,
-      description: job.description,
-      current: job.id === currentJobId,
-      unlocked,
-      missingProfessionalism: Math.max(0, missing),
-      educationRequiredLabel,
-      effectiveSalaryPerHour: job.salaryPerHour,
-    }
-  })
-})
-
-async function takeJob(job: CareerTrackJobItem): Promise<void> {
-  if (!job.unlocked || job.current) return
-  const result = await store.changeCareerAsync(job.id)
-
-  message.value = result?.success
-    ? (result.message ?? `Вы устроились на работу: ${job.name}`)
-    : (result?.message ?? 'Не удалось устроиться')
-  setTimeout(() => {
-    message.value = ''
-  }, 3000)
-}
+const trackJobs: ComputedRef<CareerTrackJobItem[]> = computed(() => items.value.trackJobs)
 </script>
-
-<style scoped lang="scss" src="./CareerTrack.scss"></style>

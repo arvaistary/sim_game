@@ -20,6 +20,7 @@ import type { DayEndHooks } from '@/domain/game-world/commands'
 import type { ExecuteActionCommandResult, JobCatalogEntry, ProgramCatalogEntry } from './index.types'
 import type { CareerJob, EducationProgram, ProgramStep } from '@/domain/balance/types'
 import { CAREER_JOBS } from '@/domain/balance/constants/career-jobs'
+import { getCareerRequirementFailure } from '@/domain/balance/utils/career-requirements'
 import { EDUCATION_PROGRAMS, upgradeBookChapterSteps } from '@/domain/balance/constants/education-programs'
 import { getActionById } from '@/domain/balance/actions'
 import {
@@ -93,9 +94,13 @@ export function changeCareer(world: GameWorld, jobId: string): { success: boolea
 
   const professionalism: number = getProfessionalismLevel(world)
 
-  if (professionalism < job.minProfessionalism) {
-    return { success: false, message: `Требуется профессионализм ${job.minProfessionalism}+` }
-  }
+  const requirementFailure: string | null = getCareerRequirementFailure(job, {
+    currentAge: world.player.currentAge,
+    educationLevel: String(world.education.educationLevel),
+    professionalism,
+  })
+
+  if (requirementFailure) return { success: false, message: requirementFailure }
 
   startCareerWork(world, {
     id: job.id,

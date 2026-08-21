@@ -23,17 +23,18 @@
       <Teleport to="body">
         <Transition name="tooltip">
           <div
-            v-if="show && text"
+            v-if="show && (text || $slots.content)"
             ref="tooltipEl"
             class="tooltip"
             :class="{
               'tooltip--multiline': multiline,
               'tooltip--follow': followCursor,
               'tooltip--interactive': pinOnClick && pinned,
+              'tooltip--content': !!$slots.content,
             }"
             :style="tooltipStyle"
           >
-            {{ text }}
+            <slot name="content">{{ text }}</slot>
           </div>
         </Transition>
       </Teleport>
@@ -43,17 +44,18 @@
       name="tooltip"
     >
       <div
-        v-if="show && text"
+        v-if="show && (text || $slots.content)"
         ref="tooltipEl"
         class="tooltip"
         :class="{
           'tooltip--multiline': multiline,
           'tooltip--follow': followCursor,
           'tooltip--interactive': pinOnClick && pinned,
+          'tooltip--content': !!$slots.content,
         }"
         :style="tooltipStyle"
       >
-        {{ text }}
+        <slot name="content">{{ text }}</slot>
       </div>
     </Transition>
   </div>

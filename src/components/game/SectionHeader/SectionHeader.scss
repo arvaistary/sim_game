@@ -9,3 +9,20 @@
   color: var(--color-text-secondary);
   margin: 0;
 }
+
+.section-header--plain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 58px;
+}
+
+.section-header--plain .section-header__title {
+  font-size: 22px;
+  font-weight: $font-weight-semibold;
+  margin: 0;
+}
+
+.section-header--plain .section-header__subtitle {
+  font-size: 14px;
+}
