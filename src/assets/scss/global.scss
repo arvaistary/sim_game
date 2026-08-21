@@ -384,6 +384,65 @@ html[data-density="compact"] {
   --radius-card: #{$card-radius-compact};
 }
 
+// ===== Animated ambient canvas =====
+
+@property --ambient-x1 {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 8%;
+}
+
+@property --ambient-y1 {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+@property --ambient-x2 {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 100%;
+}
+
+@property --ambient-y2 {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 34%;
+}
+
+@property --ambient-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 180deg;
+}
+
+@keyframes ambient-gradient-shift {
+  0%,
+  100% {
+    --ambient-x1: 8%;
+    --ambient-y1: 0%;
+    --ambient-x2: 100%;
+    --ambient-y2: 34%;
+    --ambient-angle: 180deg;
+  }
+
+  33% {
+    --ambient-x1: 20%;
+    --ambient-y1: 14%;
+    --ambient-x2: 82%;
+    --ambient-y2: 48%;
+    --ambient-angle: 196deg;
+  }
+
+  66% {
+    --ambient-x1: 5%;
+    --ambient-y1: 10%;
+    --ambient-x2: 94%;
+    --ambient-y2: 28%;
+    --ambient-angle: 168deg;
+  }
+}
+
 // ===== Base elements =====
 
 html {
@@ -402,10 +461,8 @@ body {
   min-height: 100vh;
   margin: 0;
   color: var(--color-text-primary);
-  background:
-    radial-gradient(circle at 8% 0%, var(--color-ambient-primary), transparent 36%),
-    radial-gradient(circle at 100% 34%, var(--color-ambient-secondary), transparent 34%),
-    linear-gradient(180deg, var(--color-canvas-base) 0%, var(--color-bg-page) 100%);
+
+  @include ambient-canvas;
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -423,6 +480,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   body {
+    animation: none;
     background: var(--color-canvas-base);
   }
 }
