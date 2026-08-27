@@ -18,15 +18,27 @@ import type { ActivityEntry } from './activity-store'
 import { useActivityStore } from './activity-store'
 import type { GameEvent } from './events-store/events-store.types'
 import { getActionById, type BalanceAction } from '@/domain/balance/actions'
-import type { CareerTrackJobItem, EducationProgram } from '@/domain/balance/types'
+import type { CareerTrackJobItem, CharacterTag, EducationProgram } from '@/domain/balance/types'
 import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
 import { GameWorld } from '@/domain/game-world/GameWorld'
 import type { GameWorldJSON, GameWorldSnapshot } from '@/domain/game-world/GameWorld.types'
+import { cloneLifeState, createInitialLifeState } from '@/domain/game-world/life'
+import type { LifeState } from '@/domain/game-world/life'
 import type { DayPlanInput, DayPlanResult, GameEventPayload } from '@/domain/game-world/commands/commands.types'
 import type { DayEndHooks } from '@/domain/game-world/commands'
 import { createLiveDayEndHooks } from '@/domain/game-world/commands'
 import { fromStores, applyToStores } from '@/domain/game-world/bridge'
 import type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
+import { recalculateSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
+import { normalizeSkillLevels } from '@/domain/balance/skills'
+import {
+  cloneMetaProgression,
+  consumeNewGamePlusTransfer,
+  createInitialMetaProgression,
+  normalizeMetaProgression,
+} from '@/domain/meta-progression'
+import type { MetaProgression, NewGamePlusTransfer } from '@/domain/meta-progression'
+import type { SkillEntry } from '@/domain/balance/skills'
 import type { GameMode, GameModeConfig, SyncStatus } from '@/domain/game-mode'
 import {
   createExecutor,
@@ -63,6 +75,9 @@ import type {
 export const useGameStore = defineStore('game', () => {
   const worldVersion: Ref<number> = ref<number>(0)
   const isInitialized: Ref<boolean> = ref<boolean>(true)
+  const life: Ref<LifeState> = ref<LifeState>(createInitialLifeState())
+  const tags: Ref<{ items: CharacterTag[] }> = ref<{ items: CharacterTag[] }>({ items: [] })
+  const meta: Ref<MetaProgression> = ref<MetaProgression>(createInitialMetaProgression())
 
   const time = useTimeStore()
 
@@ -149,9 +164,49 @@ export const useGameStore = defineStore('game', () => {
       finance,
       activity,
       actions,
+      tags: { load: loadTags },
+      meta: { load: loadMeta },
     }
     applyToStores(world, target)
+    life.value = cloneLifeState(world.life)
     worldVersion.value++
+  }
+
+  function loadLife(data: unknown): void {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      life.value = createInitialLifeState()
+      return
+    }
+
+    life.value = cloneLifeState(fromStores({ life: data as Record<string, unknown> }).life!)
+  }
+
+  function loadMeta(data: unknown): void {
+    meta.value = cloneMetaProgression(normalizeMetaProgression(data))
+  }
+
+  function loadTags(data: unknown): void {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      tags.value = { items: [] }
+      return
+    }
+
+    const rawItems: unknown = (data as Record<string, unknown>).items
+
+    if (!Array.isArray(rawItems)) {
+      tags.value = { items: [] }
+      return
+    }
+
+    tags.value = {
+      items: rawItems
+        .filter((value: unknown): value is CharacterTag => {
+          return typeof value === 'object' && value !== null && !Array.isArray(value)
+            && typeof (value as Record<string, unknown>).id === 'string'
+            && typeof (value as Record<string, unknown>).stackable === 'boolean'
+        })
+        .map((value: CharacterTag): CharacterTag => ({ ...value })),
+    }
   }
 
   function syncEventsFromWorld(world: GameWorld): void {
@@ -184,8 +239,11 @@ export const useGameStore = defineStore('game', () => {
       finance,
       activity,
       actions,
+      tags: { load: loadTags },
+      meta: { load: loadMeta },
     }
     applyToStores(world, target)
+    life.value = cloneLifeState(world.life)
     worldVersion.value++
   }
 
@@ -287,6 +345,9 @@ export const useGameStore = defineStore('game', () => {
       finance: finance.save ? finance.save() : {},
       activity: activity.save ? activity.save() : {},
       actions: actions.save ? actions.save() : {},
+      life: cloneLifeState(life.value),
+      meta: cloneMetaProgression(meta.value),
+      tags: { items: tags.value.items.map((tag: CharacterTag) => ({ ...tag })) },
       calendarPlan: calendarPlan.save(),
       playerState: playerState.save(),
       ...prologueStore.save(),
@@ -318,6 +379,15 @@ export const useGameStore = defineStore('game', () => {
 
     if (data?.actions) actions.load?.(data.actions as Record<string, unknown>)
 
+    if (data?.life) loadLife(data.life)
+    else life.value = createInitialLifeState()
+
+    if (data?.meta) loadMeta(data.meta)
+    else meta.value = createInitialMetaProgression()
+
+    if (data?.tags) loadTags(data.tags)
+    else tags.value = { items: [] }
+
     if (data?.calendarPlan) {
       calendarPlan.load(data.calendarPlan as Record<string, unknown>)
     } else if (data?.dayPlanner) {
@@ -339,6 +409,9 @@ export const useGameStore = defineStore('game', () => {
 
   function resetGame(): void {
     time.reset(); stats.reset(); wallet.reset(); skills.reset(); career.reset(); education.reset(); housing.reset(); player.reset(); playerState.reset(); activity.reset(); actions.reset(); events.reset(); finance.reset(); calendarPlan.reset()
+    life.value = createInitialLifeState()
+    meta.value = createInitialMetaProgression()
+    tags.value = { items: [] }
     usePrologueStore().reset()
     offlineQueue?.clear()
     worldVersion.value++
@@ -356,6 +429,48 @@ export const useGameStore = defineStore('game', () => {
 
     executor.resetStateVersion?.()
     syncFromWorld(GameWorld.fromJSON(response.data.state))
+  }
+
+  async function startNewGamePlus(): Promise<void> {
+    if (life.value.status !== 'ended') {
+      throw new Error('New Game+ доступна только после завершения жизни')
+    }
+
+    if (offlineQueue?.hasPending()) {
+      throw new Error('Сначала синхронизируйте ожидающие действия')
+    }
+
+    const previousState: GameWorldJSON = buildWorld().toJSON()
+    const freshState: GameWorldJSON = GameWorld.createEmpty().toJSON()
+    const nextMeta: MetaProgression = normalizeMetaProgression(previousState.meta)
+    const transfer: NewGamePlusTransfer = consumeNewGamePlusTransfer(nextMeta)
+    const inheritedSkills: Record<string, SkillEntry> = normalizeSkillLevels(transfer.skills)
+    const nextState: GameWorldJSON = {
+      ...freshState,
+      player: { ...freshState.player, playerName: previousState.player.playerName },
+      wallet: { ...freshState.wallet, money: transfer.money },
+      skills: {
+        levels: inheritedSkills,
+        modifiers: recalculateSkillModifiers(inheritedSkills),
+      },
+      activity: {
+        ...freshState.activity,
+        lifetime: { ...freshState.activity.lifetime, maxMoney: transfer.money },
+      },
+      meta: nextMeta,
+      tags: previousState.tags
+        ? { items: previousState.tags.items.map(tag => ({ ...tag })) }
+        : freshState.tags,
+    }
+
+    executor.resetStateVersion?.()
+
+    if (gameMode === 'spa') {
+      syncFromWorld(GameWorld.fromJSON(nextState))
+      return
+    }
+
+    await initializeServerSession(nextState, { replace: true })
   }
 
   function canApplyWorkShift(hours: number): CanApplyWorkShiftResult {
@@ -718,6 +833,10 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     worldVersion, worldTick, isInitialized,
+    life: computed(() => life.value),
+    metaProgression: computed(() => meta.value),
+    isLifeEnded: computed(() => life.value.status === 'ended'),
+    lifeSummary: computed(() => life.value.summary),
     playerName: computed(() => player.name),
     welcomeScreenShown: computed(() => player.welcomeScreenShown),
     money: computed(() => wallet.money),
@@ -740,7 +859,7 @@ export const useGameStore = defineStore('game', () => {
     education: computed(() => ({ educationLevel: education.educationLevel, school: education.school, institute: education.institute, cognitiveLoad: education.cognitiveLoad, studyHoursSinceLastSleep: education.studyHoursSinceLastSleep, activeCourses: education.activeEducation ? [education.activeEducation] : [], completedPrograms: education.completedPrograms })),
     housing: computed(() => ({ level: housing.level, comfort: housing.comfort, furniture: housing.furniture })),
     getCareerTrack, getCareerSnapshot, getFinanceSnapshot, getFinanceActions, getActivityLogEntries, getStats: () => ({ energy: stats.energy, health: stats.health, hunger: stats.hunger, stress: stats.stress, mood: stats.mood }),
-     initWorld, save, load, resetGame, resetServerSession, getWorldState: () => buildWorld().toJSON(),
+     initWorld, save, load, resetGame, resetServerSession, startNewGamePlus, getWorldState: () => buildWorld().toJSON(),
     canApplyWorkShift, applyWorkShift, quitCareer, changeCareer,
     canExecuteAction, executeAction, getFinanceOverview, getInvestments, applyRecoveryAction, collectInvestment,
     canStartEducationProgramWithReason, startEducationProgram, advanceEducation,

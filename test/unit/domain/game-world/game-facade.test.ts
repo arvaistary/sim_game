@@ -137,6 +137,18 @@ describe('bridge fromStores', () => {
     expect(world.skills.modifiers.salaryMultiplier).toBeGreaterThanOrEqual(1)
   })
 
+  it('восстанавливает meta-progression из snapshot', () => {
+    const world: GameWorld = fromStores({
+      meta: {
+        livesCompleted: 3,
+        unlockedAchievements: ['first_job'],
+      },
+    })
+
+    expect(world.meta.livesCompleted).toBe(3)
+    expect(world.meta.unlockedAchievements).toEqual(['first_job'])
+  })
+
   it('толерантен к частичным snapshots (использует дефолты)', () => {
     const partial: StoresSnapshot = {
       player: { name: 'Партик', currentAge: 19 },
@@ -147,6 +159,12 @@ describe('bridge fromStores', () => {
     expect(world.player.startAge).toBe(18)
     expect(world.wallet.money).toBe(0)
     expect(world.career.currentJob.employed).toBe(false)
+  })
+
+  it('не принимает неполный ended life snapshot', () => {
+    const world: GameWorld = fromStores({ life: { status: 'ended', deathCause: 'illness' } })
+
+    expect(world.life).toEqual({ status: 'active', lowMoodDays: 0, deathCause: null, summary: null })
   })
 })
 
@@ -179,6 +197,16 @@ describe('bridge applyToStores', () => {
     }
 
     expect(() => applyToStores(world, stores)).not.toThrow()
+  })
+
+  it('пушит meta-progression в отдельный store', () => {
+    const world: GameWorld = createEmptyWorld()
+    world.meta.livesCompleted = 2
+
+    let received: Record<string, unknown> | undefined
+    applyToStores(world, { meta: { load: (data) => { received = data } } })
+
+    expect(received?.livesCompleted).toBe(2)
   })
 })
 

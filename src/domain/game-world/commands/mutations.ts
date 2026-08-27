@@ -5,6 +5,8 @@
  * при работе с GameWorld напрямую. Не импортируют Pinia — только GameWorld.
  */
 import type { GameWorld } from '@/domain/game-world/GameWorld'
+import { advanceLifeDay, buildLifeSummary } from '@/domain/game-world/life'
+import type { DeathCause, LifeState } from '@/domain/game-world/life'
 import type { ActivityEntry, GameWorldSnapshot, SkillLevels } from '@/domain/game-world/GameWorld.types'
 import { recalculateSkillModifiers, createBaseSkillModifiers } from '@/domain/balance/constants/skill-modifiers'
 import type { SkillModifiers } from '@/domain/balance/types'
@@ -16,6 +18,7 @@ import {
   getXpForLevel,
 } from '@/domain/balance/skills'
 import { clampStatValue } from '@/domain/balance/constants/stat-limits'
+import { recordCompletedLife } from '@/domain/meta-progression'
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
@@ -141,6 +144,46 @@ export function advanceHours(world: GameWorld, hours: number, actionType: 'sleep
   }
 }
 
+/**
+ * Завершить жизнь с фиксированной причиной и итоговым снимком.
+ * @description [Domain] - идемпотентно переводит aggregate в terminal state.
+ * @param world изменяемый мир
+ * @param deathCause причина смерти
+ * @return { void }
+ */
+export function endLife(world: GameWorld, deathCause: DeathCause): void {
+  if (world.life.status === 'ended') return
+
+  world.life.status = 'ended'
+  world.life.deathCause = deathCause
+  world.life.summary = buildLifeSummary(world, deathCause)
+  recordCompletedLife(world.meta, world.life.summary, world.activity.lifetime.totalEvents)
+}
+
+/**
+ * Обработать один завершённый игровой день для жизненного цикла.
+ * @description [Domain] - обновляет streak депрессии и при необходимости фиксирует Game Over.
+ * @param world изменяемый мир
+ * @param accidentTriggered внешний триггер аварии
+ * @return { void }
+ */
+export function recordLifeDay(world: GameWorld, accidentTriggered: boolean = false): void {
+  if (world.life.status === 'ended') return
+
+  const nextState: LifeState = advanceLifeDay(world.life, {
+    currentAge: world.player.currentAge,
+    health: world.stats.health,
+    mood: world.stats.mood,
+    energy: world.stats.energy,
+    stress: world.stats.stress,
+    lowMoodDays: world.life.lowMoodDays,
+    accidentTriggered,
+  })
+
+  world.life.lowMoodDays = nextState.lowMoodDays
+
+  if (nextState.deathCause !== null) endLife(world, nextState.deathCause)
+}
 /**
  * Применить изменения навыков (XP-based).
  * @description [Domain] - мутирует world.skills.levels, пересчитывает modifiers.

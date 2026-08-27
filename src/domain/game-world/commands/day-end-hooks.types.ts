@@ -12,4 +12,5 @@ export interface DayEndHooks {
   onMonthEnd(world: GameWorld): void
   onYearEnd(world: GameWorld): void
   onAgeChanged(world: GameWorld, context: AgeChangeContext): void
+  shouldTriggerAccident?(world: GameWorld, crossedYearBoundary: boolean): boolean
 }

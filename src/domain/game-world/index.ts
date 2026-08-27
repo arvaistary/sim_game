@@ -15,3 +15,5 @@ export type {
 export { fromStores, applyToStores } from './bridge'
 export type { StoresLoadTarget, StoresSnapshot } from './bridge'
 export * from './commands/index'
+export * from './life'
+export * from '@/domain/meta-progression'

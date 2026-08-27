@@ -19,6 +19,9 @@ export interface StoresSnapshot {
   finance?: Record<string, unknown>
   activity?: Record<string, unknown>
   actions?: Record<string, unknown>
+  tags?: Record<string, unknown>
+  meta?: Record<string, unknown>
+  life?: Record<string, unknown>
 }
 
 /**
@@ -38,4 +41,7 @@ export interface StoresLoadTarget {
   finance?: { load?: (data: Record<string, unknown>) => void }
   activity?: { load?: (data: Record<string, unknown>) => void }
   actions?: { load?: (data: Record<string, unknown>) => void }
+  tags?: { load?: (data: Record<string, unknown>) => void }
+  meta?: { load?: (data: Record<string, unknown>) => void }
+  life?: { load?: (data: Record<string, unknown>) => void }
 }

@@ -27,6 +27,7 @@ import type { CommandOutcome, ExecuteActionCommandResult } from './index.types'
 import type { ServerExecutorOptions } from './server-executor.types'
 import { DEFAULT_SERVER_EXECUTOR_OPTIONS } from './server-executor.types'
 import { EDUCATION_PROGRAMS } from '@/domain/balance/constants/education-programs'
+import { BALANCE_CONSTANTS } from '@/domain/balance/utils/hourly-rates'
 
 /**
  * Создать ServerExecutor, вызывающий Nitro API.
@@ -90,9 +91,10 @@ export function createServerExecutor(
     async planDay(_world: GameWorld | null, plan: DayPlanInput): Promise<DayPlanResult> {
       const beforeResponse: ContractGameStateResponse<GameWorldJSON> = await fetchApi<ContractGameStateResponse<GameWorldJSON>>(`${base}/api/game/state`)
       const before: GameWorld = GameWorld.fromJSON(beforeResponse.state)
-      const validation: DayPlanResult = planDayCommand(GameWorld.fromJSON(before.toJSON()), plan)
+      const validationWorld: GameWorld = GameWorld.fromJSON(before.toJSON())
+      const validation: DayPlanResult = planDayCommand(validationWorld, plan)
 
-      if (!validation.success) return validation
+      if (!validation.success && validationWorld.life.status !== 'ended') return validation
 
       const sleepAction: BalanceAction | undefined = getAllActions().find(
         (action: BalanceAction) => action.actionType === 'sleep' && action.hourCost === plan.sleepHours,
@@ -137,48 +139,58 @@ export function createServerExecutor(
       const dayEndHours: number = startTotalHours + (startTotalHours % 24 === 0 && startTotalHours > 0 ? 24 : before.time.dayHoursRemaining)
       const remainingIdleHours: number = Math.max(0, dayEndHours - working.time.totalHours)
       let idleHours: number = 0
+      const endDay: number = Math.floor(dayEndHours / BALANCE_CONSTANTS.HOURS_PER_DAY)
+      const crossedYearBoundary: boolean = Math.floor(endDay / 365) !== Math.floor(startTotalHours / 24 / 365)
+      const validationLifeEnded: boolean = validationWorld.life.status === 'ended'
+      const accidentTriggered: boolean = dayEndHooks.shouldTriggerAccident?.(working, crossedYearBoundary) ?? false
+      let closeDayCommandSucceeded: boolean = remainingIdleHours === 0 && !validationLifeEnded && !accidentTriggered
 
-      if (remainingIdleHours > 0) {
+      if (remainingIdleHours > 0 || validationLifeEnded || accidentTriggered) {
         const response: SyncResponse<GameWorldJSON> = await sendCommand<SyncResponse<GameWorldJSON>>(`${base}/api/game/sync`, {
           method: 'POST',
-          body: { actions: [{ type: 'time', payload: { hours: remainingIdleHours }, timestamp: Date.now() }] },
+          body: { actions: [{ type: 'time', payload: { hours: remainingIdleHours, closeDay: true, accidentTriggered }, timestamp: Date.now() }] },
         }, true)
         const success: boolean = response.failed === 0
+        closeDayCommandSucceeded = success
         working = GameWorld.fromJSON(response.state)
         idleHours = success ? remainingIdleHours : 0
-        steps.push({ kind: 'idle', success, message: success ? 'Остаток дня прошёл спокойно' : (response.errors?.[0]?.message ?? 'Остаток дня не прошёл'), hoursSpent: idleHours })
+
+        if (remainingIdleHours > 0) {
+          steps.push({ kind: 'idle', success, message: success ? (working.life.status === 'ended' ? 'Игра завершена' : 'Остаток дня прошёл спокойно') : (response.errors?.[0]?.message ?? 'Остаток дня не прошёл'), hoursSpent: idleHours })
+        }
       }
 
-      const didCloseDay: boolean = working.time.totalHours === dayEndHours
-      const endDay: number = Math.floor(working.time.totalHours / 24)
-      const crossedWeekBoundary: boolean = Math.floor(endDay / 7) !== Math.floor(startTotalHours / 24 / 7)
-      const crossedMonthBoundary: boolean = Math.floor(endDay / 30) !== Math.floor(startTotalHours / 24 / 30)
-      const crossedYearBoundary: boolean = Math.floor(endDay / 365) !== Math.floor(startTotalHours / 24 / 365)
+      const didCloseDay: boolean = closeDayCommandSucceeded && working.time.totalHours === dayEndHours
+      const actualEndDay: number = Math.floor(working.time.totalHours / 24)
+      const crossedWeekBoundary: boolean = Math.floor(actualEndDay / 7) !== Math.floor(startTotalHours / 24 / 7)
+      const crossedMonthBoundary: boolean = Math.floor(actualEndDay / 30) !== Math.floor(startTotalHours / 24 / 30)
+      const actualCrossedYearBoundary: boolean = Math.floor(actualEndDay / 365) !== Math.floor(startTotalHours / 24 / 365)
       const ageChanged: boolean = working.player.currentAge !== before.player.currentAge
+      const lifeEnded: boolean = working.life.status === 'ended'
       const result: DayPlanResult = {
-        success: didCloseDay,
-        message: didCloseDay ? 'День завершён' : 'Не удалось закрыть день',
+        success: didCloseDay && !lifeEnded,
+        message: lifeEnded ? 'Игра завершена' : (didCloseDay ? 'День завершён' : 'Не удалось закрыть день'),
         steps,
         statChanges,
         moneyDelta,
         plannedHours: validation.plannedHours,
         idleHours,
         totalHoursSpent: working.time.totalHours - startTotalHours,
-        dayNumber: endDay,
+        dayNumber: actualEndDay,
         crossedWeekBoundary,
         crossedMonthBoundary,
-        crossedYearBoundary,
+        crossedYearBoundary: actualCrossedYearBoundary,
         ageChanged,
       }
 
-      if (didCloseDay) {
+      if (didCloseDay && !lifeEnded) {
         dayEndHooks.onDayEnd(working, result)
 
         if (crossedWeekBoundary) dayEndHooks.onWeekEnd(working)
 
         if (crossedMonthBoundary) dayEndHooks.onMonthEnd(working)
 
-        if (crossedYearBoundary) dayEndHooks.onYearEnd(working)
+        if (actualCrossedYearBoundary) dayEndHooks.onYearEnd(working)
 
         if (ageChanged) {
           dayEndHooks.onAgeChanged(working, {
@@ -194,10 +206,10 @@ export function createServerExecutor(
             method: 'POST',
             body: {
               actions: [{
-                commandId: `day_end_hooks_${endDay}`,
+                commandId: `day_end_hooks_${actualEndDay}`,
                 type: 'day_end_hooks',
                 payload: {
-                  dayNumber: endDay,
+                  dayNumber: actualEndDay,
                   events: hookSnapshot.events,
                   wallet: hookSnapshot.wallet,
                   finance: hookSnapshot.finance,

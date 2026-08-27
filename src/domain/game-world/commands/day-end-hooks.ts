@@ -33,6 +33,7 @@ export function createNoopDayEndHooks(): DayEndHooks {
  */
 export function createLiveDayEndHooks(rng: RandomSource): DayEndHooks {
   return {
+    shouldTriggerAccident: (_world, crossedYearBoundary) => crossedYearBoundary && rng.next() < 0.015,
     onDayEnd: (world, dayResult) => {
       rollWorkEvent(world, rng, { dayResult })
       rollMicroEvents(world, rng, { dayResult })

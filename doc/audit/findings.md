@@ -304,3 +304,31 @@ Append findings; do not rewrite history. Keep original evidence when a fix is ap
 - Pattern: None
 - Notes: Documentation-only finding; no runtime data is affected by this review.
 - Post-fix verification: Core and task-flow now resolve the history directory through the project adapter; the portable scan finds no hard-coded `task-history/` path, validators pass, and all relative links resolve.
+
+## Post-fix updates — 2026-08-27
+
+- `AUD-20260827-007`: Status `Fixed`. Server day-close now applies `recordLifeDay` in the persisted `time` command, including terminal age transitions; `GameCommandExecutor` also recalculates age after every successful command. Covered by `test/unit/application/game/server-executor.test.ts` and `test/unit/domain/game-command-executor.test.ts`.
+- `AUD-20260827-008`: Status `Fixed`. `startNewGamePlus()` now rejects active lives before any reset or session replacement. Manual UI/store verification remains part of the next QA pass.
+- `AUD-20260827-009`: Status `Open`. The terminal-state guard is fixed, but the documented transfer of money, skills, achievements, and revealed knowledge still has no backing aggregate. A product decision is required before implementing or disabling that contract.
+- `AUD-20260827-010`: Status `Fixed`. `normalizeLifeState()` accepts an ended life only with a valid cause and complete matching summary; malformed terminal snapshots fall back to an active recoverable state. Covered by `test/unit/domain/game-world/game-facade.test.ts`; direct probe returns the active initial state.
+- `AUD-20260827-011`: Status `Fixed`. Live hooks now roll a 1.5% yearly accident trigger and pass it through SPA and server day closure, including zero-idle days. Covered by `life-integration.test.ts` and `server-executor.test.ts`.
+- `AUD-20260827-012`: Status `Fixed`. The inclusive 30-day boundary is covered for 29/30/31 days; both death-system GDD copies now say `30 дней`.
+- `AUD-20260827-009`: Status `Fixed for current scope`. `MetaProgression` now stores life statistics and pending New Game+ transfer; New Game+ consumes 15% money and up to two half-level skills while preserving global achievement/knowledge lists. Selection UI and runtime producers remain explicitly out of scope and are documented as future work. Manual UI/store verification is still pending.
+
+### AUD-20260827-016 — Integrity validator has no repository baseline artifacts
+
+- Severity: P2
+- Status: Open
+- Area: Audit infrastructure
+- Location: `scripts/integrity-audit/validate.ts`; expected `specs/003-project-integrity-audit/{baseline.md,audit-matrix.md,findings.md,gate-runs.md,closure-report.md}`
+- Found in task: Repeat audit before commit on 2026-08-27
+- Symptom: `npm run audit:integrity:validate` exits with missing-artifact errors and `baseline.repositoryRevision is required`.
+- Reproduction: Run `npm run audit:integrity:validate` from the repository root.
+- Expected: The integrity gate validates the current repository against a committed baseline.
+- Actual: The configured baseline directory and all five required artifacts are absent; the gate cannot evaluate integrity.
+- Impact: The repository-wide integrity gate remains unavailable as evidence for this commit.
+- Root cause: Baseline artifacts were not provisioned in the repository or the validator target is not configured for this checkout.
+- Fix: Provision the canonical baseline artifacts or point the validator at an existing committed baseline in a separate audit-infrastructure task.
+- Verification: `npm run audit:integrity:validate` exits 0 and reports a valid `repositoryRevision`.
+- Pattern: None
+- Notes: Pre-existing tooling limitation; no placeholder artifacts were created during this task.

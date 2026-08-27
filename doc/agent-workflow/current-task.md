@@ -1,21 +1,20 @@
 # Текущее состояние задачи
 
-### TASK-20260827-001 — Добавить память и состояние задачи в workflow
+### TASK-20260827-002 — Добавить meta-progression модель
 
-- Status: Closed
-- Phase: Close
+- Status: Active
+- Phase: Manual QA
 - Last updated: 2026-08-27
-- Goal: Добавить видимый файловый механизм памяти, состояния задачи и восстановления после сжатия контекста или аварийной остановки.
-- Acceptance criteria: Переносимый шаблон состояния существует; core описывает память, checkpoint и resume; task-flow обновляет состояние; проектный адаптер задаёт пути состояния и истории; validator проверяет шаблон; portable package не содержит правил конкретного проекта.
-- Non-goals: Автоматические commit и push; скрытая или векторная память; состояние приложения.
-- Baseline: Workflow содержит журналы решений, findings и recurring patterns, но не имеет активного состояния задачи и протокола передачи работы.
-- Decisions: Использовать видимый Markdown-файл, путь к которому задаёт проектный адаптер; отдельный навык передачи работы пока не добавлять.
-- Assumptions: В общей рабочей директории одновременно ведётся одна активная задача.
-- Changed files: `agent-workflow/templates/task-state.md`; `agent-workflow/layers/core.md`; `agent-workflow/skills/task-flow/SKILL.md`; `agent-workflow/layers/project.template.md`; `agent-workflow/layers/AGENTS.template.md`; `agent-workflow/README.md`; `agent-workflow/scripts/validate.py`; `doc/agent-workflow/project.md`; `doc/agent-workflow/current-task.md`; `doc/audit/findings.md`; `AGENTS.md`.
-- Checks completed: `python agent-workflow/scripts/validate.py` — exit 0; `python scripts/validate.py .` из `agent-workflow` — exit 0; `npm run rules:audit:changed` — 24/24 passed; relative Markdown links — 23 files passed; state transition contract — passed; unfinished-placeholder scan for skills — no matches; portable package boundary scan — no project-specific references or hard-coded history path; checkpoint archive integrity — passed; closed-state check — passed; `git diff --check` — exit 0. Typecheck, tests, lint and build were not run because this task changed workflow documentation and validation only; existing application changes remain outside scope.
-- Known failures: None
-- Manual QA: Пользователь подтвердил ручную проверку 2026-08-27; audit findings AUD-20260827-013, AUD-20260827-014 and AUD-20260827-015 fixed and verified.
+- Goal: Добавить отдельную domain-модель meta-progression для долговременной статистики игрока, количества завершённых жизней и данных New Game+.
+- Acceptance criteria: `MetaProgression` имеет безопасные defaults/normalization/clone; состояние сериализуется в `GameWorld` и Pinia/server persistence; завершённая жизнь обновляет мета-статистику; New Game+ переносит заявленные мета-данные; полный reset очищает мета-состояние; тесты и проверки проходят.
+- Non-goals: UI выбора достижений/навыков; runtime-производители достижений и knowledge; отдельная БД-схема.
+- Baseline: `GameWorld` уже хранит `LifeState`; `endLife` строит итог жизни; New Game+ переносит только имя и tags; persistence сохраняет generic JSON aggregate. Проверки перед задачей: tests 478 passed, typecheck/lint/build/rules audit/validator passed.
+- Decisions: Отдельный модуль `src/domain/meta-progression`; persisted как optional-compatible `GameWorld` slice. Текущий New Game+ transfer: 15% денег из итоговой жизни и до двух навыков на половине уровня; это тестовый временный baseline, не финальное продуктовое правило. Глобальные achievements/knowledge сохраняются. Нормальный reset создаёт initial meta state.
+- Assumptions: Текущий baseline оставлен до отдельной проверки баланса; итоговая New Game+ не должна давать сильного преимущества и должна поддерживать реалистичный тон. Кандидат для будущей системы — место рождения/происхождение с умеренным влиянием на стартовые деньги, инвентарь и навыки.
+- Changed files: `src/domain/meta-progression/*`; `src/domain/game-world/GameWorld.ts`; `src/domain/game-world/GameWorld.types.ts`; `src/domain/game-world/bridge.ts`; `src/domain/game-world/bridge.types.ts`; `src/domain/game-world/life/life-summary.ts`; `src/domain/game-world/commands/mutations.ts`; `src/domain/game-world/index.ts`; `src/domain/index.ts`; `src/stores/game.store.ts`; tests; GDD/status/roadmap docs.
+- Checks completed: `npm test` — 93 files passed, 483 tests passed, 2 skipped, 5 todo; `npm run test:architecture` — passed; `npm run lint` — passed; `npm run lint:style` — passed; `npm run typecheck` — passed; `npm run rules:audit:changed` — 37/37 passed; `python agent-workflow/scripts/validate.py` — passed; `npm run build` — passed with known Nuxt sourcemap/chunk/deprecation warnings; `git diff --check` — passed.
+- Known failures: `npm run audit:integrity:validate` is blocked by the repository baseline: `specs/003-project-integrity-audit` and its five required artifacts are absent; no fake baseline artifacts were added. Browser/manual QA was not executable because no browser adapter is available in this environment; life completion/reload, New Game+ transfer and full reset remain pending user verification.
+- Manual QA: Pending user verification: life completion/reload, New Game+ transfer and counter, full reset, SPA/server persistence.
 - Verification mode: native-shell-ok
-- Next action: Closed
-- Handoff notes: При прерывании прочитать этот файл, затем проверить `git status` и diff перед продолжением.
-- History: `doc/agent-workflow/task-history/TASK-20260827-001.md` после закрытия
+- Next action: Выполнить ручную проверку завершения жизни/перезагрузки, New Game+ transfer и полного reset; затем закрыть задачу.
+- Handoff notes: Code review чистый; текущая реализация зафиксирована commit `feat(game): add meta-progression lifecycle`. Сохранить `.codex/config.toml` вне git. Старые workflow-изменения относятся к закрытой `TASK-20260827-001`.

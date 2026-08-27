@@ -41,6 +41,14 @@ export default defineNuxtRouteMiddleware((to) => {
     return
   }
 
+  if (gameStore.isLifeEnded && to.path !== '/game/end') {
+    return navigateTo('/game/end')
+  }
+
+  if (to.path === '/game/end' && !gameStore.isLifeEnded) {
+    return navigateTo('/game')
+  }
+
   const { isTabVisible } = useAgeRestrictions()
 
   const routeEntry = Object.entries(ROUTE_MAP).find(([_, path]) => path === to.path)

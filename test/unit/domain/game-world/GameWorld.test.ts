@@ -160,6 +160,8 @@ describe('GameWorld serialization', () => {
 
   it('round-trip toJSON → fromJSON сохраняет все поля', () => {
     const original: GameWorld = new GameWorld(buildSampleSnapshot())
+    original.meta.livesCompleted = 2
+    original.meta.unlockedAchievements.push('first_job')
     const json: GameWorldJSON = original.toJSON()
     const restored: GameWorld = GameWorld.fromJSON(json)
 
@@ -176,6 +178,7 @@ describe('GameWorld serialization', () => {
     expect(restored.events).toEqual(original.events)
     expect(restored.activity).toEqual(original.activity)
     expect(restored.tags).toEqual(original.tags)
+    expect(restored.meta).toEqual(original.meta)
   })
 
   it('toJSON не делится ссылками с world (immutable snapshot)', () => {
@@ -228,6 +231,7 @@ describe('GameWorld.createEmpty', () => {
     expect(world.skills.modifiers.salaryMultiplier).toBe(1)
     expect(world.relationships).toHaveLength(0)
     expect(world.activity.entries).toHaveLength(0)
+    expect(world.meta.livesCompleted).toBe(0)
   })
 
   it('принимает partial overrides', () => {

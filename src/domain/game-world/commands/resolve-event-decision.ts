@@ -18,6 +18,7 @@ import {  addEventActivityEntry,
   applyStatChanges,
   applyStatChangesRaw,
   endCareerWork,
+  endLife,
   getSkillLevel,
 } from './mutations'
 import type { StatChanges } from '@/domain/balance/types'
@@ -47,6 +48,10 @@ export function resolveEventDecisionCommand(
   event: GameEventPayload | null,
   choiceId: string,
 ): ResolveEventResult {
+  if (world.life.status === 'ended') {
+    return { success: false, message: 'Игра завершена' }
+  }
+
   if (!event) {
     return { success: false, message: 'Нет события' }
   }
@@ -103,6 +108,10 @@ export function resolveEventDecisionCommand(
   addEventActivityEntry(world, event.title, choice.text, choice.outcome)
 
   completePendingEventResolution(world, event, choiceId, choice.text, choice.effects)
+
+  if (world.stats.health <= 0) {
+    endLife(world, 'illness')
+  }
 
   return {    success: true,
     message: choice.outcome || 'Выбор применён',
