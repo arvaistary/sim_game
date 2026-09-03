@@ -106,3 +106,13 @@ pwsh -NoProfile -File scripts/seed-github-backlog.ps1
 ```
 
 Скрипт идемпотентен **не является**: повторный запуск создаст дубликаты issues. Используйте только при первичной настройке или после очистки беклога.
+
+### Sub-issues из аудита документации
+
+```powershell
+pwsh -NoProfile -File scripts/seed-github-subtasks.ps1
+```
+
+Создаёт sub-issues с `--parent` для epic #11–#31, три дополнительных epic (#32–#34) и их subtasks. Отчёт аудита: `doc/audit/backlog-sync-2026-09-03.md`.
+
+Повторный запуск также создаёт дубликаты.
