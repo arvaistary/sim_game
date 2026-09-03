@@ -1,0 +1,180 @@
+{
+  "newEpics": [
+    {
+      "title": "[P1] Server-first production cutover",
+      "labels": "P1,enhancement",
+      "body": "## Источник\n`doc/SERVER_MIGRATION.md` (Phases A–G, Definition of Done)\n\n## Scope\n- Единый `GameApplicationService` для всех handlers\n- Инвентаризация команд UI → server endpoints\n- `GameCommandEnvelope`, async client path, hybrid mode\n- CSRF/reset-logout, contract + SPA/server parity tests\n- Удаление legacy: `SPAExecutor`, `bridge.ts`, Nitro compatibility layer\n\n## Связь\nШире, чем #29 (Vercel smoke); блокирует production authority.\n\n## Audit\nНе покрыто ROADMAP §4.1 alone."
+    },
+    {
+      "title": "[P2] Figma-to-app screen parity",
+      "labels": "P2,enhancement",
+      "body": "## Источник\n`doc/audits/figma-vs-app-gaps.md`\n\n## Scope\n- Work page: career track 4 steps + vacancy grid\n- Topbar theme switch\n- Education tab copy/CTA\n- Finance card set\n- Second-pass visual QA (GAP-015, 033–036)\n\n## Связь\nЧастично пересекается с #21, #26, #28."
+    },
+    {
+      "title": "[P2] Redis operational layer",
+      "labels": "P2,enhancement",
+      "body": "## Источник\n`doc/SERVER_MIGRATION.md` §5–6, `doc/adr/0006-durable-game-state-persistence.md`\n\n## Scope\n- Cache, distributed locks, rate limits для production\n- PostgreSQL persistence готов; Redis отложен в ADR\n\n## Связь\nДополняет #29/#30, не входил в ROADMAP seed."
+    }
+  ],
+  "subtasks": {
+    "11": [
+      ["Модификаторы продолжительности жизни", "`doc/GDD/modules/06_death_system.md` §7.1 — здоровье, комфорт, семья"],
+      ["New Game+ баланс по GDD", "10–20% денег, 1–2 навыка; убрать сильное преимущество (`05_save_system.md` §6.4)"],
+      ["UI выбора New Game+ transfer", "Выбор достижения и навыка (AUD-009 residual)"],
+      ["Runtime producers достижений и knowledge", "Unlock hooks во время игры (AUD-009)"],
+      ["Система происхождения для NG+", "Умеренное влияние на стартовые деньги/инвентарь/навыки"],
+      ["Экспорт итога жизни", "Изображение, портрет, QR-код"]
+    ],
+    "12": [
+      ["Domain-модель отношений 0–100", "Шкала и persistence в GameWorld"],
+      ["Социальные действия и последствия", "Действия категории social + effects"],
+      ["Романтические отношения", "Состояния и переходы"],
+      ["Поиск партнёра", "Gameplay loop поиска"],
+      ["Система друзей", "NPC/контакты и влияние на настроение"]
+    ],
+    "13": [
+      ["Брак и развод", "События и последствия для финансов/настроения"],
+      ["Рождение и возраст детей", "Состояние детей в GameWorld"],
+      ["Воспитание", "Действия и влияние на навыки/шкалы"],
+      ["Влияние семьи на персонажа", "Комфорт, расходы, события"]
+    ],
+    "14": [
+      ["Побочный заработок", "Доход от хобби"],
+      ["Мини-игры хобби", "Интерактивные активности"],
+      ["Интеграция хобби с экономикой", "Время, деньги, навыки, события"]
+    ],
+    "15": [
+      ["Проверка условий достижений", "Runtime unlock hooks"],
+      ["UI экрана достижений", "Страница/модал достижений"],
+      ["Бонусы и уведомления", "Toast/награды за unlock"],
+      ["Локальный leaderboard", "Мета-статистика между жизнями"]
+    ],
+    "16": [
+      ["Календарь сезонов", "Модель сезона в domain"],
+      ["Праздничные события", "GDD `11_seasonal.md` §12.1"],
+      ["Временные экономические события", "Скидки, бонусные недели (§12.3)"]
+    ],
+    "17": [
+      ["Магазин транспорта", "Покупка ТС, влияние на время/деньги"],
+      ["Промежуточные состояния здоровья", "Болезни beyond health=0 Game Over"],
+      ["Связь транспорта и здоровья", "Работа, действия, события"]
+    ],
+    "18": [
+      ["Контент 25 событий GDD", "Дополнить JSON контент"],
+      ["Рабочие и childhood follow-up", "Age hooks + work events"],
+      ["Micro chance modifiers", "risk/skill/state"],
+      ["События по профессиям", "Отдельные пулы per job"]
+    ],
+    "19": [
+      ["Инвестиционные продукты", "Несколько типов вложений"],
+      ["Цели накопления", "Savings goals UI + domain"],
+      ["Долги и кредиты", "Давление и погашение"],
+      ["Экстренные финансовые события", "Sudden expense/income events"]
+    ],
+    "20": [
+      ["Визуальные уровни жилья", "UI улучшений"],
+      ["Долгосрочная аренда", "Контракты и платежи"],
+      ["Смена уровня жилья", "Upgrade/downgrade flow"],
+      ["Влияние соседей", "Комфорт и события"]
+    ],
+    "21": [
+      ["Покупки → possessions", "`playerState.possessions` sync"],
+      ["Компьютер для интернет-поиска работы", "Gate на job search"],
+      ["Магазин: категории и checkout", "learning/things/home"],
+      ["Карьера + инвентарь + work events", "Связка систем"],
+      ["Work page Figma layout", "`figma-vs-app-gaps.md` — career track + vacancy grid"]
+    ],
+    "22": [
+      ["Единая модель часового бюджета", "`15_calendar_planner.md` §15.12 — prerequisite"],
+      ["Каталог /game/plan", "Добавление в любой день"],
+      ["Предупреждения и блокировка прогона", "Soft warnings + hard stop"],
+      ["copyDay и редактирование остатка", "Копирование плана дня"],
+      ["Очередь событий между днями", "Event queue in period run"],
+      ["Прогноз шкал и deficit states", "§15.4–15.5 deterministic forecast"]
+    ],
+    "23": [
+      ["Освоение 7/21/40 дней", "Mastery streaks §15.6"],
+      ["Монотонность действий", "Intra-day penalties §15.7"],
+      ["Локации и синергия маршрута", "§15.8"],
+      ["История и сводка периода", "§15.10"],
+      ["Мобильная подача", "Свайп, bottom sheet"]
+    ],
+    "24": [
+      ["learningMethod в каталоге действий", "Разметка всех actions"],
+      ["Устранить конфликт потолков 10/1000", "Единая шкала прогресса"],
+      ["Нелинейная XP в действиях", "Модель из `16_skill_depth.md`"],
+      ["Миграция ~311 actions skillChanges", "§16.9.6 data migration"],
+      ["Деградация, синергии, capstones", "§§16.3–16.6"],
+      ["Балансировка после телеметрии", "Post-telemetry pass"]
+    ],
+    "25": [
+      ["Визуальное старение", "Этапы жизни в UI"],
+      ["Цели и мотивация", "Goal system"],
+      ["Недельный и месячный отчёты", "Reports + calendar link"]
+    ],
+    "26": [
+      ["Unlock recruitment agency", "Gameplay gate"],
+      ["E2E: поиск работы → увольнение", "Full job search flow"],
+      ["Пролог: microbeat/MatchPairs", "`prologue-audit-2026-08-15.md`"],
+      ["Пролог: manual QA matrix", "Uni, refresh/resume, adult-start, 5× compact"],
+      ["Checkout/инвентарь edge cases", "Корзина, empty states"],
+      ["Figma GAP-015, 033–036", "Deferred visual gaps"]
+    ],
+    "27": [
+      ["Stores → true projections", "Pinia только projection"],
+      ["Удалить bridge.ts и legacy.ts", "После server-mode stable"],
+      ["GameApplicationService", "`SERVER_MIGRATION.md` §3"],
+      ["Command inventory + contract tests", "SPA/server parity matrix"],
+      ["E2E основных user flows", "Playwright/critical paths"],
+      ["Integrity audit baseline (AUD-016)", "`specs/003-project-integrity-audit/*`"]
+    ],
+    "28": [
+      ["Accent + Glass Foundation", "DESIGN_SYSTEM §13"],
+      ["Миграция raw colors (ADR-0008)", "Feature-local status colors"],
+      ["Ui* component migration", "Audit/rename primitives"],
+      ["SettingsPage.vue", "Настройки + appearance"],
+      ["Звук и музыка", "Audio layer"],
+      ["Figma visual QA second pass", "Отложенные GAP верификации"]
+    ],
+    "29": [
+      ["Main-only Vercel deploy", "`VERCEL_GIT_WORKFLOW.md`"],
+      ["PostgreSQL 10-session smoke", "Persistence + `/ready`"],
+      ["CSRF + reset/logout", "SERVER_MIGRATION §8–9"],
+      ["Cross-origin cookie/CORS", "Split client/API deploy"],
+      ["Rollback rehearsal + runbook", "Document results"]
+    ],
+    "30": [
+      ["CI/CD pipeline", "Automated checks on push"],
+      ["Sentry error tracking", "Production errors"],
+      ["Analytics", "Usage metrics"],
+      ["Performance monitoring", "Runtime metrics"],
+      ["audit:integrity:validate в CI", "После AUD-016 baseline"]
+    ],
+    "31": [
+      ["Яндекс.Игры SDK", "Platform integration"],
+      ["VK Play SDK", "Platform integration"],
+      ["PWA / offline SPA build", "`build:client` path"]
+    ]
+  },
+  "newEpicSubtasks": {
+    "32": [
+      ["GameApplicationService для handlers", "SERVER_MIGRATION §3"],
+      ["Инвентаризация UI → server commands", "§2 exit criterion"],
+      ["GameCommandEnvelope + async client", "Unified command path"],
+      ["Удаление SPAExecutor и bridge", "Legacy removal"],
+      ["Contract + parity tests", "§10 test matrix"]
+    ],
+    "33": [
+      ["Work page parity", "Career track + vacancy grid"],
+      ["Topbar theme switch", "48×24 control"],
+      ["Education tab copy/CTA", "Figma copy alignment"],
+      ["Finance cards parity", "Card set layout"],
+      ["Second-pass GAP verification", "015, 033–036"]
+    ],
+    "34": [
+      ["Redis cache layer", "Session/cache design"],
+      ["Distributed locks", "Command concurrency"],
+      ["Rate limiting", "API protection"]
+    ]
+  }
+}
