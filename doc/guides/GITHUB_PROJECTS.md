@@ -96,3 +96,13 @@ npm run gh -- issue close <NUMBER> --repo arvaistary/sim_game
 ## Следующий шаг
 
 Перевыпустить `GH_TOKEN` и `GH_TOKEN_CLASSIC`, обновить `.env`, снова выполнить `npm run gh:verify`.
+
+## Беклог из документации
+
+Задачи из `doc/core/ROADMAP.md` можно один раз засеять в канбан:
+
+```powershell
+pwsh -NoProfile -File scripts/seed-github-backlog.ps1
+```
+
+Скрипт идемпотентен **не является**: повторный запуск создаст дубликаты issues. Используйте только при первичной настройке или после очистки беклога.
