@@ -4,6 +4,8 @@ import { createLiveDayEndHooks, advanceHours  } from '@/domain/game-world/comman
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Mock } from 'vitest'
 import { GameWorld } from '@/domain/game-world/GameWorld'
+import { GameCommandExecutor } from '@/domain/game-command-executor'
+import type { GameCommandExecution, PersistedGameCommand } from '@/domain/game-command-executor.types'
 
 import { createServerExecutor } from '@/application/game/server-executor'
 import type { GameWorldJSON } from '@/domain/game-world/GameWorld.types'
@@ -209,5 +211,84 @@ describe('server executor day plan', () => {
     expect((hooksPayload?.events as GameWorldJSON['events']).pending.length).toBeGreaterThan(0)
     expect(hooksPayload?.dayNumber).toBe(1)
     expect(hooksCommandId).toBe('day_end_hooks_1')
+  })
+
+  it('persists a yearly accident when actions already fill the day', async () => {
+    const before: GameWorld = GameWorld.createEmpty()
+    before.time.totalHours = 364 * 24
+    const afterPlan: GameWorld = GameWorld.fromJSON(before.toJSON())
+    advanceHours(afterPlan, 24, 'idle')
+    afterPlan.player.currentAge = 19
+    let working: GameWorld = before
+    let syncCalls: number = 0
+    const commandExecutor: GameCommandExecutor = new GameCommandExecutor()
+
+    fetchMock.mockImplementation(async (url: string, options?: { body?: Record<string, unknown> }) => {
+      if (url.endsWith('/api/game/state')) {
+        return { success: true, data: { state: before.toJSON(), stateVersion: 0 } }
+      }
+
+      syncCalls += 1
+
+      if (syncCalls === 1) {
+        working = afterPlan
+        return successSyncResponse(afterPlan.toJSON(), syncCalls)
+      }
+
+      const body: Record<string, unknown> = options?.body ?? {}
+      const actions: unknown[] = body.actions as unknown[]
+      const command: PersistedGameCommand = actions[0] as PersistedGameCommand
+      const execution: GameCommandExecution = commandExecutor.execute(working.toJSON(), command)
+
+      if (execution.result.success) working = GameWorld.fromJSON(execution.state)
+
+      return successSyncResponse(working.toJSON(), syncCalls)
+    })
+
+    const result: DayPlanResult = await createServerExecutor({
+      baseUrl: '',
+      dayEndHooks: createLiveDayEndHooks(createFakeRandomSource([0])),
+    }).planDay(null, { sleepHours: 7, actionIds: [] })
+
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('Игра завершена')
+    expect(syncCalls).toBe(2)
+    expect(working.life.status).toBe('ended')
+    expect(working.life.deathCause).toBe('accident')
+  })
+
+  it('persists a terminal life when the server closes a day at max age', async () => {
+    const before: GameWorld = GameWorld.createEmpty()
+    before.player.startAge = 89
+    before.player.currentAge = 89
+    before.time.totalHours = 364 * 24
+    let working: GameWorld = before
+    let syncCalls: number = 0
+    const commandExecutor: GameCommandExecutor = new GameCommandExecutor()
+
+    fetchMock.mockImplementation(async (url: string, options?: { body?: Record<string, unknown> }) => {
+      if (url.endsWith('/api/game/state')) {
+        return { success: true, data: { state: before.toJSON(), stateVersion: 0 } }
+      }
+
+      syncCalls += 1
+      const body: Record<string, unknown> = options?.body ?? {}
+      const actions: unknown[] = body.actions as unknown[]
+      const command: PersistedGameCommand = actions[0] as PersistedGameCommand
+      const execution: GameCommandExecution = commandExecutor.execute(working.toJSON(), command)
+
+      if (execution.result.success) working = GameWorld.fromJSON(execution.state)
+
+      return successSyncResponse(working.toJSON(), syncCalls)
+    })
+
+    const result: DayPlanResult = await createServerExecutor().planDay(null, { sleepHours: 0, actionIds: [] })
+
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('Игра завершена')
+    expect(syncCalls).toBe(1)
+    expect(working.life.status).toBe('ended')
+    expect(working.life.deathCause).toBe('natural_old_age')
+    expect(working.life.summary?.deathCause).toBe('natural_old_age')
   })
 })

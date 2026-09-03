@@ -19,6 +19,8 @@ import { applyStatChangesRaw, earnMoney, advanceHours, addWorkActivityEntry } fr
  * @return { WorkShiftResult } результат с заработанной суммой
  */
 export function simulateWorkShiftCommand(world: GameWorld, hours: number): WorkShiftResult {
+  if (world.life.status === 'ended') return { success: false, message: 'Игра завершена', earnedAmount: 0, hoursWorked: 0 }
+
   const job: GameWorldSnapshot['career']['currentJob'] = world.career.currentJob
 
   if (!job.employed) {

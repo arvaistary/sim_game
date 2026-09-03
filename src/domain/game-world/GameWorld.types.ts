@@ -18,6 +18,8 @@ import type {
 } from '@/domain/balance/constants/default-save'
 import type { CharacterTag, SkillModifiers } from '@/domain/balance/types'
 import type { SkillEntry } from '@/domain/balance/skills'
+import type { MetaProgression } from '@/domain/meta-progression'
+import type { LifeState } from './life/life.types'
 
 /** Снимок навыков: key → достигнутый уровень и накопленный опыт. */
 export type SkillLevels = Record<string, SkillEntry>
@@ -88,6 +90,8 @@ export interface GameWorldSnapshot {
   }
   actionUsage?: Record<string, ActionUsageEntry>
   tags?: { items: CharacterTag[] }
+  meta?: MetaProgression
+  life?: LifeState
 }
 
 /** JSON-форма для сериализации. Совпадает со snapshot + version для schema evolution. */

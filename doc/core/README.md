@@ -57,9 +57,9 @@
 - **COMPOSABLES_REFERENCE.md** — справочник Vue composables
 - **STORES_REFERENCE.md** — справочник Pinia stores
 
-### Spec-kit (`doc/spec-kit/`)
+### Agent workflow (`agent-workflow/`)
 
-Workflow для постановки задач: spec → plan → tasks. См. [`spec-kit/README.md`](../spec-kit/README.md).
+Переносимый разговорный workflow и его слои находятся в [`../../agent-workflow/README.md`](../../agent-workflow/README.md). Адаптеры Game Life — в [`../agent-workflow/README.md`](../agent-workflow/README.md).
 
 ## Запуск проекта
 

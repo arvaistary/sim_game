@@ -8,7 +8,7 @@ import { createNoopDayEndHooks } from './day-end-hooks'
 import type { DayPlanInput, DayPlanResult, DayPlanStepResult, ExecuteActionResult, WorkShiftResult } from './commands.types'
 import { executeActionCommand } from './execute-action'
 import { simulateWorkShiftCommand } from './simulate-work-shift'
-import { advanceHours } from './mutations'
+import { advanceHours, endLife, recordLifeDay } from './mutations'
 
 const DAYS_PER_MONTH: number = 30
 const DAYS_PER_YEAR: number = 365
@@ -122,7 +122,12 @@ export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayE
 
   const blockingReason: string | null = getPlanBlockingReason(world.stats)
 
-  if (blockingReason !== null) return emptyResult(world, blockingReason, plannedHours)
+  if (world.life.status === 'ended') return emptyResult(world, 'Игра завершена', plannedHours)
+
+  if (blockingReason !== null) {
+    if (world.stats.health <= 0) endLife(world, 'illness')
+    return emptyResult(world, blockingReason, plannedHours)
+  }
 
   const result: DayPlanResult = {
     success: true,
@@ -203,6 +208,15 @@ export function planDayCommand(world: GameWorld, plan: DayPlanInput, hooks: DayE
   result.crossedYearBoundary = endYear !== startYear
   world.player.currentAge = world.player.startAge + endYear
   result.ageChanged = world.player.currentAge !== startAge
+
+  const accidentTriggered: boolean = hooks.shouldTriggerAccident?.(world, result.crossedYearBoundary) ?? false
+  recordLifeDay(world, accidentTriggered)
+
+  if (world.life.deathCause !== null) {
+    result.success = false
+    result.message = 'Игра завершена'
+    return result
+  }
 
   hooks.onDayEnd(world, result)
 

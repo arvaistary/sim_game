@@ -32,6 +32,8 @@ import {
  * @return { ExecuteActionResult } результат с breakdown
  */
 export function executeActionCommand(world: GameWorld, actionId: string): ExecuteActionResult {
+  if (world.life.status === 'ended') return { success: false, message: 'Игра завершена' }
+
   const action: BalanceAction | null = getActionById(actionId)
 
   if (!action) {

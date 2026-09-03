@@ -18,6 +18,7 @@ import {
   applyStatChangesRaw,
   advanceHours,
   applyDayEndHookEffects,
+  recordLifeDay,
 } from './game-world/commands'
 import type { GameEventPayload } from './game-world/commands/commands.types'
 import { findPendingEventPayload } from './game-world/pending-event'
@@ -41,10 +42,14 @@ export class GameCommandExecutor {
         result: { success: false, message: error instanceof Error ? error.message : 'Invalid command payload' },
       }
     }
+
+    world.player.currentAge = world.player.startAge + Math.floor(world.time.totalHours / (365 * 24))
     return { state: world.toJSON(), result }
   }
 
   private executeOnWorld(world: GameWorld, command: PersistedGameCommand): PersistedCommandResult {
+    if (world.life.status === 'ended') return { success: false, message: 'Игра завершена' }
+
     switch (command.type) {
       case 'action':
         return executeActionCommand(world, stringValue(command.payload.actionId, 'actionId'))
@@ -58,10 +63,21 @@ export class GameCommandExecutor {
         return this.executeFinance(world, command.payload)
       case 'education':
         return this.executeEducation(world, command.payload)
-      case 'time':
-        advanceHours(world, numberValue(command.payload.hours, 'hours'), 'idle')
+      case 'time': {
+        const hours: number = command.payload.closeDay === true
+          ? nonNegativeNumber(command.payload.hours, 'hours')
+          : numberValue(command.payload.hours, 'hours')
+        advanceHours(world, hours, 'idle')
         world.player.currentAge = world.player.startAge + Math.floor(world.time.totalHours / (365 * 24))
+
+        if (command.payload.closeDay === true) {
+          recordLifeDay(world, command.payload.accidentTriggered === true)
+
+          const lifeEnded: boolean = world.toJSON().life?.status === 'ended'
+          return { success: true, message: lifeEnded ? 'Игра завершена' : 'Время прошло' }
+        }
         return { success: true, message: 'Время прошло' }
+      }
       case 'day_end_hooks':
         return this.executeDayEndHooks(world, command.payload)
       default:
@@ -333,6 +349,11 @@ function stringValue(value: unknown, field: string): string {
 
 function numberValue(value: unknown, field: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) throw new Error(`Invalid ${field}`)
+  return value
+}
+
+function nonNegativeNumber(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new Error(`Invalid ${field}`)
   return value
 }
 

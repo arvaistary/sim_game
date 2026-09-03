@@ -194,6 +194,24 @@ describe('GameCommandExecutor', () => {
     expect(result.state.player.currentAge).toBe(19)
   })
 
+  it('persists a terminal life when a server day-close time command reaches max age', () => {
+    const world: GameWorld = GameWorld.createEmpty()
+    world.player.startAge = 89
+    world.player.currentAge = 89
+    world.time.totalHours = 364 * 24
+
+    const result: GameCommandExecution = executor.execute(world.toJSON(), {
+      type: 'time',
+      payload: { hours: 24, closeDay: true },
+    })
+
+    expect(result.result).toEqual({ success: true, message: 'Игра завершена' })
+    expect(result.state.player.currentAge).toBe(90)
+    expect(result.state.life?.status).toBe('ended')
+    expect(result.state.life?.deathCause).toBe('natural_old_age')
+    expect(result.state.life?.summary?.deathCause).toBe('natural_old_age')
+  })
+
   it('supports career quit, finance settlement and education advance subcommands', () => {
     const started: GameCommandExecution = executor.execute(GameWorld.createEmpty().toJSON(), {
       type: 'education',

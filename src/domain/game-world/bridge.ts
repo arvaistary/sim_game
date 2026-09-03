@@ -17,6 +17,9 @@ import { INITIAL_STATS } from '@/domain/balance/constants/initial-stats'
 import type { SkillModifiers } from '@/domain/balance/types'
 import { normalizeSkillLevels } from '@/domain/balance/skills'
 import type { SkillEntry, SkillLevelInput } from '@/domain/balance/skills'
+import { normalizeLifeState } from '@/domain/game-world/life'
+import type { LifeState } from '@/domain/game-world/life'
+import { normalizeMetaProgression } from '@/domain/meta-progression'
 
 export type { StoresLoadTarget, StoresSnapshot } from '@/domain/game-world/bridge.types'
 
@@ -68,6 +71,9 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
   const finance: Record<string, unknown> = stores.finance ?? {}
   const activity: Record<string, unknown> = stores.activity ?? {}
   const actions: Record<string, unknown> = stores.actions ?? {}
+  const tagsRaw: Record<string, unknown> = stores.tags ?? {}
+  const metaRaw: Record<string, unknown> = stores.meta ?? {}
+  const life: Record<string, unknown> = stores.life ?? {}
 
   const rawSkills: Record<string, SkillLevelInput> = (skillsRaw.skills ?? {}) as Record<string, SkillLevelInput>
   const skillsLevels: Record<string, SkillEntry> = normalizeSkillLevels(rawSkills)
@@ -135,7 +141,9 @@ export function fromStores(stores: StoresSnapshot): GameWorld {
     events: normalizeEventsStoreSnapshot(events),
     activity: normalizeActivityStoreSnapshot(activity),
     actionUsage: normalizeActionUsageSnapshot(actions),
-    tags: { items: [] },
+    tags: normalizeTagsSnapshot(tagsRaw),
+    meta: normalizeMetaProgression(metaRaw),
+    life: normalizeLifeSnapshot(life),
   }
 
   return new GameWorld(snapshot)
@@ -208,6 +216,25 @@ function normalizeEventsStoreSnapshot(events: Record<string, unknown>): GameWorl
   }
 }
 
+function normalizeTagsSnapshot(tags: Record<string, unknown>): NonNullable<GameWorldSnapshot['tags']> {
+  const rawItems: unknown = tags.items
+
+  if (!Array.isArray(rawItems)) return { items: [] }
+
+  return {
+    items: rawItems
+      .filter((value: unknown): value is Record<string, unknown> => {
+        return typeof value === 'object' && value !== null && !Array.isArray(value)
+          && typeof (value as Record<string, unknown>).id === 'string'
+          && typeof (value as Record<string, unknown>).stackable === 'boolean'
+      })
+      .map((value: Record<string, unknown>) => ({ ...value })) as unknown as NonNullable<GameWorldSnapshot['tags']>['items'],
+  }
+}
+
+function normalizeLifeSnapshot(life: Record<string, unknown>): LifeState {
+  return normalizeLifeState(life)
+}
 /**
  * Адаптер activity-store snapshot → GameWorldSnapshot['activity'].
  * activity-store сохраняет { entries, nextId }, lifetime может отсутствовать.
@@ -315,5 +342,17 @@ export function applyToStores(world: GameWorld, stores: StoresLoadTarget): void 
 
   if (stores.actions?.load) {
     stores.actions.load({ actionUsage: snapshot.actionUsage ?? {} })
+  }
+
+  if (stores.tags?.load && snapshot.tags) {
+    stores.tags.load(snapshot.tags as unknown as Record<string, unknown>)
+  }
+
+  if (stores.meta?.load && snapshot.meta) {
+    stores.meta.load(snapshot.meta as unknown as Record<string, unknown>)
+  }
+
+  if (stores.life?.load && snapshot.life) {
+    stores.life.load(snapshot.life as unknown as Record<string, unknown>)
   }
 }

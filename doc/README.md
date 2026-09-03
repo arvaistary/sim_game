@@ -74,17 +74,15 @@ doc/
 │   ├── COMPOSABLES_REFERENCE.md       # Справочник Vue composables
 │   └── STORES_REFERENCE.md            # Справочник Pinia stores
 │
-├── spec-kit/                          # Spec-kit workflow и шаблоны
-│   ├── README.md                      # Описание процесса
-│   ├── ADOPTION_CHECKLIST.md          # Чеклист внедрения
-│   ├── CURSOR_RULES_BRIDGE.md         # Маппинг project rules → Spec-kit
-│   ├── templates/                     # Шаблоны spec/plan/tasks
-│   └── specs/                         # Описание формата; рабочие файлы локальны
+├── agent-workflow/                    # Game Life adapters для переносимого workflow
+│   ├── README.md                      # Подключение workflow к проекту
+│   ├── technology.md                  # Технологический слой
+│   └── project.md                     # Проектный слой
 │
 └── adr/                               # Архитектурные решения
 ```
 
-Рабочие планы и Spec-kit артефакты: активный backlog — [`doc/new-plans/`](./new-plans/); локально — `specs/`, `doc/plans/`, `doc/spec-kit/specs/`, `.cursor/plans/`.
+Рабочие планы и временные заметки: активный backlog — [`doc/new-plans/`](./new-plans/); локально — `doc/plans/` и `.cursor/plans/`.
 Граница Git/local описана в [`WORKING_DOCUMENTS.md`](./WORKING_DOCUMENTS.md).
 
 ## Режимы работы (Server-First Migration)
@@ -150,7 +148,7 @@ ADR → [`adr/`](./adr/) (Architecture Decision Records)
 ### Хочу добавить новую функцию
 1. Проверьте [`GDD/GDD.md`](./GDD/GDD.md) — возможно, это уже описано
 2. Изучите [`core/IMPLEMENTATION_STATUS.md`](./core/IMPLEMENTATION_STATUS.md)
-3. Создайте Spec-kit артефакты локально в `specs/` по шаблонам [`spec-kit/templates/`](./spec-kit/templates/)
+3. Следуйте [Agent workflow](../agent-workflow/README.md) и его Game Life adapters
 4. Следуйте архитектуре проекта: `domain → application → infrastructure → stores/composables → components → pages`
 5. Проверьте `npm run typecheck` и `npm run rules:audit`
 
@@ -225,9 +223,9 @@ ADR → [`adr/`](./adr/) (Architecture Decision Records)
 
 2. **Соблюдайте структуру**
    - Используйте существующие папки и файлы
-   - Промежуточные и завершенные work items → локальная папка `../specs/`
+   - Промежуточные планы → локальная папка `../doc/plans/`
    - Новые ADR → `adr/`
-   - Новые планы → через Spec-kit workflow в `.cursor/plans/`
+   - Workflow-изменения → `../agent-workflow/` и соответствующий adapter
 
 3. **Кросс-ссылки**
    - Обновляйте ссылки в других файлах при переименовании

@@ -13,7 +13,7 @@
 - **🚀 Git/Vercel workflow** → [`doc/guides/VERCEL_GIT_WORKFLOW.md`](doc/guides/VERCEL_GIT_WORKFLOW.md)
 - **🎮 Геймдизайн** → [`doc/GDD/GDD.md`](doc/GDD/GDD.md)
 - **⚙️ Архитектурные решения** → [`doc/adr/`](doc/adr/)
-- **🧩 Spec-kit workflow** → [`doc/spec-kit/README.md`](doc/spec-kit/README.md)
+- **🤖 Agent workflow** → [`agent-workflow/README.md`](agent-workflow/README.md)
 
 ## Технологический стек
 

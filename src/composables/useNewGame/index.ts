@@ -9,6 +9,18 @@ export function useNewGame() {
 
   const toast = useToast()
 
+  async function startNewGamePlus(): Promise<void> {
+    try {
+      await gameStore.startNewGamePlus()
+    } catch (error) {
+      toast.showError(error instanceof Error ? error.message : 'Не удалось начать New Game+')
+      return
+    }
+
+    $autoSave.clear()
+    await navigateTo('/game')
+  }
+
   async function startNewGame(): Promise<void> {
     try {
       await gameStore.resetServerSession()
@@ -24,5 +36,6 @@ export function useNewGame() {
 
   return {
     startNewGame,
+    startNewGamePlus,
   }
 }

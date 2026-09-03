@@ -28,6 +28,14 @@ import { createBaseSkillModifiers } from '@/domain/balance/constants/skill-modif
 import { INITIAL_STATS } from '@/domain/balance/constants/initial-stats'
 import { normalizeSkillLevels } from '@/domain/balance/skills'
 import type { CharacterTag, SkillModifiers } from '@/domain/balance/types'
+import { cloneLifeState, createInitialLifeState, normalizeLifeState } from './life'
+import type { LifeState } from './life'
+import {
+  cloneMetaProgression,
+  createInitialMetaProgression,
+  normalizeMetaProgression,
+} from '@/domain/meta-progression'
+import type { MetaProgression } from '@/domain/meta-progression'
 
 export class GameWorld {
   private readonly _player: PlayerSlice
@@ -44,6 +52,8 @@ export class GameWorld {
   private readonly _activity: { entries: ActivityEntry[]; lifetime: LifetimeStatsData }
   private readonly _actionUsage: NonNullable<GameWorldSnapshot['actionUsage']>
   private readonly _tags: { items: CharacterTag[] }
+  private readonly _meta: MetaProgression
+  private readonly _life: LifeState
 
   constructor(snapshot: GameWorldSnapshot) {
     this._player = { ...snapshot.player }
@@ -83,6 +93,8 @@ export class GameWorld {
     this._tags = {
       items: snapshot.tags ? snapshot.tags.items.map((tag: CharacterTag) => ({ ...tag })) : [],
     }
+    this._meta = cloneMetaProgression(normalizeMetaProgression(snapshot.meta))
+    this._life = cloneLifeState(normalizeLifeState(snapshot.life))
   }
 
   get player(): PlayerSlice {
@@ -141,6 +153,14 @@ export class GameWorld {
     return this._tags
   }
 
+  get meta(): MetaProgression {
+    return this._meta
+  }
+
+  get life(): LifeState {
+    return this._life
+  }
+
   toJSON(): GameWorldJSON {
     return {
       version: GAME_WORLD_VERSION,
@@ -179,6 +199,8 @@ export class GameWorld {
         Object.entries(this._actionUsage).map(([actionId, usage]) => [actionId, { ...usage }]),
       ),
       tags: { items: this._tags.items.map((tag: CharacterTag) => ({ ...tag })) },
+      meta: cloneMetaProgression(this._meta),
+      life: cloneLifeState(this._life),
     }
   }
 
@@ -217,6 +239,8 @@ export class GameWorld {
       },
       actionUsage: json.actionUsage ?? {},
       tags: json.tags ? { items: json.tags.items.map((tag: CharacterTag) => ({ ...tag })) } : undefined,
+      meta: json.meta,
+      life: json.life,
     }
     return new GameWorld(snapshot)
   }
@@ -313,6 +337,8 @@ export class GameWorld {
       },
       actionUsage: {},
       tags: { items: [] },
+      meta: createInitialMetaProgression(),
+      life: createInitialLifeState(),
     }
 
     const merged: GameWorldSnapshot = { ...base, ...initial }
