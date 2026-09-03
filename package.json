@@ -48,6 +48,8 @@
     "typecheck:packages": "tsc --noEmit --ignoreConfig --strict --target ES2022 --module ESNext --moduleResolution bundler packages/contracts/src/index.ts packages/domain/src/index.ts packages/application/src/index.ts",
     "typecheck:standalone-server": "tsc --noEmit --project tsconfig.server.json",
     "typecheck:watch": "nuxt typecheck --watch",
+    "gh": "pwsh -NoProfile -File scripts/gh.ps1",
+    "gh:verify": "npm run gh -- auth status",
     "prepare": "husky"
   },
   "lint-staged": {
